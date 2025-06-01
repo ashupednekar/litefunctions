@@ -26,3 +26,4 @@ uuid = { version = "1.12.1", features = ["v4"] }
 redis = { version = "0.28.2", features = ["tokio-comp"] }
 humantime = "2.1.0"
 standard-error = { version = "0.1.9", features = ["sqlx"] }
+async-nats = "0.41.0"

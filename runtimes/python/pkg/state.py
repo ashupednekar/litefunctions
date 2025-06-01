@@ -11,6 +11,7 @@ from .conf import settings
 
 @dataclass
 class AppState:
+    prefix: str
     js: JetStreamContext
     engine: AsyncEngine
     redis: ConnectionPool
@@ -26,7 +27,7 @@ class AppState:
             loop.create_task(self.js._nc.close())
         else:
             loop.run_until_complete(self.js._nc.close())
-        
+
 
 async def get_jetstream() -> JetStreamContext:
     nc: Client = await nats.connect(settings.nats_broker_url)

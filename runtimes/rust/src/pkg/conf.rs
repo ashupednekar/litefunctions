@@ -4,9 +4,13 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct Settings {
+    pub project: String,
+    pub environment: String,
+
     pub listen_port: String,
     pub database_url: String,
     pub redis_url: String,
+    pub nats_broker_url: String,
     //otel
     pub otlp_host: Option<String>,
     pub otlp_port: Option<String>,
