@@ -1,6 +1,5 @@
-use crate::{prelude::Result, pkg::state::AppState};
+use crate::{pkg::state::AppState, prelude::Result};
 
-
-pub async fn handler(state: AppState) -> Result<Vec<u8>>{
+pub async fn handler(state: AppState, req_id: Option<&str>) -> Result<Vec<u8>> {
     Ok("".into())
 }
