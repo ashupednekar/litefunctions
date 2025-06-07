@@ -1,0 +1,30 @@
+FROM rust AS builder
+
+WORKDIR /app
+COPY . .
+
+ARG GIT_TOKEN
+ARG GIT_USER=lwsrepos
+ARG PROJECT
+ARG NAME 
+
+RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
+RUN echo "errors: []" > errors.yaml
+
+RUN echo "building function: $NAME from project: $PROJECT" && \
+    cat src/pkg/function.rs && \
+    cargo build --release 
+
+FROM gcr.io/distroless/cc-debian12:nonroot
+
+COPY --from=builder /app/target/release/function /
+WORKDIR /
+
+ARG PROJECT
+ARG NAME 
+ENV PROJECT $PROJECT
+ENV NAME $NAME
+
+USER nonroot
+
+CMD ["/function", "listen"]
