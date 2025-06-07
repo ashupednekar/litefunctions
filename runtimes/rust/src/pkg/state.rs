@@ -17,8 +17,8 @@ impl AppState {
         let db_pool = Arc::new(PgPool::connect(&settings.database_url).await?);
         let redis_client = Arc::new(Client::open(settings.redis_url.as_str()).map_err(|_|StandardError::new("ERR-REDIS-CONN"))?);
         let nc = connect(&settings.nats_broker_url).await.map_err(|_| StandardError::new("ERR-NATS_CONN"))?;
-        let stream_name = format!("{}-{}", settings.project, settings.environment);
-        let subject = format!("{}.{}", settings.project, settings.environment);
+        let stream_name = format!("{}-{}", settings.project, settings.name);
+        let subject = format!("{}.{}", settings.project, settings.name);
         let js = Arc::new(jetstream::new(nc).get_or_create_stream(jetstream::stream::Config {
             name: stream_name.clone(),
             subjects: vec![subject.clone()],

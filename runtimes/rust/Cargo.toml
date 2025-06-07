@@ -1,5 +1,5 @@
 [package]
-name = "rust"
+name = "function"
 version = "0.1.0"
 edition = "2024"
 
@@ -25,5 +25,6 @@ chrono = { version = "0.4.39", features = ["serde"] }
 uuid = { version = "1.12.1", features = ["v4"] }
 redis = { version = "0.28.2", features = ["tokio-comp"] }
 humantime = "2.1.0"
-standard-error = { version = "0.1.9", features = ["sqlx"] }
-async-nats = "0.41.0"
+standard-error = { version = "0.1.9", features = ["sqlx"]}
+async-nats = "0.37.0"
+futures = "0.3.31"
