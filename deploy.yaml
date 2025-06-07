@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: runtime
+  name: runtime
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: runtime
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: runtime
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - image: ghcr.io/lwsrepos/runtime:rs
+        imagePullPolicy: Always
+        name: runtime
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: essentials-pguser-essentials
+              key: pgbouncer-uri
+        - name: REDIS_URL
+          value: redis://essentials-redis-cluster.essentials.svc:6379
+        - name: NATS_BROKER_URL
+          value: nats://essentials-nats.essentials.svc:4222
+        resources: {}
+status: {}
