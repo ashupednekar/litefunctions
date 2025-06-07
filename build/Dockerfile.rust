@@ -9,7 +9,7 @@ ARG PROJECT
 ARG NAME 
 
 RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
-RUN echo "errors: []" > errors.yaml
+RUN echo "errors: []"
 
 RUN echo "building function: $NAME from project: $PROJECT" && \
     cat src/pkg/function.rs && \
@@ -22,8 +22,10 @@ WORKDIR /
 
 ARG PROJECT
 ARG NAME 
-ENV PROJECT $PROJECT
-ENV NAME $NAME
+ENV PROJECT=$PROJECT
+ENV NAME=$NAME
+ENV RUST_LOG=debug,async_nats=info,h2=info,tower_http=info
+ENV USE_TELEMETRY=false
 
 USER nonroot
 
