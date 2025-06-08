@@ -7,21 +7,18 @@ ARG NAME
 
 RUN apt update -y && apt install -y \
     libgit2-dev \
-    curl 
-
-# Copy libgit2 for distroless
-RUN mkdir -p /libgit2 && \
-    cp /usr/lib/x86_64-linux-gnu/libgit2.so.* /libgit2/
+    curl \
+ && mkdir -p /libgit2 \
+ && find /usr/lib -name 'libgit2.so.*' -exec cp {} /libgit2/ \;
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 RUN curl -H "Authorization: Bearer $GIT_TOKEN" \
     https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/py/$NAME.py \
     -o pkg/functions/$NAME.py
-
 # ---
 
 FROM gcr.io/distroless/python3-debian12:nonroot
