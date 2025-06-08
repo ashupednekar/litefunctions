@@ -4,7 +4,6 @@ from nats.aio.client import Client
 from nats.js import JetStreamContext
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from redis.asyncio import Redis, RedisCluster, ConnectionPool
-import asyncio
 import nats
 
 from .conf import settings
