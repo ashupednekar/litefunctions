@@ -70,6 +70,11 @@ spec:
             secretKeyRef:
               name: essentials-pguser-essentials
               key: pgbouncer-uri
+        - name: GIT_TOKEN 
+          valueFrom:
+            secretKeyRef:
+              name: git-secret 
+              key: git_token
         - name: REDIS_URL
           value: redis://essentials-redis-cluster.essentials.svc:6379
         - name: NATS_BROKER_URL
