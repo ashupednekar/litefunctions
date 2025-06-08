@@ -1,3 +1,4 @@
+asyncpg==0.30.0
 SQLAlchemy==2.0.41
 pydantic==2.7.4
 nats-py==2.10.0

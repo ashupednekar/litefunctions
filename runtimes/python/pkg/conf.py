@@ -6,8 +6,11 @@ class Settings(BaseSettings):
 
     nats_broker_url: str
 
+    git_user: str
+    git_token: str
+
     database_url: str
-    db_pool_size: str
+    db_pool_size: int
     db_max_overflow: str
     db_pool_timeout: str
     db_pool_recycle: str
