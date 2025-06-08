@@ -3,3 +3,4 @@ SQLAlchemy==2.0.41
 pydantic==2.7.4
 nats-py==2.10.0
 redis==6.2.0
+pygit2==1.18.0

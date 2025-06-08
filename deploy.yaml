@@ -4,25 +4,27 @@ metadata:
   creationTimestamp: null
   labels:
     app: runtime
-  name: runtime
+    lang: rust
+  name: runtime-rs
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: runtime
+      lang: rust
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: runtime
+        lang: rust
     spec:
       imagePullSecrets:
       - name: ghcr-secret
       containers:
       - image: ghcr.io/lwsrepos/runtime:rs
         imagePullPolicy: Always
-        name: runtime
+        name: runtime-rs
         env:
         - name: DATABASE_URL
           valueFrom:
@@ -33,5 +35,42 @@ spec:
           value: redis://essentials-redis-cluster.essentials.svc:6379
         - name: NATS_BROKER_URL
           value: nats://essentials-nats.essentials.svc:4222
-        resources: {}
-status: {}
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: runtime
+    lang: python
+  name: runtime-py
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: runtime
+      lang: python
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: runtime
+        lang: python
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - image: ghcr.io/lwsrepos/runtime:py
+        imagePullPolicy: Always
+        name: runtime-py
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: essentials-pguser-essentials
+              key: pgbouncer-uri
+        - name: REDIS_URL
+          value: redis://essentials-redis-cluster.essentials.svc:6379
+        - name: NATS_BROKER_URL
+          value: nats://essentials-nats.essentials.svc:4222

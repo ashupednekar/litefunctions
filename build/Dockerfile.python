@@ -1,0 +1,46 @@
+FROM python:3.12-slim AS builder
+
+ARG GIT_TOKEN
+ARG GIT_USER=lwsrepos
+ARG PROJECT
+ARG NAME
+
+RUN apt update -y && apt install -y \
+    libgit2-dev \
+    curl 
+
+# Copy libgit2 for distroless
+RUN mkdir -p /libgit2 && \
+    cp /usr/lib/x86_64-linux-gnu/libgit2.so.* /libgit2/
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+COPY . .
+RUN curl -H "Authorization: Bearer $GIT_TOKEN" \
+    https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/py/$NAME.py \
+    -o pkg/functions/$NAME.py
+
+# ---
+
+FROM gcr.io/distroless/python3-debian12:nonroot
+WORKDIR /app
+
+ARG PROJECT
+ARG NAME
+
+ENV PROJECT=$PROJECT
+ENV NAME=$NAME
+ENV RUST_LOG=debug,async_nats=info,h2=info,tower_http=info
+ENV USE_TELEMETRY=false
+ENV DB_POOL_SIZE=5
+ENV DB_MAX_OVERFLOW=10
+ENV DB_POOL_TIMEOUT=30
+ENV DB_POOL_RECYCLE=1800
+
+COPY --from=builder /install /usr/local
+COPY --from=builder /app /app
+COPY --from=builder /libgit2 /usr/lib/
+
+ENTRYPOINT ["python3", "main.py"]
