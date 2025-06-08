@@ -12,12 +12,13 @@ from .conf import settings
 @dataclass
 class AppState:
     prefix: str
+    nc: Client
     js: JetStreamContext
     engine: AsyncEngine
     redis: ConnectionPool
 
     def __init__(self) -> None:
-        self.js = get_jetstream()
+        self.nc, self.js = get_jetstream()
         self.engine = get_db_engine()
         self.redis = get_redis_pool()
 
@@ -29,14 +30,14 @@ class AppState:
             loop.run_until_complete(self.js._nc.close())
 
 
-async def get_jetstream() -> JetStreamContext:
+async def get_jetstream() -> tuple[Client, JetStreamContext]:
     nc: Client = await nats.connect(settings.nats_broker_url)
     js: JetStreamContext = nc.jetstream()
     js.add_stream(
-        name=f"{settings.project}-{settings.environment}",
-        subjects=[f"{settings.project}.{settings.environment}.exec.*"],
+        name=settings.project,
+        subjects=[f"{settings.project}.>"],
     )
-    return js
+    return nc, js
 
 
 async def get_db_engine() -> AsyncEngine:

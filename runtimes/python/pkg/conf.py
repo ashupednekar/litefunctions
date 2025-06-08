@@ -3,7 +3,6 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     project: str
-    environment: str
 
     nats_broker_url: str
 
