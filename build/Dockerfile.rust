@@ -7,7 +7,6 @@ ARG GIT_USER=lwsrepos
 ARG PROJECT
 ARG NAME 
 
-
 COPY . .
 #RUN mkdir -p src/pkg && echo "fn main(){}" > src/main.rs && 
 RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
