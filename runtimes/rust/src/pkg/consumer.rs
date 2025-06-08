@@ -1,8 +1,7 @@
-use std::{pin::Pin, time::Duration};
+use std::pin::Pin;
 
-use async_nats::jetstream::{self, consumer::PullConsumer, consumer::pull::Stream};
+use async_nats::jetstream::{self, consumer::PullConsumer};
 use futures::StreamExt;
-use standard_error::StandardError;
 
 use super::{conf::settings, state::AppState};
 use crate::{
@@ -14,11 +13,11 @@ type BoxedConsumer<'a> = Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
 
 fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
     Box::pin(async move {
-        let mut msgs = consumer.messages().await.map_err(natserr)?;
         let state = state.clone(); //ok, cuz it's a bunch of arcs
         tracing::debug!("waiting for messages...");
-        while let Some(Ok(msg)) = msgs.next().await{
-            tracing::info!("received event ");
+        while let Some(Ok(msg)) = consumer.messages().await.map_err(natserr)?.next().await {
+            tracing::debug!("received event");
+            msg.ack().await.map_err(natserr)?;
             if let Some(req_id) = msg.subject.split(".").last() {
                 tracing::debug!("request id: {}", &req_id);
                 let res: Vec<u8> = handler(state.clone(), Some(req_id)).await?;
@@ -35,7 +34,6 @@ fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
                     .await
                     .map_err(natserr)?;
             }
-            msg.ack().await.map_err(natserr)?;
         } 
         Ok(())
     })
@@ -62,4 +60,21 @@ pub async fn start_function() -> Result<()> {
         .map_err(natserr)?;
     consume(state, &consumer).await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests{
+    use std::sync::Arc;
+
+    use standard_error::StandardError;
+    use tracing_test::traced_test;
+
+    use super::*;
+
+    #[traced_test]
+    #[tokio::test]
+    async fn test_consume() -> Result<()>{
+        start_function().await?;
+        Ok(())
+    }
 }
