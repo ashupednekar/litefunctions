@@ -15,8 +15,8 @@ type Settings struct{
 	RedisUrl string `env:"REDIS_URL"`
 	NatsBrokerUrl string `env:"NATS_BROKER_URL"`
 
-	OtlpHost *string  `env:"OTLP_HOST"`
-	OtlpPort *string `env:"OTLP_PORT"`
+	OtlpHost string  `env:"OTLP_HOST"`
+	OtlpPort string `env:"OTLP_PORT"`
 	UseTelemetry bool `env:"USE_TELEMETRY"`
 }
 
@@ -26,12 +26,13 @@ var (
 )
 
 func LoadSettings() *Settings {
+	settings := Settings{}	
 	once.Do(func() {
 		err := env.Load(&settings, nil)
 		if err != nil {
 			fmt.Printf("%s", err)
 		}
 	})
-	return settings
+	return &settings
 }
 
