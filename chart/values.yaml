@@ -1,0 +1,37 @@
+nats:
+  enabled: true
+  jetstream:
+    enabled: true
+  cluster:
+    enabled: true
+  replicaCount: 5 
+  auth:
+    enabled: false
+  persistence:
+    enabled: true
+  networkPolicy:
+    enabled: false
+
+redis:
+  enabled: true
+redis-cluster:
+  usePassword: false
+  networkPolicy:
+    enabled: false
+
+database:
+  enabled: true
+postgrescluster:
+  instanceName: postgres 
+  postgresVersion: 16
+  pgBouncerReplicas: 2 
+  instanceReplicas: 3 
+  
+minio:
+  enabled: true
+  auth:
+    rootUser: lws 
+    rootPassword: lwspass
+  defaultBuckets: "content"
+  networkPolicy:
+    enabled: false
