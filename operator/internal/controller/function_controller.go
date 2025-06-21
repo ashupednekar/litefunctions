@@ -42,84 +42,100 @@ type FunctionReconciler struct {
 
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
+	
 	var function apiv1.Function
 	if err := r.Get(ctx, req.NamespacedName, &function); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-
+	
 	labels := map[string]string{
-		"app": "runtime",
+		"app":  "runtime",
 		"lang": function.Spec.Language,
 	}
-
-	deploy := &appsv1.DeploymentSpec{
-		Replicas: pointer.Int32(1),
-		Selector: &metav1.LabelSelector{MatchLabels: labels},
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{Labels: labels},
-			Spec: corev1.PodSpec{
-				ImagePullSecrets: []corev1.LocalObjectReference{
-					{Name: "ghcr-secret"},
-				},
-				Containers: []corev1.Container{
-				{
-					Name: fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name),
-					Image: fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name),
-					ImagePullPolicy: corev1.PullAlways,
-					Env: []corev1.EnvVar{  //TODO: accept user provided values/ secrets
-            {
-            	Name: "DATABASE_URL",
-            	ValueFrom: &corev1.EnvVarSource{
-            		SecretKeyRef: &corev1.SecretKeySelector{
-            			LocalObjectReference: corev1.LocalObjectReference{
-            				Name: "litefunctions-pguser-litefunctions",
-            			},
-            			Key: "pgbouncer-uri", 
-            		},
-            	},
-            },
+	
+	deploymentName := fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
+	
+	deploy := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      deploymentName,
+			Namespace: function.Namespace,
+			Labels:    labels,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: pointer.Int32(1),
+			Selector: &metav1.LabelSelector{MatchLabels: labels},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{Labels: labels},
+				Spec: corev1.PodSpec{
+					ImagePullSecrets: []corev1.LocalObjectReference{
+						{Name: "ghcr-secret"},
+					},
+					Containers: []corev1.Container{
 						{
-							Name: "REDIS_URL",
-							Value: "redis://litefunctions-redis-cluster:6379",
-						},
-						{
-							Name: "NATS_BROKER_URL",
-							Value: "nats://litefunctions-nats:4222",
+							Name:            deploymentName,
+							Image:           fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name),
+							ImagePullPolicy: corev1.PullAlways,
+							Env: []corev1.EnvVar{ // TODO: accept user provided values/secrets
+								{
+									Name: "DATABASE_URL",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "litefunctions-pguser-litefunctions",
+											},
+											Key: "pgbouncer-uri",
+										},
+									},
+								},
+								{
+									Name:  "REDIS_URL",
+									Value: "redis://litefunctions-redis-cluster:6379",
+								},
+								{
+									Name:  "NATS_BROKER_URL",
+									Value: "nats://litefunctions-nats:4222",
+								},
+							},
 						},
 					},
 				},
 			},
-			},
 		},
 	}
-
-	if err := controllerutil.SetControllerReference(&function, &deploy, r.Scheme); err != nil{
-		return ctrl.Result{}, nil
+	
+	// Set controller reference
+	if err := controllerutil.SetControllerReference(&function, deploy, r.Scheme); err != nil {
+		log.Error(err, "Failed to set controller reference")
+		return ctrl.Result{}, err
 	}
-
+	
 	var existing appsv1.Deployment
-	err := r.Get(ctx, types.NamespacedName{Name: deploy.Template.Name, Namespace: deploy.Template.Namespace}, &existing)
-	if err != nil && apierrs.IsNotFound(err){
-		if err := r.Create(ctx, &deploy); err != nil{
-			return ctrl.Result{}, nil
+	err := r.Get(ctx, types.NamespacedName{Name: deploymentName, Namespace: function.Namespace}, &existing)
+	
+	if err != nil && apierrs.IsNotFound(err) {
+		if err := r.Create(ctx, deploy); err != nil {
+			log.Error(err, "Failed to create deployment", "deployment", deploymentName)
+			return ctrl.Result{}, err
 		}
-		log.Info("created new deployment for function: ", deploy.Template.Name)
-	} else if err == nil{
-		deploy.Template.ResourceVersion == existing.ResourceVersion
-		if err := r.Update(ctx, &deploy); err != nil{
-			return ctrl.Result{}, nil
+		log.Info("Created new deployment for function", "deployment", deploymentName)
+	} else if err == nil {
+		deploy.ResourceVersion = existing.ResourceVersion
+		if err := r.Update(ctx, deploy); err != nil {
+			log.Error(err, "Failed to update deployment", "deployment", deploymentName)
+			return ctrl.Result{}, err
 		}
-		log.Info("updated existing deployment for function: ", deploy.Template.Name)
-	}else{
-		return ctrl.Result{}, nil
+		log.Info("Updated existing deployment for function", "deployment", deploymentName)
+	} else {
+		log.Error(err, "Failed to get deployment", "deployment", deploymentName)
+		return ctrl.Result{}, err
 	}
-
+	
 	return ctrl.Result{}, nil
 }
 
 func (r *FunctionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&appsv1.Function{}).
+		For(&apiv1.Function{}).
 		Named("function").
 		Complete(r)
 }
