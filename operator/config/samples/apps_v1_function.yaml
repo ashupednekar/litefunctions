@@ -1,6 +1,7 @@
 apiVersion: apps.ashupednekar.github.io/v1
 kind: Function
 metadata:
+  name: one
   labels:
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
