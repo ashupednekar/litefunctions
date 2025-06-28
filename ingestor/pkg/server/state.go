@@ -14,6 +14,7 @@ type Server struct{
 }
 
 func NewServer() (*Server, error){
+	fmt.Printf("s: %v", pkg.Settings)
 	nc, err := nats.Connect(pkg.Settings.NatsBrokerUrl)
   if err != nil{
 		return nil, fmt.Errorf("error connecting to broker: %v", err)

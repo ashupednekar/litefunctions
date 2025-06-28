@@ -26,5 +26,6 @@ func LoadSettings() (*IngestorConf, error) {
 			fmt.Printf("improperly configured: %v", err)
 		}
 	})
-	return &settings, nil
+	Settings = &settings
+	return Settings, nil
 }
