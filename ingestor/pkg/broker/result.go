@@ -1,10 +1,10 @@
-package broker 
+package broker
 
 import (
 	"fmt"
-	"os"
 	"time"
 
+	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/nats-io/nats.go"
 )
 
@@ -15,7 +15,7 @@ func Reply(nc *nats.Conn, req *Req) ([]byte, error) {
 	if err != nil{
 		return nil, fmt.Errorf("error starting subscriber: %s", err)
 	}
-	timeout, err := time.ParseDuration(os.Getenv("REPLY_TIMEOUT"))
+	timeout, err := time.ParseDuration(pkg.Settings.ReplyTimeout)
 	if err != nil{
 		return nil, fmt.Errorf("reply timeout improperly configured: %s", err)
 	}

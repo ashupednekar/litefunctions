@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/nats-io/nats.go v1.43.0
+	go-simpler.org/env v0.12.0
 )
 
 require (

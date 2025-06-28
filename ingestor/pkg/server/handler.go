@@ -8,7 +8,8 @@ import (
 )
 
 // TODO: Error
-// TODO: Settings
+// TODO: Tests
+
 
 func (s *Server) SyncHandler(w http.ResponseWriter, r *http.Request){
 	req, err := broker.Submit(s.nc, r)

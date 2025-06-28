@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
-
+	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/nats-io/nats.go"
 )
 
@@ -16,16 +14,11 @@ type Server struct{
 }
 
 func NewServer() (*Server, error){
-	nc, err := nats.Connect(os.Getenv("NATS_BROKER_URL"))
+	nc, err := nats.Connect(pkg.Settings.NatsBrokerUrl)
   if err != nil{
 		return nil, fmt.Errorf("error connecting to broker: %v", err)
 	}
-	port, err := strconv.Atoi(os.Getenv("LISTEN_PORT"))
-	if err != nil{
-		log.Printf("invalid port env, defaulting to 3000")
-		port = 3000
-	}
-	return &Server{port, nc}, nil
+	return &Server{pkg.Settings.ListenPort, nc}, nil
 }
 
 func (s *Server) Start() error {
