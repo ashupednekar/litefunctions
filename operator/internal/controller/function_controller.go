@@ -57,7 +57,15 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	
 	deploymentName := fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
-	
+
+	var image string
+	switch function.Spec.Language{
+	case "python":
+		image = "ashupednekar535/litefunctions-runtime-py:latest"
+	default:
+		image = fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name)
+	}
+
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deploymentName,
@@ -76,7 +84,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Containers: []corev1.Container{
 						{
 							Name:            deploymentName,
-							Image:           fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name),
+							Image:           image, 
 							ImagePullPolicy: corev1.PullAlways,
 							Env: []corev1.EnvVar{ // TODO: accept user provided values/secrets
 								{
