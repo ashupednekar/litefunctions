@@ -1,23 +1,11 @@
-FROM rust AS builder
-
-WORKDIR /app
+FROM ashupednekar535/litefunctions-runtime-rs:base AS builder
 
 ARG GIT_TOKEN
 ARG GIT_USER=lwsrepos
 ARG PROJECT
 ARG NAME 
 
-COPY . .
-#RUN mkdir -p src/pkg && echo "fn main(){}" > src/main.rs && 
 RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
-RUN echo "errors: []" > errors.yaml
-#COPY Cargo.toml .
-#RUN cargo build --release #seperate step to cache dependencies
-
-
-RUN echo "building function: $NAME from project: $PROJECT" && \
-    cat src/pkg/function.rs && \
-    cargo build --release 
 
 FROM gcr.io/distroless/cc-debian12:nonroot
 

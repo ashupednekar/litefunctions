@@ -42,7 +42,7 @@ type FunctionReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-
+//TODO: create pull secret
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 	
