@@ -39,7 +39,6 @@ import (
 
 	appsv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
-	"github.com/ashupednekar/litefunctions/operator/internal/setup"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -236,12 +235,9 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
-
-	setupLog.Info("starting ingestor...")
-	setup.SetupIngestor(mgr.GetClient())
-
+	
 	setupLog.Info("starting manager...")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil { 
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

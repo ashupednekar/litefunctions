@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 // +kubebuilder:rbac:groups=apps.ashupednekar.github.io,resources=functions,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 package controller
@@ -31,10 +30,11 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
+	"github.com/ashupednekar/litefunctions/operator/internal/setup"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-  apierrs "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type FunctionReconciler struct {
@@ -149,6 +149,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 }
 
 func (r *FunctionReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	setup.SetupIngestor(mgr.GetClient())
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apiv1.Function{}).
 		Named("function").
