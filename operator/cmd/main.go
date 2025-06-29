@@ -237,9 +237,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	go setup.SetupIngestor(mgr.GetClient())
+	setupLog.Info("starting ingestor...")
+	setup.SetupIngestor(mgr.GetClient())
 
-	setupLog.Info("starting manager")
+	setupLog.Info("starting manager...")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)

@@ -18,6 +18,7 @@ import (
 func SetupIngestor(c client.Client) error {
 	ctx := context.Background()
 	log := logf.FromContext(ctx)
+	log.Info("commencing ingestor setup")
   labels := map[string]string{
 		"operator": "litefunctions",
 		"component": "ingestor",
