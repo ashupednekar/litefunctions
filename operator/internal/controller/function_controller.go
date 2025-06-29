@@ -52,7 +52,9 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	
 	labels := map[string]string{
-		"app":  "runtime",
+		"operator": "litefunctions",
+		"component":  "runtime",
+		"project": function.Spec.Project,
 		"lang": function.Spec.Language,
 	}
 	
@@ -63,8 +65,10 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	case "python":
 		image = "ashupednekar535/litefunctions-runtime-py:latest"
 	default:
-		image = fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name)
+		image = fmt.Sprintf("ghcr.io/lwsrepos/%s/runtime-%s-%s:latest", function.Spec.Project, function.Spec.Language, function.Name)
 	}
+
+	log.Info("Creating deployment with image", "image", image)
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
