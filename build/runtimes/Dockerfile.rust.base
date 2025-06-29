@@ -1,0 +1,12 @@
+FROM rust AS builder
+
+WORKDIR /app
+
+COPY . .
+RUN echo "errors: []" > errors.yaml
+
+RUN echo "building function: $NAME from project: $PROJECT" && \
+    cat src/pkg/function.rs && \
+    cargo build --release 
+
+# builds ashupednekar535/litefunctions-runtimers:base AS builder
