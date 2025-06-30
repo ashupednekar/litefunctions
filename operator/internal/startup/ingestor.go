@@ -54,7 +54,7 @@ func SetupIngestor(c client.Client, ns string) error {
 	}
 
 	var existing appsv1.Deployment
-	err := c.Get(ctx, types.NamespacedName{Name: ""}, &existing)
+	err := c.Get(ctx, types.NamespacedName{Name: ns}, &existing)
 	if err != nil && apierrs.IsNotFound(err) {
 		if err := c.Create(ctx, deploy); err != nil {
 			log.Error(err, "Failed to create deployment", "deployment", name)
