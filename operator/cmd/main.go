@@ -36,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
 	appsv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
 	// +kubebuilder:scaffold:imports
