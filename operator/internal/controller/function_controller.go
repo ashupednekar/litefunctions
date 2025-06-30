@@ -15,6 +15,7 @@ limitations under the License.
 
 // +kubebuilder:rbac:groups=apps.ashupednekar.github.io,resources=functions,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resources=services,verbs=get;list;watch;create;update;patch;delete
 package controller
 
 import (
@@ -30,7 +31,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
-	"github.com/ashupednekar/litefunctions/operator/internal/setup"
+	"github.com/ashupednekar/litefunctions/operator/internal/startup"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -45,7 +46,8 @@ type FunctionReconciler struct {
 //TODO: create pull secret
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
-	
+	log.Info("reconciling functions")
+	startup.SetupIngestor(r.Client, req.Namespace)
 	var function apiv1.Function
 	if err := r.Get(ctx, req.NamespacedName, &function); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -149,7 +151,6 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 }
 
 func (r *FunctionReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	setup.SetupIngestor(mgr.GetClient())
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apiv1.Function{}).
 		Named("function").

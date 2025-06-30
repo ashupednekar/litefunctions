@@ -1,4 +1,4 @@
-package setup
+package startup
 
 import (
 	"context"
@@ -7,15 +7,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 
-func SetupIngestor(c client.Client) error {
+func SetupIngestor(c client.Client, ns string) error {
 	ctx := context.Background()
 	log := logf.FromContext(ctx)
 	log.Info("commencing ingestor setup")
@@ -27,13 +27,14 @@ func SetupIngestor(c client.Client) error {
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
+			Namespace: ns,
 			Labels: labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: pointer.Int32(1),
 			Selector: &metav1.LabelSelector{MatchLabels: labels},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: labels},
+				ObjectMeta: metav1.ObjectMeta{Labels: labels, Namespace: ns},
 				Spec: corev1.PodSpec{
 					ImagePullSecrets: []corev1.LocalObjectReference{
 						{Name: "ghcr-secret"},
@@ -71,10 +72,12 @@ func SetupIngestor(c client.Client) error {
 		log.Error(err, "Failed to get deployment", "deployment", name)
 		return err
 	}
+	
 
   service := &corev1.Service{
   	ObjectMeta: metav1.ObjectMeta{
   		Name:   "litefunctions-ingestor",
+			Namespace: ns,
   		Labels: labels,
   	},
   	Spec: corev1.ServiceSpec{
@@ -89,6 +92,7 @@ func SetupIngestor(c client.Client) error {
   		Type: corev1.ServiceTypeNodePort,
   	},
   }
+	
 
   var existingSvc corev1.Service
   svcKey := types.NamespacedName{Name: name}
@@ -110,5 +114,6 @@ func SetupIngestor(c client.Client) error {
   	log.Error(err, "Failed to get service", "service", service.Name)
   	return err
   }
+	
 	return nil
 }
