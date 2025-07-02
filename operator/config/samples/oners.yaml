@@ -1,12 +1,12 @@
 apiVersion: apps.ashupednekar.github.io/v1
 kind: Function
 metadata:
-  name: one
+  name: joke
   labels:
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
 spec:
-  name: one
+  name: joke
   project: projone
   language: rust
   git_creds: vcs-secret

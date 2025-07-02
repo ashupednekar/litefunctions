@@ -28,3 +28,4 @@ humantime = "2.1.0"
 standard-error = { version = "0.1.9", features = ["sqlx"]}
 async-nats = "0.37.0"
 futures = "0.3.31"
+reqwest = "0.12.22"
