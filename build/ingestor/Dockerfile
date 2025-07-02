@@ -16,5 +16,6 @@ WORKDIR /
 COPY --from=builder /app/main /ingestor
 
 ENV NATS_BROKER_URL=nats://litefunctions-nats:4222
+ENV REPLY_TIMEOUT=500ms
 
 CMD ["/ingestor"]

@@ -23,10 +23,10 @@ func NewServer() (*Server, error){
 }
 
 func (s *Server) Start() error {
-	http.HandleFunc("/{project}/{name}", s.SyncHandler)
-	http.HandleFunc("/sse/{project}/{name}", s.SSEHandler)
-	http.HandleFunc("/ws/{project}/{name}", s.WSHandler)
-	log.Printf("listening at %d", s.port)
+	http.HandleFunc("/{project}/{name}/", s.SyncHandler)
+	http.HandleFunc("/sse/{project}/{name}/", s.SSEHandler)
+	http.HandleFunc("/ws/{project}/{name}/", s.WSHandler)
+	log.Printf("listening at %d\n", s.port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", s.port), nil); err != nil{
 		fmt.Printf("error starting server: %v", err)
 		return err 
