@@ -7,6 +7,10 @@ ARG NAME
 
 RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
 
+RUN echo "building function: $NAME from project: $PROJECT" && \
+    cat src/pkg/function.rs && \
+    cargo build --release 
+
 FROM gcr.io/distroless/cc-debian12:nonroot
 
 COPY --from=builder /app/target/release/function /
