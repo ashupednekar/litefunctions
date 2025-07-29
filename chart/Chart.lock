@@ -12,4 +12,4 @@ dependencies:
   repository: oci://registry-1.docker.io/ashupednekar535
   version: 5.7.4
 digest: sha256:686f3830919f768cb9c825ea1fb9d7898ca15f7e3503ca1e993d9cc69c15bdb6
-generated: "2025-06-21T17:45:37.974599032+05:30"
+generated: "2025-07-20T12:25:26.598954064+05:30"

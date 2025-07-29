@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: litefunctions-ingestor
-  name: litefunctions-ingestor
+    app: litefunctions-operator
+  name: litefunctions-operator
   namespace: '{{.Release.Namespace}}'
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: litefunctions-ingestor
+      app: litefunctions-operator
   template:
     metadata:
       labels:
-        app: litefunctions-ingestor
+        app: litefunctions-operator
     spec:
       containers:
-      - image: ashupednekar535/litefunctions-ingestor:latest
+      - image: ashupednekar535/litefunctions-operator:latest
         imagePullPolicy: Always
-        name: litefunctions-ingestor
+        name: litefunctions-operator
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
