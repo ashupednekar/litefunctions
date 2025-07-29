@@ -1,25 +1,16 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    control-plane: controller-manager
-    app.kubernetes.io/name: operator
-    app.kubernetes.io/managed-by: kustomize
-  name: system
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: litefunctions-operator
   namespace: litefunctions
   labels:
-    control-plane: controller-manager
+    control-plane: litefunctions-operator
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: litefunctions-operator
       app.kubernetes.io/name: operator
   replicas: 1
   template:
@@ -27,7 +18,7 @@ spec:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
+        control-plane: litefunctions-operator
         app.kubernetes.io/name: operator
     spec:
       # TODO(user): Uncomment the following code to configure the nodeAffinity expression
@@ -94,5 +85,5 @@ spec:
             memory: 64Mi
         volumeMounts: []
       volumes: []
-      serviceAccountName: controller-manager
+      serviceAccountName: litefunctions-operator
       terminationGracePeriodSeconds: 10

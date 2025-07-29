@@ -1,0 +1,29 @@
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: db
+spec:
+  instances:
+  - dataVolumeClaimSpec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+    name: postgres
+    replicas: 2
+  port: 5432
+  postgresVersion: 16
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          max_connections: "500"
+  proxy:
+    pgBouncer:
+      service:
+        type: NodePort 
+      port: 5432
+      replicas: 2

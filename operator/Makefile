@@ -138,8 +138,8 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 build-installer: manifests generate kustomize ## Generate a consolidated YAML with CRDs and deployment.
 	mkdir -p dist
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default > dist/install.yaml
-
+	$(KUSTOMIZE) build config/default > ../chart/templates/operator.yaml
+	sed -i 's/namespace: *[a-zA-Z0-9-]\+/namespace: "{{ .Release.Namespace }}"/' ../chart/templates/operator.yaml
 ##@ Deployment
 
 ifndef ignore-not-found

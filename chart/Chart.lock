@@ -1,15 +1,12 @@
 dependencies:
 - name: nats
   repository: https://charts.bitnami.com/bitnami
-  version: 9.0.20
+  version: 9.0.23
 - name: redis-cluster
   repository: https://charts.bitnami.com/bitnami
-  version: 12.0.10
+  version: 12.0.13
 - name: pgo
-  repository: oci://registry-1.docker.io/ashupednekar535
-  version: 5.8.1
-- name: postgrescluster
-  repository: oci://registry-1.docker.io/ashupednekar535
-  version: 5.7.4
-digest: sha256:686f3830919f768cb9c825ea1fb9d7898ca15f7e3503ca1e993d9cc69c15bdb6
-generated: "2025-07-20T12:25:26.598954064+05:30"
+  repository: oci://registry.developers.crunchydata.com/crunchydata
+  version: 5.8.2
+digest: sha256:4fb7f2adfd5ddebdc935b472bd6a676d93f859b61af0ca69d42d101c05623a29
+generated: "2025-07-30T00:17:34.883538464+05:30"
