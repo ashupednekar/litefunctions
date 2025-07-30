@@ -12,7 +12,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: litefunctions-operator
       app.kubernetes.io/name: operator
   policyTypes:
     - Ingress

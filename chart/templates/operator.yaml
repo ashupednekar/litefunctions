@@ -57,7 +57,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: operator
-  name: controller-manager
+  name: litefunctions-operator
   namespace: "{{ .Release.Namespace }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -252,7 +252,7 @@ roleRef:
   name: leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: controller-manager
+  name: litefunctions-operator
   namespace: "{{ .Release.Namespace }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -268,7 +268,7 @@ roleRef:
   name: manager-role
 subjects:
 - kind: ServiceAccount
-  name: controller-manager
+  name: litefunctions-operator
   namespace: "{{ .Release.Namespace }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -281,7 +281,7 @@ roleRef:
   name: metrics-auth-role
 subjects:
 - kind: ServiceAccount
-  name: controller-manager
+  name: litefunctions-operator
   namespace: "{{ .Release.Namespace }}"
 ---
 apiVersion: v1
@@ -290,8 +290,8 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: operator
-    control-plane: controller-manager
-  name: controller-manager-metrics-service
+    control-plane: litefunctions-operator
+  name: litefunctions-operator-metrics-service
   namespace: "{{ .Release.Namespace }}"
 spec:
   ports:
@@ -301,7 +301,7 @@ spec:
     targetPort: 8443
   selector:
     app.kubernetes.io/name: operator
-    control-plane: controller-manager
+    control-plane: litefunctions-operator
 ---
 apiVersion: apps/v1
 kind: Deployment

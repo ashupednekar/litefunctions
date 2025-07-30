@@ -31,7 +31,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
-	"github.com/ashupednekar/litefunctions/operator/internal/startup"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -47,7 +46,6 @@ type FunctionReconciler struct {
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 	log.Info("reconciling functions")
-	startup.SetupIngestor(r.Client, req.Namespace)
 	var function apiv1.Function
 	if err := r.Get(ctx, req.NamespacedName, &function); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
