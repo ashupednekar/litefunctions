@@ -36,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
 	appsv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
 	// +kubebuilder:scaffold:imports
@@ -236,8 +235,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+
+	setupLog.Info("starting manager...")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil { 
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

@@ -1,12 +1,12 @@
 # Adds namespace to all resources.
-namespace: operator-system
+namespace: litefunctions
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: operator-
+namePrefix: ""
 
 # Labels to add to all resources and selectors.
 #labels:
@@ -60,7 +60,7 @@ patches:
 # - source: # Uncomment the following block to enable certificates for metrics
 #     kind: Service
 #     version: v1
-#     name: controller-manager-metrics-service
+#     name: litefunctions-operator-metrics-service
 #     fieldPath: metadata.name
 #   targets:
 #     - select:
@@ -79,7 +79,7 @@ patches:
 #         kind: ServiceMonitor
 #         group: monitoring.coreos.com
 #         version: v1
-#         name: controller-manager-metrics-monitor
+#         name: litefunctions-operator-metrics-monitor
 #       fieldPaths:
 #         - spec.endpoints.0.tlsConfig.serverName
 #       options:
@@ -90,7 +90,7 @@ patches:
 # - source:
 #     kind: Service
 #     version: v1
-#     name: controller-manager-metrics-service
+#     name: litefunctions-operator-metrics-service
 #     fieldPath: metadata.namespace
 #   targets:
 #     - select:
@@ -109,7 +109,7 @@ patches:
 #         kind: ServiceMonitor
 #         group: monitoring.coreos.com
 #         version: v1
-#         name: controller-manager-metrics-monitor
+#         name: litefunctions-operator-metrics-monitor
 #       fieldPaths:
 #         - spec.endpoints.0.tlsConfig.serverName
 #       options:

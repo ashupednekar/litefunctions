@@ -13,9 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 // +kubebuilder:rbac:groups=apps.ashupednekar.github.io,resources=functions,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
 package controller
 
 import (
@@ -33,8 +33,8 @@ import (
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-  apierrs "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type FunctionReconciler struct {
@@ -45,14 +45,16 @@ type FunctionReconciler struct {
 //TODO: create pull secret
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
-	
+	log.Info("reconciling functions")
 	var function apiv1.Function
 	if err := r.Get(ctx, req.NamespacedName, &function); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	
 	labels := map[string]string{
-		"app":  "runtime",
+		"operator": "litefunctions",
+		"component":  "runtime",
+		"project": function.Spec.Project,
 		"lang": function.Spec.Language,
 	}
 	
@@ -63,8 +65,10 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	case "python":
 		image = "ashupednekar535/litefunctions-runtime-py:latest"
 	default:
-		image = fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name)
+		image = fmt.Sprintf("ghcr.io/lwsrepos/%s/runtime-%s-%s:latest", function.Spec.Project, function.Spec.Language, function.Name)
 	}
+
+	log.Info("Creating deployment with image", "image", image)
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

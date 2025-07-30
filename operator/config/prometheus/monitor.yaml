@@ -3,11 +3,11 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: litefunctions-operator
     app.kubernetes.io/name: operator
     app.kubernetes.io/managed-by: kustomize
-  name: controller-manager-metrics-monitor
-  namespace: system
+  name: litefunctions-operator-metrics-monitor
+  namespace: litefunctions
 spec:
   endpoints:
     - path: /metrics
@@ -23,5 +23,5 @@ spec:
         insecureSkipVerify: true
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: litefunctions-operator
       app.kubernetes.io/name: operator

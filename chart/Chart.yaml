@@ -7,18 +7,14 @@ appVersion: "1.16.0"
 
 dependencies:
   - name: nats
-    version: 9.0.20
+    version: "*"
     repository: https://charts.bitnami.com/bitnami
   - name: redis-cluster 
-    version: 12.0.10
+    version: "*"
     repository: https://charts.bitnami.com/bitnami
   - name: pgo 
-    version: 5.8.1
-    repository: oci://registry-1.docker.io/ashupednekar535
-    condition: database.enabled
-  - name: postgrescluster 
-    version: 5.7.4
-    repository: oci://registry-1.docker.io/ashupednekar535
+    version: "*"
+    repository: oci://registry.developers.crunchydata.com/crunchydata
     condition: database.enabled
   #- name: minio 
   #  version: 17.0.2
