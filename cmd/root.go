@@ -7,7 +7,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "lwsportal",
+	Use:   "litewebservices portal",
 	Short: "entrypoint portal for lws stack",
 	Long: `
 	- user mgmt

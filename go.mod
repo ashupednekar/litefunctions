@@ -4,7 +4,6 @@ go 1.25.2
 
 require (
 	github.com/a-h/templ v0.3.960
-	github.com/ashupednekar/lwsportal v0.0.0-20251115141106-92295217331c
 	github.com/gin-gonic/gin v1.11.0
 	github.com/spf13/cobra v1.10.1
 	go-simpler.org/env v0.12.0

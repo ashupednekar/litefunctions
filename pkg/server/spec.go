@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	"github.com/ashupednekar/lwsportal/pkg"
+	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ashupednekar/lwsportal/pkg/server"
+	"github.com/ashupednekar/litewebservices-portal/pkg/server"
 	"github.com/spf13/cobra"
 )
 
