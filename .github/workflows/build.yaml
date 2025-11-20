@@ -10,7 +10,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ashupednekar535/chartpaper-server
+      IMAGE_NAME: ashupednekar535/litewebservices-portal
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
     steps:
