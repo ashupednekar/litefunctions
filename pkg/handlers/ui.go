@@ -27,3 +27,14 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"err": err.Error()})
 	}
 }
+
+
+func (h *UIHandlers) Functions(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		templates.FunctionContent(), 
+	)
+
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		ctx.JSON(500, gin.H{"err": err.Error()})
+	}
+}
