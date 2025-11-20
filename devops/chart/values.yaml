@@ -10,5 +10,5 @@ server:
   probes:
     enabled: false
 ingress:
-  host: tools.ashudev.in
+  host: lws.ashudev.in
   issuer: letsencrypt
