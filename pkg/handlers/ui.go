@@ -8,8 +8,11 @@ import (
 type UIHandlers struct{}
 
 func (h *UIHandlers) Home(ctx *gin.Context) {
-	c := templates.Hello("ashu")
-	if err := c.Render(ctx, ctx.Writer); err != nil {
+	page := templates.BaseLayout(
+		templates.HomeContent(), // passed into @content
+	)
+
+	if err := page.Render(ctx, ctx.Writer); err != nil {
 		ctx.JSON(500, gin.H{"err": err.Error()})
 	}
 }

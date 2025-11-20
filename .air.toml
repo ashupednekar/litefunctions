@@ -1,0 +1,6 @@
+[build]
+pre_build = "templ generate"
+entrypoint = ["./tmp/main"]
+args_bin = ["listen"]
+
+

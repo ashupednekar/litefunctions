@@ -5,6 +5,7 @@ import (
 )
 
 func (s *Server) BuildRoutes() {
+	s.router.Static("/static", "./static")
 	probes := handlers.ProbeHandler{}
 	s.router.GET("/livez/", probes.Livez)
 	s.router.GET("/healthz/", probes.Healthz)
