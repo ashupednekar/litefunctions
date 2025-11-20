@@ -11,4 +11,5 @@ func (s *Server) BuildRoutes() {
 	s.router.GET("/healthz/", probes.Healthz)
 	ui := handlers.UIHandlers{}
 	s.router.GET("/", ui.Home)
+	s.router.GET("/dashboard", ui.Dashboard)
 }
