@@ -1,0 +1,14 @@
+server:
+  replicas: 1
+  image:
+    registry: docker.io
+    repository: ashupednekar535/litewebservices-portal
+    tag: da93bd5
+  db:
+    secret: db-pguser-db
+    key: pgbouncer-uri
+  probes:
+    enabled: false
+ingress:
+  host: tools.ashudev.in
+  issuer: letsencrypt

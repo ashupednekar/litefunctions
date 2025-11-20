@@ -1,0 +1,50 @@
+{{- $image := printf "%s/%s:%s" .Values.server.image.registry .Values.server.image.repository .Values.server.image.tag -}}
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  creationTimestamp: null
+  labels:
+    app: litewebservices-portal
+  name: litewebservices-portal
+spec:
+  replicas: {{.Values.server.replicas}}
+  selector:
+    matchLabels:
+      app: litewebservices-portal
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: litewebservices-portal
+    spec:
+      containers:
+      - image: {{$image}} 
+        name: chartpaper-litewebservices-portal
+        env:
+          - name: "DATABASE_URL"
+            valueFrom:
+              secretKeyRef:
+                name: {{.Values.server.db.secret}}
+                key: {{.Values.server.db.key}}
+        resources: {}
+        {{- if .Values.server.probes.enabled}}
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        {{- end}}
+        # lifecycle:
+        #   postStart:
+        #     exec:
+        #       command:
+        #         - /app/server
+        #         - migrate
+
