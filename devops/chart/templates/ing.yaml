@@ -20,7 +20,7 @@ spec:
             pathType: Prefix 
             backend:
               service:
-                name: chart-paper-server
+                name: litewebservices-portal
                 port:
                   number: 8000
           

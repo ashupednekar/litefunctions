@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - image: {{$image}} 
-        name: chartpaper-litewebservices-portal
+        name: litewebservices-portal
         env:
           - name: "DATABASE_URL"
             valueFrom:
