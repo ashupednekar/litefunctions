@@ -22,5 +22,5 @@ spec:
               service:
                 name: litewebservices-portal
                 port:
-                  number: 8000
+                  number: 3000
           
