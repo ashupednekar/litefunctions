@@ -4,22 +4,28 @@ import (
 	"fmt"
 
 	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	Port   int
 	router *gin.Engine
+	state  *state.AppState
 }
 
-func NewServer() *Server {
-	r := gin.Default()
+func NewServer() (*Server, error) {
+	state, err := state.NewState()
+	if err != nil {
+		return nil, err
+	}
 	s := &Server{
 		Port:   pkg.Cfg.Port,
-		router: r,
+		router: gin.Default(),
+		state:  state,
 	}
 	s.BuildRoutes()
-	return s
+	return s, nil
 }
 
 func (s *Server) Start() {

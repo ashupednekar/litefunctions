@@ -8,7 +8,8 @@ import (
 )
 
 type Settings struct {
-	Port int `env:"LISTEN_PORT,required"`
+	Port int    `env:"LISTEN_PORT,required"`
+	Fqdn string `end:FQDN,required`
 }
 
 var (
