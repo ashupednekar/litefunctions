@@ -46,10 +46,9 @@ type WebauthnSession struct {
 }
 
 func (db *WebauthnStore) GetOrCreateUser(userName string) (auth.PasskeyUser, error) {
-	log.Printf("[DEBUG] GetOrCreateUser: %v", userName)
-
 	existingUser, err := db.GetUser(userName)
 	if err == nil {
+		log.Printf("found existing user: %v\n", existingUser)
 		return existingUser, nil
 	}
 	return db.CreateUser(userName)

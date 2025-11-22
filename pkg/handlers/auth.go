@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ashupednekar/litewebservices-portal/internal/auth"
 	"github.com/ashupednekar/litewebservices-portal/internal/auth/adaptors"
@@ -25,7 +26,7 @@ func NewAuthHandlers(state *state.AppState) *AuthHandlers {
 }
 
 func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
-	log.Printf("[INFO] begin registration ----------------------\\")
+	log.Printf("begin registration ----------------------\\")
 
 	username, err := auth.GetUsername(ctx)
 	if err != nil {
@@ -39,6 +40,13 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 		return
 	}
 	options, session, err := h.State.Authn.BeginRegistration(user)
+	expDur, parseErr := time.ParseDuration(pkg.Cfg.SessionExpiry)
+	if parseErr != nil{
+		msg := fmt.Sprintf("[ERRO] invalid session expiry configured, contact admin %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": msg})
+		return
+	}
+	session.Expires = time.Now().Add(expDur)
 	if err != nil {
 		msg := fmt.Sprintf("can't begin registration: %s", err.Error())
 		log.Printf("[ERRO] %s", msg)
@@ -47,7 +55,11 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 	}
 
 	t := uuid.New().String()
-	h.store.SaveSession(t, *session)
+	err = h.store.SaveSession(t, *session)
+	if err != nil {
+		log.Printf("error saving session: %s\n", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err})
+	}
 	ctx.Header("Session-Key", t)
 	ctx.JSON(http.StatusOK, options)
 }
@@ -55,11 +67,13 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 	t := ctx.Request.Header.Get("Session-Key")
 	session, _ := h.store.GetSession(t)
+	log.Printf("got session: %v\n", session)
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
 		return
 	}
+	log.Printf("got user: %v\n", user)
 	credential, err := h.State.Authn.FinishRegistration(user, session, ctx.Request)
 	if err != nil {
 		msg := fmt.Sprintf("can't finish registration: %s", err.Error())
@@ -67,7 +81,7 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": msg})
 		return
 	}
-
+	log.Printf("got credential: %v\n", credential)
 	user.AddCredential(credential)
 	err = h.store.SaveUser(user)
 	if err != nil {
@@ -79,12 +93,12 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error clearing session: %s", err)})
 		return
 	}
-	log.Printf("[INFO] finish registration ----------------------/")
+	log.Printf("finish registration ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Registration Success"})
 }
 
 func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
-	log.Printf("[INFO] begin login ----------------------\\")
+	log.Printf("begin login ----------------------\\")
 
 	username, err := auth.GetUsername(ctx)
 	if err != nil {
@@ -106,7 +120,10 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 	}
 
 	t := uuid.New().String()
-	h.store.SaveSession(t, *session)
+	if err := h.store.SaveSession(t, *session); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err})
+		return
+	}
 
 	ctx.Header("Session-Key", t)
 	ctx.JSON(http.StatusOK, options)
@@ -140,7 +157,7 @@ func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 		return
 	}
 
-	log.Printf("[INFO] finish login ----------------------/")
+	log.Printf("finish login ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Login Success"})
 }
 

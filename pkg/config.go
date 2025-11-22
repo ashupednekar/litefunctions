@@ -17,6 +17,7 @@ type Settings struct {
 	DatabaseMinConns        int32  `env:"DATABASE_MIN_CONNS" default:"5"`
 	DatabaseMaxConnLifetime string `env:"DATABASE_MAX_CONN_LIFETIME" default:"1h"`
 	DatabaseMaxConnIdleTime string `env:"DATABASE_MAX_CONN_IDLETIME" default:"10m"`
+	SessionExpiry           string `env:"SESSION_EXPIRY" default:"1h"`
 }
 
 var (

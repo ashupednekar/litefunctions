@@ -8,6 +8,7 @@ import (
 	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state/connections"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -56,6 +57,17 @@ func runMigrations(direction string) error {
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return fmt.Errorf("failed to set dialect: %w", err)
+	}
+
+  _, err = db.Exec("create schema if not exists " + pq.QuoteIdentifier(pkg.Cfg.DatabaseSchema))
+	if err != nil {
+		return fmt.Errorf("failed to create schema: %w", err)
+	}
+
+	// Set search_path for THIS connection (goose uses the same connection)
+	_, err = db.Exec("set search_path to " + pq.QuoteIdentifier(pkg.Cfg.DatabaseSchema))
+	if err != nil {
+		return fmt.Errorf("failed to set search_path: %w", err)
 	}
 
 	switch direction {

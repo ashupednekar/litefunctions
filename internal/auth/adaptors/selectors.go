@@ -18,9 +18,10 @@ func (db *WebauthnStore) GetUser(userName string) (*auth.User, error) {
 }
 
 func (db WebauthnStore) GetSession(token string) (webauthn.SessionData, bool) {
+	log.Printf("looking for session token: %s", token)
 	row, err := db.queries.GetSession(context.Background(), token)
 	if err != nil {
-		log.Println("session not found, using new session")
+		log.Printf("%s - session not found, using new session", err)
 		return webauthn.SessionData{}, false
 	}
 	session := webauthn.SessionData{

@@ -8,6 +8,7 @@ require (
 	github.com/go-webauthn/webauthn v0.15.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/lib/pq v1.10.9
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/spf13/cobra v1.10.1
 	go-simpler.org/env v0.12.0
