@@ -19,7 +19,7 @@ type AuthHandlers struct {
 	store auth.PasskeyStore
 }
 
-func NewAuthHandlers(state *state.AppState) *AuthHandlers{
+func NewAuthHandlers(state *state.AppState) *AuthHandlers {
 	store := adaptors.NewWebauthnStore(state.DBPool)
 	return &AuthHandlers{State: state, store: store}
 }

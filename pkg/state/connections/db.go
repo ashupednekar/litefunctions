@@ -21,7 +21,6 @@ var (
 func ConnectDB() {
 	log.Println("Go connecting to:", pkg.Cfg.DatabaseUrl)
 	once.Do(func() {
-		// timeout
 		timeout, err := time.ParseDuration(pkg.Cfg.DatabaseConnTimeout)
 		if err != nil {
 			connErr = err
@@ -37,9 +36,9 @@ func ConnectDB() {
 			return
 		}
 
-    config.ConnConfig.TLSConfig = &tls.Config{
-        InsecureSkipVerify: true,
-    }
+		config.ConnConfig.TLSConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
 
 		config.MaxConns = pkg.Cfg.DatabaseMaxConns
 		config.MinConns = pkg.Cfg.DatabaseMinConns
@@ -51,15 +50,14 @@ func ConnectDB() {
 			config.MaxConnIdleTime = d
 		}
 
-		// set schema
 		if pkg.Cfg.DatabaseSchema != "" {
 			config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-				_, err := conn.Exec(ctx, "set search_path to "+pkg.Cfg.DatabaseSchema)
+				_, err := conn.Exec(ctx, "create schema if not exist "+pkg.Cfg.DatabaseSchema)
+				_, err = conn.Exec(ctx, "set search_path to "+pkg.Cfg.DatabaseSchema)
 				return err
 			}
 		}
 
-		// build pool
 		DBPool, err = pgxpool.NewWithConfig(ctx, config)
 		if err != nil {
 			connErr = err
