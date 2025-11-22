@@ -2,10 +2,13 @@ package connections
 
 import (
 	"context"
+	"crypto/tls"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,30 +19,51 @@ var (
 )
 
 func ConnectDB() {
+	log.Println("Go connecting to:", pkg.Cfg.DatabaseUrl)
 	once.Do(func() {
+		// timeout
 		timeout, err := time.ParseDuration(pkg.Cfg.DatabaseConnTimeout)
 		if err != nil {
 			connErr = err
 			return
 		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
+
 		config, err := pgxpool.ParseConfig(pkg.Cfg.DatabaseUrl)
 		if err != nil {
 			connErr = err
 			return
 		}
+
+    config.ConnConfig.TLSConfig = &tls.Config{
+        InsecureSkipVerify: true,
+    }
+
 		config.MaxConns = pkg.Cfg.DatabaseMaxConns
 		config.MinConns = pkg.Cfg.DatabaseMinConns
-		t, err := time.ParseDuration(pkg.Cfg.DatabaseMaxConnLifetime)
-		config.MaxConnLifetime = t
-		t, err = time.ParseDuration(pkg.Cfg.DatabaseMaxConnIdleTime)
-		config.MaxConnIdleTime = t
+
+		if d, err := time.ParseDuration(pkg.Cfg.DatabaseMaxConnLifetime); err == nil {
+			config.MaxConnLifetime = d
+		}
+		if d, err := time.ParseDuration(pkg.Cfg.DatabaseMaxConnIdleTime); err == nil {
+			config.MaxConnIdleTime = d
+		}
+
+		// set schema
+		if pkg.Cfg.DatabaseSchema != "" {
+			config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+				_, err := conn.Exec(ctx, "set search_path to "+pkg.Cfg.DatabaseSchema)
+				return err
+			}
+		}
+
+		// build pool
 		DBPool, err = pgxpool.NewWithConfig(ctx, config)
 		if err != nil {
 			connErr = err
 			return
 		}
-		defer DBPool.Close()
 	})
 }

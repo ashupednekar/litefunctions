@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/ashupednekar/litewebservices-portal/internal/auth"
-	"github.com/ashupednekar/litewebservices-portal/internal/auth/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state/connections"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AppState struct {
-	Authn   *webauthn.WebAuthn
-	Queries *adaptors.Queries
+	Authn  *webauthn.WebAuthn
+	DBPool *pgxpool.Pool
 }
 
 func NewState() (*AppState, error) {
@@ -20,6 +20,5 @@ func NewState() (*AppState, error) {
 		return nil, fmt.Errorf("couldn't initialize state - webauthn: %s", err)
 	}
 	connections.ConnectDB()
-	queries := adaptors.New(connections.DBPool)
-	return &AppState{Authn: authn, Queries: queries}, nil
+	return &AppState{Authn: authn, DBPool: connections.DBPool}, nil
 }
