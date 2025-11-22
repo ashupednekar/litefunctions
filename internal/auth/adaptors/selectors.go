@@ -2,9 +2,11 @@ package adaptors
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 
 	"github.com/ashupednekar/litewebservices-portal/internal/auth"
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
@@ -19,18 +21,30 @@ func (db *WebauthnStore) GetUser(userName string) (*auth.User, error) {
 
 func (db WebauthnStore) GetSession(token string) (webauthn.SessionData, bool) {
 	log.Printf("looking for session token: %s", token)
+
 	row, err := db.queries.GetSession(context.Background(), token)
 	if err != nil {
-		log.Printf("%s - session not found, using new session", err)
+		log.Printf("session not found: %v", err)
 		return webauthn.SessionData{}, false
 	}
-	session := webauthn.SessionData{
-		Challenge: string(row.Challenge),
-		UserID:    []byte(row.UserName),
-		Expires:   row.ExpiresAt.Time,
+
+	var credParams []protocol.CredentialParameter
+	_ = json.Unmarshal(row.CredParams, &credParams)
+
+	var extensions protocol.AuthenticationExtensions
+	_ = json.Unmarshal(row.Extensions, &extensions)
+
+	sess := webauthn.SessionData{
+		Challenge:            string(row.Challenge),
+		RelyingPartyID:       row.RpID.String,
+		UserID:               row.UserID,
+		AllowedCredentialIDs: row.AllowedCredentials,
+		Expires:              row.ExpiresAt.Time,
+		CredParams:           credParams,
+		Extensions:           extensions,
+		UserVerification:     protocol.UserVerificationRequirement(row.UserVerification.String),
+		Mediation:            protocol.CredentialMediationRequirement(row.Mediation.String),
 	}
-	for _, b := range row.AllowedCredentials {
-		session.AllowedCredentialIDs = append(session.AllowedCredentialIDs, b)
-	}
-	return session, true
+
+	return sess, true
 }

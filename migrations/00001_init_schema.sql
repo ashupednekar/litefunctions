@@ -26,7 +26,12 @@ CREATE TABLE webauthn_sessions (
     challenge BYTEA NOT NULL,
     user_id BYTEA,
     allowed_credentials BYTEA[],
-    expires_at TIMESTAMPTZ NOT NULL
+    expires_at TIMESTAMPTZ NOT NULL,
+    rp_id TEXT,
+    cred_params JSONB,
+    extensions JSONB,
+    user_verification TEXT,
+    mediation TEXT
 );
 
 CREATE INDEX idx_credentials_user_id ON credentials(user_id);

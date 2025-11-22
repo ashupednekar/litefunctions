@@ -18,7 +18,7 @@ type PasskeyStore interface {
 	GetOrCreateUser(userName string) (PasskeyUser, error)
 	SaveUser(PasskeyUser) error
 	GetSession(token string) (webauthn.SessionData, bool)
-	SaveSession(token string, data webauthn.SessionData) error
+	SaveSession(username string, token string, data webauthn.SessionData) error
 	DeleteSession(token string) error
 }
 

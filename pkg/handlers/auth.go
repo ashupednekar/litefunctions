@@ -55,7 +55,8 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 	}
 
 	t := uuid.New().String()
-	err = h.store.SaveSession(t, *session)
+	log.Printf("saving session: %v\n", session)
+	err = h.store.SaveSession(username, t, *session)
 	if err != nil {
 		log.Printf("error saving session: %s\n", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err})
@@ -120,7 +121,7 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 	}
 
 	t := uuid.New().String()
-	if err := h.store.SaveSession(t, *session); err != nil {
+	if err := h.store.SaveSession(username, t, *session); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err})
 		return
 	}

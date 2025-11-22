@@ -58,15 +58,25 @@ INSERT INTO webauthn_sessions (
     challenge,
     user_id,
     allowed_credentials,
-    expires_at
+    expires_at,
+    rp_id,
+    cred_params,
+    extensions,
+    user_verification,
+    mediation
 )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 ON CONFLICT (session_id) DO UPDATE SET
     user_name = EXCLUDED.user_name,
     challenge = EXCLUDED.challenge,
     user_id = EXCLUDED.user_id,
     allowed_credentials = EXCLUDED.allowed_credentials,
-    expires_at = EXCLUDED.expires_at;
+    expires_at = EXCLUDED.expires_at,
+    rp_id = EXCLUDED.rp_id,
+    cred_params = EXCLUDED.cred_params,
+    extensions = EXCLUDED.extensions,
+    user_verification = EXCLUDED.user_verification,
+    mediation = EXCLUDED.mediation;
 
 -- name: GetSession :one
 SELECT *

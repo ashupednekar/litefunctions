@@ -157,7 +157,7 @@ func (q *Queries) GetCredentialsForUser(ctx context.Context, userID []byte) ([]C
 }
 
 const getSession = `-- name: GetSession :one
-SELECT session_id, user_name, challenge, user_id, allowed_credentials, expires_at
+SELECT session_id, user_name, challenge, user_id, allowed_credentials, expires_at, rp_id, cred_params, extensions, user_verification, mediation
 FROM webauthn_sessions
 WHERE session_id = $1
 `
@@ -172,6 +172,11 @@ func (q *Queries) GetSession(ctx context.Context, sessionID string) (WebauthnSes
 		&i.UserID,
 		&i.AllowedCredentials,
 		&i.ExpiresAt,
+		&i.RpID,
+		&i.CredParams,
+		&i.Extensions,
+		&i.UserVerification,
+		&i.Mediation,
 	)
 	return i, err
 }
@@ -215,15 +220,25 @@ INSERT INTO webauthn_sessions (
     challenge,
     user_id,
     allowed_credentials,
-    expires_at
+    expires_at,
+    rp_id,
+    cred_params,
+    extensions,
+    user_verification,
+    mediation
 )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 ON CONFLICT (session_id) DO UPDATE SET
     user_name = EXCLUDED.user_name,
     challenge = EXCLUDED.challenge,
     user_id = EXCLUDED.user_id,
     allowed_credentials = EXCLUDED.allowed_credentials,
-    expires_at = EXCLUDED.expires_at
+    expires_at = EXCLUDED.expires_at,
+    rp_id = EXCLUDED.rp_id,
+    cred_params = EXCLUDED.cred_params,
+    extensions = EXCLUDED.extensions,
+    user_verification = EXCLUDED.user_verification,
+    mediation = EXCLUDED.mediation
 `
 
 type SaveSessionParams struct {
@@ -233,6 +248,11 @@ type SaveSessionParams struct {
 	UserID             []byte
 	AllowedCredentials [][]byte
 	ExpiresAt          pgtype.Timestamptz
+	RpID               pgtype.Text
+	CredParams         []byte
+	Extensions         []byte
+	UserVerification   pgtype.Text
+	Mediation          pgtype.Text
 }
 
 func (q *Queries) SaveSession(ctx context.Context, arg SaveSessionParams) error {
@@ -243,6 +263,11 @@ func (q *Queries) SaveSession(ctx context.Context, arg SaveSessionParams) error 
 		arg.UserID,
 		arg.AllowedCredentials,
 		arg.ExpiresAt,
+		arg.RpID,
+		arg.CredParams,
+		arg.Extensions,
+		arg.UserVerification,
+		arg.Mediation,
 	)
 	return err
 }

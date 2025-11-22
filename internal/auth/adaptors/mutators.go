@@ -2,6 +2,7 @@ package adaptors
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -10,25 +11,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (db WebauthnStore) SaveSession(token string, data webauthn.SessionData) error {
+func (db WebauthnStore) SaveSession(username string, token string, data webauthn.SessionData) error {
 	log.Printf("SaveSession: %s - %v", token, data)
-	var allowed [][]byte
-	for _, c := range data.AllowedCredentialIDs {
-		allowed = append(allowed, c)
-	}
+
+	allowed := make([][]byte, len(data.AllowedCredentialIDs))
+	copy(allowed, data.AllowedCredentialIDs)
+
+	credParamsJSON, _ := json.Marshal(data.CredParams)
+	extensionsJSON, _ := json.Marshal(data.Extensions)
+
 	err := db.queries.SaveSession(
 		context.Background(),
 		SaveSessionParams{
 			SessionID:          token,
-			UserName:           string(data.UserID),
+			UserName:           username,
 			Challenge:          []byte(data.Challenge),
 			UserID:             data.UserID,
 			AllowedCredentials: allowed,
-			ExpiresAt: pgtype.Timestamptz{Time: data.Expires, Valid: true},
+			ExpiresAt:          pgtype.Timestamptz{Time: data.Expires, Valid: true},
+			RpID:               pgtype.Text{String: data.RelyingPartyID},
+			CredParams:         credParamsJSON,
+			Extensions:         extensionsJSON,
+			UserVerification:   pgtype.Text{String: string(data.UserVerification)},
+			Mediation:          pgtype.Text{String: string(data.Mediation)},
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("error saving session to db - %s", err)
+		return fmt.Errorf("save session failed: %w", err)
 	}
 	return nil
 }
