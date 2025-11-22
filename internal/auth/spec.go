@@ -15,11 +15,11 @@ type PasskeyUser interface {
 }
 
 type PasskeyStore interface {
-	GetOrCreateUser(userName string) PasskeyUser
-	SaveUser(PasskeyUser)
+	GetOrCreateUser(userName string) (PasskeyUser, error)
+	SaveUser(PasskeyUser) error
 	GetSession(token string) (webauthn.SessionData, bool)
-	SaveSession(token string, data webauthn.SessionData)
-	DeleteSession(token string)
+	SaveSession(token string, data webauthn.SessionData) error
+	DeleteSession(token string) error
 }
 
 func NewWebauthn() (*webauthn.WebAuthn, error) {

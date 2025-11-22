@@ -1,72 +1,119 @@
 package adaptors
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"log"
-	"sync"
 
 	"github.com/ashupednekar/litewebservices-portal/internal/auth"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
-
-type InMemoryStore struct {
-	mu       sync.Mutex
-	users    map[string]auth.PasskeyUser
-	sessions map[string]webauthn.SessionData
+type WebauthnStore struct {
+	queries *Queries
 }
 
-func (i *InMemoryStore) GenSessionID() (string, error) {
+func NewWebauthnStore(q *Queries) *WebauthnStore {
+	return &WebauthnStore{queries: q}
+}
+
+func (db WebauthnStore) GenSessionID() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err
 	}
-
 	return base64.URLEncoding.EncodeToString(b), nil
-
 }
 
-func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{
-		users:    make(map[string]auth.PasskeyUser),
-		sessions: make(map[string]webauthn.SessionData),
+func (db WebauthnStore) GetSession(token string) (webauthn.SessionData, bool) {
+	row, err := db.queries.GetSession(context.Background(), token)
+	if err != nil {
+		log.Println("session not found, using new session")
+		return webauthn.SessionData{}, false
 	}
+	session := webauthn.SessionData{
+		Challenge: string(row.Challenge),
+		UserID:    []byte(row.UserName),
+		Expires:   row.ExpiresAt.Time,
+	}
+	for _, b := range row.AllowedCredentials {
+		session.AllowedCredentialIDs = append(session.AllowedCredentialIDs, b)
+	}
+	return session, true
 }
 
-func (i *InMemoryStore) GetSession(token string) (webauthn.SessionData, bool) {
-	log.Printf("[DEBUG] GetSession: %v", i.sessions[token])
-	val, ok := i.sessions[token]
-	return val, ok
-}
-
-func (i *InMemoryStore) SaveSession(token string, data webauthn.SessionData) {
+func (db WebauthnStore) SaveSession(token string, data webauthn.SessionData) error {
 	log.Printf("[DEBUG] SaveSession: %s - %v", token, data)
-	i.sessions[token] = data
+	var allowed [][]byte
+	for _, c := range data.AllowedCredentialIDs {
+		allowed = append(allowed, c)
+	}
+	err := db.queries.SaveSession(
+		context.Background(),
+		SaveSessionParams{
+			SessionID:          token,
+			UserName:           string(data.UserID),
+			Challenge:          []byte(data.Challenge),
+			UserID:             data.UserID,
+			AllowedCredentials: allowed,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("error saving session to db - %s", err)
+	}
+	return nil
 }
 
-func (i *InMemoryStore) DeleteSession(token string) {
+func (db WebauthnStore) DeleteSession(token string) error {
 	log.Printf("[DEBUG] DeleteSession: %v", token)
-	delete(i.sessions, token)
+	return db.queries.DeleteSession(context.Background(), token)
 }
 
-func (i *InMemoryStore) GetOrCreateUser(userName string) auth.PasskeyUser {
+func (db *WebauthnStore) GetOrCreateUser(userName string) (auth.PasskeyUser, error) {
 	log.Printf("[DEBUG] GetOrCreateUser: %v", userName)
-	if _, ok := i.users[userName]; !ok {
-		log.Printf("[DEBUG] GetOrCreateUser: creating new user: %v", userName)
-		i.users[userName] = &auth.User{
-			ID:          []byte(userName),
-			DisplayName: userName,
-			Name:        userName,
-		}
+
+	u, err := db.queries.GetUserByName(context.Background(), userName)
+	if err == nil {
+		return &auth.User{
+			ID:          u.ID,
+			Name:        u.Name,
+			DisplayName: u.DisplayName,
+		}, err
 	}
 
-	return i.users[userName]
+	newUser := &auth.User{
+		ID:          []byte(userName),
+		Name:        userName,
+		DisplayName: userName,
+	}
+
+	err = db.queries.CreateUser(context.Background(), CreateUserParams{
+		ID:          newUser.ID,
+		Name:        newUser.Name,
+		DisplayName: newUser.DisplayName,
+		//Icon:        "https://pics.com/avatar.png",
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error creating new user: %s", err)
+	}
+	return newUser, nil
 }
 
-func (i *InMemoryStore) SaveUser(user auth.PasskeyUser) {
-	log.Printf("[DEBUG] SaveUser: %v", user.WebAuthnName())
-	log.Printf("[DEBUG] SaveUser: %v", user)
-	i.users[user.WebAuthnName()] = user
+func (db *WebauthnStore) SaveUser(user auth.PasskeyUser) error {
+	err := db.queries.UpdateUser(
+		context.Background(),
+		UpdateUserParams{
+			ID:          user.WebAuthnID(),
+			DisplayName: user.WebAuthnDisplayName(),
+			//Icon:        user.WebAuthnIcon(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

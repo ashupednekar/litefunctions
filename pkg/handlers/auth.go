@@ -17,8 +17,8 @@ type AuthHandlers struct {
 	datastore auth.PasskeyStore
 }
 
-func NewAuthHandlers(state *state.AppState) *AuthHandlers{
-	return &AuthHandlers{state: state, datastore: adaptors.NewInMemoryStore()}
+func NewAuthHandlers(state *state.AppState) *AuthHandlers {
+	return &AuthHandlers{state: state, datastore: adaptors.NewWebauthnStore(state.Queries)}
 }
 
 func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
@@ -30,7 +30,11 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 		panic(err)
 	}
 
-	user := h.datastore.GetOrCreateUser(username) 
+	user, err := h.datastore.GetOrCreateUser(username)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		return
+	}
 	options, session, err := h.state.Authn.BeginRegistration(user)
 	if err != nil {
 		msg := fmt.Sprintf("can't begin registration: %s", err.Error())
@@ -47,8 +51,12 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 
 func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 	t := ctx.Request.Header.Get("Session-Key")
-		session, _ := h.datastore.GetSession(t) 
-		user := h.datastore.GetOrCreateUser(string(session.UserID)) 
+	session, _ := h.datastore.GetSession(t)
+	user, err := h.datastore.GetOrCreateUser(string(session.UserID))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		return
+	}
 	credential, err := h.state.Authn.FinishRegistration(user, session, ctx.Request)
 	if err != nil {
 		msg := fmt.Sprintf("can't finish registration: %s", err.Error())
@@ -58,9 +66,16 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 	}
 
 	user.AddCredential(credential)
-	h.datastore.SaveUser(user)
-		h.datastore.DeleteSession(t)
-
+	err = h.datastore.SaveUser(user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error saving user: %s", err)})
+		return
+	}
+	err = h.datastore.DeleteSession(t)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error clearing session: %s", err)})
+		return
+	}
 	log.Printf("[INFO] finish registration ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Registration Success"})
 }
@@ -74,7 +89,11 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 		panic(err)
 	}
 
-	user := h.datastore.GetOrCreateUser(username) 
+	user, err := h.datastore.GetOrCreateUser(username)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		return
+	}
 	options, session, err := h.state.Authn.BeginLogin(user)
 	if err != nil {
 		msg := fmt.Sprintf("can't begin login: %s", err.Error())
@@ -85,25 +104,37 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 
 	t := uuid.New().String()
 	h.datastore.SaveSession(t, *session)
-	
+
 	ctx.Header("Session-Key", t)
 	ctx.JSON(http.StatusOK, options)
 }
 
 func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
-		t := ctx.Request.Header.Get("Session-Key")
-		session, _ := h.datastore.GetSession(t) 
-		user := h.datastore.GetOrCreateUser(string(session.UserID)) 
+	t := ctx.Request.Header.Get("Session-Key")
+	session, _ := h.datastore.GetSession(t)
+	user, err := h.datastore.GetOrCreateUser(string(session.UserID))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		return
+	}
+
 	credential, err := h.state.Authn.FinishLogin(user, session, ctx.Request)
 	if err != nil {
 		log.Printf("[ERRO] can't finish login %s", err.Error())
 		panic(err)
 	}
 
-				
-		user.UpdateCredential(credential)
-	h.datastore.SaveUser(user)
-		h.datastore.DeleteSession(t)
+	user.UpdateCredential(credential)
+	err = h.datastore.SaveUser(user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error saving user: %s", err)})
+		return
+	}
+	err = h.datastore.DeleteSession(t)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error clearing session: %s", err)})
+		return
+	}
 
 	log.Printf("[INFO] finish login ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Login Success"})
