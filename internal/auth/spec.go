@@ -10,16 +10,21 @@ import (
 
 type PasskeyUser interface {
 	webauthn.User
-	AddCredential(*webauthn.Credential)
-	UpdateCredential(*webauthn.Credential)
+	AddCredential(*webauthn.Credential) error
+	UpdateCredential(*webauthn.Credential) error
 }
 
 type PasskeyStore interface {
-	GetOrCreateUser(userName string) (PasskeyUser, error)
-	SaveUser(PasskeyUser) error
-	GetSession(token string) (webauthn.SessionData, bool)
-	SaveSession(username string, token string, data webauthn.SessionData) error
-	DeleteSession(token string) error
+    GetOrCreateUser(userName string) (PasskeyUser, error)
+    SaveUser(PasskeyUser) error
+
+    SaveCredential(user PasskeyUser, cred *webauthn.Credential) error
+    UpdateCredential(user PasskeyUser, cred *webauthn.Credential) error
+    GetCredentialsForUser(user PasskeyUser) ([]webauthn.Credential, error)
+
+    GetSession(token string) (webauthn.SessionData, bool)
+    SaveSession(username string, token string, data webauthn.SessionData) error
+    DeleteSession(token string) error
 }
 
 func NewWebauthn() (*webauthn.WebAuthn, error) {
@@ -41,37 +46,40 @@ type User struct {
 	DisplayName string
 	Name        string
 
-	creds []webauthn.Credential
+	Creds []webauthn.Credential
 }
 
-func (o *User) WebAuthnID() []byte {
-	return o.ID
+func (u *User) WebAuthnID() []byte {
+	return u.ID
 }
 
-func (o *User) WebAuthnName() string {
-	return o.Name
+func (u *User) WebAuthnName() string {
+	return u.Name
 }
 
-func (o *User) WebAuthnDisplayName() string {
-	return o.DisplayName
+func (u *User) WebAuthnDisplayName() string {
+	return u.DisplayName
 }
 
-func (o *User) WebAuthnIcon() string {
+func (u *User) WebAuthnIcon() string {
+	//TODO: later, actual icon, maybe
 	return "https://pics.com/avatar.png"
 }
 
-func (o *User) WebAuthnCredentials() []webauthn.Credential {
-	return o.creds
+func (u *User) WebAuthnCredentials() []webauthn.Credential {
+	return u.Creds
 }
 
-func (o *User) AddCredential(credential *webauthn.Credential) {
-	o.creds = append(o.creds, *credential)
+func (u *User) AddCredential(credential *webauthn.Credential) error {
+	u.Creds = append(u.Creds, *credential)
+	return nil
 }
 
-func (o *User) UpdateCredential(credential *webauthn.Credential) {
-	for i, c := range o.creds {
+func (u *User) UpdateCredential(credential *webauthn.Credential) error {
+	for i, c := range u.Creds {
 		if string(c.ID) == string(credential.ID) {
-			o.creds[i] = *credential
+			u.Creds[i] = *credential
 		}
 	}
+	return nil
 }

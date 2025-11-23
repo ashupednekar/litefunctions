@@ -15,7 +15,7 @@ CREATE TABLE credentials (
     aaguid BYTEA,                     -- credential.AAGUID
     sign_count BIGINT NOT NULL,       -- credential.Authenticator.SignCount
     transports TEXT[],                -- credential.Transports (string array)
-    flags INTEGER NOT NULL DEFAULT 0, -- authenticator flags bitmask
+    flags INTEGER NOT NULL,           -- authenticator flags bitmask
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

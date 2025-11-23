@@ -80,3 +80,43 @@ func (db *WebauthnStore) SaveUser(user auth.PasskeyUser) error {
 	}
 	return nil
 }
+
+func (db WebauthnStore) SaveCredential(user auth.PasskeyUser, cred *webauthn.Credential) error {
+    transports := make([]string, 0, len(cred.Transport))
+    for _, t := range cred.Transport {
+        transports = append(transports, string(t))
+    }
+    params := CreateCredentialParams{
+        ID:              cred.ID,
+        UserID:          user.WebAuthnID(),
+        PublicKey:       cred.PublicKey,
+        AttestationType: pgtype.Text{String: cred.AttestationType, Valid: true},
+        Aaguid: nil,
+        SignCount: int64(cred.Authenticator.SignCount),
+        Transports: transports,
+				Flags: int32(cred.Flags.ProtocolValue()),
+    }
+    return db.queries.CreateCredential(context.Background(), params)
+}
+
+
+func (db WebauthnStore) UpdateCredential(user auth.PasskeyUser, cred *webauthn.Credential) error {
+    transports := make([]string, 0, len(cred.Transport))
+    for _, t := range cred.Transport {
+        transports = append(transports, string(t))
+    }
+
+    params := UpdateCredentialParams{
+        ID:              cred.ID,
+        PublicKey:       cred.PublicKey,
+        AttestationType: pgtype.Text{String: cred.AttestationType, Valid: true},
+        Aaguid:          nil,
+        SignCount:       int64(cred.Authenticator.SignCount),
+        Transports:      transports,
+    }
+
+    return db.queries.UpdateCredential(context.Background(), params)
+}
+
+
+

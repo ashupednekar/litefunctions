@@ -41,7 +41,7 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 	}
 	options, session, err := h.State.Authn.BeginRegistration(user)
 	expDur, parseErr := time.ParseDuration(pkg.Cfg.SessionExpiry)
-	if parseErr != nil{
+	if parseErr != nil {
 		msg := fmt.Sprintf("[ERRO] invalid session expiry configured, contact admin %s", err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": msg})
 		return
@@ -69,12 +69,15 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 	t := ctx.Request.Header.Get("Session-Key")
 	session, _ := h.store.GetSession(t)
 	log.Printf("got session: %v\n", session)
+
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": fmt.Sprintf("error creating/retirieving user: %s", err),
+		})
 		return
 	}
-	log.Printf("got user: %v\n", user)
+
 	credential, err := h.State.Authn.FinishRegistration(user, session, ctx.Request)
 	if err != nil {
 		msg := fmt.Sprintf("can't finish registration: %s", err.Error())
@@ -82,18 +85,22 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": msg})
 		return
 	}
+
 	log.Printf("got credential: %v\n", credential)
-	user.AddCredential(credential)
-	err = h.store.SaveUser(user)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error saving user: %s", err)})
+
+	if err := h.store.SaveCredential(user, credential); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": fmt.Sprintf("error saving credential: %s", err),
+		})
 		return
 	}
 	err = h.store.DeleteSession(t)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error clearing session: %s", err)})
-		return
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": fmt.Sprintf("error clearing webauthn session: %s", err),
+		})
 	}
+
 	log.Printf("finish registration ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Registration Success"})
 }
@@ -136,7 +143,9 @@ func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 	session, _ := h.store.GetSession(t)
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": fmt.Sprintf("error creating/retirieving user: %s", err),
+		})
 		return
 	}
 
@@ -146,16 +155,18 @@ func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 		panic(err)
 	}
 
-	user.UpdateCredential(credential)
-	err = h.store.SaveUser(user)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error saving user: %s", err)})
+	if err := h.store.UpdateCredential(user, credential); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": fmt.Sprintf("error updating credential: %s", err),
+		})
 		return
 	}
+
 	err = h.store.DeleteSession(t)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error clearing session: %s", err)})
-		return
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": fmt.Sprintf("error clearing webauthn session: %s", err),
+		})
 	}
 
 	log.Printf("finish login ----------------------/")
