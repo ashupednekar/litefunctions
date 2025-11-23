@@ -20,6 +20,7 @@ WORKDIR /app
 COPY --from=builder /app/app server
 COPY --from=builder /app/static .
 COPY --from=builder /app/migrations .
+RUN ls 
 
 ENV LISTEN_PORT=3000
 
