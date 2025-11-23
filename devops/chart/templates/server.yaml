@@ -45,6 +45,6 @@ spec:
           postStart:
             exec:
               command:
-                - /app
+                - /app/server
                 - migrate
                 - up

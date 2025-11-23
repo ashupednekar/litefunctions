@@ -17,10 +17,10 @@ RUN templ generate && \
 FROM scratch
 
 WORKDIR /app
-COPY --from=builder /app/app .
+COPY --from=builder /app/app server
 COPY --from=builder /app/static .
 COPY --from=builder /app/migrations .
 
 ENV LISTEN_PORT=3000
 
-ENTRYPOINT ["/app", "listen"]
+ENTRYPOINT ["/app/server", "listen"]
