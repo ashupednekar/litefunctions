@@ -1,0 +1,98 @@
+package templates
+
+templ ConfigurationContent() {
+	<div class="w-full px-6 md:px-14 py-12 space-y-14">
+		<!-- HEADER -->
+		<div class="flex items-center justify-between">
+			<h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">
+				Configuration
+			</h1>
+			<button
+				onclick="openConfigEditor()"
+				class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition"
+			>
+				New Config
+			</button>
+		</div>
+		<p class="text-neutral-400 text-sm md:text-base -mt-6">
+			Project-level config & encrypted secrets.
+		</p>
+		<!-- CONFIG LIST -->
+		<div id="config-list" class="space-y-4 mt-8">
+			<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5">
+				<div class="flex items-center justify-between">
+					<h3 class="text-white font-semibold text-lg">APP_MODE</h3>
+					<button
+						onclick="openConfigEditor('APP_MODE','production',false)"
+						class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
+					>
+						Edit
+					</button>
+				</div>
+				<p class="text-neutral-400 text-sm mt-2">production</p>
+			</div>
+		</div>
+		<!-- EDIT/CREATE CONFIG MODAL -->
+		<div
+			id="config-modal"
+			class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+		>
+			<div class="w-[90%] md:w-[700px] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 space-y-4">
+				<h2 class="text-xl font-semibold text-white">Config Entry</h2>
+				<!-- KEY -->
+				<div>
+					<label class="text-neutral-400 text-sm">Key</label>
+					<input id="cfg-key" class="w-full mt-1 p-2 bg-[#0c0c0d] border border-neutral-800 rounded-xl text-white"/>
+				</div>
+				<!-- EDITOR -->
+				<div>
+					<label class="text-neutral-400 text-sm">Value</label>
+					<div id="config-ace" class="w-full h-[200px] mt-2 rounded-xl border border-neutral-800"></div>
+				</div>
+				<!-- OPTIONS -->
+				<label class="flex items-center gap-2 text-neutral-300 text-sm">
+					<input id="cfg-encrypted" type="checkbox"/>
+					Encrypted
+				</label>
+				<label class="flex items-center gap-2 text-neutral-300 text-sm">
+					<input id="cfg-vim" type="checkbox" onchange="toggleConfigVim()"/>
+					Vim mode
+				</label>
+				<div class="flex justify-end gap-3">
+					<button onclick="closeConfigEditor()" class="text-neutral-400 hover:text-neutral-200">Cancel</button>
+					<button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl">Save</button>
+				</div>
+			</div>
+		</div>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ext-language_tools.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/keybinding-vim.js"></script>
+		<script>
+    let configEditor;
+
+    function openConfigEditor(key = "", value = "", encrypted = false) {
+      document.getElementById("config-modal").classList.remove("hidden");
+      document.getElementById("cfg-key").value = key;
+      document.getElementById("cfg-encrypted").checked = encrypted;
+
+      if (!configEditor) {
+        configEditor = ace.edit("config-ace");
+        configEditor.setTheme("ace/theme/dracula");
+        configEditor.session.setMode("ace/mode/json");
+      }
+
+      configEditor.setValue(value, -1);
+    }
+
+    function closeConfigEditor() {
+      document.getElementById("config-modal").classList.add("hidden");
+    }
+
+    function toggleConfigVim() {
+      if (!configEditor) return;
+      let vim = document.getElementById("cfg-vim").checked;
+      configEditor.setKeyboardHandler(vim ? "ace/keyboard/vim" : null);
+    }
+  </script>
+	</div>
+}

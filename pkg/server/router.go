@@ -37,6 +37,9 @@ func (s *Server) BuildRoutes() {
 	protected.Use(middleware.AuthMiddleware(auth.GetStore()))
 	{
 		protected.GET("/dashboard", ui.Dashboard)
+		protected.GET("/configuration", ui.Configuration)
 		protected.GET("/functions", ui.Functions)
+		protected.GET("/endpoints", ui.Endpoints)
+		protected.GET("/data", ui.Data)
 	}
 }

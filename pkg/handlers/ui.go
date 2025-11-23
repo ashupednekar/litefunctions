@@ -9,18 +9,17 @@ type UIHandlers struct{}
 
 func (h *UIHandlers) Home(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		templates.HomeContent(), 
+		templates.HomeContent(),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		ctx.JSON(500, gin.H{"err": err.Error()})
 	}
 }
-
 
 func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		templates.DashboardContent(), 
+		templates.DashboardContent(),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
@@ -28,10 +27,39 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 	}
 }
 
-
 func (h *UIHandlers) Functions(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		templates.FunctionContent(), 
+		templates.FunctionContent(),
+	)
+
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		ctx.JSON(500, gin.H{"err": err.Error()})
+	}
+}
+
+func (h *UIHandlers) Data(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		templates.DataContent(),
+	)
+
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		ctx.JSON(500, gin.H{"err": err.Error()})
+	}
+}
+
+func (h *UIHandlers) Endpoints(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		templates.EndpointsContent(),
+	)
+
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		ctx.JSON(500, gin.H{"err": err.Error()})
+	}
+}
+
+func (h *UIHandlers) Configuration(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		templates.ConfigurationContent(),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
