@@ -26,6 +26,8 @@ spec:
               secretKeyRef:
                 name: {{.Values.server.db.secret}}
                 key: {{.Values.server.db.key}}
+          - name: "FQDN"
+            value: {{.Values.global.DNS}}
         resources: {}
         {{- if .Values.server.probes.enabled}}
         livenessProbe:

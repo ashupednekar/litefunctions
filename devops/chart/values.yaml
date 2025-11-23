@@ -1,3 +1,5 @@
+global:
+  DNS: localhost
 server:
   replicas: 1
   image:
