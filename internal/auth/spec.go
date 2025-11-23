@@ -15,16 +15,20 @@ type PasskeyUser interface {
 }
 
 type PasskeyStore interface {
-    GetOrCreateUser(userName string) (PasskeyUser, error)
-    SaveUser(PasskeyUser) error
+	GetOrCreateUser(userName string) (PasskeyUser, error)
+	SaveUser(PasskeyUser) error
 
-    SaveCredential(user PasskeyUser, cred *webauthn.Credential) error
-    UpdateCredential(user PasskeyUser, cred *webauthn.Credential) error
-    GetCredentialsForUser(user PasskeyUser) ([]webauthn.Credential, error)
+	SaveCredential(user PasskeyUser, cred *webauthn.Credential) error
+	UpdateCredential(user PasskeyUser, cred *webauthn.Credential) error
+	GetCredentialsForUser(user PasskeyUser) ([]webauthn.Credential, error)
 
-    GetSession(token string) (webauthn.SessionData, bool)
-    SaveSession(username string, token string, data webauthn.SessionData) error
-    DeleteSession(token string) error
+	// WebAuthn challenge session methods
+	GetSession(token string) (webauthn.SessionData, bool)
+	SaveSession(username string, token string, data webauthn.SessionData) error
+	DeleteSession(token string) error
+
+	// User authentication session methods
+	SessionStore
 }
 
 func NewWebauthn() (*webauthn.WebAuthn, error) {

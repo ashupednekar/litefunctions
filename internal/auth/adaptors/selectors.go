@@ -10,6 +10,28 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
+// convertDBCredentialToWebauthn converts a database credential to a webauthn.Credential
+func convertDBCredentialToWebauthn(c Credential) webauthn.Credential {
+	transports := make([]protocol.AuthenticatorTransport, 0, len(c.Transports))
+	for _, t := range c.Transports {
+		transports = append(transports, protocol.AuthenticatorTransport(t))
+	}
+
+	raw := protocol.AuthenticatorFlags(c.Flags)
+	credFlags := webauthn.NewCredentialFlags(raw)
+
+	return webauthn.Credential{
+		ID:              c.ID,
+		PublicKey:       c.PublicKey,
+		AttestationType: c.AttestationType.String,
+		Transport:       transports,
+		Flags:           credFlags,
+		Authenticator: webauthn.Authenticator{
+			SignCount: uint32(c.SignCount),
+		},
+	}
+}
+
 func (db *WebauthnStore) GetUser(userName string) (*auth.User, error) {
 	u, err := db.queries.GetUserByName(context.Background(), userName)
 	if err != nil {
@@ -22,24 +44,7 @@ func (db *WebauthnStore) GetUser(userName string) (*auth.User, error) {
 
 	webCreds := make([]webauthn.Credential, 0, len(creds))
 	for _, c := range creds {
-		transports := make([]protocol.AuthenticatorTransport, 0, len(c.Transports))
-		for _, t := range c.Transports {
-			transports = append(transports, protocol.AuthenticatorTransport(t))
-		}
-
-		raw := protocol.AuthenticatorFlags(c.Flags)
-		credFlags := webauthn.NewCredentialFlags(raw)
-
-		webCreds = append(webCreds, webauthn.Credential{
-			ID:              c.ID,
-			PublicKey:       c.PublicKey,
-			AttestationType: c.AttestationType.String,
-			Transport:       transports,
-			Flags:           credFlags,
-			Authenticator: webauthn.Authenticator{
-				SignCount: uint32(c.SignCount),
-			},
-		})
+		webCreds = append(webCreds, convertDBCredentialToWebauthn(c))
 	}
 
 	return &auth.User{
@@ -60,10 +65,14 @@ func (db WebauthnStore) GetSession(token string) (webauthn.SessionData, bool) {
 	}
 
 	var credParams []protocol.CredentialParameter
-	_ = json.Unmarshal(row.CredParams, &credParams)
+	if err := json.Unmarshal(row.CredParams, &credParams); err != nil {
+		log.Printf("[WARN] failed to unmarshal credParams: %v", err)
+	}
 
 	var extensions protocol.AuthenticationExtensions
-	_ = json.Unmarshal(row.Extensions, &extensions)
+	if err := json.Unmarshal(row.Extensions, &extensions); err != nil {
+		log.Printf("[WARN] failed to unmarshal extensions: %v", err)
+	}
 
 	sess := webauthn.SessionData{
 		Challenge:            string(row.Challenge),
@@ -89,25 +98,18 @@ func (db WebauthnStore) GetCredentialsForUser(user auth.PasskeyUser) ([]webauthn
 	creds := make([]webauthn.Credential, 0, len(rows))
 
 	for _, row := range rows {
-		transports := make([]protocol.AuthenticatorTransport, 0, len(row.Transports))
-		for _, t := range row.Transports {
-			transports = append(transports, protocol.AuthenticatorTransport(t))
-		}
-		raw := protocol.AuthenticatorFlags(row.Flags)
-		credFlags := webauthn.NewCredentialFlags(raw)
-		creds = append(creds, webauthn.Credential{
-			ID:              row.ID,
-			PublicKey:       row.PublicKey,
-			AttestationType: row.AttestationType.String,
-			Transport:       transports,
-
-			Flags: credFlags,
-
-			Authenticator: webauthn.Authenticator{
-				SignCount: uint32(row.SignCount),
-			},
-		})
+		creds = append(creds, convertDBCredentialToWebauthn(row))
 	}
 
 	return creds, nil
+}
+
+// GetUserSession retrieves a user session by session ID
+func (db *WebauthnStore) GetUserSession(sessionID string) (userID []byte, found bool, err error) {
+	session, err := db.queries.GetUserSession(context.Background(), sessionID)
+	if err != nil {
+		log.Printf("[DEBUG] session not found: %v", err)
+		return nil, false, nil
+	}
+	return session.UserID, true, nil
 }

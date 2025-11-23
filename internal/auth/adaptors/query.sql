@@ -90,3 +90,20 @@ WHERE session_id = $1;
 -- name: DeleteExpiredSessions :exec
 DELETE FROM webauthn_sessions
 WHERE expires_at < now();
+
+-- User Sessions (for persistent authentication)
+-- name: CreateUserSession :exec
+INSERT INTO user_sessions (session_id, user_id, expires_at, user_agent, ip_address)
+VALUES ($1, $2, $3, $4, $5);
+
+-- name: GetUserSession :one
+SELECT * FROM user_sessions WHERE session_id = $1 AND expires_at > now();
+
+-- name: DeleteUserSession :exec
+DELETE FROM user_sessions WHERE session_id = $1;
+
+-- name: DeleteExpiredUserSessions :exec
+DELETE FROM user_sessions WHERE expires_at < now();
+
+-- name: DeleteUserSessionsByUserID :exec
+DELETE FROM user_sessions WHERE user_id = $1;

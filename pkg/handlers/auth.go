@@ -25,6 +25,11 @@ func NewAuthHandlers(state *state.AppState) *AuthHandlers {
 	return &AuthHandlers{State: state, store: store}
 }
 
+// GetStore returns the PasskeyStore for use in middleware
+func (h *AuthHandlers) GetStore() auth.PasskeyStore {
+	return h.store
+}
+
 func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 	log.Printf("begin registration ----------------------\\")
 
@@ -36,7 +41,7 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 	}
 	user, err := h.store.GetOrCreateUser(username)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retrieving user: %s", err)})
 		return
 	}
 	options, session, err := h.State.Authn.BeginRegistration(user)
@@ -67,13 +72,17 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 
 func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 	t := ctx.Request.Header.Get("Session-Key")
-	session, _ := h.store.GetSession(t)
+	session, ok := h.store.GetSession(t)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "invalid or expired session"})
+		return
+	}
 	log.Printf("got session: %v\n", session)
 
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"msg": fmt.Sprintf("error creating/retirieving user: %s", err),
+			"msg": fmt.Sprintf("error creating/retrieving user: %s", err),
 		})
 		return
 	}
@@ -96,9 +105,7 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 	}
 	err = h.store.DeleteSession(t)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"msg": fmt.Sprintf("error clearing webauthn session: %s", err),
-		})
+		log.Printf("[WARN] error clearing webauthn session: %s", err)
 	}
 
 	log.Printf("finish registration ----------------------/")
@@ -110,13 +117,14 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 
 	username, err := auth.GetUsername(ctx)
 	if err != nil {
-		log.Printf("[ERRO]can't get user name: %s", err.Error())
-		panic(err)
+		log.Printf("[ERRO] can't get user name: %s", err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Sprintf("invalid request: %s", err.Error())})
+		return
 	}
 
 	user, err := h.store.GetOrCreateUser(username)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retirieving user: %s", err)})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": fmt.Sprintf("error creating/retrieving user: %s", err)})
 		return
 	}
 	options, session, err := h.State.Authn.BeginLogin(user)
@@ -140,19 +148,25 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 	t := ctx.Request.Header.Get("Session-Key")
 
-	session, _ := h.store.GetSession(t)
+	session, ok := h.store.GetSession(t)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "invalid or expired session"})
+		return
+	}
+
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"msg": fmt.Sprintf("error creating/retirieving user: %s", err),
+			"msg": fmt.Sprintf("error creating/retrieving user: %s", err),
 		})
 		return
 	}
 
 	credential, err := h.State.Authn.FinishLogin(user, session, ctx.Request)
 	if err != nil {
-		log.Printf("[ERRO] can't finish login %s", err.Error())
-		panic(err)
+		log.Printf("[ERRO] can't finish login: %s", err.Error())
+		ctx.JSON(http.StatusUnauthorized, gin.H{"msg": fmt.Sprintf("authentication failed: %s", err.Error())})
+		return
 	}
 
 	if err := h.store.UpdateCredential(user, credential); err != nil {
@@ -162,21 +176,81 @@ func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 		return
 	}
 
+	// Delete the webauthn challenge session
 	err = h.store.DeleteSession(t)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"msg": fmt.Sprintf("error clearing webauthn session: %s", err),
-		})
+		log.Printf("[WARN] error clearing webauthn session: %s", err)
 	}
+
+	// Create a persistent user session
+	sessionID, err := auth.GenerateSessionID()
+	if err != nil {
+		log.Printf("[ERRO] failed to generate session ID: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	expiresAt, err := auth.GetSessionExpiry()
+	if err != nil {
+		log.Printf("[ERRO] failed to get session expiry: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	userAgent := ctx.Request.UserAgent()
+	ipAddress := ctx.ClientIP()
+
+	if err := h.store.CreateUserSession(user.WebAuthnID(), sessionID, expiresAt, userAgent, ipAddress); err != nil {
+		log.Printf("[ERRO] failed to create user session: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	// Set secure cookie
+	maxAge := int(time.Until(expiresAt).Seconds())
+	ctx.SetCookie(
+		auth.SessionCookieName, // name
+		sessionID,              // value
+		maxAge,                 // maxAge in seconds
+		"/",                    // path
+		"",                     // domain (empty = current domain)
+		false,                  // secure (set to true in production with HTTPS)
+		true,                   // httpOnly
+	)
 
 	log.Printf("finish login ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Login Success"})
 }
 
+func (h *AuthHandlers) Logout(ctx *gin.Context) {
+	// Get session cookie
+	sessionID, err := ctx.Cookie(auth.SessionCookieName)
+	if err == nil {
+		// Delete session from database
+		if err := h.store.DeleteUserSession(sessionID); err != nil {
+			log.Printf("[WARN] failed to delete session: %s", err.Error())
+		}
+	}
+
+	// Clear cookie
+	ctx.SetCookie(
+		auth.SessionCookieName, // name
+		"",                     // value
+		-1,                     // maxAge (negative = delete)
+		"/",                    // path
+		"",                     // domain
+		false,                  // secure
+		true,                   // httpOnly
+	)
+
+	// Redirect to home
+	ctx.Redirect(http.StatusFound, "/")
+}
+
 func (h *AuthHandlers) SetSchema(ctx *gin.Context) *pgx.Tx {
 	tx, err := h.State.DBPool.Begin(ctx)
 	if err != nil {
-		msg := fmt.Sprintf("[ERRO] couln't obtain transaction: %s", err.Error())
+		msg := fmt.Sprintf("[ERRO] couldn't obtain transaction: %s", err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": msg})
 		return nil
 	}

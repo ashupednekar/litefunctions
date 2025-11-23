@@ -28,6 +28,15 @@ type User struct {
 	Icon        pgtype.Text
 }
 
+type UserSession struct {
+	SessionID string
+	UserID    []byte
+	CreatedAt pgtype.Timestamptz
+	ExpiresAt pgtype.Timestamptz
+	UserAgent pgtype.Text
+	IpAddress pgtype.Text
+}
+
 type WebauthnSession struct {
 	SessionID          string
 	UserName           string

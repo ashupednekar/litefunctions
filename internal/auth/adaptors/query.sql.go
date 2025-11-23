@@ -74,6 +74,31 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
+const createUserSession = `-- name: CreateUserSession :exec
+INSERT INTO user_sessions (session_id, user_id, expires_at, user_agent, ip_address)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type CreateUserSessionParams struct {
+	SessionID string
+	UserID    []byte
+	ExpiresAt pgtype.Timestamptz
+	UserAgent pgtype.Text
+	IpAddress pgtype.Text
+}
+
+// User Sessions (for persistent authentication)
+func (q *Queries) CreateUserSession(ctx context.Context, arg CreateUserSessionParams) error {
+	_, err := q.db.Exec(ctx, createUserSession,
+		arg.SessionID,
+		arg.UserID,
+		arg.ExpiresAt,
+		arg.UserAgent,
+		arg.IpAddress,
+	)
+	return err
+}
+
 const deleteExpiredSessions = `-- name: DeleteExpiredSessions :exec
 DELETE FROM webauthn_sessions
 WHERE expires_at < now()
@@ -84,6 +109,15 @@ func (q *Queries) DeleteExpiredSessions(ctx context.Context) error {
 	return err
 }
 
+const deleteExpiredUserSessions = `-- name: DeleteExpiredUserSessions :exec
+DELETE FROM user_sessions WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredUserSessions(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredUserSessions)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM webauthn_sessions
 WHERE session_id = $1
@@ -91,6 +125,24 @@ WHERE session_id = $1
 
 func (q *Queries) DeleteSession(ctx context.Context, sessionID string) error {
 	_, err := q.db.Exec(ctx, deleteSession, sessionID)
+	return err
+}
+
+const deleteUserSession = `-- name: DeleteUserSession :exec
+DELETE FROM user_sessions WHERE session_id = $1
+`
+
+func (q *Queries) DeleteUserSession(ctx context.Context, sessionID string) error {
+	_, err := q.db.Exec(ctx, deleteUserSession, sessionID)
+	return err
+}
+
+const deleteUserSessionsByUserID = `-- name: DeleteUserSessionsByUserID :exec
+DELETE FROM user_sessions WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserSessionsByUserID(ctx context.Context, userID []byte) error {
+	_, err := q.db.Exec(ctx, deleteUserSessionsByUserID, userID)
 	return err
 }
 
@@ -209,6 +261,24 @@ func (q *Queries) GetUserByName(ctx context.Context, name string) (User, error) 
 		&i.Name,
 		&i.DisplayName,
 		&i.Icon,
+	)
+	return i, err
+}
+
+const getUserSession = `-- name: GetUserSession :one
+SELECT session_id, user_id, created_at, expires_at, user_agent, ip_address FROM user_sessions WHERE session_id = $1 AND expires_at > now()
+`
+
+func (q *Queries) GetUserSession(ctx context.Context, sessionID string) (UserSession, error) {
+	row := q.db.QueryRow(ctx, getUserSession, sessionID)
+	var i UserSession
+	err := row.Scan(
+		&i.SessionID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.UserAgent,
+		&i.IpAddress,
 	)
 	return i, err
 }
