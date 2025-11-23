@@ -7,6 +7,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+RUN ls migrations
 
 RUN templ generate && \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
@@ -18,9 +19,6 @@ FROM scratch
 
 WORKDIR /app
 COPY --from=builder /app/app server
-COPY --from=builder /app/static .
-COPY --from=builder /app/migrations .
-RUN ls 
 
 ENV LISTEN_PORT=3000
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/ashupednekar/litewebservices-portal/migrations"
 	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state/connections"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -53,13 +54,16 @@ func runMigrations(direction string) error {
 	}
 	defer db.Close()
 
-	migrationsDir := "./migrations"
+	goose.SetBaseFS(migrations.Files)
+	// When using embed.FS, the path is relative to the embedded root
+	// Since we embedded "*.sql" in the migrations package, use "."
+	migrationsDir := "."
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return fmt.Errorf("failed to set dialect: %w", err)
 	}
 
-  _, err = db.Exec("create schema if not exists " + pq.QuoteIdentifier(pkg.Cfg.DatabaseSchema))
+	_, err = db.Exec("create schema if not exists " + pq.QuoteIdentifier(pkg.Cfg.DatabaseSchema))
 	if err != nil {
 		return fmt.Errorf("failed to create schema: %w", err)
 	}
