@@ -1,36 +1,30 @@
 package repo
 
 import (
-	"github.com/ashupednekar/litewebservices-portal/pkg"
-	"github.com/go-git/go-git/v6/plumbing/transport"
+	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/storage/memory"
 )
 
-type VCS interface{
+type VCS interface {
 	Init(remoteUrl string) error
-	Clone(branch string, dest string) error
+	Clone(project string, branch string) error
 	Commit(files ...string) error
 	Push() error
 }
 
-type GitRepo struct{
-	url string
-	branch string
-	storage *memory.Storage
-	authMode *AuthMode
+type GitRepo struct {
+	project string
+	branch   string
+	storage  *memory.Storage
+	options *git.CloneOptions
 }
 
 
-func NewGitRepo(url string, branch string) *GitRepo {
+func NewGitRepo(project string, branch string) *GitRepo {
 	return &GitRepo{
-		url: url, branch: branch, storage: memory.NewStorage(),
+		project: project, 
+		branch: branch, 
+		storage: memory.NewStorage(),
+		options: &git.CloneOptions{},
 	}
 }
-
-func (r *GitRepo) SetupAuth() error {
-
-	return nil
-}
-
-
-

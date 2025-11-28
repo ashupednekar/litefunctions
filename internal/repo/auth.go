@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/plumbing/transport"
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/plumbing/transport/ssh"
 )
 
-
-type AuthMode interface{
-	GetAuth() (*transport.AuthMethod, error)
+type AuthMode interface {
+	UpdateOptions(options *git.CloneOptions) error
 }
 
-type SshAuth struct{
-	privKey string
+type SshAuth struct {
+	privKey  string
 	password string
 }
 
@@ -24,21 +23,38 @@ type TokenAuth struct {
 	token string
 }
 
-func (s *SshAuth) GetAuth(options *git.CloneOptions) (*git.CloneOptions, error){
+func (s *SshAuth) UpdateOptions(options *git.CloneOptions) error {
 	_, err := os.Stat(s.privKey)
 	if err != nil {
-		return nil, fmt.Errorf("read file %s failed %s\n", s.privKey, err.Error())
+		return fmt.Errorf("read file %s failed %s\n", s.privKey, err.Error())
 	}
 	publicKeys, err := ssh.NewPublicKeysFromFile("git", s.privKey, s.password)
-	if err != nil{
-		return nil, fmt.Errorf("error getting pubkey: %s", err)
+	if err != nil {
+		return fmt.Errorf("error getting pubkey: %s", err)
 	}
 	options.Auth = publicKeys
 	options.Progress = os.Stdout
-	return options, nil
+	return nil
 }
 
-func (t *TokenAuth) GetAuth(options *git.CloneOptions) (*git.CloneOptions, error) {
+func (t *TokenAuth) UpdateOptions(options *git.CloneOptions) error {
 	options.Auth = &http.BasicAuth{Password: t.token}
-  return options, nil
+	return nil
+}
+
+func (r *GitRepo) SetupAuth() error {
+	switch pkg.Cfg.VcsAuthMode{
+	case "ssh":
+		auth := &SshAuth{
+			privKey: pkg.Cfg.VcsPrivKeyPath,
+			password: pkg.Cfg.VcsPrivKeyPassword,
+		}
+		auth.UpdateOptions(r.options)
+	case "token":
+		auth := &TokenAuth{token: pkg.Cfg.VcsToken}
+		auth.UpdateOptions(r.options)
+	default:
+		return fmt.Errorf("invalid auth mode: %s", pkg.Cfg.VcsAuthMode)
+	}
+	return nil
 }
