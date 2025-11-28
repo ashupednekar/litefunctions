@@ -4,19 +4,29 @@ import (
 	"fmt"
 
 	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/storage/memory"
 )
 
-
-func (r *Repo) Clone(path string, branch string, dest string) error {
-	//TODO: use r.storage
-  re, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+func (r *GitRepo) Clone(path string, branch string, dest string) error {
+	//TODO: auth
+  re, err := git.Clone(r.storage, nil, &git.CloneOptions{
       URL: "https://github.com/go-git/go-billy",
   })
 	if err != nil{
 		return fmt.Errorf("error cloning repo: %s", err)
 	}
 	fmt.Printf("repo %v\n", re)
+	return nil
+}
+
+func (r *GitRepo) Commit(files ...string) error {
+	return nil
+}
+
+func (r *GitRepo) Push() error{
+	return nil
+} 
+
+func (r *GitRepo) Init(remoteUrl string) error {
 	return nil
 }
 

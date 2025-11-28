@@ -18,6 +18,11 @@ type Settings struct {
 	DatabaseMaxConnLifetime string `env:"DATABASE_MAX_CONN_LIFETIME" default:"1h"`
 	DatabaseMaxConnIdleTime string `env:"DATABASE_MAX_CONN_IDLETIME" default:"10m"`
 	SessionExpiry           string `env:"SESSION_EXPIRY" default:"1h"`
+	//Vcs conf
+	VcsAuthMode             string `env:"GIT_AUTH_MODE" default:"ssh"`
+	VcsPubKeyPath       string `env:"GIT_PRIVATE_KEY_PATH" default:"/app/.ssh/privkey.pem"` 
+	VcsPrivKeyPassword string `env:"GIT_PRIVATE_KEY_PASSWORD"`
+	VcsToken                string `env:"GIT_TOKEN"`
 }
 
 var (
@@ -36,3 +41,4 @@ func LoadCfg() {
 		log.Fatal(LoadErr)
 	}
 }
+
