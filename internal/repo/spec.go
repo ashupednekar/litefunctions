@@ -1,6 +1,10 @@
 package repo
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/go-git/go-billy/v6"
 	"github.com/go-git/go-billy/v6/memfs"
 	"github.com/go-git/go-git/v6"
@@ -8,7 +12,6 @@ import (
 )
 
 type VCS interface {
-	Init(remoteUrl string) error
 	Clone(project string, branch string) error
 	Commit(files ...string) error
 	Push() error
@@ -43,7 +46,14 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 	  	branch: b, 
 			fs: fs,
 	  	storage: memory.NewStorage(),
-	  	options: &git.CloneOptions{},
+	  	options: &git.CloneOptions{
+				URL: fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsVendor, pkg.Cfg.VcsUser, project),
+				Progress: os.Stdout,
+			},
+	  }
+		err := r.SetupAuth()
+	  if err != nil {
+	  	return nil, err
 	  }
 		repos[project] = &r
 		return &r, nil
