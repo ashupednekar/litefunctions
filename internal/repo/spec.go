@@ -21,6 +21,7 @@ type GitRepo struct {
 	options *git.CloneOptions
 	fs billy.Filesystem
 	worktree *git.Worktree
+	repo     *git.Repository
 }
 
 var repos = make(map[string]*GitRepo)
