@@ -23,7 +23,7 @@ type GitRepo struct {
 	worktree *git.Worktree
 }
 
-var repos map[string]*GitRepo
+var repos = make(map[string]*GitRepo)
 
 func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 	fs := memfs.New()
@@ -37,12 +37,14 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 	if ok{
 	  return repo, nil
 	}else{
-		return &GitRepo{
+		r := GitRepo{
 	  	project: project, 
 	  	branch: b, 
 			fs: fs,
 	  	storage: memory.NewStorage(),
 	  	options: &git.CloneOptions{},
-	  }, nil
+	  }
+		repos[project] = &r
+		return &r, nil
 	}
 }
