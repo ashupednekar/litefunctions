@@ -1,8 +1,8 @@
 package repo
 
 import (
-	"fmt"
-
+	"github.com/go-git/go-billy/v6"
+	"github.com/go-git/go-billy/v6/memfs"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/storage/memory"
 )
@@ -19,34 +19,29 @@ type GitRepo struct {
 	branch   string
 	storage  *memory.Storage
 	options *git.CloneOptions
+	fs billy.Filesystem
 	worktree *git.Worktree
 }
 
-var repos map[string]*memory.Storage
+var repos map[string]*GitRepo
 
-func NewGitRepo(project string, branch string) (*GitRepo, error) {
-	s, ok := repos[project]
+func NewGitRepo(project string, branch *string) (*GitRepo, error) {
+	fs := memfs.New()
+	var b string
+	if branch != nil {
+			b = *branch
+	} else {
+			b = "main"
+	}
+	repo, ok := repos[project]
 	if ok{
-		r, err := git.Open(s, nil)
-		if err != nil{
-			return nil, fmt.Errorf("error opening repo: %s", err)
-		}
-		w, err := r.Worktree()
-		if err != nil{
-			return nil, fmt.Errorf("error getting worktree: %s", err)
-		}
-	  return &GitRepo{
-	  	project: project, 
-	  	branch: branch, 
-	  	storage: s,
-	  	options: &git.CloneOptions{},
-			worktree: w,
-	  }, nil
+	  return repo, nil
 	}else{
 		return &GitRepo{
 	  	project: project, 
-	  	branch: branch, 
-	  	storage: s,
+	  	branch: b, 
+			fs: fs,
+	  	storage: memory.NewStorage(),
 	  	options: &git.CloneOptions{},
 	  }, nil
 	}

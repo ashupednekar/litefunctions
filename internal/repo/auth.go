@@ -2,6 +2,7 @@ package repo
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/ashupednekar/litewebservices-portal/pkg"
@@ -43,6 +44,7 @@ func (t *TokenAuth) UpdateOptions(options *git.CloneOptions) error {
 }
 
 func (r *GitRepo) SetupAuth() error {
+	log.Printf("setting up %s auth\n", pkg.Cfg.VcsAuthMode)
 	switch pkg.Cfg.VcsAuthMode{
 	case "ssh":
 		auth := &SshAuth{

@@ -7,14 +7,14 @@ import (
 	"github.com/go-git/go-git/v6"
 )
 
-func (r *GitRepo) Clone(project, string, branch string) error {
+func (r *GitRepo) Clone() error {
 	err := r.SetupAuth()
 	if err != nil {
 		return err
 	}
-	repo, err := git.Clone(r.storage, nil, &git.CloneOptions{
+	repo, err := git.Clone(r.storage, r.fs, &git.CloneOptions{
 		URL: fmt.Sprintf(
-			"%s/%s/%s", pkg.Cfg.VcsVendor, pkg.Cfg.VcsUser, project,
+			"%s/%s/%s", pkg.Cfg.VcsVendor, pkg.Cfg.VcsUser, r.project,
 		),
 	})
 	if err != nil {
@@ -39,3 +39,5 @@ func (r *GitRepo) Push() error {
 func (r *GitRepo) Init(remoteUrl string) error {
 	return nil
 }
+
+
