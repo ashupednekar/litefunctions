@@ -47,7 +47,7 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 			fs: fs,
 	  	storage: memory.NewStorage(),
 	  	options: &git.CloneOptions{
-				URL: fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsVendor, pkg.Cfg.VcsUser, project),
+				URL: fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
 				Progress: os.Stdout,
 			},
 	  }

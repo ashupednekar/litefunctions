@@ -48,7 +48,7 @@ func (r *GitRepo) SetupAuth() error {
 	log.Printf("setting up %s auth\n", pkg.Cfg.VcsAuthMode)
 	switch pkg.Cfg.VcsAuthMode{
 	case "ssh":
-    vendor := strings.TrimPrefix(strings.TrimPrefix(pkg.Cfg.VcsVendor, "https://"), "http://")
+    vendor := strings.TrimPrefix(strings.TrimPrefix(pkg.Cfg.VcsBaseUrl, "https://"), "http://")
 		r.options.URL = fmt.Sprintf(
         "git@%s:%s/%s.git",
         vendor, 

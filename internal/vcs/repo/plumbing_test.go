@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -17,14 +18,7 @@ func TestVcs(t *testing.T) {
 	if err != nil {
 		t.Errorf("error cloning repo: %s", err)
 	}
-	//PrintFS(r.fs)
-	//log.Println("opening existing repo")
-	// rOpened, err := NewGitRepo("projone", nil)
-	// if err != nil {
-	// 	t.Errorf("error in new repo call: %s", err)
-	// }
-	// PrintFS(rOpened.fs)
-  readme := "README.md"
+	readme := "README.md"
   if _, err := r.fs.Stat(readme); err != nil {
       f, err := r.fs.Create(readme)
       if err != nil {
@@ -47,6 +41,12 @@ func TestVcs(t *testing.T) {
   if err := r.Push(); err != nil {
       t.Fatalf("push error: %s", err)
   }
+	log.Println("opening existing repo")
+	rOpened, err := NewGitRepo("projone", nil)
+	if err != nil {
+		t.Errorf("error in new repo call: %s", err)
+	}
+	PrintFS(rOpened.fs)
 }
 
 
