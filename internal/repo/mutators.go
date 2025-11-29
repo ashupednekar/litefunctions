@@ -12,7 +12,7 @@ func (r *GitRepo) Clone(project, string, branch string) error {
 	if err != nil {
 		return err
 	}
-	_, err = git.Clone(r.storage, nil, &git.CloneOptions{
+	repo, err := git.Clone(r.storage, nil, &git.CloneOptions{
 		URL: fmt.Sprintf(
 			"%s/%s/%s", pkg.Cfg.VcsVendor, pkg.Cfg.VcsUser, project,
 		),
@@ -20,6 +20,11 @@ func (r *GitRepo) Clone(project, string, branch string) error {
 	if err != nil {
 		return fmt.Errorf("error cloning repo: %s", err)
 	}
+  w, err := repo.Worktree()
+	if err != nil{
+		return fmt.Errorf("error getting worktree: %s", err)
+	}
+	r.worktree = w
 	return nil
 }
 
