@@ -108,6 +108,42 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 		log.Printf("[WARN] error clearing webauthn session: %s", err)
 	}
 
+	// Create a persistent user session
+	sessionID, err := auth.GenerateSessionID()
+	if err != nil {
+		log.Printf("[ERRO] failed to generate session ID: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	expiresAt, err := auth.GetSessionExpiry()
+	if err != nil {
+		log.Printf("[ERRO] failed to get session expiry: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	userAgent := ctx.Request.UserAgent()
+	ipAddress := ctx.ClientIP()
+
+	if err := h.store.CreateUserSession(user.WebAuthnID(), sessionID, expiresAt, userAgent, ipAddress); err != nil {
+		log.Printf("[ERRO] failed to create user session: %s", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	// Set secure cookie
+	maxAge := int(time.Until(expiresAt).Seconds())
+	ctx.SetCookie(
+		auth.SessionCookieName, // name
+		sessionID,              // value
+		maxAge,                 // maxAge in seconds
+		"/",                    // path
+		"",                     // domain (empty = current domain)
+		false,                  // secure (set to true in production with HTTPS)
+		true,                   // httpOnly
+	)
+
 	log.Printf("finish registration ----------------------/")
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Registration Success"})
 }

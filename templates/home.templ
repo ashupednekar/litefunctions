@@ -44,8 +44,12 @@ templ HomeContent() {
         body: JSON.stringify(attResp),
       });
 
-      const msg = await finishResp.text();
-      alert(finishResp.ok ? "Passkey registered!" : "Registration failed: " + msg);
+      if (finishResp.ok) {
+        window.location.href = '/dashboard';
+      } else {
+        const msg = await finishResp.text();
+        alert("Registration failed: " + msg);
+      }
     } catch (err) {
       console.error(err);
       alert("Registration error: " + err);

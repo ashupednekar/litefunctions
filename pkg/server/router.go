@@ -12,9 +12,11 @@ import (
 func (s *Server) BuildRoutes() {
 	staticFS, err := fs.Sub(static.Files, ".")
 	if err != nil {
-		panic("failed to create static file system: " + err.Error())
+		panic(err)
 	}
-	s.router.StaticFS("/static", http.FS(staticFS))
+
+	s.router.StaticFS("/static/", http.FS(staticFS))
+
 	probes := handlers.ProbeHandler{}
 	s.router.GET("/livez/", probes.Livez)
 	s.router.GET("/healthz/", probes.Healthz)
@@ -26,20 +28,46 @@ func (s *Server) BuildRoutes() {
 	s.router.POST("/passkey/login/start/", auth.BeginLogin)
 	s.router.POST("/passkey/login/finish/", auth.FinishLogin)
 
-	s.router.GET("/logout", auth.Logout)
-	s.router.POST("/logout", auth.Logout)
+	s.router.GET("/logout/", auth.Logout)
+	s.router.POST("/logout/", auth.Logout)
 
-	ui := handlers.UIHandlers{}
+	ui := handlers.NewUIHandlers(s.state)
 
 	s.router.GET("/", middleware.OptionalAuthMiddleware(auth.GetStore()), ui.Home)
 
 	protected := s.router.Group("/")
 	protected.Use(middleware.AuthMiddleware(auth.GetStore()))
 	{
-		protected.GET("/dashboard", ui.Dashboard)
-		protected.GET("/configuration", ui.Configuration)
-		protected.GET("/functions", ui.Functions)
-		protected.GET("/endpoints", ui.Endpoints)
-		protected.GET("/data", ui.Data)
+		protected.GET("/dashboard/", ui.Dashboard)
+		protected.GET("/configuration/", ui.Configuration)
+		protected.GET("/functions/", ui.Functions)
+		protected.GET("/endpoints/", ui.Endpoints)
+		protected.GET("/data/", ui.Data)
+	}
+
+	projectHandlers := handlers.NewProjectHandlers(s.state)
+
+	api := s.router.Group("/api/")
+	api.Use(middleware.AuthMiddleware(auth.GetStore()))
+	{
+		api.POST("/projects/", projectHandlers.CreateProject)
+		api.GET("/projects/", handlers.ListProjects)
+		api.GET("/projects/:id/", handlers.GetProject)
+		api.DELETE("/projects/:id/", handlers.DeleteProject)
+
+		api.POST("/projects/:id/functions/", handlers.CreateFunction)
+		api.GET("/projects/:id/functions/", handlers.ListFunctions)
+		api.GET("/functions/:fnID/", handlers.GetFunction)
+		api.PUT("/functions/:fnID/", handlers.UpdateFunction)
+		api.DELETE("/functions/:fnID/", handlers.DeleteFunction)
+
+		api.POST("/projects/:id/endpoints/", handlers.CreateEndpoint)
+		api.GET("/projects/:id/endpoints/", handlers.ListEndpoints)
+		api.GET("/endpoints/:epID/", handlers.GetEndpoint)
+		api.PUT("/endpoints/:epID/", handlers.UpdateEndpoint)
+		api.DELETE("/endpoints/:epID/", handlers.DeleteEndpoint)
+
+		api.GET("/config/", handlers.GetProjectConfig)
+		api.PUT("/config/", handlers.UpdateProjectConfig)
 	}
 }

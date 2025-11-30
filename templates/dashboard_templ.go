@@ -8,7 +8,18 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func DashboardContent() templ.Component {
+func selectProject(id string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_selectProject_5fa6`,
+		Function: `function __templ_selectProject_5fa6(id){document.cookie = "lws_project=" + id + "; path=/; SameSite=Lax"
+	location.reload()
+}`,
+		Call:       templ.SafeScript(`__templ_selectProject_5fa6`, id),
+		CallInline: templ.SafeScriptInline(`__templ_selectProject_5fa6`, id),
+	}
+}
+
+func DashboardContent(username string, projects []Project, activeProjectID string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +40,104 @@ func DashboardContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><!-- HEADER --><div class=\"flex items-center justify-between\"><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Dashboard</h1><!-- RIGHT SIDE: PROFILE + LOGOUT --><div class=\"relative group\"><button class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><!-- Profile avatar --><img src=\"https://miro.medium.com/v2/resize:fill:88:88/1*M0elUzNjnLiz85r_IiqRcg.jpeg\" class=\"w-8 h-8 rounded-full object-cover\" alt=\"profile\"><!-- Username --><span class=\"text-white text-sm font-medium\">ashutosh</span><!-- Chevron --><svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><!-- DROPDOWN --><div class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl\n             opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto\n             transition-opacity\"><a href=\"/profile\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900 rounded-t-xl\">Profile</a> <button class=\"w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-neutral-900 rounded-b-xl\" onclick=\"logout()\">Logout</button></div></div></div><script>\n    function logout() {\n      window.location.href = '/logout';\n    }\n  </script><!-- PROJECTS SECTION --><script>\n    function selectProject(projectId) {\n      document.cookie = `lws_project=${projectId}; path=/; SameSite=Lax`;\n      window.location.href = \"/dashboard\";\n    }\n  </script><div class=\"space-y-4 mb-12\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Your Projects</h2><div class=\"overflow-x-auto scrollbar-hide\"><div class=\"flex gap-4 pr-6\"><!-- ACTIVE PROJECT --><a href=\"#\" class=\"min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4\n               hover:border-neutral-500 transition cursor-pointer shadow-md\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">My First Project</h3><div class=\"h-2 w-2 bg-green-500 rounded-full\"></div></div><p class=\"text-neutral-500 text-xs mt-1\">Active</p></a><!-- ANOTHER PROJECT --><a href=\"#\" class=\"min-w-[220px] rounded-xl border border-neutral-800 bg-[#0e0e0f] p-4\n               hover:border-neutral-600 transition cursor-pointer shadow-md\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">Internal Tools</h3></div><p class=\"text-neutral-500 text-xs mt-1\">Updated 3 days ago</p></a><!-- CREATE PROJECT CARD --><div class=\"relative\"><!-- Create Project Card (trigger) --><button onclick=\"toggleCreateProjectPopover()\" class=\"min-w-[220px] rounded-xl border border-neutral-800 bg-[#0b0b0c] \n           p-4 flex flex-col items-center justify-center text-neutral-500 \n           hover:text-white hover:border-neutral-600 hover:bg-neutral-900 \n           transition cursor-pointer shadow-md\"><div class=\"h-8 w-8 rounded-full border border-neutral-700 \n                grid place-items-center group-hover:border-neutral-500\"><span class=\"text-xl\">+</span></div><p class=\"mt-2 font-medium text-sm\">New Project</p></button><!-- POPOVER --><div id=\"create-project-popover\" class=\"hidden absolute left-0 top-[115%] w-80 rounded-2xl \n           border border-neutral-800 bg-[#0e0e0f] shadow-2xl p-6 z-50\"><h3 class=\"text-lg font-semibold text-white\">Create Project</h3><p class=\"text-neutral-400 text-sm mt-1 mb-4\">Add a name and optional description.</p><!-- NAME --><div class=\"mb-4\"><label class=\"text-neutral-400 text-sm\">Project Name</label> <input id=\"project-name\" type=\"text\" class=\"w-full mt-1 bg-[#0b0b0c] border border-neutral-800 rounded-xl px-3 py-2 \n               text-white placeholder-neutral-600 focus:outline-none focus:ring-2 \n               focus:ring-neutral-700\" placeholder=\"e.g. API Backend\"></div><!-- DESCRIPTION --><div class=\"mb-6\"><label class=\"text-neutral-400 text-sm\">Description</label> <textarea id=\"project-description\" class=\"w-full mt-1 bg-[#0b0b0c] border border-neutral-800 rounded-xl px-3 py-2 \n               text-white placeholder-neutral-600 h-20 focus:outline-none focus:ring-2 \n               focus:ring-neutral-700\" placeholder=\"Optional description...\"></textarea></div><!-- CTA BUTTONS --><div class=\"flex justify-end gap-3\"><button onclick=\"toggleCreateProjectPopover()\" class=\"text-neutral-400 text-sm hover:text-neutral-200\">Cancel</button> <button onclick=\"submitCreateProject()\" class=\"bg-white text-black font-semibold px-4 py-2 rounded-xl hover:bg-neutral-200 transition\">Create</button></div></div></div></div></div></div><!-- FEATURE SECTIONS --><div class=\"space-y-4\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Tools & Features</h2><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6\"><!-- FUNCTIONS --><a href=\"/functions\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 \n             hover:border-neutral-600 transition cursor-pointer shadow-md hover:shadow-lg\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-blue-400 group-hover:text-blue-300\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M6 18L18 6M6 6l12 12\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Functions</h3></div><p class=\"text-neutral-400 text-sm mt-2\">Tiny serverless functions with near instant cold starts, and buit in autoscaling</p></a><!-- ENDPOINTS --><a href=\"/endpoints\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 \n             hover:border-neutral-600 transition cursor-pointer shadow-md hover:shadow-lg\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-purple-400 group-hover:text-purple-300\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M4 12h16m-7-7l7 7-7 7\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Endpoints</h3></div><p class=\"text-neutral-400 text-sm mt-2\">Create REST endpoints or map functions to routes.</p></a><!-- DATA --><a href=\"/data\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 \n             hover:border-neutral-600 transition cursor-pointer shadow-md hover:shadow-lg\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-green-400 group-hover:text-green-300\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M3 7h18M3 12h18M3 17h18\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Data</h3></div><p class=\"text-neutral-400 text-sm mt-2\">KV, documents & object storage — simple and durable.</p></a><!-- CONFIGURATION --><a href=\"/configuration\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 \n                 hover:border-neutral-600 transition cursor-pointer shadow-md hover:shadow-lg\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-yellow-400 group-hover:text-yellow-300\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M12 8c-1.1 0-2 .9-2 2v4h4v-4c0-1.1-.9-2-2-2zM4 12h16\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Configuration</h3></div><p class=\"text-neutral-400 text-sm mt-2\">Project-level config & secrets.</p></a></div></div></div><script>\n  function toggleCreateProjectPopover() {\n    const pop = document.getElementById(\"create-project-popover\");\n    pop.classList.toggle(\"hidden\");\n  }\n\n  function submitCreateProject() {\n    const name = document.getElementById(\"project-name\").value.trim();\n    const desc = document.getElementById(\"project-description\").value.trim();\n\n    if (!name) {\n      alert(\"Project name is required.\");\n      return;\n    }\n\n    console.log(\"Creating project:\", {name, desc});\n\n    // TODO: call your backend\n\n    toggleCreateProjectPopover();\n  }\n</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><!-- HEADER --><div class=\"flex items-center justify-between\"><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Dashboard</h1><div class=\"relative\"><button id=\"profile-btn\" class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><img src=\"/static/imgs/user.png\" class=\"w-8 h-8 rounded-full object-cover\"> <span class=\"text-white text-sm font-medium\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 19, Col: 60}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><div id=\"profile-dropdown\" class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden\"><a href=\"/profile/\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900\">Profile</a> <a href=\"/logout/\" class=\"block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900\">Logout</a></div></div></div><script>\n    const pb = document.getElementById(\"profile-btn\")\n    const pd = document.getElementById(\"profile-dropdown\")\n    document.addEventListener(\"click\", e => {if (!pb.contains(e.target)) pd.classList.add(\"hidden\")})\n    pb.onclick = () => pd.classList.toggle(\"hidden\")\n  </script><!-- PROJECT SECTION --><div class=\"space-y-4 mb-12\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Your Projects</h2><div class=\"overflow-x-auto scrollbar-hide\"><div class=\"flex gap-4 pr-6\"><!-- Loop -->")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, p := range projects {
+			if activeProjectID == p.ID {
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectProject(p.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button onclick=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 templ.ComponentScript = selectProject(p.ID)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 52, Col: 64}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h3><div class=\"h-2 w-2 bg-green-500 rounded-full\"></div></div></button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectProject(p.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button onclick=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 templ.ComponentScript = selectProject(p.ID)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"min-w-[220px] rounded-xl border border-neutral-800 bg-[#0e0e0f] p-4\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 62, Col: 64}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</h3></div></button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<!-- New project button --><button onclick=\"openProjectModal()\" class=\"min-w-[220px] rounded-xl border border-neutral-800 bg-[#0b0b0c]\n\t\t\t\t\t\tp-4 flex flex-col items-center justify-center text-neutral-500 \n\t\t\t\t\t\thover:text-white hover:border-neutral-600 hover:bg-neutral-900 shadow-md\"><div class=\"h-8 w-8 rounded-full border border-neutral-700 grid place-items-center\"><span class=\"text-xl\">+</span></div><p class=\"mt-2 font-medium text-sm\">New Project</p></button></div></div></div><!-- IF NO ACTIVE PROJECT -->")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if activeProjectID == "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"w-full text-center py-20 text-neutral-400 text-lg\">Please select a project to continue.</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<!-- FEATURE SECTIONS --> <div class=\"space-y-4\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Tools & Features</h2><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6\"><a href=\"/functions/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-blue-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M6 18L18 6M6 6l12 12\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Functions</h3></div></a> <a href=\"/endpoints/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-purple-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M4 12h16m-7-7l7 7-7 7\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Endpoints</h3></div></a> <a href=\"/configuration/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-yellow-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M12 8c-1.1 0-2 .9-2 2v4h4v-4c0-1.1-.9-2-2-2zM4 12h16\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Configuration</h3></div></a></div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<!-- MODAL --><div id=\"project-modal\" class=\"fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center\"><div class=\"bg-[#0e0e0f] border border-neutral-800 rounded-2xl p-6 w-96\"><h3 class=\"text-lg text-white font-semibold\">Create Project</h3><input id=\"new-project-name\" class=\"w-full mt-4 px-3 py-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl text-white\" placeholder=\"Project name\"><div class=\"flex justify-end gap-3 mt-6\"><button onclick=\"closeProjectModal()\" class=\"text-neutral-400\">Cancel</button> <button onclick=\"submitNewProject()\" class=\"bg-white text-black px-4 py-2 rounded-xl font-semibold\">Create</button></div></div></div><script>\n    function openProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.remove(\"hidden\")\n      modal.classList.add(\"flex\")\n    }\n    function closeProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.add(\"hidden\")\n      modal.classList.remove(\"flex\")\n    }\n\n    async function submitNewProject() {\n      const name = document.getElementById(\"new-project-name\").value.trim()\n      if (!name) return\n      await fetch(\"/api/projects/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({name})\n      })\n      closeProjectModal()\n      location.reload()\n    }\n  </script></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
