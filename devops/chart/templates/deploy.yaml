@@ -21,6 +21,11 @@ spec:
       - image: {{$image}} 
         name: litewebservices-portal
         env:
+          - name: "VCS_TOKEN"
+            valueFrom:
+              secretKeyRef:
+                name: {{.Values.server.vcs.secret}}
+                key: {{.Values.server.vcs.key}}
           - name: "DATABASE_URL"
             valueFrom:
               secretKeyRef:
@@ -28,6 +33,14 @@ spec:
                 key: {{.Values.server.db.key}}
           - name: "FQDN"
             value: {{.Values.global.DNS}}
+          - name: VCS_AUTH_MODE
+            value: token
+          - name: VCS_USER
+            value: lwsrepos
+          - name: VCS_VENDOR
+            value: github
+          - name: VCS_BASE_URL
+            value: https://github.com
         resources: {}
         {{- if .Values.server.probes.enabled}}
         livenessProbe:
