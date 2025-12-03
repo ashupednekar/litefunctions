@@ -12,18 +12,17 @@ import (
 )
 
 const createFunction = `-- name: CreateFunction :one
-INSERT INTO functions (project_id, name, language, path, description, created_by)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO functions (project_id, name, language, path, created_by)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id, project_id, name, language, path, description, created_by, created_at
 `
 
 type CreateFunctionParams struct {
-	ProjectID   pgtype.UUID
-	Name        string
-	Language    string
-	Path        string
-	Description string
-	CreatedBy   []byte
+	ProjectID pgtype.UUID
+	Name      string
+	Language  string
+	Path      string
+	CreatedBy []byte
 }
 
 func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) (Function, error) {
@@ -32,7 +31,6 @@ func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) 
 		arg.Name,
 		arg.Language,
 		arg.Path,
-		arg.Description,
 		arg.CreatedBy,
 	)
 	var i Function
@@ -117,39 +115,9 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 	return items, nil
 }
 
-const updateFunctionDescription = `-- name: UpdateFunctionDescription :one
-UPDATE functions
-SET description = $2,
-    updated_at = now()
-WHERE id = $1
-RETURNING id, project_id, name, language, path, description, created_by, created_at
-`
-
-type UpdateFunctionDescriptionParams struct {
-	ID          pgtype.UUID
-	Description string
-}
-
-func (q *Queries) UpdateFunctionDescription(ctx context.Context, arg UpdateFunctionDescriptionParams) (Function, error) {
-	row := q.db.QueryRow(ctx, updateFunctionDescription, arg.ID, arg.Description)
-	var i Function
-	err := row.Scan(
-		&i.ID,
-		&i.ProjectID,
-		&i.Name,
-		&i.Language,
-		&i.Path,
-		&i.Description,
-		&i.CreatedBy,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const updateFunctionPath = `-- name: UpdateFunctionPath :one
 UPDATE functions
-SET path = $2,
-    updated_at = now()
+SET path = $2
 WHERE id = $1
 RETURNING id, project_id, name, language, path, description, created_by, created_at
 `

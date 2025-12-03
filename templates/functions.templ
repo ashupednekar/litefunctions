@@ -67,10 +67,6 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 				</div>
 			</div>
 
-			<div class="mt-4 bg-[#0b0b0c] rounded-xl border border-neutral-800 p-4">
-				<p class="text-neutral-400 text-sm">{ fn.Description }</p>
-			</div>
-
 		</div>
 		}
 	</div>
@@ -102,11 +98,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 			<!-- META -->
 			<div class="mt-4 flex flex-col gap-3">
 				<input id="fn-name-input" class="w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white" placeholder="Function name"/>
-
-				<textarea id="fn-desc-input"
-					class="w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white h-24"
-					placeholder="Description"></textarea>
-			</div>
+      </div>
 
 			<!-- EDITOR -->
 			<div id="create-ace" class="flex-1 w-full rounded-xl border border-neutral-800 mt-4"></div>
@@ -290,7 +282,7 @@ function defineVimEx(){
 
 /* --- UI functions --- */
 function copyFn(id){
-  const curl = `curl -X POST ${projectUrl(`/functions/`)}${id ? id : ''}`;
+  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;
   navigator.clipboard.writeText(curl);
 }
 
@@ -347,7 +339,7 @@ function saveCreate(exit){
     description: description,
     path: createEditor ? createEditor.getValue() : ''
   };
-  fetch(projectUrl(`/functions/`),{
+  fetch(`/api/functions/`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(payload)
@@ -369,7 +361,7 @@ function openEdit(id, lang){
 
   if(editEditor){
     editEditor.session.setMode('ace/mode/' + modeMap[lang]);
-    fetch(`/functions/${id}/`).then(r=>r.json()).then(data=>{
+    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
       editEditor.setValue(data.path || codeTemplates[lang] || '', -1);
       setTimeout(()=>editEditor.focus(),120);
     }).catch(()=>{
@@ -386,7 +378,7 @@ function closeEdit(){
 function saveEdit(exit){
   if(!window.__editFnID) return;
   const body = editEditor ? editEditor.getValue() : '';
-  fetch(`/functions/${window.__editFnID}/`,{
+  fetch(`/api/functions/${window.__editFnID}/`,{
     method:'PUT',
     headers:{'Content-Type':'text/plain'},
     body: body

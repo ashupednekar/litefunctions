@@ -6,11 +6,10 @@ type Project struct {
 }
 
 type Function struct {
-	ID          string
-	Name        string
-	Language    string
-	Description string
-	Icon        string
+	ID       string
+	Name     string
+	Language string
+	Icon     string
 }
 
 type Lang struct {

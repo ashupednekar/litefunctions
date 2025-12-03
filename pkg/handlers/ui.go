@@ -65,7 +65,6 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 	_ = page.Render(ctx, ctx.Writer)
 }
 
-
 func (h *UIHandlers) Functions(ctx *gin.Context) {
 	userID, _ := ctx.Get("userID")
 	activeProjectID, _ := ctx.Cookie("lws_project")
@@ -86,14 +85,12 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 				for _, f := range dbFns {
 					lang := f.Language
 					icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
-					desc := f.Description
 
 					functions = append(functions, templates.Function{
-						ID:          hex.EncodeToString(f.ID.Bytes[:]),
-						Name:        f.Name,
-						Language:    lang,
-						Description: desc,
-						Icon:        icon,
+						ID:       hex.EncodeToString(f.ID.Bytes[:]),
+						Name:     f.Name,
+						Language: lang,
+						Icon:     icon,
 					})
 				}
 			}
@@ -108,11 +105,11 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	}
 
 	langs := []templates.Lang{
-		{ID: "rust",       Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "rust"),       Label: "Rust",       AceMode: "rust"},
-		{ID: "go",         Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "go"),         Label: "Go",         AceMode: "golang"},
-		{ID: "python",     Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "python"),     Label: "Python",     AceMode: "python"},
+		{ID: "rust", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "rust"), Label: "Rust", AceMode: "rust"},
+		{ID: "go", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "go"), Label: "Go", AceMode: "golang"},
+		{ID: "python", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "python"), Label: "Python", AceMode: "python"},
 		{ID: "javascript", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "javascript"), Label: "JavaScript", AceMode: "javascript"},
-		{ID: "lua",        Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "lua"),        Label: "Lua",        AceMode: "lua"},
+		{ID: "lua", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "lua"), Label: "Lua", AceMode: "lua"},
 	}
 
 	page := templates.BaseLayout(
@@ -123,7 +120,6 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"err": err.Error()})
 	}
 }
-
 
 func (h *UIHandlers) Data(ctx *gin.Context) {
 	page := templates.BaseLayout(

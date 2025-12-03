@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	functionadaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
+	"github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/gin-gonic/gin"
@@ -30,13 +31,35 @@ var langExt = map[string]string{
 }
 
 type createFunctionRequest struct {
-	Name        string `json:"name"`
-	Language    string `json:"language"`
-	Description string `json:"description"`
+	Name     string `json:"name"`
+	Language string `json:"language"`
+	Code     string `json:"path"`
 }
 
 func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
-	projectName := c.Param("id")
+	projectIDHex, err := c.Cookie("lws_project")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "project cookie missing"})
+		return
+	}
+
+	projectIDBytes, err := hex.DecodeString(projectIDHex)
+	if err != nil || len(projectIDBytes) != 16 {
+		c.JSON(400, gin.H{"error": "invalid project id in cookie"})
+		return
+	}
+	var projectUUID pgtype.UUID
+	copy(projectUUID.Bytes[:], projectIDBytes)
+	projectUUID.Valid = true
+
+	pq := adaptors.New(h.state.DBPool)
+	proj, err := pq.GetProjectByID(c.Request.Context(), projectUUID)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "project not found"})
+		return
+	}
+	projectName := proj.Name
+
 	userID := c.MustGet("userID").([]byte)
 
 	var req createFunctionRequest
@@ -53,11 +76,13 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 
 	r, err := repo.NewGitRepo(projectName, nil)
 	if err != nil {
+		fmt.Printf("[ERROR] repo.NewGitRepo failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "repo init error"})
 		return
 	}
 
 	if err := r.Clone(); err != nil {
+		fmt.Printf("[ERROR] r.Clone failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "clone error"})
 		return
 	}
@@ -73,18 +98,27 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 
 	f, err := r.Fs.Create("/" + path)
 	if err != nil {
+		fmt.Printf("[ERROR] r.Fs.Create failed for path %s: %v\n", path, err)
 		c.JSON(500, gin.H{"error": "file create error"})
 		return
 	}
-	f.Write([]byte(""))
+	codeContent := req.Code
+	if codeContent == "" {
+		codeContent = "// TODO: implement function\n"
+	}
+	f.Write([]byte(codeContent))
 	f.Close()
 
 	if err := r.Commit(path); err != nil {
-		c.JSON(500, gin.H{"error": "commit error"})
-		return
+		if !strings.Contains(err.Error(), "clean working tree") {
+			fmt.Printf("[ERROR] r.Commit failed: %v\n", err)
+			c.JSON(500, gin.H{"error": "commit error"})
+			return
+		}
 	}
 
 	if err := r.Push(); err != nil {
+		fmt.Printf("[ERROR] r.Push failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "push error"})
 		return
 	}
@@ -94,30 +128,34 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	fn, err := q.CreateFunction(
 		c.Request.Context(),
 		functionadaptors.CreateFunctionParams{
-			ProjectID:   pgtype.UUID{Bytes: [16]byte{}},
-			Name:        req.Name,
-			Language:    req.Language,
-			Path:        path,
-			Description: req.Description,
-			CreatedBy:   userID,
+			ProjectID: projectUUID,
+			Name:      req.Name,
+			Language:  req.Language,
+			Path:      path,
+			CreatedBy: userID,
 		},
 	)
 	if err != nil {
+		fmt.Printf("[ERROR] CreateFunction DB failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "database error"})
 		return
 	}
 
 	c.JSON(201, gin.H{
-		"id":          hex.EncodeToString(fn.ID.Bytes[:]),
-		"name":        fn.Name,
-		"language":    fn.Language,
-		"description": fn.Description,
-		"path":        fn.Path,
+		"id":       hex.EncodeToString(fn.ID.Bytes[:]),
+		"name":     fn.Name,
+		"language": fn.Language,
+		"path":     fn.Path,
 	})
 }
 
 func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
-	projectIDHex := c.Param("id")
+	projectIDHex, err := c.Cookie("lws_project")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "project cookie missing"})
+		return
+	}
+
 	projectID, err := hex.DecodeString(projectIDHex)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "invalid project id"})
@@ -135,11 +173,10 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 	out := make([]gin.H, 0, len(fns))
 	for _, f := range fns {
 		out = append(out, gin.H{
-			"id":          hex.EncodeToString(f.ID.Bytes[:]),
-			"name":        f.Name,
-			"language":    f.Language,
-			"description": f.Description,
-			"path":        f.Path,
+			"id":       hex.EncodeToString(f.ID.Bytes[:]),
+			"name":     f.Name,
+			"language": f.Language,
+			"path":     f.Path,
 		})
 	}
 
@@ -163,11 +200,10 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
-		"id":          hex.EncodeToString(f.ID.Bytes[:]),
-		"name":        f.Name,
-		"language":    f.Language,
-		"description": f.Description,
-		"path":        f.Path,
+		"id":       hex.EncodeToString(f.ID.Bytes[:]),
+		"name":     f.Name,
+		"language": f.Language,
+		"path":     f.Path,
 	})
 }
 
@@ -187,8 +223,13 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
-	projectNameParts := strings.Split(f.Path, "/")
-	projectName := projectNameParts[0]
+	pq := adaptors.New(h.state.DBPool)
+	proj, err := pq.GetProjectByID(c.Request.Context(), f.ProjectID)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "project not found"})
+		return
+	}
+	projectName := proj.Name
 
 	r, err := repo.NewGitRepo(projectName, nil)
 	if err != nil {
@@ -231,8 +272,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 	}
 
 	var req struct {
-		Path        string `json:"path"`
-		Description string `json:"description"`
+		Path string `json:"path"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -241,19 +281,6 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 	}
 
 	resp := gin.H{}
-
-	if req.Description != "" {
-		upd, err := q.UpdateFunctionDescription(
-			c.Request.Context(),
-			functionadaptors.UpdateFunctionDescriptionParams{
-				ID:          pgtype.UUID{Bytes: [16]byte(fnID)},
-				Description: req.Description,
-			},
-		)
-		if err == nil {
-			resp["description"] = upd.Description
-		}
-	}
 
 	if req.Path != "" {
 		upd, err := q.UpdateFunctionPath(
@@ -287,8 +314,13 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 		return
 	}
 
-	projectNameParts := strings.Split(f.Path, "/")
-	projectName := projectNameParts[0]
+	pq := adaptors.New(h.state.DBPool)
+	proj, err := pq.GetProjectByID(c.Request.Context(), f.ProjectID)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "project not found"})
+		return
+	}
+	projectName := proj.Name
 
 	r, err := repo.NewGitRepo(projectName, nil)
 	if err != nil {
