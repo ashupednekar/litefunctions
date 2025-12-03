@@ -36,6 +36,7 @@ CREATE TABLE functions (
     name TEXT NOT NULL,
     language TEXT NOT NULL,                    -- e.g., "python", "js", "rust"
     path TEXT NOT NULL,                        -- repo path to function entrypoint
+    description TEXT NOT NULL DEFAULT '',
     created_by BYTEA NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 

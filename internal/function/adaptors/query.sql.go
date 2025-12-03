@@ -11,71 +11,28 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createEndpoint = `-- name: CreateEndpoint :one
-
-INSERT INTO endpoints (project_id, name, method, scope, function_id)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, project_id, name, method, scope, function_id, created_at
-`
-
-type CreateEndpointParams struct {
-	ProjectID  pgtype.UUID
-	Name       string
-	Method     string
-	Scope      string
-	FunctionID pgtype.UUID
-}
-
-// -----------------------------------------------------------------------------
-// ENDPOINTS
-// -----------------------------------------------------------------------------
-func (q *Queries) CreateEndpoint(ctx context.Context, arg CreateEndpointParams) (Endpoint, error) {
-	row := q.db.QueryRow(ctx, createEndpoint,
-		arg.ProjectID,
-		arg.Name,
-		arg.Method,
-		arg.Scope,
-		arg.FunctionID,
-	)
-	var i Endpoint
-	err := row.Scan(
-		&i.ID,
-		&i.ProjectID,
-		&i.Name,
-		&i.Method,
-		&i.Scope,
-		&i.FunctionID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createFunction = `-- name: CreateFunction :one
-
-
-INSERT INTO functions (project_id, name, language, path, created_by)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, project_id, name, language, path, created_by, created_at
+INSERT INTO functions (project_id, name, language, path, description, created_by)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, project_id, name, language, path, description, created_by, created_at
 `
 
 type CreateFunctionParams struct {
-	ProjectID pgtype.UUID
-	Name      string
-	Language  string
-	Path      string
-	CreatedBy []byte
+	ProjectID   pgtype.UUID
+	Name        string
+	Language    string
+	Path        string
+	Description string
+	CreatedBy   []byte
 }
 
-// FUNCTION + ENDPOINT QUERIES
-// -----------------------------------------------------------------------------
-// FUNCTIONS
-// -----------------------------------------------------------------------------
 func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) (Function, error) {
 	row := q.db.QueryRow(ctx, createFunction,
 		arg.ProjectID,
 		arg.Name,
 		arg.Language,
 		arg.Path,
+		arg.Description,
 		arg.CreatedBy,
 	)
 	var i Function
@@ -85,6 +42,7 @@ func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) 
 		&i.Name,
 		&i.Language,
 		&i.Path,
+		&i.Description,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)
@@ -101,29 +59,8 @@ func (q *Queries) DeleteFunction(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
-const getEndpointByID = `-- name: GetEndpointByID :one
-SELECT id, project_id, name, method, scope, function_id, created_at
-FROM endpoints
-WHERE id = $1
-`
-
-func (q *Queries) GetEndpointByID(ctx context.Context, id pgtype.UUID) (Endpoint, error) {
-	row := q.db.QueryRow(ctx, getEndpointByID, id)
-	var i Endpoint
-	err := row.Scan(
-		&i.ID,
-		&i.ProjectID,
-		&i.Name,
-		&i.Method,
-		&i.Scope,
-		&i.FunctionID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const getFunctionByID = `-- name: GetFunctionByID :one
-SELECT id, project_id, name, language, path, created_by, created_at
+SELECT id, project_id, name, language, path, description, created_by, created_at
 FROM functions
 WHERE id = $1
 `
@@ -137,83 +74,15 @@ func (q *Queries) GetFunctionByID(ctx context.Context, id pgtype.UUID) (Function
 		&i.Name,
 		&i.Language,
 		&i.Path,
+		&i.Description,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const listEndpointsForFunction = `-- name: ListEndpointsForFunction :many
-SELECT id, project_id, name, method, scope, function_id, created_at
-FROM endpoints
-WHERE function_id = $1
-`
-
-func (q *Queries) ListEndpointsForFunction(ctx context.Context, functionID pgtype.UUID) ([]Endpoint, error) {
-	rows, err := q.db.Query(ctx, listEndpointsForFunction, functionID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Endpoint
-	for rows.Next() {
-		var i Endpoint
-		if err := rows.Scan(
-			&i.ID,
-			&i.ProjectID,
-			&i.Name,
-			&i.Method,
-			&i.Scope,
-			&i.FunctionID,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listEndpointsForProject = `-- name: ListEndpointsForProject :many
-SELECT id, project_id, name, method, scope, function_id, created_at
-FROM endpoints
-WHERE project_id = $1
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListEndpointsForProject(ctx context.Context, projectID pgtype.UUID) ([]Endpoint, error) {
-	rows, err := q.db.Query(ctx, listEndpointsForProject, projectID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Endpoint
-	for rows.Next() {
-		var i Endpoint
-		if err := rows.Scan(
-			&i.ID,
-			&i.ProjectID,
-			&i.Name,
-			&i.Method,
-			&i.Scope,
-			&i.FunctionID,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listFunctionsForProject = `-- name: ListFunctionsForProject :many
-SELECT id, project_id, name, language, path, created_by, created_at
+SELECT id, project_id, name, language, path, description, created_by, created_at
 FROM functions
 WHERE project_id = $1
 ORDER BY created_at DESC
@@ -234,6 +103,7 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 			&i.Name,
 			&i.Language,
 			&i.Path,
+			&i.Description,
 			&i.CreatedBy,
 			&i.CreatedAt,
 		); err != nil {
@@ -247,12 +117,41 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 	return items, nil
 }
 
+const updateFunctionDescription = `-- name: UpdateFunctionDescription :one
+UPDATE functions
+SET description = $2,
+    updated_at = now()
+WHERE id = $1
+RETURNING id, project_id, name, language, path, description, created_by, created_at
+`
+
+type UpdateFunctionDescriptionParams struct {
+	ID          pgtype.UUID
+	Description string
+}
+
+func (q *Queries) UpdateFunctionDescription(ctx context.Context, arg UpdateFunctionDescriptionParams) (Function, error) {
+	row := q.db.QueryRow(ctx, updateFunctionDescription, arg.ID, arg.Description)
+	var i Function
+	err := row.Scan(
+		&i.ID,
+		&i.ProjectID,
+		&i.Name,
+		&i.Language,
+		&i.Path,
+		&i.Description,
+		&i.CreatedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateFunctionPath = `-- name: UpdateFunctionPath :one
 UPDATE functions
 SET path = $2,
     updated_at = now()
 WHERE id = $1
-RETURNING id, project_id, name, language, path, created_by, created_at
+RETURNING id, project_id, name, language, path, description, created_by, created_at
 `
 
 type UpdateFunctionPathParams struct {
@@ -269,6 +168,7 @@ func (q *Queries) UpdateFunctionPath(ctx context.Context, arg UpdateFunctionPath
 		&i.Name,
 		&i.Language,
 		&i.Path,
+		&i.Description,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)

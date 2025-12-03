@@ -32,13 +32,14 @@ type Endpoint struct {
 }
 
 type Function struct {
-	ID        pgtype.UUID
-	ProjectID pgtype.UUID
-	Name      string
-	Language  string
-	Path      string
-	CreatedBy []byte
-	CreatedAt pgtype.Timestamptz
+	ID          pgtype.UUID
+	ProjectID   pgtype.UUID
+	Name        string
+	Language    string
+	Path        string
+	Description string
+	CreatedBy   []byte
+	CreatedAt   pgtype.Timestamptz
 }
 
 type Project struct {

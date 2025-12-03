@@ -272,3 +272,28 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 		Runs:       runs,
 	}, nil
 }
+
+func (c *GiteaClient) DeleteRepo(ctx context.Context, owner, repo string) error {
+	url := fmt.Sprintf("%s/api/v1/repos/%s/%s", c.baseURL, owner, repo)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return fmt.Errorf("gitea: failed to create delete request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("gitea: failed to execute delete: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("gitea: unexpected delete status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}

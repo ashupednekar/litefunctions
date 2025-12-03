@@ -1,203 +1,201 @@
 package templates
 
-templ FunctionContent() {
-	<div class="w-full h-full flex flex-col overflow-hidden">
-		<!-- HEADER -->
-		<div
-			class="flex items-center justify-between px-6 md:px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800"
-		>
-			<h1 class="text-3xl md:text-4xl font-semibold text-white">Functions</h1>
-			<button class="bg-white text-black font-semibold px-4 py-2 rounded-xl hover:bg-neutral-200 transition">
-				Deploy to Prod
-			</button>
-		</div>
-		<!-- NEW BUTTON -->
-		<div class="px-6 md:px-14 py-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800">
-			<button
-				onclick="openCreateFunction()"
-				class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition"
-			>
+script copyFn(id string) {
+}
+script openCreate() {
+}
+script closeCreate() {
+}
+script selectLang(lang string) {
+}
+script goMetaNext() {
+}
+script openEdit(id string, lang string) {
+}
+script closeEdit() {
+}
+script saveCreate(exit bool) {
+}
+script saveEdit(exit bool) {
+}
+
+templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string) {
+
+<div class="w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]">
+
+	<div class="flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800">
+		<h1 class="text-4xl font-semibold text-white">Functions</h1>
+
+		<div class="flex items-center gap-4">
+			<label class="flex items-center gap-2 text-neutral-300 text-sm">
+				<input id="vim-toggle" type="checkbox" class="w-4 h-4" checked />
+				Vim Mode
+			</label>
+
+			<button onclick="openCreate()"
+				class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition">
 				New Function
 			</button>
 		</div>
-		<!-- FUNCTION LIST -->
-		<div class="flex-1 overflow-y-auto px-6 md:px-14 py-6 space-y-4" id="functions-list">
-			<!-- PYTHON -->
-			<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-3">
-						<img src="/static/imgs/python-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<h2 class="text-white font-semibold text-lg">greet_python</h2>
-					</div>
-					<div class="flex items-center gap-3">
-						<button onclick="copyCurl('greet_python')" class="text-neutral-400 hover:text-white transition">
-							<img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
-						</button>
-						<button
-							onclick="openEditFunction('greet_python','python')"
-							class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-						>
-							Edit
-						</button>
-					</div>
-				</div>
-				<div class="mt-4 bg-[#0b0b0c] rounded-xl border border-neutral-800 p-4">
-					<p class="text-neutral-400 text-sm">Python FastAPI greeting handler.</p>
-				</div>
-			</div>
-			<!-- GO -->
-			<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-3">
-						<img src="/static/imgs/go-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<h2 class="text-white font-semibold text-lg">hello_go</h2>
-					</div>
-					<div class="flex items-center gap-3">
-						<button onclick="copyCurl('hello_go')" class="text-neutral-400 hover:text-white transition">
-							<img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
-						</button>
-						<button
-							onclick="openEditFunction('hello_go','go')"
-							class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-						>
-							Edit
-						</button>
-					</div>
-				</div>
-				<div class="mt-4 bg-[#0b0b0c] rounded-xl border border-neutral-800 p-4">
-					<p class="text-neutral-400 text-sm">Go Hello World function.</p>
-				</div>
-			</div>
-			<!-- RUST -->
-			<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-3">
-						<img src="/static/imgs/rust-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<h2 class="text-white font-semibold text-lg">greet_rust</h2>
-					</div>
-					<div class="flex items-center gap-3">
-						<button onclick="copyCurl('greet_rust')" class="text-neutral-400 hover:text-white transition">
-							<img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
-						</button>
-						<button
-							onclick="openEditFunction('greet_rust','rust')"
-							class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-						>
-							Edit
-						</button>
-					</div>
-				</div>
-				<div class="mt-4 bg-[#0b0b0c] rounded-xl border border-neutral-800 p-4">
-					<p class="text-neutral-400 text-sm">Rust Axum typed JSON handler.</p>
-				</div>
-			</div>
-		</div>
-		<!-- CREATE MODAL -->
-		<div
-			id="create-modal"
-			class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
-		>
-			<div class="w-[95vw] h-[95vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-4 flex flex-col">
-				<div class="flex items-center justify-between mb-3">
-					<h2 class="text-xl font-semibold text-white">New Function</h2>
-					<button onclick="closeCreateFunction()" class="p-2 text-neutral-300 hover:text-white">
-						<img src="/static/icons/x.svg" class="w-5 h-5"/>
-					</button>
-				</div>
-				<!-- LANGUAGE SELECTOR -->
-				<label class="text-neutral-400 text-sm">Choose Language</label>
-				<div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-3 mb-4">
-					<button onclick="selectLang('rust')" id="lang-rust" class="lang-btn flex flex-col items-center gap-1">
-						<img src="/static/imgs/rust-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<span>Rust</span>
-					</button>
-					<button onclick="selectLang('go')" id="lang-go" class="lang-btn flex flex-col items-center gap-1">
-						<img src="/static/imgs/go-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<span>Go</span>
-					</button>
-					<button onclick="selectLang('python')" id="lang-python" class="lang-btn flex flex-col items-center gap-1">
-						<img src="/static/imgs/python-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<span>Python</span>
-					</button>
-					<button
-						onclick="selectLang('javascript')"
-						id="lang-javascript"
-						class="lang-btn flex flex-col items-center gap-1"
-					>
-						<img src="/static/imgs/js.svg" class="w-6 h-6 opacity-90"/>
-						<span>JS</span>
-					</button>
-					<button onclick="selectLang('lua')" id="lang-lua" class="lang-btn flex flex-col items-center gap-1">
-						<img src="/static/imgs/lua-svgrepo-com.svg" class="w-6 h-6 opacity-90"/>
-						<span>Lua</span>
-					</button>
-				</div>
-				<!-- EDITOR -->
-				<div id="create-ace" class="flex-1 w-full rounded-xl border border-neutral-800"></div>
-				<!-- FOOTER -->
-				<div class="flex justify-end gap-3 pt-3">
-					<button
-						onclick="closeCreateFunction()"
-						class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
-					>
-						<img src="/static/imgs/close-circle-svgrepo-com.svg" class="w-5 h-5"/>
-					</button>
-					<button onclick="saveCreateFunction()" class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
-						<img src="/static/imgs/save-floppy-svgrepo-com.svg" class="w-5 h-5"/>
-					</button>
-				</div>
-			</div>
-		</div>
-		<!-- EDIT MODAL -->
-		<div id="edit-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
-			<div class="w-[95vw] h-[95vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-4 flex flex-col">
-				<div class="flex items-center justify-between mb-3">
-					<h2 class="text-xl font-semibold text-white">Edit Function</h2>
-					<button onclick="closeEditFunction()" class="p-2 text-neutral-300 hover:text-white">
-						<img src="/static/icons/x.svg" class="w-5 h-5"/>
-					</button>
-				</div>
-				<!-- EDITOR -->
-				<div id="edit-ace" class="flex-1 w-full rounded-xl border border-neutral-800"></div>
-				<!-- FOOTER -->
-				<div class="flex justify-end gap-3 pt-3">
-					<button
-						onclick="closeEditFunction()"
-						class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
-					>
-						<img src="/static/icons/cancel.svg" class="w-5 h-5"/>
-					</button>
-					<button onclick="saveEditFunction()" class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
-						<img src="/static/imgs/save-floppy-svgrepo-com.svg" class="w-5 h-5"/>
-					</button>
-				</div>
-			</div>
-		</div>
-		<!-- GLOBAL SCRIPT -->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ext-language_tools.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/keybinding-vim.js"></script>
-		<script>
-    let createEditor, editEditor;
-    let selectedLang = "python";
+	</div>
 
-    const modeMap = {
-      rust: "rust",
-      go: "golang",
-      python: "python",
-      javascript: "javascript",
-      lua: "lua"
-    };
+	<div class="flex-1 overflow-y-auto px-14 py-6 space-y-4">
+		if len(functions) == 0 {
+		<div class="w-full text-center py-20 text-neutral-500 text-lg">
+			Create a new function to begin.
+		</div>
+		}
+		for _, fn := range functions {
+		<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5">
 
-    const codeTemplates = {
-      python: `from fastapi import Request
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<img src={ fn.Icon } class="w-6 h-6 opacity-90"/>
+					<h2 class="text-white font-semibold text-lg">{ fn.Name }</h2>
+				</div>
+
+				<div class="flex items-center gap-3">
+					<button onclick={ copyFn(fn.ID) } class="text-neutral-400 hover:text-white transition">
+						<img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
+					</button>
+
+					<button
+						onclick={ openEdit(fn.ID, fn.Language) }
+						class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition">
+						Edit
+					</button>
+				</div>
+			</div>
+
+			<div class="mt-4 bg-[#0b0b0c] rounded-xl border border-neutral-800 p-4">
+				<p class="text-neutral-400 text-sm">{ fn.Description }</p>
+			</div>
+
+		</div>
+		}
+	</div>
+
+	<!-- CREATE -->
+	<div id="create-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
+		<div class="w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col">
+
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="text-xl font-semibold text-white">New Function</h2>
+				<button onclick="closeCreate()" class="p-2 text-neutral-300 hover:text-white">
+					<img src="/static/imgs/x.svg" class="w-5 h-5"/>
+				</button>
+			</div>
+
+			<label class="text-neutral-400 text-sm">Choose Language</label>
+
+			<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-3">
+				for _, lang := range langs {
+				<!-- store language id in data-lang so JS can bind click listeners -->
+				<button data-lang={ lang.ID }
+					class="lang-btn flex flex-col items-center justify-center gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800" id={ "lang-" + lang.ID }>
+					<img src={ lang.Icon } class="w-10 h-10 opacity-90"/>
+					<span class="text-white text-sm">{ lang.Label }</span>
+				</button>
+				}
+			</div>
+
+			<!-- META -->
+			<div class="mt-4 flex flex-col gap-3">
+				<input id="fn-name-input" class="w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white" placeholder="Function name"/>
+
+				<textarea id="fn-desc-input"
+					class="w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white h-24"
+					placeholder="Description"></textarea>
+			</div>
+
+			<!-- EDITOR -->
+			<div id="create-ace" class="flex-1 w-full rounded-xl border border-neutral-800 mt-4"></div>
+
+			<div class="flex justify-end gap-3 pt-3">
+				<button onclick="closeCreate()" class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+					<img src="/static/imgs/close-circle-svgrepo-com.svg" class="w-5 h-5"/>
+				</button>
+
+				<button onclick="saveCreate(true)" class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
+					<img src="/static/imgs/save-floppy-svgrepo-com.svg" class="w-5 h-5"/>
+				</button>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- EDIT -->
+	<div id="edit-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
+		<div class="w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col">
+
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="text-xl font-semibold text-white">Edit Function</h2>
+				<button onclick="closeEdit()" class="p-2 text-neutral-300 hover:text-white">
+					<img src="/static/imgs/x.svg" class="w-5 h-5"/>
+				</button>
+			</div>
+
+			<div id="edit-ace" class="flex-1 w-full rounded-xl border border-neutral-800"></div>
+
+			<div class="flex justify-end gap-3 pt-3">
+				<button onclick="closeEdit()" class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+					<img src="/static/imgs/cancel.svg" class="w-5 h-5"/>
+				</button>
+
+				<button onclick="saveEdit(true)" class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
+					<img src="/static/imgs/save-floppy-svgrepo-com.svg" class="w-5 h-5"/>
+				</button>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- ACE from CDN (fallback to local if needed) -->
+	<script>
+	(function(){
+		// try to load ACE from CDN, but allow local base if preferred by the app
+		const cdn = "https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/";
+		const s1 = document.createElement('script');
+		s1.src = cdn + 'ace.js';
+		s1.onload = () => {
+			// load optional ext and keybinding after ace
+			const s2 = document.createElement('script');
+			s2.src = cdn + 'ext-language_tools.js';
+			document.head.appendChild(s2);
+			const s3 = document.createElement('script');
+			s3.src = cdn + 'keybinding-vim.js';
+			document.head.appendChild(s3);
+		};
+		document.head.appendChild(s1);
+	})();
+	</script>
+
+	<script>
+window.ACE_MODES = {
+    python: "python",
+    javascript: "javascript",
+    go: "golang",
+    rust: "rust",
+    lua: "lua"
+};
+
+// server placeholder (templ will fill this); we'll resolve cookie fallback in getActiveProjectID()
+window.__activeProjectID = "{ activeProjectID }";
+
+let createEditor = null;
+let editEditor = null;
+let selectedLang = "python";
+
+// your code templates (from your snippet)
+const codeTemplates = {
+  python: `from fastapi import Request
 
 async def handle(request: Request):
     body = await request.json()
     name = body.get("name", "stranger")
     return {"message": f"Hello {name} from Python!"}`,
 
-      go: `package main
+  go: `package main
 
 import (
     "net/http"
@@ -208,7 +206,7 @@ func Handle(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"message": "Hello from Go!"})
 }`,
 
-      rust: `use axum::{Json};
+  rust: `use axum::{Json};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -222,109 +220,206 @@ pub async fn handle(Json(input): Json<Input>) -> Json<Output> {
     Json(Output { message: format!("Hello {} from Rust!", name) })
 }`,
 
-      javascript: `export async function handle(req) {
+  javascript: `export async function handle(req) {
   const body = await req.json();
   return new Response("Hello from JS!");
 }`,
 
-      lua: `function handle(req)
+  lua: `function handle(req)
   return { message = "Hello from Lua!" }
 end`
-    };
+};
 
-    function copyCurl(name) {
-      const curl = `curl -X POST https://api.example.com/functions/${name}`;
-      navigator.clipboard.writeText(curl);
-    }
+const modeMap = window.ACE_MODES;
 
-    function openCreateFunction() {
-      const m = document.getElementById("create-modal");
-      m.classList.remove("hidden");
-
-      if (!createEditor) {
-        createEditor = ace.edit("create-ace");
-        createEditor.setTheme("ace/theme/dracula");
-      }
-      createEditor.session.setMode("ace/mode/" + modeMap[selectedLang]);
-      createEditor.setValue(codeTemplates[selectedLang], -1);
-      setTimeout(() => createEditor.focus(), 100);
-    }
-
-    function selectLang(lang) {
-      selectedLang = lang;
-      document.querySelectorAll(".lang-btn").forEach(btn => btn.classList.remove("selected"));
-      document.getElementById("lang-" + lang).classList.add("selected");
-
-      if (createEditor) {
-        createEditor.session.setMode("ace/mode/" + modeMap[lang]);
-        createEditor.setValue(codeTemplates[lang], -1);
-      }
-    }
-
-    function closeCreateFunction() {
-      document.getElementById("create-modal").classList.add("hidden");
-    }
-
-    function saveCreateFunction() {
-      const code = createEditor.getValue();
-      closeCreateFunction();
-      fetch("/functions/create", {method: "POST", headers: {"Content-Type": "text/plain"}, body: code});
-    }
-
-    function openEditFunction(name, lang) {
-      const m = document.getElementById("edit-modal");
-      m.classList.remove("hidden");
-
-      if (!editEditor) {
-        editEditor = ace.edit("edit-ace");
-        editEditor.setTheme("ace/theme/dracula");
-        editEditor.setKeyboardHandler("ace/keyboard/vim");
-
-        // Vim :wq / :q
-        const Vim = ace.require("ace/keyboard/vim").CodeMirror.Vim;
-        Vim.defineEx("wq", "wq", () => saveEditFunction());
-        Vim.defineEx("q", "q", () => closeEditFunction());
-      }
-
-      editEditor.session.setMode("ace/mode/" + modeMap[lang]);
-      editEditor.setValue(codeTemplates[lang], -1);
-      setTimeout(() => editEditor.focus(), 100);
-    }
-
-    function closeEditFunction() {
-      document.getElementById("edit-modal").classList.add("hidden");
-    }
-
-    function saveEditFunction() {
-      const code = editEditor.getValue();
-      closeEditFunction();
-      fetch("/functions/save", {
-        method: "POST",
-        headers: {"Content-Type": "text/plain"},
-        body: code
-      });
-    }
-  </script>
-		<style>
-    .lang-btn {
-      padding: 10px 8px;
-      border-radius: 12px;
-      background: #0e0e0f;
-      border: 1px solid #282828;
-      color: white;
-      font-size: 0.85rem;
-      transition: 0.15s;
-    }
-
-    .lang-btn:hover {
-      background: #1c1c1c;
-      border-color: #666;
-    }
-
-    .lang-btn.selected {
-      background: #1f1f20;
-      border-color: #888;
-    }
-  </style>
-	</div>
+/* --- Helpers for project id resolution (use cookie fallback) --- */
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? decodeURIComponent(v.pop()) : '';
 }
+
+function getActiveProjectID() {
+  const raw = (window.__activeProjectID || '').trim();
+  // treat templ placeholder or empty as "not provided"
+  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;
+  // fallback to cookie
+  return getCookie('lws_project') || '';
+}
+
+function projectUrl(pathSuffix) {
+  const pid = getActiveProjectID();
+  if (!pid) {
+    console.warn('no active project id set (lws_project cookie missing and server didn\'t provide one)');
+    return pathSuffix || '';
+  }
+  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;
+  // NOTE: prepend /api here so we call server routes under /api
+  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;
+}
+
+/* --- Ace + Vim ex helpers --- */
+window.__isCreateEditor = false;
+window.__isEditEditor = false;
+
+function defineVimEx(){
+  try {
+    const vimMod = ace.require && ace.require("ace/keyboard/vim");
+    if (!vimMod || !vimMod.CodeMirror) return;
+    const Vim = vimMod.CodeMirror.Vim;
+    if (!Vim) return;
+    if (Vim.__lws_ex_defined) return;
+    Vim.defineEx("w", "w", function(cm, input){
+      if (window.__isCreateEditor) saveCreate(true);
+      else if (window.__isEditEditor) saveEdit(true);
+    });
+    Vim.defineEx("wq", "wq", function(cm, input){
+      if (window.__isCreateEditor) saveCreate(true);
+      if (window.__isEditEditor) saveEdit(true);
+      if (window.__isCreateEditor) closeCreate();
+      if (window.__isEditEditor) closeEdit();
+    });
+    Vim.defineEx("q", "q", function(cm, input){
+      if (window.__isCreateEditor) closeCreate();
+      else if (window.__isEditEditor) closeEdit();
+    });
+    Vim.__lws_ex_defined = true;
+  } catch (e) {
+    // ignore if vim keybinding not present yet
+  }
+}
+
+/* --- UI functions --- */
+function copyFn(id){
+  const curl = `curl -X POST ${projectUrl(`/functions/`)}${id ? id : ''}`;
+  navigator.clipboard.writeText(curl);
+}
+
+function openCreate(){
+  window.__isCreateEditor = true;
+  window.__isEditEditor = false;
+
+  document.getElementById('create-modal').classList.remove('hidden');
+
+  if(!createEditor && window.ace){
+    createEditor = ace.edit('create-ace');
+    createEditor.setTheme('ace/theme/dracula');
+    try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
+    defineVimEx();
+  }
+
+  if(createEditor){
+    createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);
+    createEditor.setValue(codeTemplates[selectedLang] || '', -1);
+    setTimeout(()=>createEditor.focus(),120);
+  }
+}
+
+function selectLang(lang){
+  selectedLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));
+  const el = document.getElementById('lang-' + lang);
+  if(el) el.classList.add('selected');
+  if(createEditor){
+    createEditor.session.setMode('ace/mode/' + modeMap[lang]);
+    createEditor.setValue(codeTemplates[lang] || '', -1);
+    setTimeout(()=>createEditor.focus(),120);
+  }
+}
+
+function closeCreate(){
+  window.__isCreateEditor = false;
+  document.getElementById('create-modal').classList.add('hidden');
+}
+
+function saveCreate(exit){
+  const name = document.getElementById('fn-name-input')?.value?.trim();
+  if(!name){
+    const el = document.getElementById('fn-name-input');
+    el.classList.add('shake');
+    setTimeout(()=>el.classList.remove('shake'),400);
+    el.focus();
+    return;
+  }
+  const description = document.getElementById('fn-desc-input')?.value?.trim();
+  const payload = {
+    name: name,
+    language: selectedLang,
+    description: description,
+    path: createEditor ? createEditor.getValue() : ''
+  };
+  fetch(projectUrl(`/functions/`),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(()=>{ if(exit) closeCreate(); });
+}
+
+function openEdit(id, lang){
+  window.__isCreateEditor = false;
+  window.__isEditEditor = true;
+  window.__editFnID = id;
+
+  document.getElementById('edit-modal').classList.remove('hidden');
+  if(!editEditor && window.ace){
+    editEditor = ace.edit('edit-ace');
+    editEditor.setTheme('ace/theme/dracula');
+    try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
+    defineVimEx();
+  }
+
+  if(editEditor){
+    editEditor.session.setMode('ace/mode/' + modeMap[lang]);
+    fetch(`/functions/${id}/`).then(r=>r.json()).then(data=>{
+      editEditor.setValue(data.path || codeTemplates[lang] || '', -1);
+      setTimeout(()=>editEditor.focus(),120);
+    }).catch(()=>{
+      editEditor.setValue(codeTemplates[lang] || '', -1);
+    });
+  }
+}
+
+function closeEdit(){
+  window.__isEditEditor = false;
+  document.getElementById('edit-modal').classList.add('hidden');
+}
+
+function saveEdit(exit){
+  if(!window.__editFnID) return;
+  const body = editEditor ? editEditor.getValue() : '';
+  fetch(`/functions/${window.__editFnID}/`,{
+    method:'PUT',
+    headers:{'Content-Type':'text/plain'},
+    body: body
+  }).then(()=>{ if(exit) closeEdit(); });
+}
+
+/* --- bind language tiles and other DOM wiring after load --- */
+document.addEventListener('DOMContentLoaded', () => {
+  // wire language tiles
+  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>{
+    btn.addEventListener('click', ()=> {
+      const lang = btn.getAttribute('data-lang');
+      selectLang(lang);
+    });
+  });
+
+  // if server didn't provide activeProjectID, try cookie
+  window.__activeProjectID = getActiveProjectID();
+});
+	</script>
+
+	<style>
+html,body{background:#0f0f10!important;}
+.ace_editor,.ace_scroller,.ace_content{background:#0b0b0c!important;color:#eee!important;}
+.shake{animation:shake .3s linear;}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+
+.lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}
+.lang-btn:hover{background:#1c1c1c;border-color:#666}
+.lang-btn.selected{background:#1f1f20;border-color:#888}
+	</style>
+
+</div>
+
+}
+

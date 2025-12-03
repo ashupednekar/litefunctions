@@ -3,12 +3,15 @@ package handlers
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 
 	authAdaptors "github.com/ashupednekar/litewebservices-portal/internal/auth/adaptors"
-	"github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
+	functionAdaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
+	projectAdaptors "github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/ashupednekar/litewebservices-portal/templates"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type UIHandlers struct {
@@ -37,7 +40,7 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 	usernameStr := "User"
 
 	if userID != nil {
-		q := adaptors.New(h.state.DBPool)
+		q := projectAdaptors.New(h.state.DBPool)
 		dbProjects, err := q.ListProjectsForUser(ctx.Request.Context(), userID.([]byte))
 		if err == nil {
 			for _, p := range dbProjects {
@@ -62,15 +65,65 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 	_ = page.Render(ctx, ctx.Writer)
 }
 
+
 func (h *UIHandlers) Functions(ctx *gin.Context) {
+	userID, _ := ctx.Get("userID")
+	activeProjectID, _ := ctx.Cookie("lws_project")
+
+	var functions []templates.Function
+	usernameStr := "User"
+
+	q := functionAdaptors.New(h.state.DBPool)
+
+	if activeProjectID != "" {
+		var projUUID pgtype.UUID
+
+		if decoded, err := hex.DecodeString(activeProjectID); err == nil && len(decoded) == 16 {
+			copy(projUUID.Bytes[:], decoded)
+			projUUID.Valid = true
+
+			if dbFns, err := q.ListFunctionsForProject(ctx.Request.Context(), projUUID); err == nil {
+				for _, f := range dbFns {
+					lang := f.Language
+					icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
+					desc := f.Description
+
+					functions = append(functions, templates.Function{
+						ID:          hex.EncodeToString(f.ID.Bytes[:]),
+						Name:        f.Name,
+						Language:    lang,
+						Description: desc,
+						Icon:        icon,
+					})
+				}
+			}
+		}
+	}
+
+	if userID != nil {
+		authQ := authAdaptors.New(h.state.DBPool)
+		if user, err := authQ.GetUserByID(context.Background(), userID.([]byte)); err == nil {
+			usernameStr = user.Name
+		}
+	}
+
+	langs := []templates.Lang{
+		{ID: "rust",       Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "rust"),       Label: "Rust",       AceMode: "rust"},
+		{ID: "go",         Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "go"),         Label: "Go",         AceMode: "golang"},
+		{ID: "python",     Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "python"),     Label: "Python",     AceMode: "python"},
+		{ID: "javascript", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "javascript"), Label: "JavaScript", AceMode: "javascript"},
+		{ID: "lua",        Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "lua"),        Label: "Lua",        AceMode: "lua"},
+	}
+
 	page := templates.BaseLayout(
-		templates.FunctionContent(),
+		templates.FunctionContent(functions, langs, activeProjectID, usernameStr),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		ctx.JSON(500, gin.H{"err": err.Error()})
 	}
 }
+
 
 func (h *UIHandlers) Data(ctx *gin.Context) {
 	page := templates.BaseLayout(

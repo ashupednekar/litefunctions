@@ -46,23 +46,23 @@ func (t *TokenAuth) UpdateOptions(options *git.CloneOptions) error {
 
 func (r *GitRepo) SetupAuth() error {
 	log.Printf("setting up %s auth\n", pkg.Cfg.VcsAuthMode)
-	switch pkg.Cfg.VcsAuthMode{
+	switch pkg.Cfg.VcsAuthMode {
 	case "ssh":
-    vendor := strings.TrimPrefix(strings.TrimPrefix(pkg.Cfg.VcsBaseUrl, "https://"), "http://")
-		r.options.URL = fmt.Sprintf(
-        "git@%s:%s/%s.git",
-        vendor, 
-        pkg.Cfg.VcsUser,
-        r.project,
-    )
+		vendor := strings.TrimPrefix(strings.TrimPrefix(pkg.Cfg.VcsBaseUrl, "https://"), "http://")
+		r.Options.URL = fmt.Sprintf(
+			"git@%s:%s/%s.git",
+			vendor,
+			pkg.Cfg.VcsUser,
+			r.Project,
+		)
 		auth := &SshAuth{
-			privKey: pkg.Cfg.VcsPrivKeyPath,
+			privKey:  pkg.Cfg.VcsPrivKeyPath,
 			password: pkg.Cfg.VcsPrivKeyPassword,
 		}
-		auth.UpdateOptions(r.options)
+		auth.UpdateOptions(r.Options)
 	case "token":
 		auth := &TokenAuth{token: pkg.Cfg.VcsToken}
-		auth.UpdateOptions(r.options)
+		auth.UpdateOptions(r.Options)
 	default:
 		return fmt.Errorf("invalid auth mode: %s", pkg.Cfg.VcsAuthMode)
 	}

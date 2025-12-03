@@ -12,38 +12,38 @@ import (
 )
 
 func (r *GitRepo) Clone() error {	
-  r.options.ReferenceName = plumbing.NewBranchReferenceName(r.branch)
-	r.options.SingleBranch = true
-	r.options.Depth = 1
-	log.Printf("Cloning %s (branch=%s)\n", r.project, r.branch)
-	repo, err := git.Clone(r.storage, r.fs, r.options)
+  r.Options.ReferenceName = plumbing.NewBranchReferenceName(r.Branch)
+	r.Options.SingleBranch = true
+	r.Options.Depth = 1
+	log.Printf("Cloning %s (branch=%s)\n", r.Project, r.Branch)
+	repo, err := git.Clone(r.Storage, r.Fs, r.Options)
 	if err != nil {
 		return fmt.Errorf("error cloning repo: %s", err)
 	}
-	r.repo = repo
+	r.Repo = repo
   w, err := repo.Worktree()
 	if err != nil{
 		return fmt.Errorf("error getting worktree: %s", err)
 	}
-	r.worktree = w
+	r.Worktree = w
 	return nil
 }
 
 func (r *GitRepo) Commit(files ...string) error {
-	if r.worktree == nil {
+	if r.Worktree == nil {
 		return fmt.Errorf("worktree not initialized; call Clone() first")
 	}
 
 	for _, f := range files {
-		_, err := r.worktree.Add(f)
+		_, err := r.Worktree.Add(f)
 		if err != nil {
 			return fmt.Errorf("failed to stage file %s: %w", f, err)
 		}
 	}
 
-	_, err := r.worktree.Commit(
+	_, err := r.Worktree.Commit(
 		fmt.Sprintf(
-			"Update %s (%s)", r.project, time.Now().Format(time.RFC3339),
+			"Update %s (%s)", r.Project, time.Now().Format(time.RFC3339),
 		),
 		&git.CommitOptions{
 			Author: &object.Signature{
@@ -62,13 +62,13 @@ func (r *GitRepo) Commit(files ...string) error {
 
 
 func (r *GitRepo) Push() error {
-	if r.repo == nil {
+	if r.Repo == nil {
 		return fmt.Errorf("repo not cloned or initialized")
 	}
-	fmt.Printf("auth: %v\n", r.options.Auth)
-	err := r.repo.Push(&git.PushOptions{
-		Auth:     r.options.Auth,
-		Progress: r.options.Progress,
+	fmt.Printf("auth: %v\n", r.Options.Auth)
+	err := r.Repo.Push(&git.PushOptions{
+		Auth:     r.Options.Auth,
+		Progress: r.Options.Progress,
 	})
 	if err != nil && err != git.NoErrAlreadyUpToDate {
 		return fmt.Errorf("push failed: %w", err)

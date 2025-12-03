@@ -18,13 +18,13 @@ type VCS interface {
 }
 
 type GitRepo struct {
-	project string
-	branch   string
-	storage  *memory.Storage
-	options *git.CloneOptions
-	fs billy.Filesystem
-	worktree *git.Worktree
-	repo     *git.Repository
+	Project string
+	Branch   string
+	Storage  *memory.Storage
+	Options *git.CloneOptions
+	Fs billy.Filesystem
+	Worktree *git.Worktree
+	Repo     *git.Repository
 }
 
 var repos = make(map[string]*GitRepo)
@@ -42,11 +42,11 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 	  return repo, nil
 	}else{
 		r := GitRepo{
-	  	project: project, 
-	  	branch: b, 
-			fs: fs,
-	  	storage: memory.NewStorage(),
-	  	options: &git.CloneOptions{
+	  	Project: project, 
+	  	Branch: b, 
+			Fs: fs,
+	  	Storage: memory.NewStorage(),
+	  	Options: &git.CloneOptions{
 				URL: fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
 				Progress: os.Stdout,
 			},

@@ -19,15 +19,15 @@ func TestVcs(t *testing.T) {
 		t.Errorf("error cloning repo: %s", err)
 	}
 	readme := "README.md"
-  if _, err := r.fs.Stat(readme); err != nil {
-      f, err := r.fs.Create(readme)
+  if _, err := r.Fs.Stat(readme); err != nil {
+      f, err := r.Fs.Create(readme)
       if err != nil {
           t.Fatalf("cannot create README.md: %s", err)
       }
-      _, _ = f.Write([]byte("# " + r.project + "\n"))
+      _, _ = f.Write([]byte("# " + r.Project + "\n"))
       f.Close()
   } else {
-      f, err := r.fs.OpenFile(readme, os.O_WRONLY|os.O_APPEND, 0644)
+      f, err := r.Fs.OpenFile(readme, os.O_WRONLY|os.O_APPEND, 0644)
       if err != nil {
           t.Fatalf("cannot append to README.md: %s", err)
       }
@@ -46,7 +46,7 @@ func TestVcs(t *testing.T) {
 	if err != nil {
 		t.Errorf("error in new repo call: %s", err)
 	}
-	PrintFS(rOpened.fs)
+	PrintFS(rOpened.Fs)
 }
 
 

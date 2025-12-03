@@ -46,6 +46,7 @@ func (s *Server) BuildRoutes() {
 	}
 
 	projectHandlers := handlers.NewProjectHandlers(s.state)
+  functionHandlers := handlers.NewFunctionHandlers(s.state)
 
 	api := s.router.Group("/api/")
 	api.Use(middleware.AuthMiddleware(auth.GetStore()))
@@ -55,11 +56,11 @@ func (s *Server) BuildRoutes() {
 		api.GET("/projects/:id/", handlers.GetProject)
 		api.DELETE("/projects/:id/", handlers.DeleteProject)
 
-		api.POST("/projects/:id/functions/", handlers.CreateFunction)
-		api.GET("/projects/:id/functions/", handlers.ListFunctions)
-		api.GET("/functions/:fnID/", handlers.GetFunction)
-		api.PUT("/functions/:fnID/", handlers.UpdateFunction)
-		api.DELETE("/functions/:fnID/", handlers.DeleteFunction)
+    api.POST("/projects/:id/functions/", functionHandlers.CreateFunction)
+    api.GET("/projects/:id/functions/", functionHandlers.ListFunctions)
+    api.GET("/functions/:fnID/", functionHandlers.GetFunction)
+    api.PUT("/functions/:fnID/", functionHandlers.UpdateFunction)
+    api.DELETE("/functions/:fnID/", functionHandlers.DeleteFunction)
 
 		api.POST("/projects/:id/endpoints/", handlers.CreateEndpoint)
 		api.GET("/projects/:id/endpoints/", handlers.ListEndpoints)

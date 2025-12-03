@@ -20,6 +20,7 @@ func NewProjectHandlers(s *state.AppState) *ProjectHandlers {
 }
 
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
+	//TODO: delete repo on rollback later, or on explicit user prompt
 	var req struct {
 		Name string `json:"name"`
 	}

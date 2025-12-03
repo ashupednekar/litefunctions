@@ -107,7 +107,6 @@ func (c *GitHubClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (
 	}, nil
 }
 
-// AddWebhook adds a webhook to a GitHub repository
 func (c *GitHubClient) AddWebhook(ctx context.Context, owner, repo string, opts WebhookOptions) (*Webhook, error) {
 	url := fmt.Sprintf("%s/repos/%s/%s/hooks", c.baseURL, owner, repo)
 
@@ -279,4 +278,31 @@ func (c *GitHubClient) GetActionsProgress(ctx context.Context, owner, repo strin
 		TotalCount: ghActions.TotalCount,
 		Runs:       runs,
 	}, nil
+}
+
+
+func (c *GitHubClient) DeleteRepo(ctx context.Context, owner, repo string) error {
+	url := fmt.Sprintf("%s/repos/%s/%s", c.baseURL, owner, repo)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return fmt.Errorf("github: failed to create delete request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("github: failed to execute delete: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("github: unexpected delete status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
 }
