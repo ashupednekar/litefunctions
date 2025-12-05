@@ -6,6 +6,7 @@ import (
 
 	"github.com/ashupednekar/litewebservices-portal/pkg/handlers"
 	"github.com/ashupednekar/litewebservices-portal/pkg/server/middleware"
+	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/ashupednekar/litewebservices-portal/static"
 )
 
@@ -49,7 +50,10 @@ func (s *Server) BuildRoutes() {
 	functionHandlers := handlers.NewFunctionHandlers(s.state)
 
 	api := s.router.Group("/api/")
-	api.Use(middleware.AuthMiddleware(auth.GetStore()))
+	api.Use(
+		middleware.AuthMiddleware(auth.GetStore()),
+		middleware.ProjectMiddleware(s.state),
+	)
 	{
 		api.POST("/projects/", projectHandlers.CreateProject)
 		api.GET("/projects/", handlers.ListProjects)

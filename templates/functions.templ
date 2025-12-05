@@ -60,7 +60,9 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					</button>
 
 					<button
-						onclick={ openEdit(fn.ID, fn.Language) }
+						onclick={
+                templ.JSFuncCall("openEdit", fn.ID, fn.Language)
+            }
 						class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition">
 						Edit
 					</button>
@@ -350,7 +352,7 @@ function openEdit(id, lang){
   window.__isCreateEditor = false;
   window.__isEditEditor = true;
   window.__editFnID = id;
-
+  console.log("opening edit modal")
   document.getElementById('edit-modal').classList.remove('hidden');
   if(!editEditor && window.ace){
     editEditor = ace.edit('edit-ace');
