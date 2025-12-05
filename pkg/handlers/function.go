@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	functionadaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
-	projectadaptors "github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/gin-gonic/gin"
@@ -15,7 +14,6 @@ import (
 )
 //TODO: add caching
 //TODO: add pagination
-//TODO: refactor further, if needed
 
 
 type FunctionHandlers struct {
