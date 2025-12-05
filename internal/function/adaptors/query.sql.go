@@ -14,7 +14,7 @@ import (
 const createFunction = `-- name: CreateFunction :one
 INSERT INTO functions (project_id, name, language, path, created_by)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, project_id, name, language, path, description, created_by, created_at
+RETURNING id, project_id, name, language, path, created_by, created_at
 `
 
 type CreateFunctionParams struct {
@@ -40,7 +40,6 @@ func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) 
 		&i.Name,
 		&i.Language,
 		&i.Path,
-		&i.Description,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)
@@ -58,7 +57,7 @@ func (q *Queries) DeleteFunction(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getFunctionByID = `-- name: GetFunctionByID :one
-SELECT id, project_id, name, language, path, description, created_by, created_at
+SELECT id, project_id, name, language, path, created_by, created_at
 FROM functions
 WHERE id = $1
 `
@@ -72,7 +71,6 @@ func (q *Queries) GetFunctionByID(ctx context.Context, id pgtype.UUID) (Function
 		&i.Name,
 		&i.Language,
 		&i.Path,
-		&i.Description,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)
@@ -80,7 +78,7 @@ func (q *Queries) GetFunctionByID(ctx context.Context, id pgtype.UUID) (Function
 }
 
 const listFunctionsForProject = `-- name: ListFunctionsForProject :many
-SELECT id, project_id, name, language, path, description, created_by, created_at
+SELECT id, project_id, name, language, path, created_by, created_at
 FROM functions
 WHERE project_id = $1
 ORDER BY created_at DESC
@@ -101,7 +99,6 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 			&i.Name,
 			&i.Language,
 			&i.Path,
-			&i.Description,
 			&i.CreatedBy,
 			&i.CreatedAt,
 		); err != nil {
@@ -119,7 +116,7 @@ const updateFunctionPath = `-- name: UpdateFunctionPath :one
 UPDATE functions
 SET path = $2
 WHERE id = $1
-RETURNING id, project_id, name, language, path, description, created_by, created_at
+RETURNING id, project_id, name, language, path, created_by, created_at
 `
 
 type UpdateFunctionPathParams struct {
@@ -136,7 +133,6 @@ func (q *Queries) UpdateFunctionPath(ctx context.Context, arg UpdateFunctionPath
 		&i.Name,
 		&i.Language,
 		&i.Path,
-		&i.Description,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)

@@ -34,9 +34,8 @@ CREATE TABLE functions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    language TEXT NOT NULL,                    -- e.g., "python", "js", "rust"
+    language TEXT NOT NULL,                    -- e.g., "go", "js", "rust"
     path TEXT NOT NULL,                        -- repo path to function entrypoint
-    description TEXT NOT NULL DEFAULT '',
     created_by BYTEA NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 

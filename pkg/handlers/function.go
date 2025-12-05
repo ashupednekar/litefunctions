@@ -81,12 +81,6 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		return
 	}
 
-	if err := r.Clone(); err != nil {
-		fmt.Printf("[ERROR] r.Clone failed: %v\n", err)
-		c.JSON(500, gin.H{"error": "clone error"})
-		return
-	}
-
 	path := fmt.Sprintf("functions/%s/%s%s", req.Language, req.Name, ext)
 
 	dirParts := strings.Split(path, "/")

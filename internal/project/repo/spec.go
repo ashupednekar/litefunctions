@@ -18,11 +18,11 @@ type VCS interface {
 }
 
 type GitRepo struct {
-	Project string
+	Project  string
 	Branch   string
 	Storage  *memory.Storage
-	Options *git.CloneOptions
-	Fs billy.Filesystem
+	Options  *git.CloneOptions
+	Fs       billy.Filesystem
 	Worktree *git.Worktree
 	Repo     *git.Repository
 }
@@ -33,29 +33,32 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 	fs := memfs.New()
 	var b string
 	if branch != nil {
-			b = *branch
+		b = *branch
 	} else {
-			b = "main"
+		b = "main"
 	}
 	repo, ok := repos[project]
-	if ok{
-	  return repo, nil
-	}else{
+	if ok {
+		return repo, nil
+	} else {
 		r := GitRepo{
-	  	Project: project, 
-	  	Branch: b, 
-			Fs: fs,
-	  	Storage: memory.NewStorage(),
-	  	Options: &git.CloneOptions{
-				URL: fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
+			Project: project,
+			Branch:  b,
+			Fs:      fs,
+			Storage: memory.NewStorage(),
+			Options: &git.CloneOptions{
+				URL:      fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
 				Progress: os.Stdout,
 			},
-	  }
+		}
 		err := r.SetupAuth()
-	  if err != nil {
-	  	return nil, err
-	  }
+		if err != nil {
+			return nil, err
+		}
 		repos[project] = &r
+		if err := r.Clone(); err != nil {
+			return nil, err
+		}
 		return &r, nil
 	}
 }
