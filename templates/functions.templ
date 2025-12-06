@@ -39,7 +39,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 		</div>
 	</div>
 
-	<div class="flex-1 overflow-y-auto px-14 py-6 space-y-4">
+	<div id="fn-list-container" class="flex-1 overflow-y-auto px-14 py-6 space-y-4">
 		if len(functions) == 0 {
 		<div class="w-full text-center py-20 text-neutral-500 text-lg">
 			Create a new function to begin.
@@ -58,7 +58,6 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<button onclick={ copyFn(fn.ID) } class="text-neutral-400 hover:text-white transition">
 						<img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
 					</button>
-
 					<button
 						onclick={
                 templ.JSFuncCall("openEdit", fn.ID, fn.Language)
@@ -66,6 +65,11 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 						class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition">
 						Edit
 					</button>
+          <button
+              onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
+              class="px-3 py-1 rounded-lg border border-red-700 text-red-400 hover:bg-red-900/30 transition">
+              Delete
+          </button>
 				</div>
 			</div>
 
@@ -143,6 +147,27 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 
 		</div>
 	</div>
+
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div id="delete-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
+      <div class="bg-[#0f0f10] border border-neutral-800 rounded-2xl p-8 w-[420px]">
+          <h2 class="text-xl font-semibold text-white mb-4">Delete Function?</h2>
+          <p class="text-neutral-400 mb-6">This action cannot be undone.</p>
+  
+          <div class="flex justify-end gap-3">
+              <button onclick="closeDelete()"
+                  class="px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800">
+                  Cancel
+              </button>
+  
+              <button onclick="confirmDelete()"
+                  class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">
+                  Delete
+              </button>
+          </div>
+      </div>
+  </div>
 
 	<!-- ACE from CDN (fallback to local if needed) -->
 	<script>
@@ -345,7 +370,10 @@ function saveCreate(exit){
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(payload)
-  }).then(()=>{ if(exit) closeCreate(); });
+  }).then(()=>{ 
+    if(exit) closeCreate();
+    refreshList()
+  });
 }
 
 function openEdit(id, lang){
@@ -384,7 +412,10 @@ function saveEdit(exit){
     method:'PUT',
     headers:{'Content-Type':'text/plain'},
     body: body
-  }).then(()=>{ if(exit) closeEdit(); });
+  }).then(()=>{ 
+    if(exit) closeEdit(); 
+    refreshList()
+  });
 }
 
 /* --- bind language tiles and other DOM wiring after load --- */
@@ -400,6 +431,89 @@ document.addEventListener('DOMContentLoaded', () => {
   // if server didn't provide activeProjectID, try cookie
   window.__activeProjectID = getActiveProjectID();
 });
+
+window.__deleteFnID = null;
+
+function deleteFn(id) {
+    window.__deleteFnID = id;
+    document.getElementById("delete-modal").classList.remove("hidden");
+}
+
+function closeDelete() {
+    window.__deleteFnID = null;
+    document.getElementById("delete-modal").classList.add("hidden");
+}
+
+function confirmDelete() {
+    if (!window.__deleteFnID) return;
+
+    fetch(`/api/functions/${window.__deleteFnID}/`, {
+        method: "DELETE"
+    })
+    .then(() => {
+        closeDelete();
+        refreshList(); // refresh UI
+    });
+}
+
+
+function refreshList() {
+    fetch(`/api/functions/`)
+        .then(r => r.json())
+        .then(obj => {
+
+            // backend returns an *object* with numeric keys, convert to array
+            const list = Object.values(obj);
+
+            const container = document.querySelector("#fn-list-container");
+            if (!container) return;
+
+            container.innerHTML = "";
+
+            list.forEach(fn => {
+                const id = fn.id;
+                const name = fn.name;
+                const lang = fn.language;
+
+                const icon = `/static/imgs/${lang}-svgrepo-com.svg`;
+
+                const el = document.createElement("div");
+                el.className =
+                    "rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5";
+
+                el.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="${icon}" class="w-6 h-6 opacity-90"/>
+                            <h2 class="text-white font-semibold text-lg">${name}</h2>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <button onclick="copyFn('${id}')" 
+                                class="text-neutral-400 hover:text-white transition">
+                                <img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
+                            </button>
+
+                            <button onclick="openEdit('${id}', '${lang}')"
+                                class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+                                Edit
+                            </button>
+
+                            <button onclick="deleteFn('${id}')"
+                                class="px-3 py-1 rounded-lg border border-red-700 text-red-400 hover:bg-red-900/30">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(el);
+            });
+        });
+}
+
+
+
 	</script>
 
 	<style>
