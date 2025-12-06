@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -10,8 +11,10 @@ import (
 	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/gin-gonic/gin"
+	"github.com/go-git/go-git/v6"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
 //TODO: add caching
 //TODO: add pagination
 
@@ -39,7 +42,7 @@ type createFunctionRequest struct {
 }
 
 func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
-	r := c.MustGet("repo").(repo.GitRepo)
+	r := c.MustGet("repo").(*repo.GitRepo)
 	userID := c.MustGet("userID").([]byte)
 
 	var req createFunctionRequest
@@ -158,16 +161,30 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 		return
 	}
 
-	// r := c.MustGet("repo").(repo.GitRepo)
-	// r.Fs.OpenFile()
-	//TODO: read file contents
-	
-	
+	r := c.MustGet("repo").(*repo.GitRepo)
+
+	file, err := r.Fs.Open(f.Path)
+	if err != nil{
+		c.JSON(404, gin.H{
+			"msg": "function not found in repo",
+		})
+		return
+	}
+	data, err := io.ReadAll(file)
+	if err != nil{
+		c.JSON(404, gin.H{
+			"msg": "error reading file data",
+		})
+		return
+	}
+
+	//TODO: read file contents	
 	c.JSON(200, gin.H{
 		"id":       hex.EncodeToString(f.ID.Bytes[:]),
 		"name":     f.Name,
 		"language": f.Language,
 		"path":     f.Path,
+		"data": data,
 	})
 }
 
@@ -189,7 +206,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
-	r := c.MustGet("repo").(repo.GitRepo)
+	r := c.MustGet("repo").(*repo.GitRepo)
 
 	if c.ContentType() == "text/plain" {
 		body, err := io.ReadAll(c.Request.Body)
@@ -198,7 +215,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 			return
 		}
 
-		fh, err := r.Fs.Create("/" + f.Path)
+		fh, err := r.Fs.Create(f.Path)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "write error"})
 			return
@@ -206,7 +223,10 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		fh.Write(body)
 		fh.Close()
 
-		if err := r.Commit(f.Path); err != nil {
+		fmt.Printf("commiting file: %s\n", f.Path)
+		err = r.Commit(f.Path)
+		if err != nil && !errors.Is(err, git.ErrEmptyCommit){
+			fmt.Printf("error commiting file: %s\n", err)
 			c.JSON(500, gin.H{"error": "commit error"})
 			return
 		}
@@ -265,21 +285,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
-
-	pq := adaptors.New(h.state.DBPool)
-	proj, err := pq.GetProjectByID(c.Request.Context(), f.ProjectID)
-	if err != nil {
-		c.JSON(404, gin.H{"error": "project not found"})
-		return
-	}
-	projectName := proj.Name
-
-	r, err := repo.NewGitRepo(projectName, nil)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "repo init error"})
-		return
-	}
-
+  r := c.MustGet("repo").(*repo.GitRepo)
 	r.Fs.Remove("/" + f.Path)
 
 	if err := r.Commit(f.Path); err != nil {

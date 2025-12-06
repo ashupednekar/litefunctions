@@ -6,7 +6,6 @@ import (
 
 	"github.com/ashupednekar/litewebservices-portal/pkg/handlers"
 	"github.com/ashupednekar/litewebservices-portal/pkg/server/middleware"
-	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/ashupednekar/litewebservices-portal/static"
 )
 

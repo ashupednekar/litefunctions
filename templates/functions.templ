@@ -364,7 +364,7 @@ function openEdit(id, lang){
   if(editEditor){
     editEditor.session.setMode('ace/mode/' + modeMap[lang]);
     fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
-      editEditor.setValue(data.path || codeTemplates[lang] || '', -1);
+      editEditor.setValue(data.content || codeTemplates[lang] || '', -1);
       setTimeout(()=>editEditor.focus(),120);
     }).catch(()=>{
       editEditor.setValue(codeTemplates[lang] || '', -1);
