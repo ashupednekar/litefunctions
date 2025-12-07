@@ -16,7 +16,7 @@ RUN templ generate && \
         -o app
 
 FROM scratch
-COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 WORKDIR /app
 COPY --from=builder /app/app server
