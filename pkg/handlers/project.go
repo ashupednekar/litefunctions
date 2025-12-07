@@ -127,3 +127,17 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 
 	c.JSON(201, gin.H{"id": project.ID, "name": project.Name})
 }
+
+func (h *ProjectHandlers) SyncProject(c *gin.Context) {
+	projectUUID := c.MustGet("projectUUID").(pgtype.UUID)
+	projectName := c.MustGet("projectName").(string)
+	userID := c.MustGet("userID").([]byte)
+
+	if err := SyncRepoFunctionsToDb(c, h.state.DBPool, projectUUID, projectName, userID); err != nil {
+		fmt.Printf("[ERROR] Sync failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "sync failed"})
+		return
+	}
+
+	c.JSON(200, gin.H{"status": "synced"})
+}

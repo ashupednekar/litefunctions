@@ -110,14 +110,14 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]\"><div class=\"flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800\"><!-- LEFT SECTION: Title + Vim toggle --><div class=\"flex items-center gap-6\"><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Functions</h1><label class=\"flex items-center gap-2 text-neutral-300 text-sm select-none\"><input id=\"vim-toggle\" type=\"checkbox\" class=\"w-4 h-4\" checked> Vim Mode</label></div><!-- RIGHT SECTION: New Function + Profile --><div class=\"flex items-center gap-4\"><!-- New Function --><button onclick=\"openCreate()\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition\">New Function</button><!-- PROFILE DROPDOWN --><div class=\"relative\"><button id=\"profile-btn\" class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><img src=\"/static/imgs/user.png\" class=\"w-8 h-8 rounded-full object-cover\"> <span class=\"text-white text-sm font-medium\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]\"><div class=\"flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800\"><!-- LEFT SECTION: Back + Title + Vim toggle --><div class=\"flex items-center gap-6\"><a href=\"/dashboard/\" class=\"p-2 hover:bg-neutral-800 rounded-lg transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 19l-7-7 7-7\"></path></svg></a><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Functions</h1><label class=\"flex items-center gap-2 text-neutral-300 text-sm select-none\"><input id=\"vim-toggle\" type=\"checkbox\" class=\"w-4 h-4\" checked> Vim Mode</label></div><!-- RIGHT SECTION: New Function + Profile --><div class=\"flex items-center gap-4\"><!-- New Function --><button onclick=\"openCreate()\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition\">New Function</button><!-- PROFILE DROPDOWN --><div class=\"relative\"><button id=\"profile-btn\" class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><img src=\"/static/imgs/user.png\" class=\"w-8 h-8 rounded-full object-cover\"> <span class=\"text-white text-sm font-medium\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 58, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 63, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -141,7 +141,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 115, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 120, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -154,7 +154,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 116, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 121, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 152, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 157, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -231,7 +231,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 153, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 158, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +305,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 200, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 205, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -318,7 +318,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 201, Col: 177}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 206, Col: 177}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -331,7 +331,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 202, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 207, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -344,7 +344,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 203, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 208, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {

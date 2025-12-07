@@ -43,6 +43,7 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 			return
 		}
 		c.Set("repo", r)
+		c.Set("projectName", projectName)
 		c.Set("projectUUID", projectUUID)
 		c.Next()
 	}

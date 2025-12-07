@@ -65,7 +65,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		r.Fs.MkdirAll(cur, 0755)
 	}
 
-	f, err := r.Fs.Create("/" + path)
+	f, err := r.Fs.Create(path)
 	if err != nil {
 		fmt.Printf("[ERROR] r.Fs.Create failed for path %s: %v\n", path, err)
 		c.JSON(500, gin.H{"error": "file create error"})
@@ -184,7 +184,7 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 		"name":     f.Name,
 		"language": f.Language,
 		"path":     f.Path,
-		"content":     string(data),
+		"content":  string(data),
 	})
 }
 
@@ -284,26 +284,60 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
+
+	if err := q.DeleteFunction(c.Request.Context(), pgFnId); err != nil {
+		fmt.Printf("[ERROR] db delete failed: %v\n", err)
+		c.JSON(500, gin.H{"error": "db delete error"})
+		return
+	}
+
 	r := c.MustGet("repo").(*repo.GitRepo)
 
 	if err := r.Fs.Remove(f.Path); err != nil {
 		fmt.Printf("[ERROR] failed to remove file %s: %v\n", f.Path, err)
+		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
+			ProjectID: f.ProjectID,
+			Name:      f.Name,
+			Language:  f.Language,
+			Path:      f.Path,
+			CreatedBy: f.CreatedBy,
+		})
+		if rollbackErr != nil {
+			fmt.Printf("[ERROR] rollback failed: %v\n", rollbackErr)
+		}
+		c.JSON(500, gin.H{"error": "file remove error"})
+		return
 	}
 
 	if err := r.Commit(f.Path); err != nil {
 		fmt.Printf("[ERROR] commit failed: %v\n", err)
+		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
+			ProjectID: f.ProjectID,
+			Name:      f.Name,
+			Language:  f.Language,
+			Path:      f.Path,
+			CreatedBy: f.CreatedBy,
+		})
+		if rollbackErr != nil {
+			fmt.Printf("[ERROR] rollback failed: %v\n", rollbackErr)
+		}
 		c.JSON(500, gin.H{"error": "commit error"})
 		return
 	}
 
 	if err := r.Push(); err != nil {
 		fmt.Printf("[ERROR] push failed: %v\n", err)
+		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
+			ProjectID: f.ProjectID,
+			Name:      f.Name,
+			Language:  f.Language,
+			Path:      f.Path,
+			CreatedBy: f.CreatedBy,
+		})
+		if rollbackErr != nil {
+			fmt.Printf("[ERROR] rollback failed: %v\n", rollbackErr)
+		}
 		c.JSON(500, gin.H{"error": "push error"})
-		return
-	}
-
-	if err := q.DeleteFunction(c.Request.Context(), pgtype.UUID{Bytes: [16]byte(fnID)}); err != nil {
-		c.JSON(500, gin.H{"error": "db delete error"})
 		return
 	}
 

@@ -4,7 +4,14 @@ templ ConfigurationContent() {
 	<div class="w-full px-6 md:px-14 py-12 space-y-10">
 		<!-- HEADER -->
 		<div class="flex items-center justify-between">
-			<h1 class="text-4xl font-semibold text-white tracking-tight">Configuration</h1>
+			<div class="flex items-center gap-4">
+				<a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+					</svg>
+				</a>
+				<h1 class="text-4xl font-semibold text-white tracking-tight">Configuration</h1>
+			</div>
 			<button
 				onclick="addConfigRow()"
 				class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl transition"

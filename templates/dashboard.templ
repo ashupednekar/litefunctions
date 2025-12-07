@@ -46,11 +46,24 @@ templ DashboardContent(username string, projects []Project, activeProjectID stri
 						if activeProjectID == p.ID {
 							<button
 								onclick={ selectProject(p.ID) }
-								class="min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md"
+								class="min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md group"
 							>
 								<div class="flex items-center justify-between">
 									<h3 class="text-white font-semibold text-base">{ p.Name }</h3>
-									<div class="h-2 w-2 bg-green-500 rounded-full"></div>
+									<div class="flex items-center gap-2">
+										<svg
+											onclick="event.stopPropagation(); syncProject()"
+											xmlns="http://www.w3.org/2000/svg"
+											class="w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 cursor-pointer hover:scale-110 transition-all"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											title="Sync project"
+										>
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+										</svg>
+										<div class="h-2 w-2 bg-green-500 rounded-full"></div>
+									</div>
 								</div>
 							</button>
 						} else {
@@ -188,6 +201,14 @@ templ DashboardContent(username string, projects []Project, activeProjectID stri
         body: JSON.stringify({name})
       })
       closeProjectModal()
+      location.reload()
+    }
+
+    async function syncProject() {
+      await fetch("/api/projects/sync/", {
+        method: "POST"
+      })
+      alert("Sync completed!")
       location.reload()
     }
   </script>

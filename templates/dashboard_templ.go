@@ -72,7 +72,7 @@ func DashboardContent(username string, projects []Project, activeProjectID strin
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md group\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -85,7 +85,7 @@ func DashboardContent(username string, projects []Project, activeProjectID strin
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h3><div class=\"h-2 w-2 bg-green-500 rounded-full\"></div></div></button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h3><div class=\"flex items-center gap-2\"><svg onclick=\"event.stopPropagation(); syncProject()\" xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 cursor-pointer hover:scale-110 transition-all\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" title=\"Sync project\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\"></path></svg><div class=\"h-2 w-2 bg-green-500 rounded-full\"></div></div></div></button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -110,7 +110,7 @@ func DashboardContent(username string, projects []Project, activeProjectID strin
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 62, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 75, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -137,7 +137,7 @@ func DashboardContent(username string, projects []Project, activeProjectID strin
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<!-- MODAL --><div id=\"project-modal\" class=\"fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center\"><div class=\"bg-[#0e0e0f] border border-neutral-800 rounded-2xl p-6 w-96\"><h3 class=\"text-lg text-white font-semibold\">Create Project</h3><input id=\"new-project-name\" class=\"w-full mt-4 px-3 py-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl text-white\" placeholder=\"Project name\"><div class=\"flex justify-end gap-3 mt-6\"><button onclick=\"closeProjectModal()\" class=\"text-neutral-400\">Cancel</button> <button onclick=\"submitNewProject()\" class=\"bg-white text-black px-4 py-2 rounded-xl font-semibold\">Create</button></div></div></div><script>\n    function openProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.remove(\"hidden\")\n      modal.classList.add(\"flex\")\n    }\n    function closeProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.add(\"hidden\")\n      modal.classList.remove(\"flex\")\n    }\n\n    async function submitNewProject() {\n      const name = document.getElementById(\"new-project-name\").value.trim()\n      if (!name) return\n      await fetch(\"/api/projects/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({name})\n      })\n      closeProjectModal()\n      location.reload()\n    }\n  </script></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<!-- MODAL --><div id=\"project-modal\" class=\"fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center\"><div class=\"bg-[#0e0e0f] border border-neutral-800 rounded-2xl p-6 w-96\"><h3 class=\"text-lg text-white font-semibold\">Create Project</h3><input id=\"new-project-name\" class=\"w-full mt-4 px-3 py-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl text-white\" placeholder=\"Project name\"><div class=\"flex justify-end gap-3 mt-6\"><button onclick=\"closeProjectModal()\" class=\"text-neutral-400\">Cancel</button> <button onclick=\"submitNewProject()\" class=\"bg-white text-black px-4 py-2 rounded-xl font-semibold\">Create</button></div></div></div><script>\n    function openProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.remove(\"hidden\")\n      modal.classList.add(\"flex\")\n    }\n    function closeProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.add(\"hidden\")\n      modal.classList.remove(\"flex\")\n    }\n\n    async function submitNewProject() {\n      const name = document.getElementById(\"new-project-name\").value.trim()\n      if (!name) return\n      await fetch(\"/api/projects/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({name})\n      })\n      closeProjectModal()\n      location.reload()\n    }\n\n    async function syncProject() {\n      await fetch(\"/api/projects/sync/\", {\n        method: \"POST\"\n      })\n      alert(\"Sync completed!\")\n      location.reload()\n    }\n  </script></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

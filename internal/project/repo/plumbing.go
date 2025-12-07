@@ -3,9 +3,9 @@ package repo
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
@@ -29,44 +29,35 @@ func (r *GitRepo) Clone() error {
 	return nil
 }
 
-func (r *GitRepo) Commit(files ...string) error {
-	if r.Worktree == nil {
-		return fmt.Errorf("worktree not initialized; call Clone() first")
-	}
+func (r *GitRepo) Commit(path string) error {
+    wt, err := r.Repo.Worktree()
+    if err != nil {
+        return err
+    }
 
-	for _, f := range files {
-		_, err := r.Fs.Stat(f)
-		if err != nil {
-			_, err = r.Worktree.Remove(f)
-			if err != nil {
-				return fmt.Errorf("failed to stage deletion of %s: %w", f, err)
-			}
-		} else {
-			_, err := r.Worktree.Add(f)
-			if err != nil {
-				return fmt.Errorf("failed to stage file %s: %w", f, err)
-			}
-		}
-	}
+    _, statErr := r.Fs.Stat(path)
+    if os.IsNotExist(statErr) {
+        if _, err := wt.Remove(path); err != nil {
+            return fmt.Errorf("failed to stage deletion: %w", err)
+        }
+    } else if statErr == nil {
+        if _, err := wt.Add(path); err != nil {
+            return fmt.Errorf("failed to stage file update: %w", err)
+        }
+    } else {
+        return fmt.Errorf("stat error: %w", statErr)
+    }
 
-	_, err := r.Worktree.Commit(
-		fmt.Sprintf(
-			"Update %s (%s)", r.Project, time.Now().Format(time.RFC3339),
-		),
-		&git.CommitOptions{
-			Author: &object.Signature{
-				Name:  pkg.Cfg.VcsUser,
-				Email: pkg.Cfg.VcsUser,
-				When:  time.Now(),
-			},
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("commit failed: %w", err)
-	}
-
-	return nil
+    _, err = wt.Commit("update "+path, &git.CommitOptions{
+        Author: &object.Signature{
+            Name:  "LiteWebServices Portal",
+            Email: "noreply@example.com",
+            When:  time.Now(),
+        },
+    })
+    return err
 }
+
 
 func (r *GitRepo) Push() error {
 	if r.Repo == nil {

@@ -33,12 +33,12 @@ func (s *Server) BuildRoutes() {
 
 	ui := handlers.NewUIHandlers(s.state)
 
-	s.router.GET("/", middleware.OptionalAuthMiddleware(auth.GetStore()), ui.Home)
+	s.router.GET("/", ui.Home)
 
-	dashboardGroup := s.router.Group("/")
-	dashboardGroup.Use(middleware.AuthMiddleware(auth.GetStore()))
+	dashboard := s.router.Group("/")
+	dashboard.Use(middleware.AuthMiddleware(auth.GetStore()))
 	{
-		dashboardGroup.GET("/dashboard/", ui.Dashboard)
+		dashboard.GET("/dashboard/", ui.Dashboard)
 	}
 
 	protected := s.router.Group("/")
@@ -56,12 +56,6 @@ func (s *Server) BuildRoutes() {
 	projectHandlers := handlers.NewProjectHandlers(s.state)
 	functionHandlers := handlers.NewFunctionHandlers(s.state)
 
-	apiAuth := s.router.Group("/api/")
-	apiAuth.Use(middleware.AuthMiddleware(auth.GetStore()))
-	{
-		apiAuth.POST("/projects/", projectHandlers.CreateProject)
-		apiAuth.GET("/projects/", handlers.ListProjects)
-	}
 
 	api := s.router.Group("/api/")
 	api.Use(
@@ -69,8 +63,11 @@ func (s *Server) BuildRoutes() {
 		middleware.ProjectMiddleware(s.state),
 	)
 	{
+		api.POST("/projects/", projectHandlers.CreateProject)
+		api.GET("/projects/", handlers.ListProjects)
 		api.GET("/projects/:id/", handlers.GetProject)
 		api.DELETE("/projects/:id/", handlers.DeleteProject)
+		api.POST("/projects/sync/", projectHandlers.SyncProject)
 
 		api.POST("/functions/", functionHandlers.CreateFunction)
 		api.GET("/functions/", functionHandlers.ListFunctions)
