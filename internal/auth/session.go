@@ -31,7 +31,7 @@ func GetSessionExpiry() (time.Time, error) {
 // SessionStore defines the interface for session management
 type SessionStore interface {
 	CreateUserSession(userID []byte, sessionID string, expiresAt time.Time, userAgent, ipAddress string) error
-	GetUserSession(sessionID string) (userID []byte, found bool, err error)
+	GetUserSession(sessionID string) (userName string, userID []byte, found bool, err error)
 	DeleteUserSession(sessionID string) error
 	DeleteAllUserSessions(userID []byte) error
 }

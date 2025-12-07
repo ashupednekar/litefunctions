@@ -23,61 +23,165 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 
 <div class="w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]">
 
-	<div class="flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800">
-		<h1 class="text-4xl font-semibold text-white">Functions</h1>
+	
 
-		<div class="flex items-center gap-4">
-			<label class="flex items-center gap-2 text-neutral-300 text-sm">
-				<input id="vim-toggle" type="checkbox" class="w-4 h-4" checked />
-				Vim Mode
-			</label>
+<div class="flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800">
 
-			<button onclick="openCreate()"
-				class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition">
-				New Function
-			</button>
-		</div>
-	</div>
+    <!-- LEFT SECTION: Title + Vim toggle -->
+    <div class="flex items-center gap-6">
+        <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">
+            Functions
+        </h1>
 
-	<div id="fn-list-container" class="flex-1 overflow-y-auto px-14 py-6 space-y-4">
-		if len(functions) == 0 {
-		<div class="w-full text-center py-20 text-neutral-500 text-lg">
-			Create a new function to begin.
-		</div>
-		}
-		for _, fn := range functions {
-		<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5">
+        <label class="flex items-center gap-2 text-neutral-300 text-sm select-none">
+            <input id="vim-toggle" type="checkbox" class="w-4 h-4" checked />
+            Vim Mode
+        </label>
+    </div>
 
-			<div class="flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<img src={ fn.Icon } class="w-6 h-6 opacity-90"/>
-					<h2 class="text-white font-semibold text-lg">{ fn.Name }</h2>
-				</div>
+    <!-- RIGHT SECTION: New Function + Profile -->
+    <div class="flex items-center gap-4">
 
-				<div class="flex items-center gap-3">
-					<button onclick={ copyFn(fn.ID) } class="text-neutral-400 hover:text-white transition">
-						<img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
-					</button>
-					<button
-						onclick={
-                templ.JSFuncCall("openEdit", fn.ID, fn.Language)
-            }
-						class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition">
-						Edit
-					</button>
-          <button
-              onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
-              class="px-3 py-1 rounded-lg border border-red-700 text-red-400 hover:bg-red-900/30 transition">
-              Delete
-          </button>
-				</div>
-			</div>
+        <!-- New Function -->
+        <button onclick="openCreate()"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition">
+            New Function
+        </button>
 
-		</div>
-		}
-	</div>
+        <!-- PROFILE DROPDOWN -->
+        <div class="relative">
+            <button
+                id="profile-btn"
+                class="flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition"
+            >
+                <img src="/static/imgs/user.png" class="w-8 h-8 rounded-full object-cover" />
+                <span class="text-white text-sm font-medium">{ username }</span>
 
-	<!-- CREATE -->
+                <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <div
+                id="profile-dropdown"
+                class="absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden"
+            >
+                <a href="/profile/" class="block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900">Profile</a>
+                <a href="/logout/" class="block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900">Logout</a>
+            </div>
+        </div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const pb = document.getElementById("profile-btn");
+    const pd = document.getElementById("profile-dropdown");
+
+    if (!pb || !pd) {
+        console.error("Profile dropdown not found in DOM");
+        return;
+    }
+
+    // When clicking the profile button → toggle dropdown
+    pb.addEventListener("click", (e) => {
+        e.stopPropagation();  // Prevent immediate close
+        pd.classList.toggle("hidden");
+    });
+
+    // Click anywhere outside → close dropdown
+    document.addEventListener("click", (e) => {
+        if (!pd.contains(e.target) && !pb.contains(e.target)) {
+            pd.classList.add("hidden");
+        }
+    });
+});
+</script>
+    </div>
+</div>
+
+
+<div id="fn-list-container" class="flex-1 overflow-y-auto px-4 sm:px-10 lg:px-14 py-6 space-y-4">
+
+    if len(functions) == 0 {
+        <div class="w-full text-center py-20 text-neutral-500 text-lg">
+            Create a new function to begin.
+        </div>
+    }
+
+    for _, fn := range functions {
+        <!-- MOBILE CARD (<640px) -->
+        <div class="sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4">
+        
+            <!-- TOP: Icon + Name -->
+            <div class="flex items-center gap-3 mb-3">
+                <img src={ fn.Icon } class="w-5 h-5 opacity-80"/>
+                <h2 class="text-white font-medium text-base">{ fn.Name }</h2>
+            </div>
+        
+            <!-- BOTTOM: Actions -->
+            <div class="flex items-center gap-3">
+        
+                <!-- Copy -->
+                <button onclick={ copyFn(fn.ID) }
+                    class="p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white">
+                    <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
+                </button>
+        
+                <!-- Edit -->
+                <button onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }
+                    class="px-4 py-2 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+                    Edit
+                </button>
+        
+                <!-- Delete -->
+                <button onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
+                    class="px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
+                    Delete
+                </button>
+        
+            </div>
+        
+        </div>
+
+
+
+        <!-- DESKTOP ROW (>=640px) -->
+        <div class="hidden sm:flex items-center justify-between px-2 py-3 
+                    border-b border-neutral-800 hover:bg-neutral-900/30 transition">
+
+            <!-- LEFT -->
+            <div class="flex items-center gap-3">
+                <img src={ fn.Icon } class="w-5 h-5 opacity-80"/>
+                <span class="text-white font-medium">{ fn.Name }</span>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="flex items-center gap-2 opacity-60 hover:opacity-100 transition">
+
+                <button onclick={ copyFn(fn.ID) }
+                    class="p-1 rounded-lg hover:bg-neutral-800 transition">
+                    <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
+                </button>
+
+                <button onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }
+                    class="px-3 py-1 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+                    Edit
+                </button>
+
+                <button onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
+                    class="px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    }
+
+</div>
+
+
+
+<!-- CREATE -->
 	<div id="create-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
 		<div class="w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col">
 
@@ -462,13 +566,21 @@ function refreshList() {
         .then(r => r.json())
         .then(obj => {
 
-            // backend returns an *object* with numeric keys, convert to array
             const list = Object.values(obj);
 
             const container = document.querySelector("#fn-list-container");
             if (!container) return;
 
             container.innerHTML = "";
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="w-full text-center py-20 text-neutral-500 text-lg">
+                        Create a new function to begin.
+                    </div>
+                `;
+                return;
+            }
 
             list.forEach(fn => {
                 const id = fn.id;
@@ -477,37 +589,71 @@ function refreshList() {
 
                 const icon = `/static/imgs/${lang}-svgrepo-com.svg`;
 
-                const el = document.createElement("div");
-                el.className =
-                    "rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5";
-
-                el.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <img src="${icon}" class="w-6 h-6 opacity-90"/>
-                            <h2 class="text-white font-semibold text-lg">${name}</h2>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <button onclick="copyFn('${id}')" 
-                                class="text-neutral-400 hover:text-white transition">
-                                <img src="/static/imgs/copy-svgrepo-com.svg" class="w-5 h-5"/>
-                            </button>
-
-                            <button onclick="openEdit('${id}', '${lang}')"
-                                class="px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
-                                Edit
-                            </button>
-
-                            <button onclick="deleteFn('${id}')"
-                                class="px-3 py-1 rounded-lg border border-red-700 text-red-400 hover:bg-red-900/30">
-                                Delete
-                            </button>
-                        </div>
+                const mobileCard = document.createElement("div");
+                mobileCard.className = "sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4";
+                mobileCard.innerHTML = `
+                    <!-- TOP: Icon + Name -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <img src="${icon}" class="w-5 h-5 opacity-80"/>
+                        <h2 class="text-white font-medium text-base">${name}</h2>
+                    </div>
+                
+                    <!-- BOTTOM: Actions -->
+                    <div class="flex items-center gap-3">
+                
+                        <!-- Copy -->
+                        <button onclick="copyFn('${id}')"
+                            class="p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white">
+                            <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
+                        </button>
+                
+                        <!-- Edit -->
+                        <button onclick="openEdit('${id}', '${lang}')"
+                            class="px-4 py-2 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+                            Edit
+                        </button>
+                
+                        <!-- Delete -->
+                        <button onclick="deleteFn('${id}')"
+                            class="px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
+                            Delete
+                        </button>
+                
                     </div>
                 `;
 
-                container.appendChild(el);
+                const desktopRow = document.createElement("div");
+                desktopRow.className = "hidden sm:flex items-center justify-between px-2 py-3 border-b border-neutral-800 hover:bg-neutral-900/30 transition";
+                desktopRow.innerHTML = `
+                    <!-- LEFT -->
+                    <div class="flex items-center gap-3">
+                        <img src="${icon}" class="w-5 h-5 opacity-80"/>
+                        <span class="text-white font-medium">${name}</span>
+                    </div>
+
+                    <!-- RIGHT -->
+                    <div class="flex items-center gap-2 opacity-60 hover:opacity-100 transition">
+
+                        <button onclick="copyFn('${id}')"
+                            class="p-1 rounded-lg hover:bg-neutral-800 transition">
+                            <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
+                        </button>
+
+                        <button onclick="openEdit('${id}', '${lang}')"
+                            class="px-3 py-1 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
+                            Edit
+                        </button>
+
+                        <button onclick="deleteFn('${id}')"
+                            class="px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
+                            Delete
+                        </button>
+
+                    </div>
+                `;
+
+                container.appendChild(mobileCard);
+                container.appendChild(desktopRow);
             });
         });
 }

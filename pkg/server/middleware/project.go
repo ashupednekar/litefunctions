@@ -39,7 +39,7 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 		r, err := repo.NewGitRepo(projectName, nil)
 		if err != nil {
 			fmt.Printf("[ERROR] repo.NewGitRepo failed: %v\n", err)
-			c.JSON(500, gin.H{"error": "repo init error"})
+			c.JSON(500, gin.H{"error": "error instantiating repo"})
 			return
 		}
 		c.Set("repo", r)

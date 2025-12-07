@@ -81,7 +81,7 @@ const listFunctionsForProject = `-- name: ListFunctionsForProject :many
 SELECT id, project_id, name, language, path, created_by, created_at
 FROM functions
 WHERE project_id = $1
-ORDER BY created_at DESC
+ORDER BY language ASC, created_at DESC
 `
 
 func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.UUID) ([]Function, error) {

@@ -18,7 +18,6 @@ import (
 //TODO: add caching
 //TODO: add pagination
 
-
 type FunctionHandlers struct {
 	state *state.AppState
 }
@@ -163,28 +162,29 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 
 	r := c.MustGet("repo").(*repo.GitRepo)
 
+	fmt.Println(f.Path)
 	file, err := r.Fs.Open(f.Path)
-	if err != nil{
+	if err != nil {
 		c.JSON(404, gin.H{
 			"msg": "function not found in repo",
 		})
 		return
 	}
 	data, err := io.ReadAll(file)
-	if err != nil{
+	if err != nil {
 		c.JSON(404, gin.H{
 			"msg": "error reading file data",
 		})
 		return
 	}
 
-	//TODO: read file contents	
+	//TODO: read file contents
 	c.JSON(200, gin.H{
 		"id":       hex.EncodeToString(f.ID.Bytes[:]),
 		"name":     f.Name,
 		"language": f.Language,
 		"path":     f.Path,
-		"data": data,
+		"content":     string(data),
 	})
 }
 
@@ -225,7 +225,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 
 		fmt.Printf("commiting file: %s\n", f.Path)
 		err = r.Commit(f.Path)
-		if err != nil && !errors.Is(err, git.ErrEmptyCommit){
+		if err != nil && !errors.Is(err, git.ErrEmptyCommit) {
 			fmt.Printf("error commiting file: %s\n", err)
 			c.JSON(500, gin.H{"error": "commit error"})
 			return
@@ -274,9 +274,8 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "invalid function id"})
 		return
 	}
-  pgFnId := pgtype.UUID{Valid: true}
+	pgFnId := pgtype.UUID{Valid: true}
 	copy(pgFnId.Bytes[:], fnID)
-
 
 	q := functionadaptors.New(h.state.DBPool)
 
@@ -285,15 +284,20 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
 	}
-  r := c.MustGet("repo").(*repo.GitRepo)
-	r.Fs.Remove("/" + f.Path)
+	r := c.MustGet("repo").(*repo.GitRepo)
+
+	if err := r.Fs.Remove(f.Path); err != nil {
+		fmt.Printf("[ERROR] failed to remove file %s: %v\n", f.Path, err)
+	}
 
 	if err := r.Commit(f.Path); err != nil {
+		fmt.Printf("[ERROR] commit failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "commit error"})
 		return
 	}
 
 	if err := r.Push(); err != nil {
+		fmt.Printf("[ERROR] push failed: %v\n", err)
 		c.JSON(500, gin.H{"error": "push error"})
 		return
 	}

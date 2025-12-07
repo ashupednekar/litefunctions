@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/vendors"
@@ -20,7 +21,6 @@ func NewProjectHandlers(s *state.AppState) *ProjectHandlers {
 }
 
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
-	//TODO: delete repo on rollback later, or on explicit user prompt
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -82,13 +82,22 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		AutoInit:    true,
 	})
 	if err != nil {
-		fmt.Printf("[ERROR] VCS CreateRepo: %v\n", err)
-		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to create repo: %v", err)})
-		return
+		if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "409") {
+			fmt.Printf("[INFO] Repo already exists, will sync existing functions\n")
+		} else {
+			fmt.Printf("[ERROR] VCS CreateRepo: %v\n", err)
+			c.JSON(500, gin.H{"error": fmt.Sprintf("failed to create repo: %v", err)})
+			return
+		}
+	}
+
+	repoName := req.Name
+	if repo != nil {
+		repoName = repo.Name
 	}
 
 	webhookURL := fmt.Sprintf("https://%s/api/webhooks/vcs", pkg.Cfg.Fqdn)
-	_, err = vcsClient.AddWebhook(c.Request.Context(), pkg.Cfg.VcsUser, repo.Name, vendors.WebhookOptions{
+	_, err = vcsClient.AddWebhook(c.Request.Context(), pkg.Cfg.VcsUser, repoName, vendors.WebhookOptions{
 		URL:         webhookURL,
 		ContentType: "json",
 		Secret:      "TODO_GENERATE_SECRET",
@@ -97,15 +106,23 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		InsecureSSL: true,
 	})
 	if err != nil {
-		fmt.Printf("[ERROR] VCS AddWebhook: %v\n", err)
-		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to add webhook: %v", err)})
-		return
+		if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "409") {
+			fmt.Printf("[INFO] Webhook already exists\n")
+		} else {
+			fmt.Printf("[ERROR] VCS AddWebhook: %v\n", err)
+			c.JSON(500, gin.H{"error": fmt.Sprintf("failed to add webhook: %v", err)})
+			return
+		}
 	}
 
 	if err := tx.Commit(c.Request.Context()); err != nil {
 		fmt.Printf("[ERROR] DB Commit: %v\n", err)
 		c.JSON(500, gin.H{"error": "failed to commit transaction"})
 		return
+	}
+
+	if err := SyncRepoFunctionsToDb(c, h.state.DBPool, project.ID, req.Name, userID.([]byte)); err != nil {
+		fmt.Printf("[WARN] Failed to sync repo functions: %v\n", err)
 	}
 
 	c.JSON(201, gin.H{"id": project.ID, "name": project.Name})

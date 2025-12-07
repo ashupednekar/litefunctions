@@ -110,44 +110,57 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]\"><div class=\"flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800\"><h1 class=\"text-4xl font-semibold text-white\">Functions</h1><div class=\"flex items-center gap-4\"><label class=\"flex items-center gap-2 text-neutral-300 text-sm\"><input id=\"vim-toggle\" type=\"checkbox\" class=\"w-4 h-4\" checked> Vim Mode</label> <button onclick=\"openCreate()\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition\">New Function</button></div></div><div id=\"fn-list-container\" class=\"flex-1 overflow-y-auto px-14 py-6 space-y-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]\"><div class=\"flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800\"><!-- LEFT SECTION: Title + Vim toggle --><div class=\"flex items-center gap-6\"><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Functions</h1><label class=\"flex items-center gap-2 text-neutral-300 text-sm select-none\"><input id=\"vim-toggle\" type=\"checkbox\" class=\"w-4 h-4\" checked> Vim Mode</label></div><!-- RIGHT SECTION: New Function + Profile --><div class=\"flex items-center gap-4\"><!-- New Function --><button onclick=\"openCreate()\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition\">New Function</button><!-- PROFILE DROPDOWN --><div class=\"relative\"><button id=\"profile-btn\" class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><img src=\"/static/imgs/user.png\" class=\"w-8 h-8 rounded-full object-cover\"> <span class=\"text-white text-sm font-medium\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 58, Col: 71}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><div id=\"profile-dropdown\" class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden\"><a href=\"/profile/\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900\">Profile</a> <a href=\"/logout/\" class=\"block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900\">Logout</a></div></div><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n    const pb = document.getElementById(\"profile-btn\");\n    const pd = document.getElementById(\"profile-dropdown\");\n\n    if (!pb || !pd) {\n        console.error(\"Profile dropdown not found in DOM\");\n        return;\n    }\n\n    // When clicking the profile button → toggle dropdown\n    pb.addEventListener(\"click\", (e) => {\n        e.stopPropagation();  // Prevent immediate close\n        pd.classList.toggle(\"hidden\");\n    });\n\n    // Click anywhere outside → close dropdown\n    document.addEventListener(\"click\", (e) => {\n        if (!pd.contains(e.target) && !pb.contains(e.target)) {\n            pd.classList.add(\"hidden\");\n        }\n    });\n});\n</script></div></div><div id=\"fn-list-container\" class=\"flex-1 overflow-y-auto px-4 sm:px-10 lg:px-14 py-6 space-y-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(functions) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"w-full text-center py-20 text-neutral-500 text-lg\">Create a new function to begin.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"w-full text-center py-20 text-neutral-500 text-lg\">Create a new function to begin.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		for _, fn := range functions {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5\"><div class=\"flex items-center justify-between\"><div class=\"flex items-center gap-3\"><img src=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 53, Col: 23}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"w-6 h-6 opacity-90\"><h2 class=\"text-white font-semibold text-lg\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<!-- MOBILE CARD (<640px) --> <div class=\"sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4\"><!-- TOP: Icon + Name --><div class=\"flex items-center gap-3 mb-3\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 54, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 115, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h2></div><div class=\"flex items-center gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"w-5 h-5 opacity-80\"><h2 class=\"text-white font-medium text-base\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 116, Col: 70}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</h2></div><!-- BOTTOM: Actions --><div class=\"flex items-center gap-3\"><!-- Copy -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -155,16 +168,16 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var4 templ.ComponentScript = copyFn(fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4.Call)
+			var templ_7745c5c3_Var5 templ.ComponentScript = copyFn(fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"text-neutral-400 hover:text-white transition\"><img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-5 h-5\"></button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white\"><img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"></button><!-- Edit -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -172,16 +185,16 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5.Call)
+			var templ_7745c5c3_Var6 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\">Edit</button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"px-4 py-2 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">Edit</button><!-- Delete -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -189,83 +202,160 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var6 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6.Call)
+			var templ_7745c5c3_Var7 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"px-3 py-1 rounded-lg border border-red-700 text-red-400 hover:bg-red-900/30 transition\">Delete</button></div></div></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><!-- CREATE --><div id=\"create-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">New Function</h2><button onclick=\"closeCreate()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div><label class=\"text-neutral-400 text-sm\">Choose Language</label><div class=\"grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-3\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		for _, lang := range langs {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<!-- store language id in data-lang so JS can bind click listeners --> <button data-lang=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 96, Col: 31}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"lang-btn flex flex-col items-center justify-center gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800\" id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">Delete</button></div></div><!-- DESKTOP ROW (>=640px) --> <div class=\"hidden sm:flex items-center justify-between px-2 py-3 \n                    border-b border-neutral-800 hover:bg-neutral-900/30 transition\"><!-- LEFT --><div class=\"flex items-center gap-3\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 97, Col: 177}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 152, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"w-5 h-5 opacity-80\"> <span class=\"text-white font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 98, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 153, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"w-10 h-10 opacity-90\"> <span class=\"text-white text-sm\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></div><!-- RIGHT --><div class=\"flex items-center gap-2 opacity-60 hover:opacity-100 transition\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 99, Col: 50}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, copyFn(fn.ID))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 templ.ComponentScript = copyFn(fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"p-1 rounded-lg hover:bg-neutral-800 transition\"><img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openEdit", fn.ID, fn.Language))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var11 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" class=\"px-3 py-1 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">Edit</button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("deleteFn", fn.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">Delete</button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><!-- META --><div class=\"mt-4 flex flex-col gap-3\"><input id=\"fn-name-input\" class=\"w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white\" placeholder=\"Function name\"></div><!-- EDITOR --><div id=\"create-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800 mt-4\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeCreate()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/close-circle-svgrepo-com.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveCreate(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- EDIT --><div id=\"edit-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">Edit Function</h2><button onclick=\"closeEdit()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div><div id=\"edit-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeEdit()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/cancel.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveEdit(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- DELETE CONFIRM MODAL --><div id=\"delete-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"bg-[#0f0f10] border border-neutral-800 rounded-2xl p-8 w-[420px]\"><h2 class=\"text-xl font-semibold text-white mb-4\">Delete Function?</h2><p class=\"text-neutral-400 mb-6\">This action cannot be undone.</p><div class=\"flex justify-end gap-3\"><button onclick=\"closeDelete()\" class=\"px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800\">Cancel</button> <button onclick=\"confirmDelete()\" class=\"px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg\">Delete</button></div></div></div><!-- ACE from CDN (fallback to local if needed) --><script>\n\t(function(){\n\t\t// try to load ACE from CDN, but allow local base if preferred by the app\n\t\tconst cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n\t\tconst s1 = document.createElement('script');\n\t\ts1.src = cdn + 'ace.js';\n\t\ts1.onload = () => {\n\t\t\t// load optional ext and keybinding after ace\n\t\t\tconst s2 = document.createElement('script');\n\t\t\ts2.src = cdn + 'ext-language_tools.js';\n\t\t\tdocument.head.appendChild(s2);\n\t\t\tconst s3 = document.createElement('script');\n\t\t\ts3.src = cdn + 'keybinding-vim.js';\n\t\t\tdocument.head.appendChild(s3);\n\t\t};\n\t\tdocument.head.appendChild(s1);\n\t})();\n\t</script><script>\nwindow.ACE_MODES = {\n    python: \"python\",\n    javascript: \"javascript\",\n    go: \"golang\",\n    rust: \"rust\",\n    lua: \"lua\"\n};\n\n// server placeholder (templ will fill this); we'll resolve cookie fallback in getActiveProjectID()\nwindow.__activeProjectID = \"{ activeProjectID }\";\n\nlet createEditor = null;\nlet editEditor = null;\nlet selectedLang = \"python\";\n\n// your code templates (from your snippet)\nconst codeTemplates = {\n  python: `from fastapi import Request\n\nasync def handle(request: Request):\n    body = await request.json()\n    name = body.get(\"name\", \"stranger\")\n    return {\"message\": f\"Hello {name} from Python!\"}`,\n\n  go: `package main\n\nimport (\n    \"net/http\"\n    \"github.com/gin-gonic/gin\"\n)\n\nfunc Handle(c *gin.Context) {\n    c.JSON(http.StatusOK, gin.H{\"message\": \"Hello from Go!\"})\n}`,\n\n  rust: `use axum::{Json};\nuse serde::{Deserialize, Serialize};\n\n#[derive(Deserialize)]\nstruct Input { name: Option<String> }\n\n#[derive(Serialize)]\nstruct Output { message: String }\n\npub async fn handle(Json(input): Json<Input>) -> Json<Output> {\n    let name = input.name.unwrap_or(\"stranger\".into());\n    Json(Output { message: format!(\"Hello {} from Rust!\", name) })\n}`,\n\n  javascript: `export async function handle(req) {\n  const body = await req.json();\n  return new Response(\"Hello from JS!\");\n}`,\n\n  lua: `function handle(req)\n  return { message = \"Hello from Lua!\" }\nend`\n};\n\nconst modeMap = window.ACE_MODES;\n\n/* --- Helpers for project id resolution (use cookie fallback) --- */\nfunction getCookie(name) {\n  const v = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');\n  return v ? decodeURIComponent(v.pop()) : '';\n}\n\nfunction getActiveProjectID() {\n  const raw = (window.__activeProjectID || '').trim();\n  // treat templ placeholder or empty as \"not provided\"\n  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;\n  // fallback to cookie\n  return getCookie('lws_project') || '';\n}\n\nfunction projectUrl(pathSuffix) {\n  const pid = getActiveProjectID();\n  if (!pid) {\n    console.warn('no active project id set (lws_project cookie missing and server didn\\'t provide one)');\n    return pathSuffix || '';\n  }\n  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;\n  // NOTE: prepend /api here so we call server routes under /api\n  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;\n}\n\n/* --- Ace + Vim ex helpers --- */\nwindow.__isCreateEditor = false;\nwindow.__isEditEditor = false;\n\nfunction defineVimEx(){\n  try {\n    const vimMod = ace.require && ace.require(\"ace/keyboard/vim\");\n    if (!vimMod || !vimMod.CodeMirror) return;\n    const Vim = vimMod.CodeMirror.Vim;\n    if (!Vim) return;\n    if (Vim.__lws_ex_defined) return;\n    Vim.defineEx(\"w\", \"w\", function(cm, input){\n      if (window.__isCreateEditor) saveCreate(true);\n      else if (window.__isEditEditor) saveEdit(true);\n    });\n    Vim.defineEx(\"wq\", \"wq\", function(cm, input){\n      if (window.__isCreateEditor) saveCreate(true);\n      if (window.__isEditEditor) saveEdit(true);\n      if (window.__isCreateEditor) closeCreate();\n      if (window.__isEditEditor) closeEdit();\n    });\n    Vim.defineEx(\"q\", \"q\", function(cm, input){\n      if (window.__isCreateEditor) closeCreate();\n      else if (window.__isEditEditor) closeEdit();\n    });\n    Vim.__lws_ex_defined = true;\n  } catch (e) {\n    // ignore if vim keybinding not present yet\n  }\n}\n\n/* --- UI functions --- */\nfunction copyFn(id){\n  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;\n  navigator.clipboard.writeText(curl);\n}\n\nfunction openCreate(){\n  window.__isCreateEditor = true;\n  window.__isEditEditor = false;\n\n  document.getElementById('create-modal').classList.remove('hidden');\n\n  if(!createEditor && window.ace){\n    createEditor = ace.edit('create-ace');\n    createEditor.setTheme('ace/theme/dracula');\n    try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n    defineVimEx();\n  }\n\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);\n    createEditor.setValue(codeTemplates[selectedLang] || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction selectLang(lang){\n  selectedLang = lang;\n  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));\n  const el = document.getElementById('lang-' + lang);\n  if(el) el.classList.add('selected');\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    createEditor.setValue(codeTemplates[lang] || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction closeCreate(){\n  window.__isCreateEditor = false;\n  document.getElementById('create-modal').classList.add('hidden');\n}\n\nfunction saveCreate(exit){\n  const name = document.getElementById('fn-name-input')?.value?.trim();\n  if(!name){\n    const el = document.getElementById('fn-name-input');\n    el.classList.add('shake');\n    setTimeout(()=>el.classList.remove('shake'),400);\n    el.focus();\n    return;\n  }\n  const description = document.getElementById('fn-desc-input')?.value?.trim();\n  const payload = {\n    name: name,\n    language: selectedLang,\n    description: description,\n    path: createEditor ? createEditor.getValue() : ''\n  };\n  fetch(`/api/functions/`,{\n    method:'POST',\n    headers:{'Content-Type':'application/json'},\n    body:JSON.stringify(payload)\n  }).then(()=>{ \n    if(exit) closeCreate();\n    refreshList()\n  });\n}\n\nfunction openEdit(id, lang){\n  window.__isCreateEditor = false;\n  window.__isEditEditor = true;\n  window.__editFnID = id;\n  console.log(\"opening edit modal\")\n  document.getElementById('edit-modal').classList.remove('hidden');\n  if(!editEditor && window.ace){\n    editEditor = ace.edit('edit-ace');\n    editEditor.setTheme('ace/theme/dracula');\n    try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n    defineVimEx();\n  }\n\n  if(editEditor){\n    editEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{\n      editEditor.setValue(data.content || codeTemplates[lang] || '', -1);\n      setTimeout(()=>editEditor.focus(),120);\n    }).catch(()=>{\n      editEditor.setValue(codeTemplates[lang] || '', -1);\n    });\n  }\n}\n\nfunction closeEdit(){\n  window.__isEditEditor = false;\n  document.getElementById('edit-modal').classList.add('hidden');\n}\n\nfunction saveEdit(exit){\n  if(!window.__editFnID) return;\n  const body = editEditor ? editEditor.getValue() : '';\n  fetch(`/api/functions/${window.__editFnID}/`,{\n    method:'PUT',\n    headers:{'Content-Type':'text/plain'},\n    body: body\n  }).then(()=>{ \n    if(exit) closeEdit(); \n    refreshList()\n  });\n}\n\n/* --- bind language tiles and other DOM wiring after load --- */\ndocument.addEventListener('DOMContentLoaded', () => {\n  // wire language tiles\n  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>{\n    btn.addEventListener('click', ()=> {\n      const lang = btn.getAttribute('data-lang');\n      selectLang(lang);\n    });\n  });\n\n  // if server didn't provide activeProjectID, try cookie\n  window.__activeProjectID = getActiveProjectID();\n});\n\nwindow.__deleteFnID = null;\n\nfunction deleteFn(id) {\n    window.__deleteFnID = id;\n    document.getElementById(\"delete-modal\").classList.remove(\"hidden\");\n}\n\nfunction closeDelete() {\n    window.__deleteFnID = null;\n    document.getElementById(\"delete-modal\").classList.add(\"hidden\");\n}\n\nfunction confirmDelete() {\n    if (!window.__deleteFnID) return;\n\n    fetch(`/api/functions/${window.__deleteFnID}/`, {\n        method: \"DELETE\"\n    })\n    .then(() => {\n        closeDelete();\n        refreshList(); // refresh UI\n    });\n}\n\n\nfunction refreshList() {\n    fetch(`/api/functions/`)\n        .then(r => r.json())\n        .then(obj => {\n\n            // backend returns an *object* with numeric keys, convert to array\n            const list = Object.values(obj);\n\n            const container = document.querySelector(\"#fn-list-container\");\n            if (!container) return;\n\n            container.innerHTML = \"\";\n\n            list.forEach(fn => {\n                const id = fn.id;\n                const name = fn.name;\n                const lang = fn.language;\n\n                const icon = `/static/imgs/${lang}-svgrepo-com.svg`;\n\n                const el = document.createElement(\"div\");\n                el.className =\n                    \"rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-5\";\n\n                el.innerHTML = `\n                    <div class=\"flex items-center justify-between\">\n                        <div class=\"flex items-center gap-3\">\n                            <img src=\"${icon}\" class=\"w-6 h-6 opacity-90\"/>\n                            <h2 class=\"text-white font-semibold text-lg\">${name}</h2>\n                        </div>\n\n                        <div class=\"flex items-center gap-3\">\n                            <button onclick=\"copyFn('${id}')\" \n                                class=\"text-neutral-400 hover:text-white transition\">\n                                <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-5 h-5\"/>\n                            </button>\n\n                            <button onclick=\"openEdit('${id}', '${lang}')\"\n                                class=\"px-3 py-1 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">\n                                Edit\n                            </button>\n\n                            <button onclick=\"deleteFn('${id}')\"\n                                class=\"px-3 py-1 rounded-lg border border-red-700 text-red-400 hover:bg-red-900/30\">\n                                Delete\n                            </button>\n                        </div>\n                    </div>\n                `;\n\n                container.appendChild(el);\n            });\n        });\n}\n\n\n\n\t</script><style>\nhtml,body{background:#0f0f10!important;}\n.ace_editor,.ace_scroller,.ace_content{background:#0b0b0c!important;color:#eee!important;}\n.shake{animation:shake .3s linear;}\n@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}\n\n.lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}\n.lang-btn:hover{background:#1c1c1c;border-color:#666}\n.lang-btn.selected{background:#1f1f20;border-color:#888}\n\t</style></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><!-- CREATE --><div id=\"create-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">New Function</h2><button onclick=\"closeCreate()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div><label class=\"text-neutral-400 text-sm\">Choose Language</label><div class=\"grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-3\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, lang := range langs {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<!-- store language id in data-lang so JS can bind click listeners --> <button data-lang=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 200, Col: 31}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" class=\"lang-btn flex flex-col items-center justify-center gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 string
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 201, Col: 177}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\"><img src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 202, Col: 25}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"w-10 h-10 opacity-90\"> <span class=\"text-white text-sm\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 203, Col: 50}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span></button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div><!-- META --><div class=\"mt-4 flex flex-col gap-3\"><input id=\"fn-name-input\" class=\"w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white\" placeholder=\"Function name\"></div><!-- EDITOR --><div id=\"create-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800 mt-4\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeCreate()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/close-circle-svgrepo-com.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveCreate(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- EDIT --><div id=\"edit-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">Edit Function</h2><button onclick=\"closeEdit()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div><div id=\"edit-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeEdit()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/cancel.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveEdit(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- DELETE CONFIRM MODAL --><div id=\"delete-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"bg-[#0f0f10] border border-neutral-800 rounded-2xl p-8 w-[420px]\"><h2 class=\"text-xl font-semibold text-white mb-4\">Delete Function?</h2><p class=\"text-neutral-400 mb-6\">This action cannot be undone.</p><div class=\"flex justify-end gap-3\"><button onclick=\"closeDelete()\" class=\"px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800\">Cancel</button> <button onclick=\"confirmDelete()\" class=\"px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg\">Delete</button></div></div></div><!-- ACE from CDN (fallback to local if needed) --><script>\n\t(function(){\n\t\t// try to load ACE from CDN, but allow local base if preferred by the app\n\t\tconst cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n\t\tconst s1 = document.createElement('script');\n\t\ts1.src = cdn + 'ace.js';\n\t\ts1.onload = () => {\n\t\t\t// load optional ext and keybinding after ace\n\t\t\tconst s2 = document.createElement('script');\n\t\t\ts2.src = cdn + 'ext-language_tools.js';\n\t\t\tdocument.head.appendChild(s2);\n\t\t\tconst s3 = document.createElement('script');\n\t\t\ts3.src = cdn + 'keybinding-vim.js';\n\t\t\tdocument.head.appendChild(s3);\n\t\t};\n\t\tdocument.head.appendChild(s1);\n\t})();\n\t</script><script>\nwindow.ACE_MODES = {\n    python: \"python\",\n    javascript: \"javascript\",\n    go: \"golang\",\n    rust: \"rust\",\n    lua: \"lua\"\n};\n\n// server placeholder (templ will fill this); we'll resolve cookie fallback in getActiveProjectID()\nwindow.__activeProjectID = \"{ activeProjectID }\";\n\nlet createEditor = null;\nlet editEditor = null;\nlet selectedLang = \"python\";\n\n// your code templates (from your snippet)\nconst codeTemplates = {\n  python: `from fastapi import Request\n\nasync def handle(request: Request):\n    body = await request.json()\n    name = body.get(\"name\", \"stranger\")\n    return {\"message\": f\"Hello {name} from Python!\"}`,\n\n  go: `package main\n\nimport (\n    \"net/http\"\n    \"github.com/gin-gonic/gin\"\n)\n\nfunc Handle(c *gin.Context) {\n    c.JSON(http.StatusOK, gin.H{\"message\": \"Hello from Go!\"})\n}`,\n\n  rust: `use axum::{Json};\nuse serde::{Deserialize, Serialize};\n\n#[derive(Deserialize)]\nstruct Input { name: Option<String> }\n\n#[derive(Serialize)]\nstruct Output { message: String }\n\npub async fn handle(Json(input): Json<Input>) -> Json<Output> {\n    let name = input.name.unwrap_or(\"stranger\".into());\n    Json(Output { message: format!(\"Hello {} from Rust!\", name) })\n}`,\n\n  javascript: `export async function handle(req) {\n  const body = await req.json();\n  return new Response(\"Hello from JS!\");\n}`,\n\n  lua: `function handle(req)\n  return { message = \"Hello from Lua!\" }\nend`\n};\n\nconst modeMap = window.ACE_MODES;\n\n/* --- Helpers for project id resolution (use cookie fallback) --- */\nfunction getCookie(name) {\n  const v = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');\n  return v ? decodeURIComponent(v.pop()) : '';\n}\n\nfunction getActiveProjectID() {\n  const raw = (window.__activeProjectID || '').trim();\n  // treat templ placeholder or empty as \"not provided\"\n  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;\n  // fallback to cookie\n  return getCookie('lws_project') || '';\n}\n\nfunction projectUrl(pathSuffix) {\n  const pid = getActiveProjectID();\n  if (!pid) {\n    console.warn('no active project id set (lws_project cookie missing and server didn\\'t provide one)');\n    return pathSuffix || '';\n  }\n  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;\n  // NOTE: prepend /api here so we call server routes under /api\n  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;\n}\n\n/* --- Ace + Vim ex helpers --- */\nwindow.__isCreateEditor = false;\nwindow.__isEditEditor = false;\n\nfunction defineVimEx(){\n  try {\n    const vimMod = ace.require && ace.require(\"ace/keyboard/vim\");\n    if (!vimMod || !vimMod.CodeMirror) return;\n    const Vim = vimMod.CodeMirror.Vim;\n    if (!Vim) return;\n    if (Vim.__lws_ex_defined) return;\n    Vim.defineEx(\"w\", \"w\", function(cm, input){\n      if (window.__isCreateEditor) saveCreate(true);\n      else if (window.__isEditEditor) saveEdit(true);\n    });\n    Vim.defineEx(\"wq\", \"wq\", function(cm, input){\n      if (window.__isCreateEditor) saveCreate(true);\n      if (window.__isEditEditor) saveEdit(true);\n      if (window.__isCreateEditor) closeCreate();\n      if (window.__isEditEditor) closeEdit();\n    });\n    Vim.defineEx(\"q\", \"q\", function(cm, input){\n      if (window.__isCreateEditor) closeCreate();\n      else if (window.__isEditEditor) closeEdit();\n    });\n    Vim.__lws_ex_defined = true;\n  } catch (e) {\n    // ignore if vim keybinding not present yet\n  }\n}\n\n/* --- UI functions --- */\nfunction copyFn(id){\n  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;\n  navigator.clipboard.writeText(curl);\n}\n\nfunction openCreate(){\n  window.__isCreateEditor = true;\n  window.__isEditEditor = false;\n\n  document.getElementById('create-modal').classList.remove('hidden');\n\n  if(!createEditor && window.ace){\n    createEditor = ace.edit('create-ace');\n    createEditor.setTheme('ace/theme/dracula');\n    try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n    defineVimEx();\n  }\n\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);\n    createEditor.setValue(codeTemplates[selectedLang] || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction selectLang(lang){\n  selectedLang = lang;\n  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));\n  const el = document.getElementById('lang-' + lang);\n  if(el) el.classList.add('selected');\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    createEditor.setValue(codeTemplates[lang] || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction closeCreate(){\n  window.__isCreateEditor = false;\n  document.getElementById('create-modal').classList.add('hidden');\n}\n\nfunction saveCreate(exit){\n  const name = document.getElementById('fn-name-input')?.value?.trim();\n  if(!name){\n    const el = document.getElementById('fn-name-input');\n    el.classList.add('shake');\n    setTimeout(()=>el.classList.remove('shake'),400);\n    el.focus();\n    return;\n  }\n  const description = document.getElementById('fn-desc-input')?.value?.trim();\n  const payload = {\n    name: name,\n    language: selectedLang,\n    description: description,\n    path: createEditor ? createEditor.getValue() : ''\n  };\n  fetch(`/api/functions/`,{\n    method:'POST',\n    headers:{'Content-Type':'application/json'},\n    body:JSON.stringify(payload)\n  }).then(()=>{ \n    if(exit) closeCreate();\n    refreshList()\n  });\n}\n\nfunction openEdit(id, lang){\n  window.__isCreateEditor = false;\n  window.__isEditEditor = true;\n  window.__editFnID = id;\n  console.log(\"opening edit modal\")\n  document.getElementById('edit-modal').classList.remove('hidden');\n  if(!editEditor && window.ace){\n    editEditor = ace.edit('edit-ace');\n    editEditor.setTheme('ace/theme/dracula');\n    try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n    defineVimEx();\n  }\n\n  if(editEditor){\n    editEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{\n      editEditor.setValue(data.content || codeTemplates[lang] || '', -1);\n      setTimeout(()=>editEditor.focus(),120);\n    }).catch(()=>{\n      editEditor.setValue(codeTemplates[lang] || '', -1);\n    });\n  }\n}\n\nfunction closeEdit(){\n  window.__isEditEditor = false;\n  document.getElementById('edit-modal').classList.add('hidden');\n}\n\nfunction saveEdit(exit){\n  if(!window.__editFnID) return;\n  const body = editEditor ? editEditor.getValue() : '';\n  fetch(`/api/functions/${window.__editFnID}/`,{\n    method:'PUT',\n    headers:{'Content-Type':'text/plain'},\n    body: body\n  }).then(()=>{ \n    if(exit) closeEdit(); \n    refreshList()\n  });\n}\n\n/* --- bind language tiles and other DOM wiring after load --- */\ndocument.addEventListener('DOMContentLoaded', () => {\n  // wire language tiles\n  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>{\n    btn.addEventListener('click', ()=> {\n      const lang = btn.getAttribute('data-lang');\n      selectLang(lang);\n    });\n  });\n\n  // if server didn't provide activeProjectID, try cookie\n  window.__activeProjectID = getActiveProjectID();\n});\n\nwindow.__deleteFnID = null;\n\nfunction deleteFn(id) {\n    window.__deleteFnID = id;\n    document.getElementById(\"delete-modal\").classList.remove(\"hidden\");\n}\n\nfunction closeDelete() {\n    window.__deleteFnID = null;\n    document.getElementById(\"delete-modal\").classList.add(\"hidden\");\n}\n\nfunction confirmDelete() {\n    if (!window.__deleteFnID) return;\n\n    fetch(`/api/functions/${window.__deleteFnID}/`, {\n        method: \"DELETE\"\n    })\n    .then(() => {\n        closeDelete();\n        refreshList(); // refresh UI\n    });\n}\n\n\nfunction refreshList() {\n    fetch(`/api/functions/`)\n        .then(r => r.json())\n        .then(obj => {\n\n            const list = Object.values(obj);\n\n            const container = document.querySelector(\"#fn-list-container\");\n            if (!container) return;\n\n            container.innerHTML = \"\";\n\n            if (list.length === 0) {\n                container.innerHTML = `\n                    <div class=\"w-full text-center py-20 text-neutral-500 text-lg\">\n                        Create a new function to begin.\n                    </div>\n                `;\n                return;\n            }\n\n            list.forEach(fn => {\n                const id = fn.id;\n                const name = fn.name;\n                const lang = fn.language;\n\n                const icon = `/static/imgs/${lang}-svgrepo-com.svg`;\n\n                const mobileCard = document.createElement(\"div\");\n                mobileCard.className = \"sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4\";\n                mobileCard.innerHTML = `\n                    <!-- TOP: Icon + Name -->\n                    <div class=\"flex items-center gap-3 mb-3\">\n                        <img src=\"${icon}\" class=\"w-5 h-5 opacity-80\"/>\n                        <h2 class=\"text-white font-medium text-base\">${name}</h2>\n                    </div>\n                \n                    <!-- BOTTOM: Actions -->\n                    <div class=\"flex items-center gap-3\">\n                \n                        <!-- Copy -->\n                        <button onclick=\"copyFn('${id}')\"\n                            class=\"p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white\">\n                            <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"/>\n                        </button>\n                \n                        <!-- Edit -->\n                        <button onclick=\"openEdit('${id}', '${lang}')\"\n                            class=\"px-4 py-2 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">\n                            Edit\n                        </button>\n                \n                        <!-- Delete -->\n                        <button onclick=\"deleteFn('${id}')\"\n                            class=\"px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">\n                            Delete\n                        </button>\n                \n                    </div>\n                `;\n\n                const desktopRow = document.createElement(\"div\");\n                desktopRow.className = \"hidden sm:flex items-center justify-between px-2 py-3 border-b border-neutral-800 hover:bg-neutral-900/30 transition\";\n                desktopRow.innerHTML = `\n                    <!-- LEFT -->\n                    <div class=\"flex items-center gap-3\">\n                        <img src=\"${icon}\" class=\"w-5 h-5 opacity-80\"/>\n                        <span class=\"text-white font-medium\">${name}</span>\n                    </div>\n\n                    <!-- RIGHT -->\n                    <div class=\"flex items-center gap-2 opacity-60 hover:opacity-100 transition\">\n\n                        <button onclick=\"copyFn('${id}')\"\n                            class=\"p-1 rounded-lg hover:bg-neutral-800 transition\">\n                            <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"/>\n                        </button>\n\n                        <button onclick=\"openEdit('${id}', '${lang}')\"\n                            class=\"px-3 py-1 text-sm rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">\n                            Edit\n                        </button>\n\n                        <button onclick=\"deleteFn('${id}')\"\n                            class=\"px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">\n                            Delete\n                        </button>\n\n                    </div>\n                `;\n\n                container.appendChild(mobileCard);\n                container.appendChild(desktopRow);\n            });\n        });\n}\n\n\n\n\t</script><style>\nhtml,body{background:#0f0f10!important;}\n.ace_editor,.ace_scroller,.ace_content{background:#0b0b0c!important;color:#eee!important;}\n.shake{animation:shake .3s linear;}\n@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}\n\n.lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}\n.lang-btn:hover{background:#1c1c1c;border-color:#666}\n.lang-btn.selected{background:#1f1f20;border-color:#888}\n\t</style></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

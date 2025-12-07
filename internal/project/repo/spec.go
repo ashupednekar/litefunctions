@@ -2,7 +2,6 @@ package repo
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/ashupednekar/litewebservices-portal/pkg"
 	"github.com/go-git/go-billy/v6"
@@ -15,6 +14,7 @@ type VCS interface {
 	Clone(project string, branch string) error
 	Commit(files ...string) error
 	Push() error
+	Pull() error
 }
 
 type GitRepo struct {
@@ -39,6 +39,13 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 	}
 	repo, ok := repos[project]
 	if ok {
+		fmt.Printf("[DEBUG] Found cached repo for %s, calling Pull()...\n", project)
+		err := repo.Pull()
+		if err != nil {
+			fmt.Printf("[ERROR] Pull() failed: %v\n", err)
+			return nil, err
+		}
+		fmt.Printf("[DEBUG] Pull() completed successfully for %s\n", project)
 		return repo, nil
 	} else {
 		r := GitRepo{
@@ -47,18 +54,17 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 			Fs:      fs,
 			Storage: memory.NewStorage(),
 			Options: &git.CloneOptions{
-				URL:      fmt.Sprintf("%s/%s/%s", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
-				Progress: os.Stdout,
+				URL: fmt.Sprintf("%s/%s/%s.git", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
 			},
 		}
 		err := r.SetupAuth()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("auth setup failed: %w", err)
+		}
+		if err := r.Clone(); err != nil {
+			return nil, fmt.Errorf("clone failed for %s: %w", project, err)
 		}
 		repos[project] = &r
-		if err := r.Clone(); err != nil {
-			return nil, err
-		}
 		return &r, nil
 	}
 }

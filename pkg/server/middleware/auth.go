@@ -20,7 +20,7 @@ func AuthMiddleware(sessionStore auth.SessionStore) gin.HandlerFunc {
 			return
 		}
 
-		userID, found, err := sessionStore.GetUserSession(sessionID)
+		userName, userID, found, err := sessionStore.GetUserSession(sessionID)
 		if err != nil {
 			log.Printf("[ERROR] Error retrieving session: %v", err)
 			c.Redirect(http.StatusFound, "/?redirect="+c.Request.URL.Path)
@@ -38,6 +38,7 @@ func AuthMiddleware(sessionStore auth.SessionStore) gin.HandlerFunc {
 		}
 
 		c.Set("userID", userID)
+		c.Set("userName", userName)
 		c.Next()
 	}
 }
@@ -46,9 +47,10 @@ func OptionalAuthMiddleware(sessionStore auth.SessionStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sessionID, err := c.Cookie(auth.SessionCookieName)
 		if err == nil {
-			userID, found, err := sessionStore.GetUserSession(sessionID)
+			userName, userID, found, err := sessionStore.GetUserSession(sessionID)
 			if err == nil && found {
 				c.Set("userID", userID)
+			  c.Set("userName", userName)
 				c.Set("authenticated", true)
 			}
 		}

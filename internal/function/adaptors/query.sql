@@ -12,7 +12,7 @@ WHERE id = $1;
 SELECT *
 FROM functions
 WHERE project_id = $1
-ORDER BY created_at DESC;
+ORDER BY language ASC, created_at DESC;
 
 -- name: UpdateFunctionPath :one
 UPDATE functions

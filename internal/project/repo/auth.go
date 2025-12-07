@@ -35,7 +35,6 @@ func (s *SshAuth) UpdateOptions(options *git.CloneOptions) error {
 		return fmt.Errorf("error getting pubkey: %s", err)
 	}
 	options.Auth = publicKeys
-	options.Progress = os.Stdout
 	return nil
 }
 

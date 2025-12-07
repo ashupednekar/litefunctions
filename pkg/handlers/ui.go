@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 
 	authAdaptors "github.com/ashupednekar/litewebservices-portal/internal/auth/adaptors"
 	functionAdaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
@@ -23,6 +24,11 @@ func NewUIHandlers(s *state.AppState) *UIHandlers {
 }
 
 func (h *UIHandlers) Home(ctx *gin.Context) {
+	userId, ok := ctx.Get("userID")
+	if ok && userId != nil{
+		ctx.Redirect(http.StatusFound, "/dashboard")
+		return
+	}
 	page := templates.BaseLayout(
 		templates.HomeContent(),
 	)
@@ -66,40 +72,32 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 }
 
 func (h *UIHandlers) Functions(ctx *gin.Context) {
-	userID, _ := ctx.Get("userID")
+	userID, _ := ctx.MustGet("userID").([]byte)
 	activeProjectID, _ := ctx.Cookie("lws_project")
 
 	var functions []templates.Function
-	usernameStr := "User"
+	usernameStr := ctx.MustGet("userName").(string)
 
 	q := functionAdaptors.New(h.state.DBPool)
 
-	if activeProjectID != "" {
-		var projUUID pgtype.UUID
+	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
+	if dbFns, err := q.ListFunctionsForProject(ctx.Request.Context(), projUUID); err == nil {
+		for _, f := range dbFns {
+			lang := f.Language
+			icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
 
-		if decoded, err := hex.DecodeString(activeProjectID); err == nil && len(decoded) == 16 {
-			copy(projUUID.Bytes[:], decoded)
-			projUUID.Valid = true
-
-			if dbFns, err := q.ListFunctionsForProject(ctx.Request.Context(), projUUID); err == nil {
-				for _, f := range dbFns {
-					lang := f.Language
-					icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
-
-					functions = append(functions, templates.Function{
-						ID:       hex.EncodeToString(f.ID.Bytes[:]),
-						Name:     f.Name,
-						Language: lang,
-						Icon:     icon,
-					})
-				}
-			}
+			functions = append(functions, templates.Function{
+				ID:       hex.EncodeToString(f.ID.Bytes[:]),
+				Name:     f.Name,
+				Language: lang,
+				Icon:     icon,
+			})
 		}
 	}
 
 	if userID != nil {
 		authQ := authAdaptors.New(h.state.DBPool)
-		if user, err := authQ.GetUserByID(context.Background(), userID.([]byte)); err == nil {
+		if user, err := authQ.GetUserByID(context.Background(), userID); err == nil {
 			usernameStr = user.Name
 		}
 	}
