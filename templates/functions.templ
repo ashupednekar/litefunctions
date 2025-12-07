@@ -307,56 +307,134 @@ window.ACE_MODES = {
     lua: "lua"
 };
 
-// server placeholder (templ will fill this); we'll resolve cookie fallback in getActiveProjectID()
 window.__activeProjectID = "{ activeProjectID }";
 
 let createEditor = null;
 let editEditor = null;
 let selectedLang = "python";
 
-// your code templates (from your snippet)
 const codeTemplates = {
   python: `from fastapi import Request
+from pydantic import BaseModel
 
-async def handle(request: Request):
-    body = await request.json()
-    name = body.get("name", "stranger")
-    return {"message": f"Hello {name} from Python!"}`,
+class Input(BaseModel):
+    name: str | None = None
+
+class Output(BaseModel):
+    message: str
+
+async def handle(request: Request) -> Output:
+    data = await request.json()
+    input = Input(**data)
+    name = input.name or "stranger"
+    return Output(message=f"Hello {name} from Python!")
+`,
 
   go: `package main
 
 import (
     "net/http"
+
     "github.com/gin-gonic/gin"
 )
 
+type Input struct {
+    Name *string \`json:"name"\`
+}
+
+type Output struct {
+    Message string \`json:"message"\`
+}
+
 func Handle(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{"message": "Hello from Go!"})
-}`,
+    var input Input
+    if err := c.ShouldBindJSON(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+        return
+    }
+
+    name := "stranger"
+    if input.Name != nil && *input.Name != "" {
+        name = *input.Name
+    }
+
+    c.JSON(http.StatusOK, Output{
+        Message: "Hello " + name + " from Go!",
+    })
+}
+`,
 
   rust: `use axum::{Json};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
-struct Input { name: Option<String> }
+pub struct Input {
+    pub name: Option<String>,
+}
 
 #[derive(Serialize)]
-struct Output { message: String }
+pub struct Output {
+    pub message: String,
+}
 
 pub async fn handle(Json(input): Json<Input>) -> Json<Output> {
     let name = input.name.unwrap_or("stranger".into());
-    Json(Output { message: format!("Hello {} from Rust!", name) })
-}`,
+    Json(Output { 
+        message: format!("Hello {} from Rust!", name) 
+    })
+}
+`,
 
   javascript: `export async function handle(req) {
-  const body = await req.json();
-  return new Response("Hello from JS!");
-}`,
+  class Input {
+    constructor(obj = {}) {
+      this.name = obj.name ?? null;
+    }
+  }
 
-  lua: `function handle(req)
-  return { message = "Hello from Lua!" }
-end`
+  class Output {
+    constructor(message) {
+      this.message = message;
+    }
+  }
+
+  const body = await req.json();
+  const input = new Input(body);
+  const name = input.name || "stranger";
+
+  return Response.json(
+    new Output(\`Hello \${name} from JavaScript!\`)
+  );
+}
+`,
+
+  lua: `-- Input serializer
+Input = {}
+Input.__index = Input
+
+function Input:new(o)
+  o = o or {}
+  setmetatable(o, self)
+  o.name = o.name or nil
+  return o
+end
+
+-- Output serializer
+Output = {}
+Output.__index = Output
+
+function Output:new(message)
+  return setmetatable({ message = message }, self)
+end
+
+function handle(req)
+  local input = Input:new(req or {})
+  local name = input.name or "stranger"
+  return Output:new(string.format("Hello %s from Lua!", name))
+end
+`
 };
+
 
 const modeMap = window.ACE_MODES;
 
