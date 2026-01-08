@@ -1,5 +1,11 @@
+image:
+  ingestor: ashupednekar535/litefunctions-ingestor:latest
+
+ingestor:
+  nats_broker_url: nats.essentials.svc:4222
+
 nats:
-  enabled: false
+  enabled: true
   jetstream:
     enabled: true
   cluster:

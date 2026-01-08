@@ -26,10 +26,13 @@ spec:
         app: litefunctions-ingestor
     spec:
       containers:
-      - image: ashupednekar535/litefunctions-ingestor:latest
+      - image: {{.Values.image.ingestor}}
         imagePullPolicy: Always
         name: litefunctions-ingestor
         resources: {}
+        env:
+        - name: NATS_BROKER_URL
+          value: 
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
