@@ -1,5 +1,5 @@
 nats:
-  enabled: true
+  enabled: false
   jetstream:
     enabled: true
   cluster:
@@ -13,14 +13,14 @@ nats:
     enabled: false
 
 redis:
-  enabled: true
+  enabled: false
 redis-cluster:
   usePassword: false
   networkPolicy:
     enabled: false
 
 database:
-  enabled: true
+  enabled: false
 postgrescluster:
   instanceName: postgres 
   postgresVersion: 16
@@ -28,7 +28,7 @@ postgrescluster:
   instanceReplicas: 3 
   
 minio:
-  enabled: true
+  enabled: false
   auth:
     rootUser: lws 
     rootPassword: lwspass
