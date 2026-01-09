@@ -8,6 +8,26 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+func openInvite(id string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_openInvite_6e58`,
+		Function: `function __templ_openInvite_6e58(id){openInviteModal(event, id)
+}`,
+		Call:       templ.SafeScript(`__templ_openInvite_6e58`, id),
+		CallInline: templ.SafeScriptInline(`__templ_openInvite_6e58`, id),
+	}
+}
+
+func openAccess(id string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_openAccess_6ca3`,
+		Function: `function __templ_openAccess_6ca3(id){openAccessModal(event, id)
+}`,
+		Call:       templ.SafeScript(`__templ_openAccess_6ca3`, id),
+		CallInline: templ.SafeScriptInline(`__templ_openAccess_6ca3`, id),
+	}
+}
+
 func selectProject(id string) templ.ComponentScript {
 	return templ.ComponentScript{
 		Name: `__templ_selectProject_5fa6`,
@@ -47,97 +67,199 @@ func DashboardContent(username string, projects []Project, activeProjectID strin
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 19, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 27, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><div id=\"profile-dropdown\" class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden\"><a href=\"/profile/\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900\">Profile</a> <a href=\"/logout/\" class=\"block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900\">Logout</a></div></div></div><script>\n    const pb = document.getElementById(\"profile-btn\")\n    const pd = document.getElementById(\"profile-dropdown\")\n    document.addEventListener(\"click\", e => {if (!pb.contains(e.target)) pd.classList.add(\"hidden\")})\n    pb.onclick = () => pd.classList.toggle(\"hidden\")\n  </script><!-- PROJECT SECTION --><div class=\"space-y-4 mb-12\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Your Projects</h2><div class=\"overflow-x-auto scrollbar-hide\"><div class=\"flex gap-4 pr-6\"><!-- Loop -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><div id=\"profile-dropdown\" class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden\"><a href=\"/profile/\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900\">Profile</a> <a href=\"/logout/\" class=\"block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900\">Logout</a></div></div></div><script>\n    const pb = document.getElementById(\"profile-btn\")\n    const pd = document.getElementById(\"profile-dropdown\")\n    document.addEventListener(\"click\", e => {if (!pb.contains(e.target)) pd.classList.add(\"hidden\")})\n    pb.onclick = () => pd.classList.toggle(\"hidden\")\n  </script><!-- PROJECT SECTION --><div class=\"space-y-4 mb-12\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Your Projects</h2><div class=\"overflow-x-auto scrollbar-hide -mx-2 px-2\"><div class=\"flex gap-5 pb-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, p := range projects {
+			var templ_7745c5c3_Var3 = []any{"group relative min-w-[280px] p-5 rounded-2xl border transition-all duration-300",
+				templ.KV("border-blue-500/50 bg-blue-500/5 shadow-[0_0_20px_-5px_rgba(59,130,246,0.3)]", activeProjectID == p.ID),
+				templ.KV("border-neutral-800 bg-[#0e0e0f] hover:border-neutral-700 hover:bg-[#121213]", activeProjectID != p.ID)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var3).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><div class=\"flex items-center justify-between mb-4\"><div class=\"flex items-center gap-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 = []any{"w-2 h-2 rounded-full", templ.KV("bg-blue-500 animate-pulse", activeProjectID == p.ID), templ.KV("bg-neutral-600", activeProjectID != p.ID)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"></div><h3 class=\"text-white font-semibold text-lg tracking-tight\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 61, Col: 77}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</h3></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			if activeProjectID == p.ID {
-				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectProject(p.ID))
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button onclick=\"event.stopPropagation(); syncProject()\" class=\"p-1.5 rounded-lg border border-neutral-800 text-neutral-500 hover:text-green-400 hover:border-green-500/30 transition-all active:scale-95\" title=\"Sync project\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\"></path></svg></button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button onclick=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var3 templ.ComponentScript = selectProject(p.ID)
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3.Call)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md group\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 52, Col: 64}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h3><div class=\"flex items-center gap-2\"><svg onclick=\"event.stopPropagation(); syncProject()\" xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 cursor-pointer hover:scale-110 transition-all\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" title=\"Sync project\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\"></path></svg><div class=\"h-2 w-2 bg-green-500 rounded-full\"></div></div></div></button>")
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"flex items-center gap-2 mt-auto\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 = []any{"flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all",
+				templ.KV("bg-blue-600 text-white shadow-lg shadow-blue-600/20", activeProjectID == p.ID),
+				templ.KV("bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white", activeProjectID != p.ID)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var8...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectProject(p.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 templ.ComponentScript = selectProject(p.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var8).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if activeProjectID == p.ID {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "Active")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectProject(p.ID))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button onclick=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var5 templ.ComponentScript = selectProject(p.ID)
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5.Call)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"min-w-[220px] rounded-xl border border-neutral-800 bg-[#0e0e0f] p-4\"><div class=\"flex items-center justify-between\"><h3 class=\"text-white font-semibold text-base\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 75, Col: 64}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</h3></div></button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Select")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if p.Role == "owner" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"flex gap-1.5\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openInvite(p.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<button onclick=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var11 templ.ComponentScript = openInvite(p.ID)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" class=\"p-2 rounded-xl border border-neutral-800 text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all\" title=\"Invite member\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z\"></path></svg></button> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openAccess(p.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button onclick=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var12 templ.ComponentScript = openAccess(p.ID)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"p-2 rounded-xl border border-neutral-800 text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all\" title=\"Manage access\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z\"></path></svg></button></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<!-- New project button --><button onclick=\"openProjectModal()\" class=\"min-w-[220px] rounded-xl border border-neutral-800 bg-[#0b0b0c]\n\t\t\t\t\t\tp-4 flex flex-col items-center justify-center text-neutral-500 \n\t\t\t\t\t\thover:text-white hover:border-neutral-600 hover:bg-neutral-900 shadow-md\"><div class=\"h-8 w-8 rounded-full border border-neutral-700 grid place-items-center\"><span class=\"text-xl\">+</span></div><p class=\"mt-2 font-medium text-sm\">New Project</p></button></div></div></div><!-- IF NO ACTIVE PROJECT -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<!-- New project button --><button onclick=\"openProjectModal()\" class=\"min-w-[280px] rounded-2xl border border-dashed border-neutral-800 bg-transparent\n\t\t\t\t\t\tp-5 flex items-center gap-4 text-neutral-500 \n\t\t\t\t\t\thover:text-white hover:border-neutral-600 hover:bg-white/5 transition-all group\"><div class=\"h-10 w-10 rounded-xl border border-neutral-800 bg-neutral-900 grid place-items-center group-hover:bg-neutral-800 transition-colors\"><span class=\"text-2xl font-light\">+</span></div><div class=\"text-left\"><p class=\"font-bold text-sm tracking-tight\">New Project</p><p class=\"text-[10px] text-neutral-600 tracking-widest font-bold\">Create fresh</p></div></button><!-- Join project button --><button onclick=\"openJoinModal()\" class=\"min-w-[280px] rounded-2xl border border-dashed border-neutral-800 bg-transparent\n\t\t\t\t\t\tp-5 flex items-center gap-4 text-neutral-500 \n\t\t\t\t\t\thover:text-white hover:border-neutral-600 hover:bg-white/5 transition-all group\"><div class=\"h-10 w-10 rounded-xl border border-neutral-800 bg-neutral-900 grid place-items-center group-hover:bg-neutral-800 transition-colors\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z\"></path></svg></div><div class=\"text-left\"><p class=\"font-bold text-sm tracking-tight\">Join Project</p><p class=\"text-[10px] text-neutral-600 tracking-widest font-bold\">Enter code</p></div></button></div></div></div><!-- IF NO ACTIVE PROJECT -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if activeProjectID == "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"w-full text-center py-20 text-neutral-400 text-lg\">Please select a project to continue.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"w-full text-center py-20 text-neutral-400 text-lg\">Please select a project to continue.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<!-- FEATURE SECTIONS --> <div class=\"space-y-4\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Tools & Features</h2><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6\"><a href=\"/functions/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-blue-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M6 18L18 6M6 6l12 12\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Functions</h3></div></a> <a href=\"/endpoints/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-purple-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M4 12h16m-7-7l7 7-7 7\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Endpoints</h3></div></a> <a href=\"/configuration/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-yellow-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M12 8c-1.1 0-2 .9-2 2v4h4v-4c0-1.1-.9-2-2-2zM4 12h16\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Configuration</h3></div></a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<!-- FEATURE SECTIONS --> <div class=\"space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Tools & Features</h2></div><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6\"><a href=\"/functions/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-blue-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M6 18L18 6M6 6l12 12\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Functions</h3></div></a> <a href=\"/endpoints/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-purple-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M4 12h16m-7-7l7 7-7 7\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Endpoints</h3></div></a> <a href=\"/configuration/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-yellow-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M12 8c-1.1 0-2 .9-2 2v4h4v-4c0-1.1-.9-2-2-2zM4 12h16\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Configuration</h3></div></a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<!-- MODAL --><div id=\"project-modal\" class=\"fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center\"><div class=\"bg-[#0e0e0f] border border-neutral-800 rounded-2xl p-6 w-96\"><h3 class=\"text-lg text-white font-semibold\">Create Project</h3><input id=\"new-project-name\" class=\"w-full mt-4 px-3 py-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl text-white\" placeholder=\"Project name\"><div class=\"flex justify-end gap-3 mt-6\"><button onclick=\"closeProjectModal()\" class=\"text-neutral-400\">Cancel</button> <button onclick=\"submitNewProject()\" class=\"bg-white text-black px-4 py-2 rounded-xl font-semibold\">Create</button></div></div></div><script>\n    function openProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.remove(\"hidden\")\n      modal.classList.add(\"flex\")\n    }\n    function closeProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.add(\"hidden\")\n      modal.classList.remove(\"flex\")\n    }\n\n    async function submitNewProject() {\n      const name = document.getElementById(\"new-project-name\").value.trim()\n      if (!name) return\n      await fetch(\"/api/projects/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({name})\n      })\n      closeProjectModal()\n      location.reload()\n    }\n\n    async function syncProject() {\n      await fetch(\"/api/projects/sync/\", {\n        method: \"POST\"\n      })\n      alert(\"Sync completed!\")\n      location.reload()\n    }\n  </script></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<!-- ACCESS MODAL --><div id=\"access-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeAccessModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-6 w-[500px] shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><div class=\"flex justify-between items-center mb-6\"><h3 class=\"text-lg text-white font-semibold flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-500\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z\"></path></svg> Project Access</h3><button onclick=\"closeAccessModal()\" class=\"text-neutral-500 hover:text-white transition\">✕</button></div><div id=\"access-list\" class=\"space-y-3 max-h-96 overflow-y-auto mb-6 custom-scrollbar pr-1\"><!-- Loaded via JS --></div><div class=\"flex justify-end pt-2 border-t border-neutral-800/50\"><button onclick=\"closeAccessModal()\" class=\"px-5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-white text-sm font-semibold hover:bg-neutral-800 transition\">Close</button></div></div></div><!-- INVITE MODAL --><div id=\"invite-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeInviteModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-8 w-96 shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><h3 class=\"text-xl text-white font-bold mb-2\">Invite Teammate</h3><p class=\"text-neutral-500 text-sm mb-6 leading-relaxed\">Generated code expires in 24 hours. Teammates can join as viewers.</p><div class=\"flex items-center gap-2 p-1.5 bg-black/40 border border-neutral-800 rounded-2xl overflow-hidden\"><input id=\"invite-code-input\" readonly class=\"flex-1 min-w-0 bg-transparent border-none pl-4 pr-1 py-2 text-white font-mono text-center text-lg focus:outline-none\" value=\"...\"> <button onclick=\"copyInviteCode()\" class=\"bg-white text-black px-5 py-2 rounded-xl text-xs font-black hover:bg-neutral-200 transition active:scale-95 shrink-0\">Copy</button></div><div class=\"flex justify-end mt-8\"><button onclick=\"closeInviteModal()\" class=\"text-neutral-400 hover:text-white font-bold text-sm transition\">Dismiss</button></div></div></div><!-- JOIN MODAL --><div id=\"join-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeJoinModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-8 w-96 shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><h3 class=\"text-xl text-white font-bold mb-2\">Join Project</h3><p class=\"text-neutral-500 text-sm mb-6 leading-relaxed\">Enter the 8-character code shared by the project owner.</p><input id=\"join-code-input\" class=\"w-full bg-black/40 border border-neutral-800 rounded-2xl px-4 py-4 text-white font-mono text-center mb-6 tracking-widest text-xl placeholder-neutral-800 focus:outline-none focus:border-blue-600 transition-colors\" placeholder=\"ABCDEFGH\"><div class=\"flex flex-col gap-3\"><button onclick=\"submitJoinInvite()\" class=\"w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-black hover:bg-blue-500 transition shadow-lg shadow-blue-600/20 active:scale-95\">Verify & Join</button> <button onclick=\"closeJoinModal()\" class=\"w-full py-2 text-neutral-500 hover:text-white font-bold text-sm transition\">Cancel</button></div></div></div><!-- NEW PROJECT MODAL --><div id=\"project-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeProjectModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-7 w-96 shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><h3 class=\"text-xl text-white font-bold mb-2\">Create Project</h3><p class=\"text-neutral-500 text-sm mb-6\">Give your workspace a name to get started.</p><input id=\"new-project-name\" class=\"w-full bg-black/40 border border-neutral-800 rounded-2xl px-4 py-3 text-white placeholder-neutral-700 focus:outline-none focus:border-neutral-600 transition-colors\" placeholder=\"My Workspace\"><div class=\"flex justify-end gap-3 mt-8\"><button onclick=\"closeProjectModal()\" class=\"text-neutral-500 hover:text-white font-medium text-sm transition\">Cancel</button> <button onclick=\"submitNewProject()\" class=\"bg-white text-black px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-200 transition active:scale-95\">Initialize</button></div></div></div><script>\n    function openProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.remove(\"hidden\")\n      modal.classList.add(\"flex\")\n    }\n    function closeProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.add(\"hidden\")\n      modal.classList.remove(\"flex\")\n    }\n\n    async function submitNewProject() {\n      const name = document.getElementById(\"new-project-name\").value.trim()\n      if (!name) return\n      await fetch(\"/api/projects/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({name})\n      })\n      closeProjectModal()\n      location.reload()\n    }\n\n    async function syncProject() {\n      await fetch(\"/api/projects/sync/\", {\n        method: \"POST\"\n      })\n      toast(\"Sync completed!\", \"success\")\n      setTimeout(() => location.reload(), 500)\n    }\n\n    async function loadProjectAccess() {\n      const res = await fetch(\"/api/projects/access/\")\n      const users = await res.json()\n      const list = document.getElementById(\"access-list\")\n      if(!list) return;\n      list.innerHTML = users.map(u => {\n        const revokeBtn = u.role !== 'owner' \n          ? `<button onclick=\"revokeAccess('${u.id}')\" class=\"px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-[10px] font-bold tracking-widest transition-all opacity-0 group-hover/user:opacity-100\">Revoke</button>`\n          : `<span class=\"px-3 py-1.5 text-neutral-600 text-[9px] font-bold tracking-widest\">Locked</span>`;\n          \n        return `\n          <div class=\"flex items-center justify-between p-4 bg-black/40 border border-neutral-800 rounded-2xl group/user transition-all hover:border-neutral-700\">\n            <div class=\"flex items-center gap-4\">\n              <div class=\"w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 grid place-items-center text-[12px] text-white font-black tracking-tighter\">\n                ${u.name.substring(0,2)}\n              </div>\n              <div>\n                <div class=\"text-white text-sm font-bold tracking-tight\">${u.name}</div>\n                <div class=\"text-neutral-500 text-[9px] tracking-[0.1em] font-black mt-0.5\">${u.role}</div>\n              </div>\n            </div>\n            ${revokeBtn}\n          </div>\n        `;\n      }).join(\"\")\n    }\n\n    async function revokeAccess(id) {\n      if(!confirm(\"Are you sure?\")) return\n      await fetch(`/api/projects/access/${id}/`, { method: \"DELETE\" })\n      loadProjectAccess()\n    }\n\n    function openAccessModal(e, id) {\n      if(e) e.stopPropagation()\n      // set active project cookie first to ensure we fetch correct access\n      document.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\"\n      document.getElementById(\"access-modal\").classList.remove(\"hidden\")\n      document.getElementById(\"access-modal\").classList.add(\"flex\")\n      loadProjectAccess()\n    }\n\n    function closeAccessModal() {\n      document.getElementById(\"access-modal\").classList.add(\"hidden\")\n      document.getElementById(\"access-modal\").classList.remove(\"flex\")\n    }\n\n    async function openInviteModal(e, id) {\n      if(e) e.stopPropagation()\n      document.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\"\n      document.getElementById(\"invite-modal\").classList.remove(\"hidden\")\n      document.getElementById(\"invite-modal\").classList.add(\"flex\")\n      \n      const res = await fetch(\"/api/projects/invites/\", { method: \"POST\" })\n      const data = await res.json()\n      const input = document.getElementById(\"invite-code-input\")\n      input.value = data.code\n      input.classList.add(\"tracking-widest\")\n    }\n\n    function closeInviteModal() {\n      document.getElementById(\"invite-modal\").classList.add(\"hidden\")\n      document.getElementById(\"invite-modal\").classList.remove(\"flex\")\n    }\n\n    function copyInviteCode() {\n      const input = document.getElementById(\"invite-code-input\")\n      input.select()\n      document.execCommand(\"copy\")\n      toast(\"Code copied!\", \"success\")\n    }\n\n    function openJoinModal() {\n      document.getElementById(\"join-modal\").classList.remove(\"hidden\")\n      document.getElementById(\"join-modal\").classList.add(\"flex\")\n    }\n\n    function closeJoinModal() {\n      document.getElementById(\"join-modal\").classList.add(\"hidden\")\n      document.getElementById(\"join-modal\").classList.remove(\"flex\")\n    }\n\n    async function submitJoinInvite() {\n      const code = document.getElementById(\"join-code-input\").value.trim()\n      if(!code) return\n      const res = await fetch(`/api/projects/join/?code=${code}`, { method: \"POST\" })\n      if(res.ok) {\n        const data = await res.json()\n        document.cookie = \"lws_project=\" + data.project_id + \"; path=/; SameSite=Lax\"\n        location.reload()\n      } else {\n        const data = await res.json()\n        toast(data.error || \"Failed to join\", \"error\")\n      }\n    }\n\n  </script></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

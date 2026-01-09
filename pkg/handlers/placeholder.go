@@ -4,10 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ListProjects(c *gin.Context)  { c.JSON(200, "TODO") }
-func GetProject(c *gin.Context)    { c.JSON(200, "TODO") }
-func DeleteProject(c *gin.Context) { c.JSON(200, "TODO") }
-
 func CreateFunction(c *gin.Context) { c.JSON(200, "TODO") }
 func ListFunctions(c *gin.Context)  { c.JSON(200, "TODO") }
 func GetFunction(c *gin.Context)    { c.JSON(200, "TODO") }

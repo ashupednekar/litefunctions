@@ -38,10 +38,24 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
             Functions
         </h1>
 
-        <label class="flex items-center gap-2 text-neutral-300 text-sm select-none">
+        <label class="hidden md:flex items-center gap-2 text-neutral-300 text-sm select-none">
             <input id="vim-toggle" type="checkbox" class="w-4 h-4" checked />
             Vim Mode
         </label>
+
+        <!-- SEARCH TRIGGER -->
+        <button 
+            onclick="openSpotlight()"
+            class="flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <span class="flex-1 text-left">Search functions...</span>
+            <div class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium">
+                <span class="font-mono">⌘</span>K
+            </div>
+        </button>
     </div>
 
     <!-- RIGHT SECTION: New Function + Profile -->
@@ -281,17 +295,30 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 	<!-- ACE from CDN (fallback to local if needed) -->
 	<script>
 	(function(){
-		// try to load ACE from CDN, but allow local base if preferred by the app
 		const cdn = "https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/";
 		const s1 = document.createElement('script');
 		s1.src = cdn + 'ace.js';
 		s1.onload = () => {
+            ace.config.set('basePath', cdn);
+            ace.config.set('modePath', cdn);
+            ace.config.set('themePath', cdn);
 			// load optional ext and keybinding after ace
 			const s2 = document.createElement('script');
 			s2.src = cdn + 'ext-language_tools.js';
 			document.head.appendChild(s2);
 			const s3 = document.createElement('script');
 			s3.src = cdn + 'keybinding-vim.js';
+            s3.onload = () => {
+                // Periodically check for Vim global to ensure it's ready
+                const check = () => {
+                    if (ace.require && ace.require("ace/keyboard/vim")) {
+                        defineVimEx();
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            };
 			document.head.appendChild(s3);
 		};
 		document.head.appendChild(s1);
@@ -469,28 +496,37 @@ window.__isEditEditor = false;
 
 function defineVimEx(){
   try {
-    const vimMod = ace.require && ace.require("ace/keyboard/vim");
-    if (!vimMod || !vimMod.CodeMirror) return;
-    const Vim = vimMod.CodeMirror.Vim;
-    if (!Vim) return;
-    if (Vim.__lws_ex_defined) return;
-    Vim.defineEx("w", "w", function(cm, input){
-      if (window.__isCreateEditor) saveCreate(true);
-      else if (window.__isEditEditor) saveEdit(true);
-    });
-    Vim.defineEx("wq", "wq", function(cm, input){
-      if (window.__isCreateEditor) saveCreate(true);
-      if (window.__isEditEditor) saveEdit(true);
-      if (window.__isCreateEditor) closeCreate();
-      if (window.__isEditEditor) closeEdit();
-    });
-    Vim.defineEx("q", "q", function(cm, input){
-      if (window.__isCreateEditor) closeCreate();
-      else if (window.__isEditEditor) closeEdit();
-    });
+    const vimMod = ace.require("ace/keyboard/vim") || window.Vim;
+    if (!vimMod) return;
+    const Vim = vimMod.CodeMirror ? vimMod.CodeMirror.Vim : (vimMod.Vim || vimMod);
+    if (!Vim || !Vim.defineEx) return;
+    
+    const writeHandler = function() {
+        if (window.__isCreateEditor) saveCreate(false);
+        else if (window.__isEditEditor) saveEdit(false);
+    };
+    const saveAndQuitHandler = function() {
+        if (window.__isCreateEditor) saveCreate(true);
+        else if (window.__isEditEditor) saveEdit(true);
+    };
+    const quitHandler = function() {
+        if (window.__isCreateEditor) closeCreate();
+        else if (window.__isEditEditor) closeEdit();
+    };
+
+    Vim.defineEx("w", "", writeHandler);
+    Vim.defineEx("write", "", writeHandler);
+    Vim.defineEx("wq", "", saveAndQuitHandler);
+    Vim.defineEx("x", "", saveAndQuitHandler);
+    Vim.defineEx("q", "", quitHandler);
+    Vim.defineEx("quit", "", quitHandler);
+    Vim.defineEx("q!", "", quitHandler);
+    Vim.defineEx("quit!", "", quitHandler);
+    
+    console.log("LWS: Vim Ex commands registered");
     Vim.__lws_ex_defined = true;
   } catch (e) {
-    // ignore if vim keybinding not present yet
+    console.error("LWS: Error in defineVimEx", e);
   }
 }
 
@@ -509,8 +545,11 @@ function openCreate(){
   if(!createEditor && window.ace){
     createEditor = ace.edit('create-ace');
     createEditor.setTheme('ace/theme/dracula');
-    try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
-    defineVimEx();
+    const isVim = document.getElementById('vim-toggle')?.checked;
+    if (isVim) {
+        try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
+        defineVimEx();
+    }
   }
 
   if(createEditor){
@@ -572,18 +611,28 @@ function openEdit(id, lang){
   if(!editEditor && window.ace){
     editEditor = ace.edit('edit-ace');
     editEditor.setTheme('ace/theme/dracula');
-    try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
-    defineVimEx();
+    const isVim = document.getElementById('vim-toggle')?.checked;
+    if (isVim) {
+        try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
+        defineVimEx();
+    }
   }
 
   if(editEditor){
     editEditor.session.setMode('ace/mode/' + modeMap[lang]);
+    editEditor.setValue('Loading...', -1);
     fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
       editEditor.setValue(data.content || codeTemplates[lang] || '', -1);
-      setTimeout(()=>editEditor.focus(),120);
+      editEditor.focus();
+      // Second focus attempt after a tiny delay to be absolutely sure
+      setTimeout(() => editEditor.focus(), 50);
     }).catch(()=>{
       editEditor.setValue(codeTemplates[lang] || '', -1);
+      editEditor.focus();
     });
+    
+    // Immediate focus attempt
+    editEditor.focus();
   }
 }
 
@@ -617,6 +666,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // if server didn't provide activeProjectID, try cookie
   window.__activeProjectID = getActiveProjectID();
+
+  // Handle Vim Toggle
+  const vimToggle = document.getElementById('vim-toggle');
+  if(vimToggle) {
+    vimToggle.addEventListener('change', () => {
+      const isVim = vimToggle.checked;
+      [createEditor, editEditor].forEach(ed => {
+        if(ed) {
+          ed.setKeyboardHandler(isVim ? 'ace/keyboard/vim' : null);
+          if(isVim) defineVimEx();
+        }
+      });
+    });
+  }
+
+  // Handle ?edit=ID from spotlight
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get('edit');
+  if (editId) {
+      // Find function in the list to get its language
+      // Since the list might still be loading, we might need a small delay or check periodically
+      const checkAndEdit = () => {
+          fetch(`/api/functions/${editId}/`)
+              .then(r => r.json())
+              .then(f => {
+                  openEdit(f.id, f.language);
+              })
+              .catch(err => console.error("Failed to auto-open edit modal", err));
+      };
+      checkAndEdit();
+  }
 });
 
 window.__deleteFnID = null;
@@ -645,7 +725,8 @@ function confirmDelete() {
 
 
 function refreshList() {
-    fetch(`/api/functions/`)
+    const url = `/api/functions/`;
+    fetch(url)
         .then(r => r.json())
         .then(obj => {
 

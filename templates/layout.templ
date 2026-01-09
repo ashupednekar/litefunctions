@@ -16,6 +16,211 @@ templ BaseLayout(content templ.Component) {
 		</head>
 		<body class="h-full bg-black text-white">
 			@content
+			
+			<!-- TOAST CONTAINER -->
+			<div id="toast-container" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999999] flex flex-col items-center gap-3 pointer-events-none"></div>
+
+			<!-- SPOTLIGHT MODAL (Global) -->
+			<div id="spotlight-modal" class="fixed inset-0 bg-transparent backdrop-blur-[2px] hidden justify-center items-start pt-[15vh] z-[999999]" onclick="closeSpotlight()">
+				<div class="w-[700px] pointer-events-auto rounded-2xl bg-[#0d0d0e]/90 border border-neutral-800 shadow-[0_0_60px_-10px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in zoom-in duration-200" onclick="event.stopPropagation()">
+					<div class="flex items-center gap-3 px-5 py-4 border-b border-neutral-800">
+						<div class="p-2 rounded-lg bg-[#1a1a1b] border border-neutral-700 text-neutral-400">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z"></path>
+							</svg>
+						</div>
+						<input
+							id="spotlight-input"
+							type="text"
+							placeholder="Search functions, snippets, and more..."
+							class="w-full bg-transparent text-white text-lg placeholder-neutral-600 focus:outline-none"
+							autocomplete="off"
+							oninput="handleSpotlightInput(this.value)"
+						/>
+						<span class="text-neutral-600 text-xs bg-[#1a1a1b] px-2 py-1 rounded-md border border-neutral-700 font-mono">
+							⌘K
+						</span>
+					</div>
+					<div id="spotlight-results" class="max-h-[420px] overflow-y-auto custom-scrollbar">
+						<div class="p-8 text-center text-neutral-500 text-sm">
+							Search for functions by name...
+						</div>
+					</div>
+					<div class="px-5 py-3 bg-[#0b0b0c] border-t border-neutral-800 flex justify-between items-center text-[11px] text-neutral-500 font-medium tracking-tight">
+						<div class="flex gap-4">
+							<span class="flex items-center gap-1.5">
+								<span class="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 font-mono">↑↓</span> navigate
+							</span>
+							<span class="flex items-center gap-1.5">
+								<span class="px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 font-mono">↵</span> select
+							</span>
+						</div>
+						<div class="flex items-center gap-1.5">
+							<span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+							Spotlight Search
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+			<script>
+				function toast(msg, type = 'info') {
+					const container = document.getElementById("toast-container");
+					const t = document.createElement("div");
+					t.className = `px-6 py-3 rounded-2xl border backdrop-blur-md shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-auto cursor-pointer`;
+					
+					const colors = {
+						success: 'bg-green-500/10 border-green-500/50 text-green-400',
+						error: 'bg-red-500/10 border-red-500/50 text-red-400',
+						info: 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+					};
+					t.classList.add(...colors[type].split(' '));
+					
+					const icons = {
+						success: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>',
+						error: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>',
+						info: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+					};
+					
+					t.innerHTML = `
+						<div class="p-1 rounded-full bg-black/20">${icons[type]}</div>
+						<span class="text-sm font-bold tracking-tight">${msg}</span>
+					`;
+					
+					t.onclick = () => {
+						t.classList.replace("slide-in-from-bottom-5", "translate-y-2");
+						t.classList.add("opacity-0", "scale-95");
+						setTimeout(() => t.remove(), 300);
+					};
+					
+					container.appendChild(t);
+					setTimeout(() => t.onclick(), 4000);
+				}
+
+				let spotlightIndex = -1;
+				
+				function openSpotlight() {
+					const modal = document.getElementById("spotlight-modal");
+					if (!modal) return;
+					modal.classList.replace("hidden", "flex");
+					const input = document.getElementById("spotlight-input");
+					input.value = "";
+					input.focus();
+					spotlightIndex = -1;
+					document.getElementById("spotlight-results").innerHTML = '<div class="p-8 text-center text-neutral-500 text-sm">Search for functions by name...</div>';
+				}
+
+				function closeSpotlight() {
+					const modal = document.getElementById("spotlight-modal");
+					if (modal) {
+						modal.classList.replace("flex", "hidden");
+					}
+				}
+
+				document.addEventListener("keydown", e => {
+					// IGNORE IF IN ACE OR INPUT
+					const target = e.target;
+					if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest(".ace_editor") || target.isContentEditable) {
+						// Special case: if spotlight is open, we DO want to handle Escape
+						const spotlight = document.getElementById("spotlight-modal");
+						const spotlightOpen = spotlight && !spotlight.classList.contains("hidden");
+						
+						if (e.key === "Escape" && spotlightOpen) {
+							e.preventDefault();
+							closeSpotlight();
+							return;
+						}
+						
+						// Otherwise, let the input/editor handle it
+						return;
+					}
+
+					// Cmd+K, Cmd+F, Ctrl+K, Ctrl+F
+					const isCmdShortcut = (e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "f");
+
+					if (isCmdShortcut) {
+						e.preventDefault();
+						openSpotlight();
+						return;
+					}
+
+					if (e.key === "Escape") {
+						const spotlight = document.getElementById("spotlight-modal");
+						if (spotlight && !spotlight.classList.contains("hidden")) {
+							e.preventDefault();
+							closeSpotlight();
+						}
+					}
+
+					const modal = document.getElementById("spotlight-modal");
+					if (modal && !modal.classList.contains("hidden")) {
+						const results = document.querySelectorAll(".spotlight-result");
+						if (e.key === "ArrowDown") {
+							e.preventDefault();
+							spotlightIndex = Math.min(spotlightIndex + 1, results.length - 1);
+							updateSpotlightSelection(results);
+						} else if (e.key === "ArrowUp") {
+							e.preventDefault();
+							spotlightIndex = Math.max(spotlightIndex - 1, 0);
+							updateSpotlightSelection(results);
+						} else if (e.key === "Enter" && spotlightIndex >= 0) {
+							e.preventDefault();
+							results[spotlightIndex].click();
+						}
+					}
+				});
+
+				function updateSpotlightSelection(results) {
+					results.forEach((r, i) => {
+						if (i === spotlightIndex) {
+							r.classList.add("bg-[#141415]", "active-result");
+							r.scrollIntoView({ block: "nearest" });
+						} else {
+							r.classList.remove("bg-[#141415]", "active-result");
+						}
+					});
+				}
+
+				let spotlightTimeout = null;
+				function handleSpotlightInput(val) {
+					clearTimeout(spotlightTimeout);
+					if (!val) {
+						document.getElementById("spotlight-results").innerHTML = '<div class="p-8 text-center text-neutral-500 text-sm">Search for functions by name...</div>';
+						return;
+					}
+					spotlightTimeout = setTimeout(async () => {
+						try {
+							const res = await fetch(`/api/functions/?search=${encodeURIComponent(val)}&limit=10`);
+							if (!res.ok) return;
+							const data = await res.json();
+							renderSpotlightResults(data);
+						} catch(e) {}
+					}, 120);
+				}
+
+				function renderSpotlightResults(results) {
+					const container = document.getElementById("spotlight-results");
+					if (!container) return;
+					
+					if (results.length === 0) {
+						container.innerHTML = '<div class="p-8 text-center text-neutral-500 text-sm">No results found.</div>';
+						return;
+					}
+
+					spotlightIndex = -1;
+					container.innerHTML = results.map((f, i) => `
+						<a href="/functions/?edit=${f.id}" 
+						   class="spotlight-result block w-full text-left px-5 py-4 border-b border-neutral-800/50 flex flex-col gap-1 transition hover:bg-[#141415] group">
+							<div class="flex items-center justify-between">
+								<span class="text-white font-medium text-[15px] group-hover:text-blue-400 transition">${f.name}</span>
+								<span class="text-blue-400 text-[10px] font-bold tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">${f.language}</span>
+							</div>
+							<span class="text-neutral-500 text-xs">${f.path || "No path defined"}</span>
+						</a>
+					`).join("");
+				}
+			</script>
 		</body>
 	</html>
 }

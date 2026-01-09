@@ -1,5 +1,13 @@
 package templates
 
+script openInvite(id string) {
+    openInviteModal(event, id)
+}
+
+script openAccess(id string) {
+    openAccessModal(event, id)
+}
+
 script selectProject(id string) {
 	document.cookie = "lws_project=" + id + "; path=/; SameSite=Lax"
 	location.reload()
@@ -39,55 +47,105 @@ templ DashboardContent(username string, projects []Project, activeProjectID stri
 		<!-- PROJECT SECTION -->
 		<div class="space-y-4 mb-12">
 			<h2 class="text-neutral-400 font-medium text-sm tracking-wide">Your Projects</h2>
-			<div class="overflow-x-auto scrollbar-hide">
-				<div class="flex gap-4 pr-6">
-					<!-- Loop -->
+			<div class="overflow-x-auto scrollbar-hide -mx-2 px-2">
+				<div class="flex gap-5 pb-4">
 					for _, p := range projects {
-						if activeProjectID == p.ID {
-							<button
-								onclick={ selectProject(p.ID) }
-								class="min-w-[220px] rounded-xl border border-neutral-700 bg-[#0e0e0f] p-4 shadow-md group"
-							>
-								<div class="flex items-center justify-between">
-									<h3 class="text-white font-semibold text-base">{ p.Name }</h3>
-									<div class="flex items-center gap-2">
-										<svg
-											onclick="event.stopPropagation(); syncProject()"
-											xmlns="http://www.w3.org/2000/svg"
-											class="w-4 h-4 text-green-400 opacity-0 group-hover:opacity-100 cursor-pointer hover:scale-110 transition-all"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											title="Sync project"
-										>
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+						<div 
+							class={ "group relative min-w-[280px] p-5 rounded-2xl border transition-all duration-300", 
+								  templ.KV("border-blue-500/50 bg-blue-500/5 shadow-[0_0_20px_-5px_rgba(59,130,246,0.3)]", activeProjectID == p.ID),
+								  templ.KV("border-neutral-800 bg-[#0e0e0f] hover:border-neutral-700 hover:bg-[#121213]", activeProjectID != p.ID) }
+						>
+							<div class="flex items-center justify-between mb-4">
+								<div class="flex items-center gap-3">
+									<div class={ "w-2 h-2 rounded-full", templ.KV("bg-blue-500 animate-pulse", activeProjectID == p.ID), templ.KV("bg-neutral-600", activeProjectID != p.ID) }></div>
+									<h3 class="text-white font-semibold text-lg tracking-tight">{ p.Name }</h3>
+								</div>
+								
+								if activeProjectID == p.ID {
+									<button 
+										onclick="event.stopPropagation(); syncProject()"
+										class="p-1.5 rounded-lg border border-neutral-800 text-neutral-500 hover:text-green-400 hover:border-green-500/30 transition-all active:scale-95"
+										title="Sync project"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
 										</svg>
-										<div class="h-2 w-2 bg-green-500 rounded-full"></div>
+									</button>
+								}
+							</div>
+
+							<div class="flex items-center gap-2 mt-auto">
+								<button 
+									onclick={ selectProject(p.ID) }
+									class={ "flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all",
+										  templ.KV("bg-blue-600 text-white shadow-lg shadow-blue-600/20", activeProjectID == p.ID),
+										  templ.KV("bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white", activeProjectID != p.ID) }
+								>
+									if activeProjectID == p.ID {
+										Active
+									} else {
+										Select
+									}
+								</button>
+								
+								if p.Role == "owner" {
+									<div class="flex gap-1.5">
+										<button 
+											onclick={ openInvite(p.ID) } 
+											class="p-2 rounded-xl border border-neutral-800 text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all"
+											title="Invite member"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+											</svg>
+										</button>
+										<button 
+											onclick={ openAccess(p.ID) } 
+											class="p-2 rounded-xl border border-neutral-800 text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all"
+											title="Manage access"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+											</svg>
+										</button>
 									</div>
-								</div>
-							</button>
-						} else {
-							<button
-								onclick={ selectProject(p.ID) }
-								class="min-w-[220px] rounded-xl border border-neutral-800 bg-[#0e0e0f] p-4"
-							>
-								<div class="flex items-center justify-between">
-									<h3 class="text-white font-semibold text-base">{ p.Name }</h3>
-								</div>
-							</button>
-						}
+								}
+							</div>
+						</div>
 					}
+
 					<!-- New project button -->
 					<button
 						onclick="openProjectModal()"
-						class="min-w-[220px] rounded-xl border border-neutral-800 bg-[#0b0b0c]
-						p-4 flex flex-col items-center justify-center text-neutral-500 
-						hover:text-white hover:border-neutral-600 hover:bg-neutral-900 shadow-md"
+						class="min-w-[280px] rounded-2xl border border-dashed border-neutral-800 bg-transparent
+						p-5 flex items-center gap-4 text-neutral-500 
+						hover:text-white hover:border-neutral-600 hover:bg-white/5 transition-all group"
 					>
-						<div class="h-8 w-8 rounded-full border border-neutral-700 grid place-items-center">
-							<span class="text-xl">+</span>
+						<div class="h-10 w-10 rounded-xl border border-neutral-800 bg-neutral-900 grid place-items-center group-hover:bg-neutral-800 transition-colors">
+							<span class="text-2xl font-light">+</span>
 						</div>
-						<p class="mt-2 font-medium text-sm">New Project</p>
+						<div class="text-left">
+							<p class="font-bold text-sm tracking-tight">New Project</p>
+							<p class="text-[10px] text-neutral-600 tracking-widest font-bold">Create fresh</p>
+						</div>
+					</button>
+
+					<!-- Join project button -->
+					<button
+						onclick="openJoinModal()"
+						class="min-w-[280px] rounded-2xl border border-dashed border-neutral-800 bg-transparent
+						p-5 flex items-center gap-4 text-neutral-500 
+						hover:text-white hover:border-neutral-600 hover:bg-white/5 transition-all group"
+					>
+						<div class="h-10 w-10 rounded-xl border border-neutral-800 bg-neutral-900 grid place-items-center group-hover:bg-neutral-800 transition-colors">
+							<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+							</svg>
+						</div>
+						<div class="text-left">
+							<p class="font-bold text-sm tracking-tight">Join Project</p>
+							<p class="text-[10px] text-neutral-600 tracking-widest font-bold">Enter code</p>
+						</div>
 					</button>
 				</div>
 			</div>
@@ -101,7 +159,9 @@ templ DashboardContent(username string, projects []Project, activeProjectID stri
 		} else {
 			<!-- FEATURE SECTIONS -->
 			<div class="space-y-4">
-				<h2 class="text-neutral-400 font-medium text-sm tracking-wide">Tools & Features</h2>
+				<div class="flex items-center justify-between">
+					<h2 class="text-neutral-400 font-medium text-sm tracking-wide">Tools & Features</h2>
+				</div>
 				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 					<a
 						href="/functions/"
@@ -162,21 +222,73 @@ templ DashboardContent(username string, projects []Project, activeProjectID stri
 				</div>
 			</div>
 		}
-		<!-- MODAL -->
-		<div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-			<div class="bg-[#0e0e0f] border border-neutral-800 rounded-2xl p-6 w-96">
-				<h3 class="text-lg text-white font-semibold">Create Project</h3>
+
+		<!-- ACCESS MODAL -->
+		<div id="access-modal" class="fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]" onclick="closeAccessModal()">
+			<div class="bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-6 w-[500px] shadow-2xl animate-in fade-in zoom-in duration-200" onclick="event.stopPropagation()">
+				<div class="flex justify-between items-center mb-6">
+					<h3 class="text-lg text-white font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Project Access
+                    </h3>
+					<button onclick="closeAccessModal()" class="text-neutral-500 hover:text-white transition">✕</button>
+				</div>
+				<div id="access-list" class="space-y-3 max-h-96 overflow-y-auto mb-6 custom-scrollbar pr-1">
+					<!-- Loaded via JS -->
+				</div>
+				<div class="flex justify-end pt-2 border-t border-neutral-800/50">
+					<button onclick="closeAccessModal()" class="px-5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-white text-sm font-semibold hover:bg-neutral-800 transition">Close</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- INVITE MODAL -->
+		<div id="invite-modal" class="fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]" onclick="closeInviteModal()">
+			<div class="bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-8 w-96 shadow-2xl animate-in fade-in zoom-in duration-200" onclick="event.stopPropagation()">
+				<h3 class="text-xl text-white font-bold mb-2">Invite Teammate</h3>
+				<p class="text-neutral-500 text-sm mb-6 leading-relaxed">Generated code expires in 24 hours. Teammates can join as viewers.</p>
+				<div class="flex items-center gap-2 p-1.5 bg-black/40 border border-neutral-800 rounded-2xl overflow-hidden">
+					<input id="invite-code-input" readonly class="flex-1 min-w-0 bg-transparent border-none pl-4 pr-1 py-2 text-white font-mono text-center text-lg focus:outline-none" value="..."/>
+					<button onclick="copyInviteCode()" class="bg-white text-black px-5 py-2 rounded-xl text-xs font-black hover:bg-neutral-200 transition active:scale-95 shrink-0">Copy</button>
+				</div>
+				<div class="flex justify-end mt-8">
+					<button onclick="closeInviteModal()" class="text-neutral-400 hover:text-white font-bold text-sm transition">Dismiss</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- JOIN MODAL -->
+		<div id="join-modal" class="fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]" onclick="closeJoinModal()">
+			<div class="bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-8 w-96 shadow-2xl animate-in fade-in zoom-in duration-200" onclick="event.stopPropagation()">
+				<h3 class="text-xl text-white font-bold mb-2">Join Project</h3>
+				<p class="text-neutral-500 text-sm mb-6 leading-relaxed">Enter the 8-character code shared by the project owner.</p>
+				<input id="join-code-input" class="w-full bg-black/40 border border-neutral-800 rounded-2xl px-4 py-4 text-white font-mono text-center mb-6 tracking-widest text-xl placeholder-neutral-800 focus:outline-none focus:border-blue-600 transition-colors" placeholder="ABCDEFGH"/>
+				<div class="flex flex-col gap-3">
+					<button onclick="submitJoinInvite()" class="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-black hover:bg-blue-500 transition shadow-lg shadow-blue-600/20 active:scale-95">Verify & Join</button>
+					<button onclick="closeJoinModal()" class="w-full py-2 text-neutral-500 hover:text-white font-bold text-sm transition">Cancel</button>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- NEW PROJECT MODAL -->
+		<div id="project-modal" class="fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]" onclick="closeProjectModal()">
+			<div class="bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-7 w-96 shadow-2xl animate-in fade-in zoom-in duration-200" onclick="event.stopPropagation()">
+				<h3 class="text-xl text-white font-bold mb-2">Create Project</h3>
+				<p class="text-neutral-500 text-sm mb-6">Give your workspace a name to get started.</p>
 				<input
 					id="new-project-name"
-					class="w-full mt-4 px-3 py-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl text-white"
-					placeholder="Project name"
+					class="w-full bg-black/40 border border-neutral-800 rounded-2xl px-4 py-3 text-white placeholder-neutral-700 focus:outline-none focus:border-neutral-600 transition-colors"
+					placeholder="My Workspace"
 				/>
-				<div class="flex justify-end gap-3 mt-6">
-					<button onclick="closeProjectModal()" class="text-neutral-400">Cancel</button>
+				<div class="flex justify-end gap-3 mt-8">
+					<button onclick="closeProjectModal()" class="text-neutral-500 hover:text-white font-medium text-sm transition">Cancel</button>
 					<button
 						onclick="submitNewProject()"
-						class="bg-white text-black px-4 py-2 rounded-xl font-semibold"
-					>Create</button>
+						class="bg-white text-black px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-200 transition active:scale-95"
+					>Initialize</button>
 				</div>
 			</div>
 		</div>
@@ -208,9 +320,107 @@ templ DashboardContent(username string, projects []Project, activeProjectID stri
       await fetch("/api/projects/sync/", {
         method: "POST"
       })
-      alert("Sync completed!")
-      location.reload()
+      toast("Sync completed!", "success")
+      setTimeout(() => location.reload(), 500)
     }
+
+    async function loadProjectAccess() {
+      const res = await fetch("/api/projects/access/")
+      const users = await res.json()
+      const list = document.getElementById("access-list")
+      if(!list) return;
+      list.innerHTML = users.map(u => {
+        const revokeBtn = u.role !== 'owner' 
+          ? `<button onclick="revokeAccess('${u.id}')" class="px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-[10px] font-bold tracking-widest transition-all opacity-0 group-hover/user:opacity-100">Revoke</button>`
+          : `<span class="px-3 py-1.5 text-neutral-600 text-[9px] font-bold tracking-widest">Locked</span>`;
+          
+        return `
+          <div class="flex items-center justify-between p-4 bg-black/40 border border-neutral-800 rounded-2xl group/user transition-all hover:border-neutral-700">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 grid place-items-center text-[12px] text-white font-black tracking-tighter">
+                ${u.name.substring(0,2)}
+              </div>
+              <div>
+                <div class="text-white text-sm font-bold tracking-tight">${u.name}</div>
+                <div class="text-neutral-500 text-[9px] tracking-[0.1em] font-black mt-0.5">${u.role}</div>
+              </div>
+            </div>
+            ${revokeBtn}
+          </div>
+        `;
+      }).join("")
+    }
+
+    async function revokeAccess(id) {
+      if(!confirm("Are you sure?")) return
+      await fetch(`/api/projects/access/${id}/`, { method: "DELETE" })
+      loadProjectAccess()
+    }
+
+    function openAccessModal(e, id) {
+      if(e) e.stopPropagation()
+      // set active project cookie first to ensure we fetch correct access
+      document.cookie = "lws_project=" + id + "; path=/; SameSite=Lax"
+      document.getElementById("access-modal").classList.remove("hidden")
+      document.getElementById("access-modal").classList.add("flex")
+      loadProjectAccess()
+    }
+
+    function closeAccessModal() {
+      document.getElementById("access-modal").classList.add("hidden")
+      document.getElementById("access-modal").classList.remove("flex")
+    }
+
+    async function openInviteModal(e, id) {
+      if(e) e.stopPropagation()
+      document.cookie = "lws_project=" + id + "; path=/; SameSite=Lax"
+      document.getElementById("invite-modal").classList.remove("hidden")
+      document.getElementById("invite-modal").classList.add("flex")
+      
+      const res = await fetch("/api/projects/invites/", { method: "POST" })
+      const data = await res.json()
+      const input = document.getElementById("invite-code-input")
+      input.value = data.code
+      input.classList.add("tracking-widest")
+    }
+
+    function closeInviteModal() {
+      document.getElementById("invite-modal").classList.add("hidden")
+      document.getElementById("invite-modal").classList.remove("flex")
+    }
+
+    function copyInviteCode() {
+      const input = document.getElementById("invite-code-input")
+      input.select()
+      document.execCommand("copy")
+      toast("Code copied!", "success")
+    }
+
+    function openJoinModal() {
+      document.getElementById("join-modal").classList.remove("hidden")
+      document.getElementById("join-modal").classList.add("flex")
+    }
+
+    function closeJoinModal() {
+      document.getElementById("join-modal").classList.add("hidden")
+      document.getElementById("join-modal").classList.remove("flex")
+    }
+
+    async function submitJoinInvite() {
+      const code = document.getElementById("join-code-input").value.trim()
+      if(!code) return
+      const res = await fetch(`/api/projects/join/?code=${code}`, { method: "POST" })
+      if(res.ok) {
+        const data = await res.json()
+        document.cookie = "lws_project=" + data.project_id + "; path=/; SameSite=Lax"
+        location.reload()
+      } else {
+        const data = await res.json()
+        toast(data.error || "Failed to join", "error")
+      }
+    }
+
   </script>
+
 	</div>
 }

@@ -112,6 +112,58 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 	return items, nil
 }
 
+const listFunctionsSearchPaged = `-- name: ListFunctionsSearchPaged :many
+SELECT id, project_id, name, language, path, created_by, created_at
+FROM functions
+WHERE project_id = $1
+  AND (
+        $2::text = '' OR
+        name ILIKE '%' || $2::text || '%'
+      )
+ORDER BY language ASC, created_at DESC
+LIMIT $3 OFFSET $4
+`
+
+type ListFunctionsSearchPagedParams struct {
+	ProjectID pgtype.UUID
+	Column2   string
+	Limit     int32
+	Offset    int32
+}
+
+func (q *Queries) ListFunctionsSearchPaged(ctx context.Context, arg ListFunctionsSearchPagedParams) ([]Function, error) {
+	rows, err := q.db.Query(ctx, listFunctionsSearchPaged,
+		arg.ProjectID,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Function
+	for rows.Next() {
+		var i Function
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProjectID,
+			&i.Name,
+			&i.Language,
+			&i.Path,
+			&i.CreatedBy,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateFunctionPath = `-- name: UpdateFunctionPath :one
 UPDATE functions
 SET path = $2

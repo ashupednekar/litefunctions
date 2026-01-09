@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	functionadaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
@@ -121,9 +122,20 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 
 func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 	projectUUID := c.MustGet("projectUUID").(pgtype.UUID)
+	search := c.Query("search")
+	limitStr := c.DefaultQuery("limit", "100")
+	offsetStr := c.DefaultQuery("offset", "0")
+
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
 
 	q := functionadaptors.New(h.state.DBPool)
-	fns, err := q.ListFunctionsForProject(c.Request.Context(), projectUUID)
+	fns, err := q.ListFunctionsSearchPaged(c.Request.Context(), functionadaptors.ListFunctionsSearchPagedParams{
+		ProjectID: projectUUID,
+		Column2:   search,
+		Limit:     int32(limit),
+		Offset:    int32(offset),
+	})
 	if err != nil {
 		c.JSON(500, gin.H{"error": "database error"})
 		return

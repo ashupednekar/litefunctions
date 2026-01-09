@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	accessAdaptors "github.com/ashupednekar/litewebservices-portal/internal/access/adaptors"
 	authAdaptors "github.com/ashupednekar/litewebservices-portal/internal/auth/adaptors"
 	functionAdaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
-	projectAdaptors "github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/ashupednekar/litewebservices-portal/templates"
 	"github.com/gin-gonic/gin"
@@ -25,7 +25,7 @@ func NewUIHandlers(s *state.AppState) *UIHandlers {
 
 func (h *UIHandlers) Home(ctx *gin.Context) {
 	userId, ok := ctx.Get("userID")
-	if ok && userId != nil{
+	if ok && userId != nil {
 		ctx.Redirect(http.StatusFound, "/dashboard")
 		return
 	}
@@ -46,13 +46,14 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 	usernameStr := "User"
 
 	if userID != nil {
-		q := projectAdaptors.New(h.state.DBPool)
+		q := accessAdaptors.New(h.state.DBPool)
 		dbProjects, err := q.ListProjectsForUser(ctx.Request.Context(), userID.([]byte))
 		if err == nil {
 			for _, p := range dbProjects {
 				projects = append(projects, templates.Project{
 					ID:   hex.EncodeToString(p.ID.Bytes[:]),
 					Name: p.Name,
+					Role: string(p.Role),
 				})
 			}
 		}

@@ -15,7 +15,7 @@ templ HomeContent() {
     try {
       const username = document.getElementById("username").value.trim();
       if (!username) {
-        alert("Please enter a username first.");
+        toast("Please enter a username first.", "info");
         return;
       }
 
@@ -26,7 +26,8 @@ templ HomeContent() {
       });
 
       if (!startResp.ok) {
-        alert("Failed to start registration: " + await startResp.text());
+        const errText = await startResp.text();
+        toast("Failed to start registration: " + errText, "error");
         return;
       }
 
@@ -48,11 +49,11 @@ templ HomeContent() {
         window.location.href = '/dashboard';
       } else {
         const msg = await finishResp.text();
-        alert("Registration failed: " + msg);
+        toast("Registration failed: " + msg, "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Registration error: " + err);
+      toast("Registration error: " + err, "error");
     }
   };
 
@@ -60,7 +61,7 @@ templ HomeContent() {
     try {
       const username = document.getElementById("username").value.trim();
       if (!username) {
-        alert("Please enter your username first.");
+        toast("Please enter your username first.", "info");
         return;
       }
 
@@ -71,7 +72,8 @@ templ HomeContent() {
       });
 
       if (!startResp.ok) {
-        alert("Failed to start login: " + await startResp.text());
+        const errText = await startResp.text();
+        toast("Failed to start login: " + errText, "error");
         return;
       }
 
@@ -100,11 +102,11 @@ templ HomeContent() {
         }
       } else {
         const msg = await finishResp.text();
-        alert("Login failed: " + msg);
+        toast("Login failed: " + msg, "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Login error: " + err);
+      toast("Login error: " + err, "error");
     }
   };
 </script>

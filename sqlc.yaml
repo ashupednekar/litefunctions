@@ -24,3 +24,11 @@ sql:
         package: "adaptors"
         out: "./internal/function/adaptors"
         sql_package: "pgx/v5"
+  - engine: "postgresql"
+    queries: "./internal/access/adaptors/query.sql"
+    schema: "migrations/*.sql"
+    gen:
+      go:
+        package: "adaptors"
+        out: "./internal/access/adaptors"
+        sql_package: "pgx/v5"

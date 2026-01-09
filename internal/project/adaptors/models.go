@@ -49,6 +49,16 @@ type Project struct {
 	CreatedAt   pgtype.Timestamptz
 }
 
+type ProjectInvite struct {
+	ID         pgtype.UUID
+	ProjectID  pgtype.UUID
+	InviteCode string
+	CreatedBy  []byte
+	ExpiresAt  pgtype.Timestamptz
+	UsedAt     pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+}
+
 type User struct {
 	ID          []byte
 	Name        string
@@ -56,11 +66,13 @@ type User struct {
 	Icon        pgtype.Text
 }
 
-type UserProject struct {
+type UserProjectAccess struct {
+	ID        pgtype.UUID
 	UserID    []byte
 	ProjectID pgtype.UUID
-	Role      pgtype.Text
+	Role      interface{}
 	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }
 
 type UserSession struct {

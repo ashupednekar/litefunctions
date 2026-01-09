@@ -56,6 +56,12 @@ func (s *Server) BuildRoutes() {
 	projectHandlers := handlers.NewProjectHandlers(s.state)
 	functionHandlers := handlers.NewFunctionHandlers(s.state)
 
+	apiJoined := s.router.Group("/api/")
+	apiJoined.Use(middleware.AuthMiddleware(auth.GetStore()))
+	{
+		apiJoined.POST("/projects/", projectHandlers.CreateProject)
+		apiJoined.POST("/projects/join/", projectHandlers.JoinProjectByInvite)
+	}
 
 	api := s.router.Group("/api/")
 	api.Use(
@@ -63,11 +69,15 @@ func (s *Server) BuildRoutes() {
 		middleware.ProjectMiddleware(s.state),
 	)
 	{
-		api.POST("/projects/", projectHandlers.CreateProject)
-		api.GET("/projects/", handlers.ListProjects)
-		api.GET("/projects/:id/", handlers.GetProject)
-		api.DELETE("/projects/:id/", handlers.DeleteProject)
+		api.GET("/projects/", projectHandlers.ListProjects)
+		api.GET("/projects/:id/", projectHandlers.GetProject)
+		api.DELETE("/projects/:id/", projectHandlers.DeleteProject)
 		api.POST("/projects/sync/", projectHandlers.SyncProject)
+
+		api.POST("/projects/invites/", projectHandlers.CreateProjectInvite)
+		api.GET("/projects/access/", projectHandlers.ListProjectAccess)
+		api.PUT("/projects/access/:id/", projectHandlers.UpdateProjectAccess)
+		api.DELETE("/projects/access/:id/", projectHandlers.RevokeProjectAccess)
 
 		api.POST("/functions/", functionHandlers.CreateFunction)
 		api.GET("/functions/", functionHandlers.ListFunctions)

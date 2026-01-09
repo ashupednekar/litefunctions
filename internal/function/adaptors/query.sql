@@ -25,3 +25,15 @@ RETURNING *;
 -- name: DeleteFunction :exec
 DELETE FROM functions
 WHERE id = $1;
+
+-- name: ListFunctionsSearchPaged :many
+SELECT *
+FROM functions
+WHERE project_id = $1
+  AND (
+        $2::text = '' OR
+        name ILIKE '%' || $2::text || '%'
+      )
+ORDER BY language ASC, created_at DESC
+LIMIT $3 OFFSET $4;
+
