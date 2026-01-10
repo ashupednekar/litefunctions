@@ -3,7 +3,8 @@ package cmd
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/ashupednekar/litewebservices-portal/migrations"
 	"github.com/ashupednekar/litewebservices-portal/pkg"
@@ -25,9 +26,10 @@ var migrateUpCmd = &cobra.Command{
 	Short: "Run all pending migrations",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runMigrations("up"); err != nil {
-			log.Fatalf("Migration up failed: %v", err)
+			slog.Error("Migration up failed", "error", err)
+			os.Exit(1)
 		}
-		fmt.Println("✓ Migrations completed successfully")
+		slog.Info("Migrations completed successfully")
 	},
 }
 
@@ -36,9 +38,10 @@ var migrateDownCmd = &cobra.Command{
 	Short: "Rollback the last migration",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runMigrations("down"); err != nil {
-			log.Fatalf("Migration down failed: %v", err)
+			slog.Error("Migration down failed", "error", err)
+			os.Exit(1)
 		}
-		fmt.Println("✓ Migration rolled back successfully")
+		slog.Info("Migration rolled back successfully")
 	},
 }
 

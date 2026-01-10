@@ -50,17 +50,17 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("[DEBUG] Creating project: %s, User: %s, Vendor: %s\n", req.Name, pkg.Cfg.VcsUser, pkg.Cfg.VcsVendor)
+	slog.Debug("Creating project", "name", req.Name, "user", pkg.Cfg.VcsUser, "vendor", pkg.Cfg.VcsVendor)
 	vcsClient, err := vendors.NewVendorClient()
 	if err != nil {
-		fmt.Printf("[ERROR] VCS Init: %v\n", err)
+		slog.Error("VCS Init failed", "error", err)
 		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})
 		return
 	}
 
 	tx, err := h.state.DBPool.Begin(c.Request.Context())
 	if err != nil {
-		fmt.Printf("[ERROR] DB Begin: %v\n", err)
+		slog.Error("DB Begin transaction failed", "error", err)
 		c.JSON(500, gin.H{"error": "failed to start transaction"})
 		return
 	}
@@ -75,7 +75,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		CreatedBy:   userID.([]byte),
 	})
 	if err != nil {
-		fmt.Printf("[ERROR] DB CreateProject: %v\n", err)
+		slog.Error("DB CreateProject failed", "error", err)
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -85,7 +85,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		ProjectID: project.ID,
 	})
 	if err != nil {
-		fmt.Printf("[ERROR] DB AddOwner: %v\n", err)
+		slog.Error("DB AddOwner failed", "error", err)
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -98,9 +98,9 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "409") {
-			fmt.Printf("[INFO] Repo already exists, will sync existing functions\n")
+			slog.Info("Repo already exists, will sync existing functions")
 		} else {
-			fmt.Printf("[ERROR] VCS CreateRepo: %v\n", err)
+			slog.Error("VCS CreateRepo failed", "error", err)
 			c.JSON(500, gin.H{"error": fmt.Sprintf("failed to create repo: %v", err)})
 			return
 		}
@@ -122,22 +122,22 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "409") {
-			fmt.Printf("[INFO] Webhook already exists\n")
+			slog.Info("Webhook already exists")
 		} else {
-			fmt.Printf("[ERROR] VCS AddWebhook: %v\n", err)
+			slog.Error("VCS AddWebhook failed", "error", err)
 			c.JSON(500, gin.H{"error": fmt.Sprintf("failed to add webhook: %v", err)})
 			return
 		}
 	}
 
 	if err := tx.Commit(c.Request.Context()); err != nil {
-		fmt.Printf("[ERROR] DB Commit: %v\n", err)
+		slog.Error("DB Commit transaction failed", "error", err)
 		c.JSON(500, gin.H{"error": "failed to commit transaction"})
 		return
 	}
 
 	if err := SyncRepoFunctionsToDb(c, h.state.DBPool, project.ID, req.Name, userID.([]byte)); err != nil {
-		fmt.Printf("[WARN] Failed to sync repo functions: %v\n", err)
+		slog.Warn("Failed to sync repo functions", "error", err)
 	}
 
 	c.JSON(201, gin.H{"id": project.ID, "name": project.Name})
@@ -149,7 +149,7 @@ func (h *ProjectHandlers) SyncProject(c *gin.Context) {
 	userID := c.MustGet("userID").([]byte)
 
 	if err := SyncRepoFunctionsToDb(c, h.state.DBPool, projectUUID, projectName, userID); err != nil {
-		fmt.Printf("[ERROR] Sync failed: %v\n", err)
+		slog.Error("Sync failed", "project", projectName, "error", err)
 		c.JSON(500, gin.H{"error": "sync failed"})
 		return
 	}

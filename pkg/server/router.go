@@ -54,7 +54,6 @@ func (s *Server) BuildRoutes() {
 	}
 
 	projectHandlers := handlers.NewProjectHandlers(s.state)
-	functionHandlers := handlers.NewFunctionHandlers(s.state)
 
 	apiJoined := s.router.Group("/api/")
 	apiJoined.Use(middleware.AuthMiddleware(auth.GetStore()))
@@ -69,6 +68,9 @@ func (s *Server) BuildRoutes() {
 		middleware.ProjectMiddleware(s.state),
 	)
 	{
+		functionHandlers := handlers.NewFunctionHandlers(s.state)
+		endpointHandlers := handlers.NewEndpointHandlers(s.state)
+
 		api.GET("/projects/", projectHandlers.ListProjects)
 		api.GET("/projects/:id/", projectHandlers.GetProject)
 		api.DELETE("/projects/:id/", projectHandlers.DeleteProject)
@@ -85,11 +87,9 @@ func (s *Server) BuildRoutes() {
 		api.PUT("/functions/:fnID/", functionHandlers.UpdateFunction)
 		api.DELETE("/functions/:fnID/", functionHandlers.DeleteFunction)
 
-		api.POST("/endpoints/", handlers.CreateEndpoint)
-		api.GET("/endpoints/", handlers.ListEndpoints)
-		api.GET("/endpoints/:epID/", handlers.GetEndpoint)
-		api.PUT("/endpoints/:epID/", handlers.UpdateEndpoint)
-		api.DELETE("/endpoints/:epID/", handlers.DeleteEndpoint)
+		api.GET("/endpoints/", endpointHandlers.ListEndpoints)
+		api.GET("/endpoints/:epID/", endpointHandlers.GetEndpoint)
+		api.PUT("/endpoints/:epID/", endpointHandlers.UpdateEndpoint)
 
 		api.GET("/config/", handlers.GetProjectConfig)
 		api.PUT("/config/", handlers.UpdateProjectConfig)

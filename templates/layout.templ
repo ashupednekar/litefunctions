@@ -118,6 +118,23 @@ templ BaseLayout(content templ.Component) {
 					}
 				}
 
+				function selectEndpointFromSpotlight(epId) {
+					closeSpotlight();
+					if (window.location.pathname === "/endpoints/") {
+						if (typeof expandEndpointById === "function") {
+							expandEndpointById(epId);
+						} else {
+							document.querySelectorAll('[id^="endpoint-"]').forEach(el => el.classList.add('hidden'));
+							let target = document.getElementById("endpoint-" + epId);
+							if (target) target.classList.remove('hidden');
+						}
+						let card = document.getElementById("endpoint-" + epId);
+						if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					} else {
+						window.location.href = "/endpoints/?expand=" + epId;
+					}
+				}
+
 				document.addEventListener("keydown", e => {
 					// IGNORE IF IN ACE OR INPUT
 					const target = e.target;
@@ -186,39 +203,70 @@ templ BaseLayout(content templ.Component) {
 				function handleSpotlightInput(val) {
 					clearTimeout(spotlightTimeout);
 					if (!val) {
-						document.getElementById("spotlight-results").innerHTML = '<div class="p-8 text-center text-neutral-500 text-sm">Search for functions by name...</div>';
+						document.getElementById("spotlight-results").innerHTML = '<div class="p-8 text-center text-neutral-500 text-sm">Search for functions & endpoints...</div>';
 						return;
 					}
 					spotlightTimeout = setTimeout(async () => {
 						try {
-							const res = await fetch(`/api/functions/?search=${encodeURIComponent(val)}&limit=10`);
-							if (!res.ok) return;
-							const data = await res.json();
-							renderSpotlightResults(data);
-						} catch(e) {}
+							const [fRes, eRes] = await Promise.all([
+								fetch(`/api/functions/?search=${encodeURIComponent(val)}&limit=5`),
+								fetch(`/api/endpoints/?search=${encodeURIComponent(val)}&limit=5`)
+							]);
+							
+							const functions = fRes.ok ? await fRes.json() : [];
+							const endpoints = eRes.ok ? await eRes.json() : [];
+							
+							renderSpotlightResults(functions, endpoints);
+						} catch(e) {
+							console.error("Spotlight fetch failed", e);
+						}
 					}, 120);
 				}
 
-				function renderSpotlightResults(results) {
+				function renderSpotlightResults(functions, endpoints) {
 					const container = document.getElementById("spotlight-results");
 					if (!container) return;
 					
-					if (results.length === 0) {
+					if (functions.length === 0 && endpoints.length === 0) {
 						container.innerHTML = '<div class="p-8 text-center text-neutral-500 text-sm">No results found.</div>';
 						return;
 					}
 
 					spotlightIndex = -1;
-					container.innerHTML = results.map((f, i) => `
-						<a href="/functions/?edit=${f.id}" 
-						   class="spotlight-result block w-full text-left px-5 py-4 border-b border-neutral-800/50 flex flex-col gap-1 transition hover:bg-[#141415] group">
-							<div class="flex items-center justify-between">
-								<span class="text-white font-medium text-[15px] group-hover:text-blue-400 transition">${f.name}</span>
-								<span class="text-blue-400 text-[10px] font-bold tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">${f.language}</span>
-							</div>
-							<span class="text-neutral-500 text-xs">${f.path || "No path defined"}</span>
-						</a>
-					`).join("");
+					let html = "";
+
+					if (functions.length > 0) {
+						html += '<div class="px-5 py-2 text-[10px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-900/50 border-b border-neutral-800">Functions</div>';
+						html += functions.map(f => `
+							<a href="/functions/?edit=${f.id}" 
+							   class="spotlight-result block w-full text-left px-5 py-3 border-b border-neutral-800/50 flex flex-col gap-0.5 transition hover:bg-[#141415] group">
+								<div class="flex items-center justify-between">
+									<span class="text-white font-medium text-sm group-hover:text-blue-400 transition">${f.name}</span>
+									<span class="text-blue-400 text-[9px] font-bold tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">${f.language}</span>
+								</div>
+								<span class="text-neutral-500 text-[11px] truncate">${f.path || ""}</span>
+							</a>
+						`).join("");
+					}
+
+					if (endpoints.length > 0) {
+						html += '<div class="px-5 py-2 text-[10px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-900/50 border-b border-neutral-800">Endpoints</div>';
+						html += endpoints.map(e => `
+							<button 
+							   onclick="selectEndpointFromSpotlight('${e.ID}')"
+							   class="spotlight-result block w-full text-left px-5 py-3 border-b border-neutral-800/50 flex flex-col gap-0.5 transition hover:bg-[#141415] group">
+								<div class="flex items-center justify-between">
+									<span class="text-white font-medium text-sm group-hover:text-purple-400 transition">${e.Name}</span>
+									<div class="flex gap-2">
+										<span class="text-neutral-400 text-[9px] font-mono bg-neutral-800 px-1.5 py-0.5 rounded border border-neutral-700">${e.FunctionName}</span>
+										<span class="text-purple-400 text-[9px] font-bold tracking-widest bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">${e.Method}</span>
+									</div>
+								</div>
+							</button>
+						`).join("");
+					}
+
+					container.innerHTML = html;
 				}
 			</script>
 		</body>

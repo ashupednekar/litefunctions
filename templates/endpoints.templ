@@ -1,10 +1,85 @@
 package templates
 
-templ EndpointsContent() {
+type Endpoint struct {
+	ID           string
+	Name         string
+	Method       string
+	Scope        string
+	FunctionName string
+}
+
+script toggleManageEndpoint(id string) {
+	document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
+		if (el.id === "endpoint-" + id) {
+			if (el.classList.contains('hidden')) el.classList.remove('hidden');
+			else el.classList.add('hidden');
+		} else {
+			el.classList.add('hidden');
+		}
+	});
+}
+
+script expandEndpointById(id string) {
+	document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
+		el.classList.add('hidden');
+	});
+	let target = document.getElementById("endpoint-" + id);
+	if (target) target.classList.remove('hidden');
+}
+
+script selectMethodForEndpoint(id string, method string) {
+	["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
+		let btn = document.getElementById("method-" + m + "-" + id);
+		if(btn) {
+			btn.classList.remove("border-blue-500", "bg-blue-500/20", "text-blue-400");
+			btn.classList.add("border-neutral-700", "text-neutral-400");
+		}
+	});
+	let selected = document.getElementById("method-" + method + "-" + id);
+	if(selected) {
+		selected.classList.remove("border-neutral-700", "text-neutral-400");
+		selected.classList.add("border-blue-500", "bg-blue-500/20", "text-blue-400");
+	}
+	document.getElementById("selected-method-" + id).value = method;
+}
+
+script selectGatewayForEndpoint(id string, gateway string) {
+	["liteginx", "nginx", "envoy", "traefik"].forEach(g => {
+		let card = document.getElementById("gateway-" + g + "-" + id);
+		if(card) card.classList.remove("border-blue-500", "bg-blue-500/10");
+	});
+	let c = document.getElementById("gateway-" + gateway + "-" + id);
+	if(c) c.classList.add("border-blue-500", "bg-blue-500/10");
+}
+
+script saveEndpointSettings(id string, scope string) {
+	const method = document.getElementById("selected-method-" + id).value;
+	const authEl = document.getElementById("auth-" + id);
+	let newScope = scope;
+	if (authEl) {
+		const authVal = authEl.value;
+		if (authVal === "No Auth") newScope = "public";
+		else if (authVal.includes("API Key")) newScope = "authn";
+	}
+	fetch("/api/endpoints/" + id + "/", {
+		method: "PUT",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify({method: method, scope: newScope})
+	}).then(res => {
+		if (res.ok) {
+			toast("Endpoint updated!", "success");
+			setTimeout(() => location.reload(), 500);
+		} else {
+			toast("Update failed", "error");
+		}
+	});
+}
+
+templ EndpointsContent(endpoints []Endpoint) {
 	<div class="w-full px-6 md:px-14 py-12 space-y-14">
 		<!-- HEADER -->
 		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-4">
+			<div class="flex items-center gap-6">
 				<a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
 					<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -13,164 +88,193 @@ templ EndpointsContent() {
 				<h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">
 					Endpoints
 				</h1>
+				<!-- SEARCH TRIGGER -->
+				<button 
+					onclick="openSpotlight()"
+					class="flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+					</svg>
+					<span class="flex-1 text-left">Search endpoints...</span>
+					<div class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium">
+						<span class="font-mono">⌘</span>K
+					</div>
+				</button>
 			</div>
-			<button
-				onclick="openNewEndpointModal()"
-				class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition"
-			>
-				New Endpoint
-			</button>
 		</div>
 		<p class="text-neutral-400 text-sm md:text-base -mt-6">
-			Create REST endpoints or map functions to routes.
+			View and manage your service endpoints. Routes are automatically mapped when functions are created.
 		</p>
 		<!-- ENDPOINT LIST -->
 		<div id="endpoints-list" class="space-y-5 mt-10">
-			<!-- ENDPOINT CARD -->
-			<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4">
-				<div class="flex justify-between items-center">
-					<div class="flex items-center gap-3">
-						<span class="px-3 py-1 rounded-lg bg-blue-600/20 text-blue-400 text-xs font-semibold">GET</span>
-						<h3 class="text-white text-lg font-semibold">/hello</h3>
-					</div>
-					<button onclick="toggleManage('endpoint-hello')" class="text-neutral-400 hover:text-white transition text-sm">
-						Manage
-					</button>
-				</div>
-				<!-- MANAGE COLLAPSIBLE -->
-				<div id="endpoint-hello" class="hidden mt-4 space-y-8">
-					<!-- ENGINE SELECTION -->
-					<div>
-						<h4 class="text-white font-semibold mb-2">Engine</h4>
-						<p class="text-neutral-500 text-sm mb-3">Choose which edge engine drives this endpoint.</p>
-						<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-							<!-- Card -->
-							<button
-								onclick="selectEngine('hello','liteginx')"
-								id="engine-liteginx-hello"
-								class="engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition"
-							>
-								<p class="text-white text-sm font-semibold">Liteginx</p>
-								<p class="text-neutral-500 text-xs mt-1">Small + fast</p>
-							</button>
-							<button
-								onclick="selectEngine('hello','nginx')"
-								id="engine-nginx-hello"
-								class="engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition"
-							>
-								<p class="text-white text-sm font-semibold">Nginx</p>
-								<p class="text-neutral-500 text-xs mt-1">Industry standard</p>
-							</button>
-							<button
-								onclick="selectEngine('hello','envoy')"
-								id="engine-envoy-hello"
-								class="engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition"
-							>
-								<p class="text-white text-sm font-semibold">Envoy</p>
-								<p class="text-neutral-500 text-xs mt-1">Modern proxy</p>
-							</button>
-							<button
-								onclick="selectEngine('hello','traefik')"
-								id="engine-traefik-hello"
-								class="engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition"
-							>
-								<p class="text-white text-sm font-semibold">Traefik</p>
-								<p class="text-neutral-500 text-xs mt-1">Dynamic routing</p>
-							</button>
-						</div>
-					</div>
-					<!-- RATE LIMITING -->
-					<div>
-						<h4 class="text-white font-semibold mb-2">Rate Limiting</h4>
-						<p class="text-neutral-500 text-sm mb-3">Protect the endpoint with simple throttling.</p>
+			for _, ep := range endpoints {
+				<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4">
+					<div class="flex justify-between items-center">
 						<div class="flex items-center gap-3">
-							<input
-								type="number"
-								min="1"
-								id="rl-hello"
-								class="bg-[#0b0b0c] border border-neutral-700 rounded-lg p-2 text-white w-32"
-								placeholder="req/min"
-							/>
-							<button class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-sm">
-								Save
+							if ep.Method == "POST" {
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400">{ ep.Method }</span>
+							} else if ep.Method == "PUT" {
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400">{ ep.Method }</span>
+							} else if ep.Method == "DELETE" {
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400">{ ep.Method }</span>
+							} else {
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400">{ ep.Method }</span>
+							}
+							<h3 class="text-white text-lg font-semibold">{ ep.Name }</h3>
+							<span class="text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+								{ ep.FunctionName }
+							</span>
+						</div>
+						<button onclick={ toggleManageEndpoint(ep.ID) } class="text-neutral-400 hover:text-white transition text-sm flex items-center gap-1">
+							Manage
+							<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+							</svg>
+						</button>
+					</div>
+					<!-- MANAGE COLLAPSIBLE -->
+					<div id={ "endpoint-" + ep.ID } class="hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200">
+						<!-- HIDDEN INPUTS FOR FORM STATE -->
+						<input type="hidden" id={ "selected-method-" + ep.ID } value={ ep.Method }/>
+
+						<!-- METHOD SELECTOR -->
+						<div>
+							<h4 class="text-white font-semibold mb-2">HTTP Method</h4>
+							<div class="flex gap-2 flex-wrap">
+								for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+									if m == ep.Method {
+										<button
+											onclick={ selectMethodForEndpoint(ep.ID, m) }
+											id={ "method-" + m + "-" + ep.ID }
+											class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400"
+										>{ m }</button>
+									} else {
+										<button
+											onclick={ selectMethodForEndpoint(ep.ID, m) }
+											id={ "method-" + m + "-" + ep.ID }
+											class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white"
+										>{ m }</button>
+									}
+								}
+							</div>
+						</div>
+
+						<!-- GATEWAY SELECTION -->
+						<div>
+							<h4 class="text-white font-semibold mb-2">Gateway</h4>
+							<p class="text-neutral-500 text-sm mb-3">Choose which gateway handles this route.</p>
+							<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+								<button
+									onclick={ selectGatewayForEndpoint(ep.ID, "liteginx") }
+									id={ "gateway-liteginx-" + ep.ID }
+									class="p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left"
+								>
+									<p class="text-white text-sm font-semibold">Liteginx</p>
+									<p class="text-neutral-500 text-[10px] mt-0.5">Small + fast</p>
+								</button>
+								<button
+									onclick={ selectGatewayForEndpoint(ep.ID, "nginx") }
+									id={ "gateway-nginx-" + ep.ID }
+									class="p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left"
+								>
+									<p class="text-white text-sm font-semibold">Nginx</p>
+									<p class="text-neutral-500 text-[10px] mt-0.5">Industry standard</p>
+								</button>
+								<button
+									onclick={ selectGatewayForEndpoint(ep.ID, "envoy") }
+									id={ "gateway-envoy-" + ep.ID }
+									class="p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left"
+								>
+									<p class="text-white text-sm font-semibold">Envoy</p>
+									<p class="text-neutral-500 text-[10px] mt-0.5">Modern proxy</p>
+								</button>
+								<button
+									onclick={ selectGatewayForEndpoint(ep.ID, "traefik") }
+									id={ "gateway-traefik-" + ep.ID }
+									class="p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left"
+								>
+									<p class="text-white text-sm font-semibold">Traefik</p>
+									<p class="text-neutral-500 text-[10px] mt-0.5">Dynamic routing</p>
+								</button>
+							</div>
+						</div>
+						<!-- RATE LIMITING -->
+						<div>
+							<h4 class="text-white font-semibold mb-2">Rate Limiting</h4>
+							<p class="text-neutral-500 text-sm mb-3">Protect the endpoint with simple throttling.</p>
+							<div class="flex items-center gap-3">
+								<input
+									type="number"
+									min="1"
+									id={ "rl-" + ep.ID }
+									class="bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition"
+									placeholder="req/min"
+								/>
+								<button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20">
+									Save
+								</button>
+							</div>
+						</div>
+						<!-- AUTH / PUB CONTROLS -->
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+							<div>
+								<h4 class="text-white font-semibold mb-2">Authentication</h4>
+								<select id={ "auth-" + ep.ID } class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none">
+									if ep.Scope == "public" {
+										<option selected>No Auth</option>
+									} else {
+										<option>No Auth</option>
+									}
+									if ep.Scope == "authn" {
+										<option selected>API Key (LWS Auth)</option>
+									} else {
+										<option>API Key (LWS Auth)</option>
+									}
+									<option>JWT</option>
+									<option>Session</option>
+								</select>
+							</div>
+							<div>
+								<h4 class="text-white font-semibold mb-2">Pub/Sub</h4>
+								<select id={ "pub-" + ep.ID } class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none">
+									<option>Off</option>
+									<option>Publish</option>
+									<option>Subscribe</option>
+									<option>Both</option>
+								</select>
+							</div>
+						</div>
+
+						<!-- SAVE BUTTON -->
+						<div class="pt-4 border-t border-neutral-800/50 flex justify-end">
+							<button 
+								onclick={ saveEndpointSettings(ep.ID, ep.Scope) }
+								class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+								</svg>
+								Save Changes
 							</button>
 						</div>
 					</div>
-					<!-- AUTH / PUB CONTROLS -->
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-						<div>
-							<h4 class="text-white font-semibold mb-2">Authentication</h4>
-							<select id="auth-hello" class="bg-[#0b0b0c] p-2 border border-neutral-700 rounded-xl text-white w-full">
-								<option>No Auth</option>
-								<option>API Key</option>
-								<option>JWT</option>
-								<option>Session</option>
-							</select>
-						</div>
-						<div>
-							<h4 class="text-white font-semibold mb-2">Pub/Sub</h4>
-							<select id="pub-hello" class="bg-[#0b0b0c] p-2 border border-neutral-700 rounded-xl text-white w-full">
-								<option>Off</option>
-								<option>Publish</option>
-								<option>Subscribe</option>
-								<option>Both</option>
-							</select>
-						</div>
-					</div>
 				</div>
-			</div>
-		</div>
-		<!-- NEW ENDPOINT MODAL -->
-		<div
-			id="new-endpoint-modal"
-			class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
-		>
-			<div class="w-[90%] md:w-[600px] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 space-y-4">
-				<h2 class="text-xl font-semibold text-white">Create Endpoint</h2>
-				<label class="text-neutral-400 text-sm">Method</label>
-				<select id="new-method" class="bg-[#0b0b0c] border border-neutral-700 rounded-xl text-white p-2 w-full">
-					<option>GET</option>
-					<option>POST</option>
-					<option>PUT</option>
-					<option>DELETE</option>
-				</select>
-				<label class="text-neutral-400 text-sm mt-3">Path</label>
-				<input
-					id="new-path"
-					class="bg-[#0b0b0c] border border-neutral-700 rounded-xl text-white p-2 w-full"
-					placeholder="/example"
-				/>
-				<div class="flex justify-end gap-3 mt-6">
-					<button onclick="closeNewEndpointModal()" class="text-neutral-400 hover:text-neutral-200">Cancel</button>
-					<button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl">Create</button>
-				</div>
-			</div>
+			}
 		</div>
 		<script>
-    function toggleManage(id) {
-      let el = document.getElementById(id);
-      if (el.classList.contains('hidden')) el.classList.remove('hidden');
-      else el.classList.add('hidden');
-    }
-
-    function openNewEndpointModal() {
-      document.getElementById("new-endpoint-modal").classList.remove("hidden");
-    }
-
-    function closeNewEndpointModal() {
-      document.getElementById("new-endpoint-modal").classList.add("hidden");
-    }
-
-    function selectEngine(endpoint, engine) {
-      // clear all
-      ["liteginx", "nginx", "envoy", "traefik"].forEach(e => {
-        let card = document.getElementById(`engine-${e}-${endpoint}`);
-        card.classList.remove("border-blue-500", "bg-blue-500/10");
-      });
-      // highlight selected
-      let c = document.getElementById(`engine-${engine}-${endpoint}`);
-      c.classList.add("border-blue-500", "bg-blue-500/10");
-    }
-  </script>
+			document.addEventListener('DOMContentLoaded', function() {
+				const params = new URLSearchParams(window.location.search);
+				const expandId = params.get('expand');
+				if (expandId) {
+					document.querySelectorAll('[id^="endpoint-"]').forEach(el => el.classList.add('hidden'));
+					let target = document.getElementById("endpoint-" + expandId);
+					if (target) {
+						target.classList.remove('hidden');
+						setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+					}
+				}
+			});
+		</script>
 	</div>
 }

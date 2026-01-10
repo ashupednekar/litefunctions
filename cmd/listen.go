@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/ashupednekar/litewebservices-portal/pkg/server"
 	"github.com/spf13/cobra"
@@ -16,7 +17,8 @@ var listenCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		s, err := server.NewServer()
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("failed to create server", "error", err)
+			os.Exit(1)
 		}
 		s.Start()
 	},

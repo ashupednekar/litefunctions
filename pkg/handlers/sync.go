@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"strings"
 
+	endpointadaptors "github.com/ashupednekar/litewebservices-portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
 	"github.com/gin-gonic/gin"
@@ -33,39 +35,71 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 		return fmt.Errorf("failed to list existing functions: %w", err)
 	}
 
-	existingPaths := make(map[string]bool)
+	existingPaths := make(map[string]pgtype.UUID)
 	for _, fn := range existingFns {
-		existingPaths[fn.Path] = true
+		existingPaths[fn.Path] = fn.ID
 	}
 
-	err = walkFunctions(r, "/functions", func(path string) error {
-		if existingPaths[path] {
-			fmt.Printf("[DEBUG] Function already exists in DB: %s\n", path)
-			return nil
-		}
+	eq := endpointadaptors.New(pool)
+	existingEps, err := eq.ListEndpointsForProject(c.Request.Context(), projectUUID)
+	if err != nil {
+		return fmt.Errorf("failed to list existing endpoints: %w", err)
+	}
 
+	// map of functionID -> set of methods already defined for it
+	existingFnEps := make(map[pgtype.UUID]map[string]bool)
+	for _, ep := range existingEps {
+		if _, ok := existingFnEps[ep.FunctionID]; !ok {
+			existingFnEps[ep.FunctionID] = make(map[string]bool)
+		}
+		existingFnEps[ep.FunctionID][ep.Method] = true
+	}
+	err = walkFunctions(r, "/functions", func(path string) error {
 		ext := filepath.Ext(path)
 		lang, ok := extLang[ext]
 		if !ok {
-			fmt.Printf("[DEBUG] Skipping unknown extension: %s\n", path)
+			slog.Debug("Skipping unknown extension", "path", path)
 			return nil
 		}
 
-		name := strings.TrimSuffix(filepath.Base(path), ext)
+		var fnID pgtype.UUID
+		fnName := strings.TrimSuffix(filepath.Base(path), ext)
 
-		_, err := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
-			ProjectID: projectUUID,
-			Name:      name,
-			Language:  lang,
-			Path:      path,
-			CreatedBy: userID,
-		})
-		if err != nil {
-			fmt.Printf("[WARN] Failed to create function %s in DB: %v\n", path, err)
-			return nil
+		if id, exists := existingPaths[path]; exists {
+			fnID = id
+		} else {
+			fn, err := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
+				ProjectID: projectUUID,
+				Name:      fnName,
+				Language:  lang,
+				Path:      path,
+				CreatedBy: userID,
+			})
+			if err != nil {
+				slog.Warn("Failed to create function in DB", "path", path, "error", err)
+				return nil
+			}
+			fnID = fn.ID
 		}
 
-		fmt.Printf("[DEBUG] Synced function to DB: %s (%s)\n", name, lang)
+		// Ensure automatic endpoint: /project/name (GET)
+		if methods, ok := existingFnEps[fnID]; !ok || !methods["GET"] {
+			epPath := fmt.Sprintf("/%s/%s", projectName, fnName)
+			_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
+				ProjectID:  projectUUID,
+				Name:       epPath,
+				Method:     "GET",
+				Scope:      "public",
+				FunctionID: fnID,
+			})
+			if err != nil {
+				slog.Warn("Failed to create automatic endpoint", "name", fnName, "error", err)
+			} else {
+				slog.Debug("Created missing automatic endpoint", "name", fnName, "endpoint", epPath)
+			}
+		}
+
+		slog.Debug("Synced function", "name", fnName, "lang", lang)
 		return nil
 	})
 

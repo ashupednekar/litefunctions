@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"encoding/hex"
-	"fmt"
+	"log/slog"
 
 	projectadaptors "github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
@@ -38,7 +38,7 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 
 		r, err := repo.NewGitRepo(projectName, nil)
 		if err != nil {
-			fmt.Printf("[ERROR] repo.NewGitRepo failed: %v\n", err)
+			slog.Error("repo.NewGitRepo failed", "project", projectName, "error", err)
 			c.JSON(500, gin.H{"error": "error instantiating repo"})
 			return
 		}
@@ -48,4 +48,3 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 		c.Next()
 	}
 }
-

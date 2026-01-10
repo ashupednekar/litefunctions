@@ -3,7 +3,7 @@ package connections
 import (
 	"context"
 	"crypto/tls"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -19,7 +19,7 @@ var (
 )
 
 func ConnectDB() {
-	log.Println("Go connecting to:", pkg.Cfg.DatabaseUrl)
+	slog.Info("DB connecting", "url", pkg.Cfg.DatabaseUrl)
 	once.Do(func() {
 		timeout, err := time.ParseDuration(pkg.Cfg.DatabaseConnTimeout)
 		if err != nil {

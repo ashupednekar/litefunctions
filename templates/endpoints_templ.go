@@ -8,7 +8,112 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func EndpointsContent() templ.Component {
+type Endpoint struct {
+	ID           string
+	Name         string
+	Method       string
+	Scope        string
+	FunctionName string
+}
+
+func toggleManageEndpoint(id string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_toggleManageEndpoint_ce57`,
+		Function: `function __templ_toggleManageEndpoint_ce57(id){document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
+		if (el.id === "endpoint-" + id) {
+			if (el.classList.contains('hidden')) el.classList.remove('hidden');
+			else el.classList.add('hidden');
+		} else {
+			el.classList.add('hidden');
+		}
+	});
+}`,
+		Call:       templ.SafeScript(`__templ_toggleManageEndpoint_ce57`, id),
+		CallInline: templ.SafeScriptInline(`__templ_toggleManageEndpoint_ce57`, id),
+	}
+}
+
+func expandEndpointById(id string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_expandEndpointById_c45b`,
+		Function: `function __templ_expandEndpointById_c45b(id){document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
+		el.classList.add('hidden');
+	});
+	let target = document.getElementById("endpoint-" + id);
+	if (target) target.classList.remove('hidden');
+}`,
+		Call:       templ.SafeScript(`__templ_expandEndpointById_c45b`, id),
+		CallInline: templ.SafeScriptInline(`__templ_expandEndpointById_c45b`, id),
+	}
+}
+
+func selectMethodForEndpoint(id string, method string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_selectMethodForEndpoint_c338`,
+		Function: `function __templ_selectMethodForEndpoint_c338(id, method){["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
+		let btn = document.getElementById("method-" + m + "-" + id);
+		if(btn) {
+			btn.classList.remove("border-blue-500", "bg-blue-500/20", "text-blue-400");
+			btn.classList.add("border-neutral-700", "text-neutral-400");
+		}
+	});
+	let selected = document.getElementById("method-" + method + "-" + id);
+	if(selected) {
+		selected.classList.remove("border-neutral-700", "text-neutral-400");
+		selected.classList.add("border-blue-500", "bg-blue-500/20", "text-blue-400");
+	}
+	document.getElementById("selected-method-" + id).value = method;
+}`,
+		Call:       templ.SafeScript(`__templ_selectMethodForEndpoint_c338`, id, method),
+		CallInline: templ.SafeScriptInline(`__templ_selectMethodForEndpoint_c338`, id, method),
+	}
+}
+
+func selectGatewayForEndpoint(id string, gateway string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_selectGatewayForEndpoint_336f`,
+		Function: `function __templ_selectGatewayForEndpoint_336f(id, gateway){["liteginx", "nginx", "envoy", "traefik"].forEach(g => {
+		let card = document.getElementById("gateway-" + g + "-" + id);
+		if(card) card.classList.remove("border-blue-500", "bg-blue-500/10");
+	});
+	let c = document.getElementById("gateway-" + gateway + "-" + id);
+	if(c) c.classList.add("border-blue-500", "bg-blue-500/10");
+}`,
+		Call:       templ.SafeScript(`__templ_selectGatewayForEndpoint_336f`, id, gateway),
+		CallInline: templ.SafeScriptInline(`__templ_selectGatewayForEndpoint_336f`, id, gateway),
+	}
+}
+
+func saveEndpointSettings(id string, scope string) templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_saveEndpointSettings_31ba`,
+		Function: `function __templ_saveEndpointSettings_31ba(id, scope){const method = document.getElementById("selected-method-" + id).value;
+	const authEl = document.getElementById("auth-" + id);
+	let newScope = scope;
+	if (authEl) {
+		const authVal = authEl.value;
+		if (authVal === "No Auth") newScope = "public";
+		else if (authVal.includes("API Key")) newScope = "authn";
+	}
+	fetch("/api/endpoints/" + id + "/", {
+		method: "PUT",
+		headers: {"Content-Type": "application/json"},
+		body: JSON.stringify({method: method, scope: newScope})
+	}).then(res => {
+		if (res.ok) {
+			toast("Endpoint updated!", "success");
+			setTimeout(() => location.reload(), 500);
+		} else {
+			toast("Update failed", "error");
+		}
+	});
+}`,
+		Call:       templ.SafeScript(`__templ_saveEndpointSettings_31ba`, id, scope),
+		CallInline: templ.SafeScriptInline(`__templ_saveEndpointSettings_31ba`, id, scope),
+	}
+}
+
+func EndpointsContent(endpoints []Endpoint) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +134,473 @@ func EndpointsContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><!-- HEADER --><div class=\"flex items-center justify-between\"><div class=\"flex items-center gap-4\"><a href=\"/dashboard/\" class=\"p-2 hover:bg-neutral-800 rounded-lg transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 19l-7-7 7-7\"></path></svg></a><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Endpoints</h1></div><button onclick=\"openNewEndpointModal()\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition\">New Endpoint</button></div><p class=\"text-neutral-400 text-sm md:text-base -mt-6\">Create REST endpoints or map functions to routes.</p><!-- ENDPOINT LIST --><div id=\"endpoints-list\" class=\"space-y-5 mt-10\"><!-- ENDPOINT CARD --><div class=\"rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4\"><div class=\"flex justify-between items-center\"><div class=\"flex items-center gap-3\"><span class=\"px-3 py-1 rounded-lg bg-blue-600/20 text-blue-400 text-xs font-semibold\">GET</span><h3 class=\"text-white text-lg font-semibold\">/hello</h3></div><button onclick=\"toggleManage('endpoint-hello')\" class=\"text-neutral-400 hover:text-white transition text-sm\">Manage</button></div><!-- MANAGE COLLAPSIBLE --><div id=\"endpoint-hello\" class=\"hidden mt-4 space-y-8\"><!-- ENGINE SELECTION --><div><h4 class=\"text-white font-semibold mb-2\">Engine</h4><p class=\"text-neutral-500 text-sm mb-3\">Choose which edge engine drives this endpoint.</p><div class=\"grid grid-cols-2 md:grid-cols-4 gap-4\"><!-- Card --><button onclick=\"selectEngine('hello','liteginx')\" id=\"engine-liteginx-hello\" class=\"engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition\"><p class=\"text-white text-sm font-semibold\">Liteginx</p><p class=\"text-neutral-500 text-xs mt-1\">Small + fast</p></button> <button onclick=\"selectEngine('hello','nginx')\" id=\"engine-nginx-hello\" class=\"engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition\"><p class=\"text-white text-sm font-semibold\">Nginx</p><p class=\"text-neutral-500 text-xs mt-1\">Industry standard</p></button> <button onclick=\"selectEngine('hello','envoy')\" id=\"engine-envoy-hello\" class=\"engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition\"><p class=\"text-white text-sm font-semibold\">Envoy</p><p class=\"text-neutral-500 text-xs mt-1\">Modern proxy</p></button> <button onclick=\"selectEngine('hello','traefik')\" id=\"engine-traefik-hello\" class=\"engine-card p-4 rounded-xl border border-neutral-700 hover:border-neutral-500 hover:bg-[#1a1a1b] transition\"><p class=\"text-white text-sm font-semibold\">Traefik</p><p class=\"text-neutral-500 text-xs mt-1\">Dynamic routing</p></button></div></div><!-- RATE LIMITING --><div><h4 class=\"text-white font-semibold mb-2\">Rate Limiting</h4><p class=\"text-neutral-500 text-sm mb-3\">Protect the endpoint with simple throttling.</p><div class=\"flex items-center gap-3\"><input type=\"number\" min=\"1\" id=\"rl-hello\" class=\"bg-[#0b0b0c] border border-neutral-700 rounded-lg p-2 text-white w-32\" placeholder=\"req/min\"> <button class=\"text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-sm\">Save</button></div></div><!-- AUTH / PUB CONTROLS --><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6\"><div><h4 class=\"text-white font-semibold mb-2\">Authentication</h4><select id=\"auth-hello\" class=\"bg-[#0b0b0c] p-2 border border-neutral-700 rounded-xl text-white w-full\"><option>No Auth</option> <option>API Key</option> <option>JWT</option> <option>Session</option></select></div><div><h4 class=\"text-white font-semibold mb-2\">Pub/Sub</h4><select id=\"pub-hello\" class=\"bg-[#0b0b0c] p-2 border border-neutral-700 rounded-xl text-white w-full\"><option>Off</option> <option>Publish</option> <option>Subscribe</option> <option>Both</option></select></div></div></div></div></div><!-- NEW ENDPOINT MODAL --><div id=\"new-endpoint-modal\" class=\"hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center\"><div class=\"w-[90%] md:w-[600px] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 space-y-4\"><h2 class=\"text-xl font-semibold text-white\">Create Endpoint</h2><label class=\"text-neutral-400 text-sm\">Method</label> <select id=\"new-method\" class=\"bg-[#0b0b0c] border border-neutral-700 rounded-xl text-white p-2 w-full\"><option>GET</option> <option>POST</option> <option>PUT</option> <option>DELETE</option></select> <label class=\"text-neutral-400 text-sm mt-3\">Path</label> <input id=\"new-path\" class=\"bg-[#0b0b0c] border border-neutral-700 rounded-xl text-white p-2 w-full\" placeholder=\"/example\"><div class=\"flex justify-end gap-3 mt-6\"><button onclick=\"closeNewEndpointModal()\" class=\"text-neutral-400 hover:text-neutral-200\">Cancel</button> <button class=\"bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl\">Create</button></div></div></div><script>\n    function toggleManage(id) {\n      let el = document.getElementById(id);\n      if (el.classList.contains('hidden')) el.classList.remove('hidden');\n      else el.classList.add('hidden');\n    }\n\n    function openNewEndpointModal() {\n      document.getElementById(\"new-endpoint-modal\").classList.remove(\"hidden\");\n    }\n\n    function closeNewEndpointModal() {\n      document.getElementById(\"new-endpoint-modal\").classList.add(\"hidden\");\n    }\n\n    function selectEngine(endpoint, engine) {\n      // clear all\n      [\"liteginx\", \"nginx\", \"envoy\", \"traefik\"].forEach(e => {\n        let card = document.getElementById(`engine-${e}-${endpoint}`);\n        card.classList.remove(\"border-blue-500\", \"bg-blue-500/10\");\n      });\n      // highlight selected\n      let c = document.getElementById(`engine-${engine}-${endpoint}`);\n      c.classList.add(\"border-blue-500\", \"bg-blue-500/10\");\n    }\n  </script></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><!-- HEADER --><div class=\"flex items-center justify-between\"><div class=\"flex items-center gap-6\"><a href=\"/dashboard/\" class=\"p-2 hover:bg-neutral-800 rounded-lg transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 19l-7-7 7-7\"></path></svg></a><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Endpoints</h1><!-- SEARCH TRIGGER --><button onclick=\"openSpotlight()\" class=\"flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path></svg> <span class=\"flex-1 text-left\">Search endpoints...</span><div class=\"flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium\"><span class=\"font-mono\">⌘</span>K</div></button></div></div><p class=\"text-neutral-400 text-sm md:text-base -mt-6\">View and manage your service endpoints. Routes are automatically mapped when functions are created.</p><!-- ENDPOINT LIST --><div id=\"endpoints-list\" class=\"space-y-5 mt-10\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, ep := range endpoints {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4\"><div class=\"flex justify-between items-center\"><div class=\"flex items-center gap-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if ep.Method == "POST" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var2 string
+				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 116, Col: 119}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else if ep.Method == "PUT" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 string
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 118, Col: 121}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else if ep.Method == "DELETE" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 120, Col: 115}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var5 string
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 122, Col: 117}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<h3 class=\"text-white text-lg font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 124, Col: 61}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</h3><span class=\"text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 126, Col: 25}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, toggleManageEndpoint(ep.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 templ.ComponentScript = toggleManageEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" class=\"text-neutral-400 hover:text-white transition text-sm flex items-center gap-1\">Manage <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z\" clip-rule=\"evenodd\"></path></svg></button></div><!-- MANAGE COLLAPSIBLE --><div id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs("endpoint-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 137, Col: 34}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200\"><!-- HIDDEN INPUTS FOR FORM STATE --><input type=\"hidden\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs("selected-method-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 139, Col: 58}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 139, Col: 78}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"><!-- METHOD SELECTOR --><div><h4 class=\"text-white font-semibold mb-2\">HTTP Method</h4><div class=\"flex gap-2 flex-wrap\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+				if m == ep.Method {
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button onclick=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var12 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12.Call)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" id=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var13 string
+					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 149, Col: 43}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var14 string
+					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(m)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 151, Col: 14}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<button onclick=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var15 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15.Call)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" id=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var16 string
+					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 155, Col: 43}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var17 string
+					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(m)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 157, Col: 14}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</button>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div><!-- GATEWAY SELECTION --><div><h4 class=\"text-white font-semibold mb-2\">Gateway</h4><p class=\"text-neutral-500 text-sm mb-3\">Choose which gateway handles this route.</p><div class=\"grid grid-cols-2 md:grid-cols-4 gap-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "liteginx"))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var18 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "liteginx")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var19 string
+			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-liteginx-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 170, Col: 41}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Liteginx</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Small + fast</p></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "nginx"))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var20 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "nginx")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var21 string
+			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-nginx-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 178, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Nginx</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Industry standard</p></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "envoy"))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var22 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "envoy")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var23 string
+			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-envoy-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 186, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Envoy</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Modern proxy</p></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "traefik"))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var24 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "traefik")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var25 string
+			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-traefik-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 194, Col: 40}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Traefik</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Dynamic routing</p></button></div></div><!-- RATE LIMITING --><div><h4 class=\"text-white font-semibold mb-2\">Rate Limiting</h4><p class=\"text-neutral-500 text-sm mb-3\">Protect the endpoint with simple throttling.</p><div class=\"flex items-center gap-3\"><input type=\"number\" min=\"1\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var26 string
+			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("rl-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 210, Col: 27}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition\" placeholder=\"req/min\"> <button class=\"bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20\">Save</button></div></div><!-- AUTH / PUB CONTROLS --><div class=\"grid grid-cols-1 md:grid-cols-2 gap-8\"><div><h4 class=\"text-white font-semibold mb-2\">Authentication</h4><select id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var27 string
+			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("auth-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 223, Col: 36}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" class=\"bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if ep.Scope == "public" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<option selected>No Auth</option> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<option>No Auth</option> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if ep.Scope == "authn" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<option selected>API Key (LWS Auth)</option> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<option>API Key (LWS Auth)</option> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<option>JWT</option> <option>Session</option></select></div><div><h4 class=\"text-white font-semibold mb-2\">Pub/Sub</h4><select id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var28 string
+			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs("pub-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 240, Col: 35}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\" class=\"bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none\"><option>Off</option> <option>Publish</option> <option>Subscribe</option> <option>Both</option></select></div></div><!-- SAVE BUTTON --><div class=\"pt-4 border-t border-neutral-800/50 flex justify-end\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, saveEndpointSettings(ep.ID, ep.Scope))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var29 templ.ComponentScript = saveEndpointSettings(ep.ID, ep.Scope)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var29.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"></path></svg> Save Changes</button></div></div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</div><script>\n\t\t\tdocument.addEventListener('DOMContentLoaded', function() {\n\t\t\t\tconst params = new URLSearchParams(window.location.search);\n\t\t\t\tconst expandId = params.get('expand');\n\t\t\t\tif (expandId) {\n\t\t\t\t\tdocument.querySelectorAll('[id^=\"endpoint-\"]').forEach(el => el.classList.add('hidden'));\n\t\t\t\t\tlet target = document.getElementById(\"endpoint-\" + expandId);\n\t\t\t\t\tif (target) {\n\t\t\t\t\t\ttarget.classList.remove('hidden');\n\t\t\t\t\t\tsetTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t});\n\t\t</script></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

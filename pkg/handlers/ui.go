@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	accessAdaptors "github.com/ashupednekar/litewebservices-portal/internal/access/adaptors"
 	authAdaptors "github.com/ashupednekar/litewebservices-portal/internal/auth/adaptors"
+	endpointAdaptors "github.com/ashupednekar/litewebservices-portal/internal/endpoint/adaptors"
 	functionAdaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
 	"github.com/ashupednekar/litewebservices-portal/templates"
@@ -34,7 +36,7 @@ func (h *UIHandlers) Home(ctx *gin.Context) {
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
-		ctx.JSON(500, gin.H{"err": err.Error()})
+		slog.Error("page render failed", "error", err)
 	}
 }
 
@@ -116,7 +118,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
-		ctx.JSON(500, gin.H{"err": err.Error()})
+		slog.Error("page render failed", "error", err)
 	}
 }
 
@@ -126,17 +128,37 @@ func (h *UIHandlers) Data(ctx *gin.Context) {
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
-		ctx.JSON(500, gin.H{"err": err.Error()})
+		slog.Error("page render failed", "error", err)
 	}
 }
 
 func (h *UIHandlers) Endpoints(ctx *gin.Context) {
+	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
+	q := endpointAdaptors.New(h.state.DBPool)
+
+	var endpoints []templates.Endpoint
+	dbEps, err := q.ListEndpointsForProject(ctx.Request.Context(), projUUID)
+	if err == nil {
+		for _, e := range dbEps {
+			// e.ID is available, e.Name is available, e.Method is available, e.Scope is available, e.FunctionName is available from join
+			endpoints = append(endpoints, templates.Endpoint{
+				ID:           hex.EncodeToString(e.ID.Bytes[:]),
+				Name:         e.Name,
+				Method:       e.Method,
+				Scope:        e.Scope,
+				FunctionName: e.FunctionName,
+			})
+		}
+	} else {
+		slog.Error("failed to list endpoints", "project", projUUID, "error", err)
+	}
+
 	page := templates.BaseLayout(
-		templates.EndpointsContent(),
+		templates.EndpointsContent(endpoints),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
-		ctx.JSON(500, gin.H{"err": err.Error()})
+		slog.Error("page render failed", "error", err)
 	}
 }
 
@@ -146,6 +168,6 @@ func (h *UIHandlers) Configuration(ctx *gin.Context) {
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
-		ctx.JSON(500, gin.H{"err": err.Error()})
+		slog.Error("page render failed", "error", err)
 	}
 }

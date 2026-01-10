@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"strconv"
 	"strings"
 
+	endpointadaptors "github.com/ashupednekar/litewebservices-portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
 	"github.com/ashupednekar/litewebservices-portal/pkg/state"
@@ -68,7 +70,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 
 	f, err := r.Fs.Create(path)
 	if err != nil {
-		fmt.Printf("[ERROR] r.Fs.Create failed for path %s: %v\n", path, err)
+		slog.Error("r.Fs.Create failed", "path", path, "error", err)
 		c.JSON(500, gin.H{"error": "file create error"})
 		return
 	}
@@ -81,21 +83,24 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 
 	if err := r.Commit(path); err != nil {
 		if !strings.Contains(err.Error(), "clean working tree") {
-			fmt.Printf("[ERROR] r.Commit failed: %v\n", err)
+			slog.Error("r.Commit failed", "path", path, "error", err)
 			c.JSON(500, gin.H{"error": "commit error"})
 			return
 		}
 	}
 
 	if err := r.Push(); err != nil {
-		fmt.Printf("[ERROR] r.Push failed: %v\n", err)
+		slog.Error("r.Push failed", "error", err)
 		c.JSON(500, gin.H{"error": "push error"})
 		return
 	}
 
 	q := functionadaptors.New(h.state.DBPool)
+	eq := endpointadaptors.New(h.state.DBPool)
 
 	projectUUID := c.MustGet("projectUUID").(pgtype.UUID)
+	projectName := c.MustGet("projectName").(string)
+
 	fn, err := q.CreateFunction(
 		c.Request.Context(),
 		functionadaptors.CreateFunctionParams{
@@ -107,9 +112,22 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		},
 	)
 	if err != nil {
-		fmt.Printf("[ERROR] CreateFunction DB failed: %v\n", err)
+		slog.Error("CreateFunction DB failed", "error", err)
 		c.JSON(500, gin.H{"error": "database error"})
 		return
+	}
+
+	// Automatically create endpoint: /project/name
+	epPath := fmt.Sprintf("/%s/%s", projectName, req.Name)
+	_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
+		ProjectID:  projectUUID,
+		Name:       epPath,
+		Method:     "GET",
+		Scope:      "public",
+		FunctionID: fn.ID,
+	})
+	if err != nil {
+		slog.Warn("Failed to create automatic endpoint", "name", req.Name, "error", err)
 	}
 
 	c.JSON(201, gin.H{
@@ -174,7 +192,7 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 
 	r := c.MustGet("repo").(*repo.GitRepo)
 
-	fmt.Println(f.Path)
+	slog.Debug("reading file content", "path", f.Path)
 	file, err := r.Fs.Open(f.Path)
 	if err != nil {
 		c.JSON(404, gin.H{
@@ -235,10 +253,10 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		fh.Write(body)
 		fh.Close()
 
-		fmt.Printf("commiting file: %s\n", f.Path)
+		slog.Info("commiting file", "path", f.Path)
 		err = r.Commit(f.Path)
 		if err != nil && !errors.Is(err, git.ErrEmptyCommit) {
-			fmt.Printf("error commiting file: %s\n", err)
+			slog.Error("error commiting file", "path", f.Path, "error", err)
 			c.JSON(500, gin.H{"error": "commit error"})
 			return
 		}
@@ -298,7 +316,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 	}
 
 	if err := q.DeleteFunction(c.Request.Context(), pgFnId); err != nil {
-		fmt.Printf("[ERROR] db delete failed: %v\n", err)
+		slog.Error("db delete failed", "error", err)
 		c.JSON(500, gin.H{"error": "db delete error"})
 		return
 	}
@@ -306,7 +324,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 	r := c.MustGet("repo").(*repo.GitRepo)
 
 	if err := r.Fs.Remove(f.Path); err != nil {
-		fmt.Printf("[ERROR] failed to remove file %s: %v\n", f.Path, err)
+		slog.Error("failed to remove file", "path", f.Path, "error", err)
 		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
 			ProjectID: f.ProjectID,
 			Name:      f.Name,
@@ -315,14 +333,14 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
-			fmt.Printf("[ERROR] rollback failed: %v\n", rollbackErr)
+			slog.Error("rollback failed", "error", rollbackErr)
 		}
 		c.JSON(500, gin.H{"error": "file remove error"})
 		return
 	}
 
 	if err := r.Commit(f.Path); err != nil {
-		fmt.Printf("[ERROR] commit failed: %v\n", err)
+		slog.Error("commit failed", "path", f.Path, "error", err)
 		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
 			ProjectID: f.ProjectID,
 			Name:      f.Name,
@@ -331,14 +349,14 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
-			fmt.Printf("[ERROR] rollback failed: %v\n", rollbackErr)
+			slog.Error("rollback failed", "error", rollbackErr)
 		}
 		c.JSON(500, gin.H{"error": "commit error"})
 		return
 	}
 
 	if err := r.Push(); err != nil {
-		fmt.Printf("[ERROR] push failed: %v\n", err)
+		slog.Error("push failed", "error", err)
 		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
 			ProjectID: f.ProjectID,
 			Name:      f.Name,
@@ -347,7 +365,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
-			fmt.Printf("[ERROR] rollback failed: %v\n", rollbackErr)
+			slog.Error("rollback failed", "error", rollbackErr)
 		}
 		c.JSON(500, gin.H{"error": "push error"})
 		return
