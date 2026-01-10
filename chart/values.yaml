@@ -5,22 +5,30 @@ ingestor:
   nats_broker_url: nats.essentials.svc:4222
 
 nats:
-  enabled: true
-  jetstream:
-    enabled: true
-  cluster:
-    enabled: true
-  replicaCount: 5 
-  auth:
+  natsBox:
     enabled: false
-  persistence:
-    enabled: true
-  networkPolicy:
-    enabled: false
+  config:
+    cluster:
+      enabled: true
+      replicas: 3
+    jetstream:
+      enabled: true
+      fileStore:
+        enabled: true
+        pvc:
+          enabled: true
+          size: 4Gi
+    reloader:
+      enabled: false
 
 redis:
   enabled: false
 redis-cluster:
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    repository: bitnamilegacy/nats
   usePassword: false
   networkPolicy:
     enabled: false
@@ -32,12 +40,43 @@ postgrescluster:
   postgresVersion: 16
   pgBouncerReplicas: 2 
   instanceReplicas: 3 
-  
+
 minio:
   enabled: false
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    repository: bitnamilegacy/minio
   auth:
-    rootUser: lws 
-    rootPassword: lwspass
-  defaultBuckets: "content"
-  networkPolicy:
-    enabled: false
+    rootUser: ashudev
+    rootPassword: minioadmin
+  mode: standalone
+  defaultBuckets: content
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 15Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: lws.ashudev.in # override 
+    path: /content
+    pathType: Prefix
+    tls: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+  console:
+    enabled: true
+    image:
+      repository: bitnamilegacy/minio-object-browser
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hostname: s3.ashudev.in # override
+      path: /
+      pathType: Prefix
+      tls: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+
