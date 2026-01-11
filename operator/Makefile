@@ -230,3 +230,33 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+##@ Helm Packaging 
+
+HELM ?= helm
+HELM_RELEASE ?= litefunctions
+HELM_CHART_PATH ?= ../chart
+
+HELM_CRD_PATH ?= $(HELM_CHART_PATH)/crds
+HELM_TEMPLATES_PATH ?= $(HELM_CHART_PATH)/templates
+HELM_RBAC_FILE ?= $(HELM_TEMPLATES_PATH)/operator-rbac.yaml
+
+.PHONY: helm-sync
+helm-sync: manifests kustomize ## Package CRDs + RBAC into Helm chart
+	@echo "==> Syncing CRDs"
+	rm -rf $(HELM_CRD_PATH)
+	mkdir -p $(HELM_CRD_PATH)
+	cp config/crd/bases/*.yaml $(HELM_CRD_PATH)/
+
+	@echo "==> Rendering RBAC via Kustomize"
+	mkdir -p $(HELM_TEMPLATES_PATH)
+	$(KUSTOMIZE) build config/rbac > $(HELM_RBAC_FILE)
+
+.PHONY: helm-install
+helm-install: helm-sync ## Fresh Helm install (into litefunctions namespace)
+	$(HELM) install $(HELM_RELEASE) $(HELM_CHART_PATH) --namespace litefunctions --create-namespace
+
+.PHONY: helm-uninstall
+helm-uninstall: ## Helm uninstall (from litefunctions namespace)
+	$(HELM) uninstall $(HELM_RELEASE) --namespace litefunctions || true
+
