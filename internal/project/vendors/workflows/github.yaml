@@ -1,0 +1,181 @@
+name: Docker
+on:
+  push:
+    branches: [ "main" ]
+  #   tags: [ 'v*.*.*' ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  REPO_NAME: ${{ github.repository }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+      go: ${{ steps.changes.outputs.go }}
+      zig: ${{ steps.changes.outputs.zig }}
+      python: ${{ steps.changes.outputs.python }}
+      rust-files: ${{ steps.get-changed-files.outputs.rust-files }}
+      go-files: ${{ steps.get-changed-files.outputs.go-files }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            rust:
+              - 'functions/rs/**'
+            go:
+              - 'functions/go/**'
+            zig:
+              - 'functions/zig/**'
+            python:
+              - 'functions/python/**'
+
+      - name: Get changed files
+        id: get-changed-files
+        run: |
+          # Get changed Rust files as JSON array
+          RUST_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/rs/*.rs' | sed 's|functions/rs/||' | sed 's|\.rs$||' | jq -R -s -c 'split("\n")[:-1]')
+          echo "rust-files=${RUST_FILES_JSON}" >> $GITHUB_OUTPUT
+          
+          # Get changed Go files as JSON array
+          GO_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/go/*.go' | sed 's|functions/go/||' | sed 's|\.go$||' | jq -R -s -c 'split("\n")[:-1]')
+          echo "go-files=${GO_FILES_JSON}" >> $GITHUB_OUTPUT
+
+  build-rust:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      matrix:
+        rust-file: ${{ fromJson(needs.detect-changes.outputs.rust-files) }}
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Checkout litefunctions repository
+        uses: actions/checkout@v4
+        with:
+          repository: ashupednekar/litefunctions
+          path: litefunctions
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Always pull the latest base image to get updates
+      - name: Pull latest base image
+        run: |
+          docker pull ashupednekar535/litefunctions-runtime-rs:base
+
+      - name: Build and push Rust Docker image
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          RUST_FILE="${{ matrix.rust-file }}"
+
+          IMG_TAG=${{ env.REGISTRY }}/${{ github.actor }}/$(basename ${{ env.REPO_NAME }})/runtime-rust-${RUST_FILE}:latest
+          CACHE_TAG=${{ env.REGISTRY }}/${{ github.actor }}/$(basename ${{ env.REPO_NAME }})/runtime-rust-${RUST_FILE}:cache
+          
+          cd litefunctions
+
+          # Build with registry cache and always pull base images
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            docker buildx build \
+              --pull \
+              --push \
+              --tag ${IMG_TAG} \
+              --cache-from=type=registry,ref=${CACHE_TAG} \
+              --cache-to=type=registry,ref=${CACHE_TAG},mode=max \
+              --cache-from=ashupednekar535/litefunctions-runtime-rs:base \
+              --file build/runtimes/Dockerfile.rust \
+              --build-arg PROJECT=${REPO_NAME} \
+              --build-arg NAME=${RUST_FILE} \
+              --build-arg GIT_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+              runtimes/rust/
+          else
+            # For pull requests, build without pushing but still pull latest
+            docker buildx build \
+              --pull \
+              --tag ${IMG_TAG} \
+              --cache-from=type=registry,ref=${CACHE_TAG} \
+              --cache-from=ashupednekar535/litefunctions-runtime-rs:base \
+              --file build/runtimes/Dockerfile.rust \
+              --build-arg PROJECT=${REPO_NAME} \
+              --build-arg NAME=${RUST_FILE} \
+              --build-arg GIT_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+              runtimes/rust/
+          fi
+
+  build-go:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      matrix:
+        go-file: ${{ fromJson(needs.detect-changes.outputs.go-files) }}
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Checkout litefunctions repository
+        uses: actions/checkout@v4
+        with:
+          repository: ashupednekar/litefunctions
+          path: litefunctions
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Go Docker image
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          GO_FILE="${{ matrix.go-file }}"
+          
+          cd litefunctions
+          docker build -t ${{ env.REGISTRY }}/${{ env.REPO_NAME }}-go-${GO_FILE}:${{ github.sha }} \
+            runtimes/go/ \
+            -f build/runtimes/Dockerfile.go \
+            --build-arg PROJECT=${REPO_NAME} \
+            --build-arg NAME=${GO_FILE} \
+            --build-arg GIT_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            docker push ${{ env.REGISTRY }}/${{ env.REPO_NAME }}-go-${GO_FILE}:${{ github.sha }}
+          fi
+

@@ -11,6 +11,7 @@ type VendorClient interface {
 	CreateRepo(ctx context.Context, opts CreateRepoOptions) (*Repository, error)
 	DeleteRepo(ctx context.Context, owner, repo string) error
 	AddWebhook(ctx context.Context, owner, repo string, opts WebhookOptions) (*Webhook, error)
+	AddWorkflow(ctx context.Context, owner, repo string) error
 	GetActionsProgress(ctx context.Context, owner, repo string, opts ActionsProgressOptions) (*ActionsProgress, error)
 }
 
