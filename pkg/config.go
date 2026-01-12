@@ -18,6 +18,7 @@ type Settings struct {
 	DatabaseMaxConnLifetime string `env:"DATABASE_MAX_CONN_LIFETIME" default:"1h"`
 	DatabaseMaxConnIdleTime string `env:"DATABASE_MAX_CONN_IDLETIME" default:"10m"`
 	SessionExpiry           string `env:"SESSION_EXPIRY" default:"1h"`
+	VcsUsePrivateRepo       bool   `env:"VCS_USE_PRIVATE_REPO" default:"false"`
 	VcsAuthMode             string `env:"VCS_AUTH_MODE" default:"ssh"`
 	VcsPrivKeyPath          string `env:"VCS_PRIVATE_KEY_PATH" default:"/app/.ssh/privkey.pem"`
 	VcsPrivKeyPassword      string `env:"VCS_PRIVATE_KEY_PASSWORD"`

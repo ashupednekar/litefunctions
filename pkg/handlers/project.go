@@ -89,11 +89,10 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-
 	repo, err := vcsClient.CreateRepo(c.Request.Context(), vendors.CreateRepoOptions{
 		Name:        req.Name,
 		Description: "Created via LiteWebServices Portal",
-		Private:     true,
+		Private:     pkg.Cfg.VcsUsePrivateRepo, 
 		AutoInit:    true,
 	})
 	if err != nil {
@@ -105,18 +104,16 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 			return
 		}
 	}
-
 	repoName := req.Name
 	if repo != nil {
 		repoName = repo.Name
 	}
-
 	webhookURL := fmt.Sprintf("https://%s/api/webhooks/vcs", pkg.Cfg.Fqdn)
 	_, err = vcsClient.AddWebhook(c.Request.Context(), pkg.Cfg.VcsUser, repoName, vendors.WebhookOptions{
 		URL:         webhookURL,
 		ContentType: "json",
-		Secret:      "TODO_GENERATE_SECRET",
-		Events:      []string{"push", "pull_request"},
+		Secret:      "WEBHOOK_SUPER_SECRET", //TODO: generate secret
+		Events:      []string{"push"}, //, "pull_request"},
 		Active:      true,
 		InsecureSSL: true,
 	})
@@ -128,6 +125,12 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 			c.JSON(500, gin.H{"error": fmt.Sprintf("failed to add webhook: %v", err)})
 			return
 		}
+	}
+
+	if err := vcsClient.AddWorkflow(c.Request.Context(), pkg.Cfg.VcsUser, repoName); err != nil{
+		slog.Error("Error adding workflow to newly created repo", "error", err)
+		c.JSON(500, gin.H{"error": "failed to add workflow"})
+		return
 	}
 
 	if err := tx.Commit(c.Request.Context()); err != nil {

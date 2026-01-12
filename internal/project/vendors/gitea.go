@@ -102,6 +102,14 @@ func (c *GiteaClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*
 	}, nil
 }
 
+
+func (c *GiteaClient) AddWorkflow(
+	ctx context.Context,
+	owner, repo string,
+) error {
+	return nil
+}
+
 func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts WebhookOptions) (*Webhook, error) {
 	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/hooks", c.baseURL, owner, repo)
 
