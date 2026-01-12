@@ -3,7 +3,7 @@ images:
   operator: ashupednekar535/litefunctions-operator:latest
 
 ingestor:
-  nats_broker_url: nats.essentials.svc:4222
+  nats_broker_url: litefunctions-nats.essentials.svc:4222
 
 nats:
   enabled: false
