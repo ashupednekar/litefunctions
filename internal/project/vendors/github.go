@@ -120,7 +120,7 @@ func (c *GitHubClient) AddWorkflow(
 	}
 	content := base64.StdEncoding.EncodeToString(workflows.GitHubWorkflow)
 	url := fmt.Sprintf(
-		"%s/repos/%s/%s/contents/.github/workflows/github.yaml",
+		"%s/repos/%s/%s/contents/.github/workflows/ci.yaml",
 		c.baseURL, owner, repo,
 	)
 	slog.Warn("branch: ", "debug", repository.DefaultBranch)
