@@ -32,5 +32,6 @@ go.work.sum
 # .vscode/
 secrets.env
 .aider*
-bin
-tmp
+bin/
+tmp/
+litewebservices-portal
