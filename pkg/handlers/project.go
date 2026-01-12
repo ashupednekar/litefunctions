@@ -43,6 +43,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "invalid request"})
 		return
 	}
+	req.Name = strings.ToLower(req.Name)
 
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -156,6 +157,19 @@ func (h *ProjectHandlers) SyncProject(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "sync failed"})
 		return
 	}
+
+  vcsClient, err := vendors.NewVendorClient()
+	if err != nil {
+		slog.Error("VCS Init failed", "error", err)
+		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})
+		return
+	}
+	if err := vcsClient.AddWorkflow(c.Request.Context(), pkg.Cfg.VcsUser, projectName); err != nil{
+		slog.Error("Error adding workflow to repo", "error", err)
+		c.JSON(500, gin.H{"error": "failed to add workflow"})
+		return
+	}
+	slog.Info("Workflow updated")
 
 	c.JSON(200, gin.H{"status": "synced"})
 }
