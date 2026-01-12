@@ -32,3 +32,5 @@ go.work.sum
 # .vscode/
 secrets.env
 .aider*
+bin
+tmp
