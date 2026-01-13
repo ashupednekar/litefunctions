@@ -83,6 +83,7 @@ minio:
 
 gitea:
   enabled: false
+  replicaCount: 2
   service:
     http:
       type: NodePort
@@ -99,6 +100,11 @@ gitea:
       - host: git.ashudev.in
         paths:
           - path: /
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteMany
+    size: 3Gi
   postgresql-ha:
     enabled: false
   postgresql:
