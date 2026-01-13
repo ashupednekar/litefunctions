@@ -18,13 +18,13 @@ dependencies:
     version: 5.8.1
     repository: oci://registry-1.docker.io/ashupednekar535
     condition: database.enabled
-  - name: postgrescluster 
-    version: 5.7.4
-    repository: oci://registry-1.docker.io/ashupednekar535
-    condition: database.enabled
   - name: minio 
     version: 17.0.2
     repository: https://charts.bitnami.com/bitnami
     condition: minio.enabled
+  - name: gitea
+    repository: https://dl.gitea.com/charts/
+    version: 12.4.0
+    condition: gitea.enabled
 
 
