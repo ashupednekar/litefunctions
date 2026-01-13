@@ -3,7 +3,7 @@ images:
   operator: ashupednekar535/litefunctions-operator:latest
 
 ingestor:
-  nats_broker_url: litefunctions-nats.essentials.svc:4222
+  nats_broker_url: litefunctions-nats:4222
 
 nats:
   enabled: false
@@ -37,11 +37,11 @@ redis-cluster:
 
 database:
   enabled: false
-postgrescluster:
-  instanceName: postgres 
   postgresVersion: 16
-  pgBouncerReplicas: 2 
-  instanceReplicas: 3 
+  pgBouncerReplicas: 1
+  instanceReplicas: 2
+  instanceVolumeSize: 4Gi
+  instanceMaxConnections: 200
 
 minio:
   enabled: false
@@ -57,7 +57,6 @@ minio:
   defaultBuckets: content
   persistence:
     enabled: true
-    storageClass: longhorn
     size: 15Gi
   ingress:
     enabled: true
@@ -73,7 +72,7 @@ minio:
     image:
       repository: bitnamilegacy/minio-object-browser
     ingress:
-      enabled: true
+      enabled: false
       ingressClassName: nginx
       hostname: s3.ashudev.in # override
       path: /
@@ -81,4 +80,58 @@ minio:
       tls: true
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
+
+gitea:
+  enabled: false
+  service:
+    http:
+      type: NodePort
+      nodePort: 30080
+    ssh:
+      type: NodePort
+      nodePort: 30022
+  ingress:
+    enabled: false
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+    hosts:
+      - host: git.ashudev.in
+        paths:
+          - path: /
+  postgresql-ha:
+    enabled: false
+  postgresql:
+    enabled: false
+  gitea:
+    admin:
+      username: ashudev
+      password: gitadmin
+      email: gitea@ashudev.in
+    config:
+        database:
+          DB_TYPE: postgres
+          SCHEMA: gitea
+          SSL_MODE: require
+    additionalConfigFromEnvs:
+    - name: GITEA__DATABASE__HOST
+      valueFrom:
+        secretKeyRef:
+          key: host
+          name: litefunctions-pguser-litefunctions
+    - name: GITEA__DATABASE__PASSWD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: litefunctions-pguser-litefunctions
+    - name: GITEA__DATABASE__NAME
+      valueFrom:
+        secretKeyRef:
+          key: dbname
+          name: litefunctions-pguser-litefunctions
+    - name: GITEA__DATABASE__USER
+      valueFrom:
+        secretKeyRef:
+          key: user
+          name: litefunctions-pguser-litefunctions
 

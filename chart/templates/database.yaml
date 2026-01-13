@@ -1,0 +1,31 @@
+{{- if .Values.database.enabled | default false }}
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: litefunctions
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+spec:
+  instances:
+  - dataVolumeClaimSpec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ .Values.database.instanceVolumeSize }}
+    name: postgres
+    replicas: {{ .Values.database.instanceReplicas }}
+  port: 5432
+  postgresVersion: {{ .Values.database.postgresVersion }}
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          max_connections: {{ .Values.database.instanceMaxConnections }}
+  proxy:
+    pgBouncer:
+      service:
+        type: NodePort
+        nodePort: 30054
+      replicas: 1
+{{- end }}

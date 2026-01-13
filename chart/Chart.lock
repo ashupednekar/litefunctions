@@ -8,11 +8,11 @@ dependencies:
 - name: pgo
   repository: oci://registry-1.docker.io/ashupednekar535
   version: 5.8.1
-- name: postgrescluster
-  repository: oci://registry-1.docker.io/ashupednekar535
-  version: 5.7.4
 - name: minio
   repository: https://charts.bitnami.com/bitnami
   version: 17.0.2
-digest: sha256:b8dd25250229f217c320ee457103e97222bc24e90256d1fd5a60633c767f3440
-generated: "2026-01-12T16:53:33.922867+05:30"
+- name: gitea
+  repository: https://dl.gitea.com/charts/
+  version: 12.4.0
+digest: sha256:0457d0e6ca1d3a6d10044a9335ed5119f09495d18778f27caa28661517f0e8f0
+generated: "2026-01-13T16:28:03.385316+05:30"
