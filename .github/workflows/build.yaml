@@ -1,16 +1,44 @@
 name: Build and Push Docker Image & Helm Chart
+
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+
 jobs:
-  build-and-push:
+  build-amd64:
     runs-on: ubuntu-latest
     env:
       IMAGE_NAME: ashupednekar535/litewebservices-portal
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: devops/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}-amd64
+          cache-from: type=gha,scope=amd64
+          cache-to: type=gha,mode=max,scope=amd64
+
+  build-arm64:
+    runs-on: ubuntu-latest
+    needs: build-amd64
+    env:
+      IMAGE_NAME: ashupednekar535/litewebservices-portal
+      SHA: ${{ needs.build-amd64.outputs.sha_short }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -19,54 +47,64 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Extract short SHA
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - uses: docker/build-push-action@v5
         with:
           context: .
           file: devops/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
-            ${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ env.IMAGE_NAME }}:${{ env.SHA }}-arm64
+          cache-from: type=gha,scope=arm64
+          cache-to: type=gha,mode=max,scope=arm64
+
+  create-manifest:
+    runs-on: ubuntu-latest
+    needs: [build-amd64, build-arm64]
+    env:
+      IMAGE_NAME: ashupednekar535/litewebservices-portal
+      SHA: ${{ needs.build-amd64.outputs.sha_short }}
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - run: |
+          docker manifest create $IMAGE_NAME:$SHA \
+            $IMAGE_NAME:$SHA-amd64 \
+            $IMAGE_NAME:$SHA-arm64
+          docker manifest push $IMAGE_NAME:$SHA
+          docker manifest create $IMAGE_NAME:latest \
+            $IMAGE_NAME:$SHA-amd64 \
+            $IMAGE_NAME:$SHA-arm64
+          docker manifest push $IMAGE_NAME:latest
+
   package-helm:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: create-manifest
     permissions:
       contents: write
     env:
       CHART_PATH: devops/chart
     steps:
       - uses: actions/checkout@v4
-      - name: Extract short SHA
-        run: echo "sha_short=${{ needs.build-and-push.outputs.sha_short }}" >> $GITHUB_ENV
+      - run: echo "sha_short=${{ needs.build-amd64.outputs.sha_short }}" >> $GITHUB_ENV
       - uses: azure/setup-helm@v4
         with:
           version: v3.15.2
-      - name: Update image tag
-        run: yq -i ".server.image.tag = \"${{ env.sha_short }}\"" ${{ env.CHART_PATH }}/values.yaml
-      - name: Bump chart version
-        run: |
+      - run: yq -i '.server.image.tag = strenv(sha_short)' ${{ env.CHART_PATH }}/values.yaml
+      - run: |
           v=$(yq '.version' ${{ env.CHART_PATH }}/Chart.yaml)
-          nv=$(echo $v | awk -F. -v OFS=. '{$NF+=1;print}')
+          nv=$(echo "$v" | awk -F. -v OFS=. '{$NF+=1;print}')
           yq -i ".version = \"$nv\"" ${{ env.CHART_PATH }}/Chart.yaml
           echo "new_version=$nv" >> $GITHUB_ENV
-      - name: Commit and push
-        run: |
+      - run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add ${{ env.CHART_PATH }}/Chart.yaml ${{ env.CHART_PATH }}/values.yaml
-          git commit -m "chore: bump chart version to ${{ env.new_version }} and update image tag"
+          git commit -m "chore: bump chart to ${{ env.new_version }}"
           git push
-      - name: Login Helm
-        run: echo ${{ secrets.GHCR_PAT }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Package chart
-        run: helm package ${{ env.CHART_PATH }} --destination ./
-      - name: Push chart
-        run: |
-          c=$(ls *.tgz)
-          helm push "$c" oci://ghcr.io/ashupednekar/charts
+      - run: echo ${{ secrets.GHCR_PAT }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: helm package ${{ env.CHART_PATH }}
+      - run: helm push *.tgz oci://ghcr.io/ashupednekar/charts
+
