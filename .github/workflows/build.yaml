@@ -30,8 +30,39 @@ jobs:
           platforms: linux/amd64
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}-amd64
+            ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+            ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha,scope=amd64
           cache-to: type=gha,mode=max,scope=amd64
+
+  package-helm:
+    runs-on: ubuntu-latest
+    needs: build-amd64
+    permissions:
+      contents: write
+    env:
+      CHART_PATH: devops/chart
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "sha_short=${{ needs.build-amd64.outputs.sha_short }}" >> $GITHUB_ENV
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.15.2
+      - run: yq -i '.server.image.tag = strenv(sha_short)' ${{ env.CHART_PATH }}/values.yaml
+      - run: |
+          v=$(yq '.version' ${{ env.CHART_PATH }}/Chart.yaml)
+          nv=$(echo "$v" | awk -F. -v OFS=. '{$NF+=1;print}')
+          yq -i ".version = \"$nv\"" ${{ env.CHART_PATH }}/Chart.yaml
+          echo "new_version=$nv" >> $GITHUB_ENV
+      - run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ env.CHART_PATH }}/Chart.yaml ${{ env.CHART_PATH }}/values.yaml
+          git commit -m "chore: bump chart to ${{ env.new_version }}"
+          git push
+      - run: echo ${{ secrets.GHCR_PAT }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: helm package ${{ env.CHART_PATH }}
+      - run: helm push *.tgz oci://ghcr.io/ashupednekar/charts
 
   build-arm64:
     runs-on: ubuntu-latest
@@ -60,7 +91,7 @@ jobs:
 
   create-manifest:
     runs-on: ubuntu-latest
-    needs: [build-amd64, build-arm64]
+    needs: build-arm64
     env:
       IMAGE_NAME: ashupednekar535/litewebservices-portal
       SHA: ${{ needs.build-amd64.outputs.sha_short }}
@@ -78,33 +109,3 @@ jobs:
             $IMAGE_NAME:$SHA-amd64 \
             $IMAGE_NAME:$SHA-arm64
           docker manifest push $IMAGE_NAME:latest
-
-  package-helm:
-    runs-on: ubuntu-latest
-    needs: create-manifest
-    permissions:
-      contents: write
-    env:
-      CHART_PATH: devops/chart
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "sha_short=${{ needs.build-amd64.outputs.sha_short }}" >> $GITHUB_ENV
-      - uses: azure/setup-helm@v4
-        with:
-          version: v3.15.2
-      - run: yq -i '.server.image.tag = strenv(sha_short)' ${{ env.CHART_PATH }}/values.yaml
-      - run: |
-          v=$(yq '.version' ${{ env.CHART_PATH }}/Chart.yaml)
-          nv=$(echo "$v" | awk -F. -v OFS=. '{$NF+=1;print}')
-          yq -i ".version = \"$nv\"" ${{ env.CHART_PATH }}/Chart.yaml
-          echo "new_version=$nv" >> $GITHUB_ENV
-      - run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ${{ env.CHART_PATH }}/Chart.yaml ${{ env.CHART_PATH }}/values.yaml
-          git commit -m "chore: bump chart to ${{ env.new_version }}"
-          git push
-      - run: echo ${{ secrets.GHCR_PAT }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
-      - run: helm package ${{ env.CHART_PATH }}
-      - run: helm push *.tgz oci://ghcr.io/ashupednekar/charts
-
