@@ -17,15 +17,10 @@ spec:
     replicas: {{ .Values.database.instanceReplicas }}
   port: 5432
   postgresVersion: {{ .Values.database.postgresVersion }}
-  patroni:
-    dynamicConfiguration:
-      postgresql:
-        parameters:
-          max_connections: {{ .Values.database.instanceMaxConnections }}
   proxy:
     pgBouncer:
       service:
         type: NodePort
         nodePort: 30054
-      replicas: 1
+      replicas: {{ .Values.database.pgBouncerReplicas }}
 {{- end }}

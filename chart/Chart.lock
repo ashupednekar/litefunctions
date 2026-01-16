@@ -14,5 +14,8 @@ dependencies:
 - name: gitea
   repository: https://dl.gitea.com/charts/
   version: 12.4.0
-digest: sha256:0457d0e6ca1d3a6d10044a9335ed5119f09495d18778f27caa28661517f0e8f0
-generated: "2026-01-13T16:28:03.385316+05:30"
+- name: litewebservices-portal
+  repository: oci://ghcr.io/ashupednekar/charts
+  version: 0.1.92
+digest: sha256:619e6c7598a532cb2b27b90fa3d7f372da91ac215328326a0962457472129205
+generated: "2026-01-14T14:38:14.129015+05:30"
