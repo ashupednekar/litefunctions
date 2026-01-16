@@ -41,8 +41,6 @@ database:
   pgBouncerReplicas: 1
   instanceReplicas: 2
   instanceVolumeSize: 4Gi
-  instanceMaxConnections: 200
-
 minio:
   enabled: false
   global:
@@ -82,8 +80,12 @@ minio:
         cert-manager.io/cluster-issuer: letsencrypt
 
 gitea:
+  valkey-cluster:
+    global:
+      security:
+        allowInsecureImages: true
   enabled: false
-  replicaCount: 2
+  replicaCount: 1 #TODO: some pvc issue with multiple, i.e. readwritemany
   service:
     http:
       type: NodePort
@@ -100,11 +102,6 @@ gitea:
       - host: git.ashudev.in
         paths:
           - path: /
-  persistence:
-    enabled: true
-    accessModes:
-      - ReadWriteMany
-    size: 3Gi
   postgresql-ha:
     enabled: false
   postgresql:
@@ -141,3 +138,7 @@ gitea:
           key: user
           name: litefunctions-pguser-litefunctions
 
+litewebservices-portal:
+  server:
+    db:
+      secret: litefunctions-pguser-litefunctions
