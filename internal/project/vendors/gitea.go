@@ -8,6 +8,9 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
+	"github.com/ashupednekar/litewebservices-portal/internal/project/vendors/workflows"
 )
 
 type GiteaClient struct {
@@ -102,14 +105,6 @@ func (c *GiteaClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*
 	}, nil
 }
 
-
-func (c *GiteaClient) AddWorkflow(
-	ctx context.Context,
-	owner, repo string,
-) error {
-	return nil
-}
-
 func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts WebhookOptions) (*Webhook, error) {
 	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/hooks", c.baseURL, owner, repo)
 
@@ -186,6 +181,18 @@ func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts W
 		CreatedAt: giteaWebhook.CreatedAt,
 		UpdatedAt: giteaWebhook.UpdatedAt,
 	}, nil
+}
+
+func (c *GiteaClient) AddWorkflow(project string) error {
+	if err := repo.WriteFile(
+		project,
+		".gitea/workflows/ci.yaml",
+		workflows.GiteaWorkflow,
+		"writing workflow file",
+	); err != nil{
+		return err
+	}
+	return nil
 }
 
 func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string, opts ActionsProgressOptions) (*ActionsProgress, error) {
