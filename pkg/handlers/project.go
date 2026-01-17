@@ -128,7 +128,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		}
 	}
 
-	if err := vcsClient.AddWorkflow(c.Request.Context(), pkg.Cfg.VcsUser, repoName); err != nil{
+	if err := vcsClient.AddWorkflow(repoName); err != nil{
 		slog.Error("Error adding workflow to newly created repo", "error", err)
 		c.JSON(500, gin.H{"error": "failed to add workflow"})
 		return
@@ -164,7 +164,7 @@ func (h *ProjectHandlers) SyncProject(c *gin.Context) {
 		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})
 		return
 	}
-	if err := vcsClient.AddWorkflow(c.Request.Context(), pkg.Cfg.VcsUser, projectName); err != nil{
+	if err := vcsClient.AddWorkflow(projectName); err != nil{
 		slog.Error("Error adding workflow to repo", "error", err)
 		c.JSON(500, gin.H{"error": "failed to add workflow"})
 		return

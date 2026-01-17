@@ -3,14 +3,13 @@ package vendors
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
 	"github.com/ashupednekar/litewebservices-portal/internal/project/vendors/workflows"
 )
 
@@ -110,50 +109,14 @@ func (c *GitHubClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (
 	}, nil
 }
 
-func (c *GitHubClient) AddWorkflow(
-	ctx context.Context,
-	owner, repo string,
-) error {
-	repository, err := c.GetRepo(ctx, owner, repo)
-	if err != nil{
-		return fmt.Errorf("failed to get repo :%s", err)
-	}
-	content := base64.StdEncoding.EncodeToString(workflows.GitHubWorkflow)
-	url := fmt.Sprintf(
-		"%s/repos/%s/%s/contents/.github/workflows/ci.yaml",
-		c.baseURL, owner, repo,
-	)
-	slog.Warn("branch: ", "debug", repository.DefaultBranch)
-	payload := map[string]any{
-		"message": "Add default GitHub Actions workflow",
-		"content": content,
-		"branch":  repository.DefaultBranch,
-	}
-	body, _ := json.Marshal(payload)
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPut,
-		url,
-		bytes.NewBuffer(body),
-	)
-	if err != nil{
+func (c *GitHubClient) AddWorkflow(project string) error {
+	if err := repo.WriteFile(
+		project,
+		".github/workflows/ci.yaml",
+		workflows.GitHubWorkflow,
+		"writing workflow file",
+	); err != nil{
 		return err
-	}
-	req.Header.Set("Authorization", "Bearer "+c.token)
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusCreated {
-		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf(
-			"add workflow failed (%d): %s",
-			resp.StatusCode, b,
-		)
 	}
 	return nil
 }
