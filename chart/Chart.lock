@@ -2,9 +2,9 @@ dependencies:
 - name: nats
   repository: https://nats-io.github.io/k8s/helm/charts
   version: 2.12.3
-- name: redis-cluster
-  repository: https://charts.bitnami.com/bitnami
-  version: 12.0.10
+- name: valkey-cluster
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 3.0.24
 - name: pgo
   repository: oci://registry-1.docker.io/ashupednekar535
   version: 5.8.1
@@ -17,5 +17,8 @@ dependencies:
 - name: harbor
   repository: https://helm.goharbor.io
   version: 1.14.0
-digest: sha256:8d0c7beea16e1c7874b277a376a1af5bb6599db733ce9b48f73f688cc4128be1
-generated: "2026-01-20T19:43:01.268082+05:30"
+- name: litewebservices-portal
+  repository: oci://ghcr.io/ashupednekar/charts
+  version: 0.1.93
+digest: sha256:bb0065056e63c1b1dd929a39e512979e340b8431740167f2fe164475294ab291
+generated: "2026-01-20T23:33:03.889+05:30"

@@ -50,7 +50,7 @@ spec:
               key: user
         volumeMounts:
         - name: config
-          mount: /tmp
+          mountPath: /tmp
       volumes:
       - name: config
         emptyDir: {}
