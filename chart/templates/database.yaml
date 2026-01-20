@@ -23,4 +23,11 @@ spec:
         type: NodePort
         nodePort: 30054
       replicas: {{ .Values.database.pgBouncerReplicas }}
+  users:
+  - name: harbor
+    databases: 
+    - harbor
+  - name: litefunctions
+    databases:
+    - litefunctions
 {{- end }}
