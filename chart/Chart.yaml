@@ -10,21 +10,25 @@ dependencies:
     version: 2.12.3
     repository: https://nats-io.github.io/k8s/helm/charts
     condition: nats.enabled
-  - name: redis-cluster 
+  - name: valkey-cluster
     version: 12.0.10
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
-  - name: pgo 
+  - name: pgo
     version: 5.8.1
     repository: oci://registry-1.docker.io/ashupednekar535
     condition: database.enabled
-  - name: minio 
+  - name: minio
     version: 17.0.2
     repository: https://charts.bitnami.com/bitnami
     condition: minio.enabled
   - name: gitea
     repository: https://dl.gitea.com/charts/
     version: 12.4.0
+    condition: gitea.enabled
+  - name: harbor
+    repository: https://helm.goharbor.io
+    version: 1.14.0
     condition: gitea.enabled
   - name: litewebservices-portal
     repository: oci://ghcr.io/ashupednekar/charts

@@ -1,0 +1,29 @@
+{{- if .Values.database.enabled | default false }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "litefunctions.fullname" . }}-db-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-setup
+        image: postgres:{{ .Values.database.postgresVersion }}
+        command:
+        - sh
+        - -c
+        - |
+          {{- range .Values.database.initialSchemas }}
+          psql -h litefunctions-primary -U litefunctions -d litefunctions -c "CREATE SCHEMA IF NOT EXISTS {{ . }}; ALTER SCHEMA {{ . }} OWNER TO litefunctions; GRANT USAGE ON SCHEMA {{ . }} TO litefunctions; GRANT CREATE ON SCHEMA {{ . }} TO litefunctions;"
+          {{- end }}
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: litefunctions-pguser-litefunctions
+              key: password
+      restartPolicy: Never
+{{- end }}

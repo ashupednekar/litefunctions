@@ -22,15 +22,15 @@ nats:
           size: 4Gi
     reloader:
       enabled: false
-
+ 
 redis:
-  enabled: false
-redis-cluster:
+  enabled: true
+valkey-cluster:
   global:
     security:
       allowInsecureImages: true
   image:
-    repository: bitnamilegacy/nats
+    repository: bitnamilegacy/valkey
   usePassword: false
   networkPolicy:
     enabled: false
@@ -41,6 +41,10 @@ database:
   pgBouncerReplicas: 1
   instanceReplicas: 2
   instanceVolumeSize: 4Gi
+  initialSchemas:
+    - gitea
+    - lwsportal
+    - harbor
 minio:
   enabled: false
   global:
@@ -80,63 +84,71 @@ minio:
         cert-manager.io/cluster-issuer: letsencrypt
 
 gitea:
-  valkey-cluster:
-    global:
-      security:
-        allowInsecureImages: true
-  enabled: false
-  replicaCount: 1 #TODO: some pvc issue with multiple, i.e. readwritemany
-  service:
-    http:
-      type: NodePort
-      nodePort: 30080
-    ssh:
-      type: NodePort
-      nodePort: 30022
-  ingress:
-    enabled: false
-    className: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
-    hosts:
-      - host: git.ashudev.in
-        paths:
-          - path: /
-  postgresql-ha:
-    enabled: false
-  postgresql:
-    enabled: false
+  enabled: true
   gitea:
-    admin:
-      username: ashudev
-      password: gitadmin
-      email: gitea@ashudev.in
-    config:
-        database:
-          DB_TYPE: postgres
-          SCHEMA: gitea
-          SSL_MODE: require
-    additionalConfigFromEnvs:
-    - name: GITEA__DATABASE__HOST
-      valueFrom:
-        secretKeyRef:
-          key: host
-          name: litefunctions-pguser-litefunctions
-    - name: GITEA__DATABASE__PASSWD
-      valueFrom:
-        secretKeyRef:
-          key: password
-          name: litefunctions-pguser-litefunctions
-    - name: GITEA__DATABASE__NAME
-      valueFrom:
-        secretKeyRef:
-          key: dbname
-          name: litefunctions-pguser-litefunctions
-    - name: GITEA__DATABASE__USER
-      valueFrom:
-        secretKeyRef:
-          key: user
-          name: litefunctions-pguser-litefunctions
+   admin:
+     username: ashudev
+     password: gitadmin
+     email: gitea@ashudev.in
+   config:
+       database:
+         DB_TYPE: postgres
+         SCHEMA: gitea
+         SSL_MODE: require
+       cache:
+         ADAPTER: redis
+         HOST: litefunctions-valkey-cluster:6379
+   additionalConfigFromEnvs:
+   - name: GITEA__DATABASE__HOST
+     valueFrom:
+       secretKeyRef:
+         key: host
+         name: litefunctions-pguser-litefunctions
+   - name: GITEA__DATABASE__PASSWD
+     valueFrom:
+       secretKeyRef:
+         key: password
+         name: litefunctions-pguser-litefunctions
+   - name: GITEA__DATABASE__NAME
+     valueFrom:
+       secretKeyRef:
+         key: dbname
+         name: litefunctions-pguser-litefunctions
+   - name: GITEA__DATABASE__USER
+     valueFrom:
+       secretKeyRef:
+         key: user
+         name: litefunctions-pguser-litefunctions
+    certSource: secret
+    secret:
+      secretName: harbor-ingress-tls
+   ingress:
+     enabled: false 
+     hosts:
+       core: harbor.ashudev.in
+       notary: notary.ashudev.in
+     className: nginx
+     annotations:
+       cert-manager.io/cluster-issuer: letsencrypt
+ externalURL: https://harbor.ashudev.in
+  persistence:
+    persistentVolumeClaim:
+      registry:
+        size: 15Gi
+ database:
+   type: external
+   external:
+     host: "litefunctions-primary"
+     port: "5432"
+     username: "harbor"
+     existingSecret: "litefunctions-pguser-litefunctions"
+     existingSecretPasswordKey: "password"
+     coreDatabase: "harbor"
+     jobServiceDatabase: "harbor"
+     userDatabase: "harbor"
+     notaryServerDatabase: "notary_server"
+     notarySignerDatabase: "notary_signer" 
+
 
 litewebservices-portal:
   server:
