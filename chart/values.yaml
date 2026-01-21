@@ -135,6 +135,7 @@ gitea:
 
 
 harbor:
+  enabled: true
   trivy:
     enabled: false
   redis:
@@ -144,16 +145,20 @@ harbor:
   database:
     type: external
     external:
-      host: "litefunctions-primary"
-      port: "5432"
-      username: "harbor"
-      existingSecret: "litefunctions-pguser-harbor"
-      existingSecretPasswordKey: "password"
-      coreDatabase: "harbor"
-      jobServiceDatabase: "harbor"
-      userDatabase: "harbor"
-      notaryServerDatabase: "harbor"
-      notarySignerDatabase: "harbor"
+       host: "litefunctions-primary"
+       port: "5432"
+       username:
+         valueFrom:
+           secretKeyRef:
+             key: user
+             name: litefunctions-pguser-litefunctions
+       existingSecret: "litefunctions-pguser-litefunctions"
+       existingSecretPasswordKey: "password"
+       coreDatabase: "litefunctions"
+       jobServiceDatabase: "litefunctions"
+       userDatabase: "litefunctions"
+       notaryServerDatabase: "litefunctions"
+       notarySignerDatabase: "litefunctions"
 
 litewebservices-portal:
   server:
