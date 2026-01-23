@@ -106,15 +106,15 @@ gitea:
       username: ashudev
       password: gitadmin
       email: gitea@ashudev.in
-     config:
-       actions:
-         ENABLED: true
-       database:
-         DB_TYPE: postgres
-         NAME: litefunctions
-         SCHEMA: gitea
-         SSL_MODE: require
-         HOST: "litefunctions-pgbouncer.litefunctions.svc"
+    config:
+      actions:
+        ENABLED: true
+      database:
+        DB_TYPE: postgres
+        NAME: litefunctions
+        SCHEMA: gitea
+        SSL_MODE: require
+        HOST: "litefunctions-pgbouncer.litefunctions.svc"
     additionalConfigFromEnvs:
     - name: GITEA__DATABASE__HOST
       valueFrom:
@@ -123,9 +123,9 @@ gitea:
           name: litefunctions-pguser-litefunctions
     - name: GITEA__DATABASE__PASSWD
       valueFrom:
-        secretKeyRef:
-          key: password
-          name: litefunctions-pguser-litefunctions
+       secretKeyRef:
+         key: password
+         name: litefunctions-pguser-litefunctions
     - name: GITEA__DATABASE__NAME
       valueFrom:
         secretKeyRef:
@@ -136,28 +136,32 @@ gitea:
         secretKeyRef:
           key: user
           name: litefunctions-pguser-litefunctions
-  ingress:
-    enabled: false
-    tls: []
-    hosts:
-    - host: git.ashudev.in
-      paths:
-      - path: /
-    className: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
+    ingress:
+     enabled: false
+     tls: []
+     hosts:
+     - host: git.ashudev.in
+       paths:
+       - path: /
+     className: nginx
+     annotations:
+       cert-manager.io/cluster-issuer: letsencrypt
 
+actions:
+  enabled: true
+  giteaRootURL: http://litefunctions-gitea-http:3000
+  existingSecret: litefunctions-registration-token
+  existingSecretKey: token
 
 harbor:
   expose:
     type: nodePort
     tls:
-      auto:
-        commonName: "harbor.local"
+      enabled: false
     nodePort:
       ports:
         http:
-          nodePort: 30081
+          nodePort: 30082
   trivy:
     enabled: false
   redis:
@@ -167,6 +171,7 @@ harbor:
       password: "valkeyadmin"
   database: # TODO: use external database
     type: internal
+  harborAdminPassword: harboradmin
 
 ui:
   enabled: false
