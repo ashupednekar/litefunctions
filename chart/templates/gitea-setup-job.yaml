@@ -10,18 +10,40 @@ spec:
   template:
     spec:
       containers:
+      serviceAccountName: {{ include "litefunctions.fullname" . }}-gitea-setup
+      containers:
       - name: gitea-setup
-        image: docker.gitea.com/gitea:1.24.6-rootless
+        image: alpine:latest
         command:
         - sh
         - -c
         - |
-          # Wait for gitea to be ready
-          until curl -f http://litefunctions-gitea:3000/api/v1/version; do sleep 5; done
-          # Create actions runner token
-          gitea --config /tmp/app.ini actions generate-runner-token > /tmp/runner-token
-          # You can store or use the token as needed
+          apk add --no-cache curl kubectl && until curl -f http://litefunctions-gitea-http:3000/api/v1/version; do sleep 5; done; TOKEN=$(curl -s -u ashudev:gitadmin http://litefunctions-gitea-http:3000/api/v1/user/actions/runners/registration-token | sed 's/.*"token":"//' | sed 's/".*//'); kubectl patch secret litefunctions-actions-token --type json -p "[{\"op\": \"replace\", \"path\": \"/data/token\", \"value\": \"$(echo -n $TOKEN | base64)\"}]"; curl -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/user/repos -H "Content-Type: application/json" -d '{"name": "test-repo", "private": false}'
         env:
+        - name: GITEA_APP_INI
+          value: /data/gitea/conf/app.ini
+        - name: GITEA_CUSTOM
+          value: /data/gitea
+        - name: GITEA_WORK_DIR
+          value: /data
+        - name: GITEA_TEMP
+          value: /tmp/gitea
+        - name: TMPDIR
+          value: /tmp/gitea
+        - name: HOME
+          value: /data/gitea/git
+        - name: KUBECONFIG
+          value: ""
+        - name: GITEA__server__PROTOCOL
+          value: http
+        - name: GITEA__server__DOMAIN
+          value: litefunctions-gitea-http
+        - name: GITEA__server__HTTP_PORT
+          value: "3000"
+        - name: GITEA__server__ROOT_URL
+          value: http://litefunctions-gitea-http:3000
+        - name: GITEA__server__LOCAL_ROOT_URL
+          value: http://litefunctions-gitea-http:3000
         - name: GITEA__database__DB_TYPE
           value: postgres
         - name: GITEA__database__SCHEMA
@@ -51,8 +73,13 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /tmp
+        - name: data
+          mountPath: /data
       volumes:
       - name: config
         emptyDir: {}
+      - name: data
+        persistentVolumeClaim:
+          claimName: gitea-shared-storage
       restartPolicy: Never
 {{- end }}

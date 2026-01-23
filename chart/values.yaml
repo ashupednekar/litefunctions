@@ -1,3 +1,6 @@
+redis:
+  enabled: true
+
 images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
   operator: ashupednekar535/litefunctions-operator:latest
@@ -6,7 +9,7 @@ ingestor:
   nats_broker_url: litefunctions-nats:4222
 
 nats:
-  enabled: false
+  enabled: true
   natsBox:
     enabled: false
   config:
@@ -25,7 +28,7 @@ nats:
  
 
 database:
-  enabled: false
+  enabled: true
   postgresVersion: 16
   pgBouncerReplicas: 1
   instanceReplicas: 2
@@ -33,7 +36,6 @@ database:
   initialSchemas:
     - gitea
     - lwsportal
-    - harbor
 
 minio:
   enabled: false
@@ -74,57 +76,65 @@ minio:
         cert-manager.io/cluster-issuer: letsencrypt
 
 valkey-cluster:
+  enabled: false
   global:
     security:
       allowInsecureImages: true
+  auth:
+    enabled: false
   image:
     repository: bitnamilegacy/valkey-cluster
 
 gitea:
   enabled: true
+  service:
+    http:
+      type: NodePort
+      nodePort: 30080
+    ssh:
+      type: NodePort
+      nodePort: 30022
   postgresql-ha:
+    enabled: false
+  postgresql:
     enabled: false
   valkey-cluster:
     enabled: false
-  admin:
-    username: ashudev
-    password: gitadmin
-    email: gitea@ashudev.in
-  config:
-    database:
-      DB_TYPE: postgres
-      SCHEMA: gitea
-      SSL_MODE: require
-    cache:
-      ADAPTER: redis
-      HOST: litefunctions-valkey-cluster:6379
-  additionalConfigFromEnvs:
-  - name: GITEA__DATABASE__HOST
-    valueFrom:
-      secretKeyRef:
-        key: host
-        name: litefunctions-pguser-litefunctions
-  - name: GITEA__DATABASE__PASSWD
-    valueFrom:
-      secretKeyRef:
-        key: password
-        name: litefunctions-pguser-litefunctions
-  - name: GITEA__DATABASE__NAME
-    valueFrom:
-      secretKeyRef:
-        key: dbname
-        name: litefunctions-pguser-litefunctions
-  - name: GITEA__DATABASE__USER
-    valueFrom:
-      secretKeyRef:
-        key: user
-        name: litefunctions-pguser-litefunctions
+  gitea:
+    admin:
+      username: ashudev
+      password: gitadmin
+      email: gitea@ashudev.in
+    config:
+       database:
+         DB_TYPE: postgres
+         NAME: litefunctions
+         SCHEMA: gitea
+         SSL_MODE: require
+    additionalConfigFromEnvs:
+    - name: GITEA__DATABASE__HOST
+      valueFrom:
+        secretKeyRef:
+          key: host
+          name: litefunctions-pguser-litefunctions
+    - name: GITEA__DATABASE__PASSWD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: litefunctions-pguser-litefunctions
+    - name: GITEA__DATABASE__NAME
+      valueFrom:
+        secretKeyRef:
+          key: dbname
+          name: litefunctions-pguser-litefunctions
+    - name: GITEA__DATABASE__USER
+      valueFrom:
+        secretKeyRef:
+          key: user
+          name: litefunctions-pguser-litefunctions
   ingress:
     enabled: false
-    tls:
-      certSource: secret
-      secret:
-        secretName: harbor-ingress-tls
+    tls: []
     hosts:
     - host: git.ashudev.in
       paths:
@@ -135,32 +145,27 @@ gitea:
 
 
 harbor:
-  enabled: true
+  expose:
+    type: nodePort
+    tls:
+      auto:
+        commonName: "harbor.local"
+    nodePort:
+      ports:
+        http:
+          nodePort: 30081
   trivy:
     enabled: false
   redis:
     type: external
     external:
       addr: "litefunctions-valkey-cluster:6379"
-  database:
-    type: external
-    external:
-       host: "litefunctions-primary"
-       port: "5432"
-       username:
-         valueFrom:
-           secretKeyRef:
-             key: user
-             name: litefunctions-pguser-litefunctions
-       existingSecret: "litefunctions-pguser-litefunctions"
-       existingSecretPasswordKey: "password"
-       coreDatabase: "litefunctions"
-       jobServiceDatabase: "litefunctions"
-       userDatabase: "litefunctions"
-       notaryServerDatabase: "litefunctions"
-       notarySignerDatabase: "litefunctions"
+      password: ""
+  database: # TODO: use external database
+    type: internal
 
-litewebservices-portal:
+ui:
+  enabled: false
   server:
     db:
       secret: litefunctions-pguser-litefunctions
