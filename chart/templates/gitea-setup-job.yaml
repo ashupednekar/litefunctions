@@ -22,10 +22,6 @@ spec:
           until curl -f http://litefunctions-gitea-http:3000/api/v1/version; do sleep 5; done;
           TOKEN=$(curl -s -u ashudev:gitadmin http://litefunctions-gitea-http:3000/api/v1/user/actions/runners/registration-token | jq -r .token);
           kubectl patch secret litefunctions-actions-token --type json -p "[{\"op\": \"replace\", \"path\": \"/data/token\", \"value\": \"$(echo -n $TOKEN | base64)\"}]";
-          RESPONSE=$(curl -s -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/user/tokens -H "Content-Type: application/json" -d '{"name": "admin-token", "scopes": ["repo", "user:email"]}');
-          echo "Token response: $RESPONSE";
-          ADMIN_TOKEN=$(echo $RESPONSE | jq -r .token 2>/dev/null || echo "null");
-          kubectl patch secret litefunctions-admin-token --type json -p "[{\"op\": \"replace\", \"path\": \"/data/token\", \"value\": \"$(echo -n $ADMIN_TOKEN | base64)\"}]";
           curl -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/user/repos -H "Content-Type: application/json" -d '{"name": "test-repo", "private": false}'
         env:
         - name: GITEA_APP_INI
