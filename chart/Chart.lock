@@ -24,4 +24,4 @@ dependencies:
   repository: oci://ghcr.io/ashupednekar/charts
   version: 0.1.93
 digest: sha256:16ee52982f10357f0e0d6422cbf4140624da6751a3adee6636ed478bf410cfb5
-generated: "2026-01-23T22:47:24.754184+05:30"
+generated: "2026-01-24T00:32:31.374034+05:30"
