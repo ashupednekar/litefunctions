@@ -4,7 +4,7 @@ kind: Job
 metadata:
   name: {{ include "litefunctions.fullname" . }}-db-setup
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook": post-install
     "helm.sh/hook-weight": "1"
 spec:
   template:
