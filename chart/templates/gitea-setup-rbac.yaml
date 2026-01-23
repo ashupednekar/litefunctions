@@ -1,0 +1,36 @@
+{{- if .Values.gitea.enabled | default false }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "litefunctions.fullname" . }}-gitea-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "litefunctions.fullname" . }}-gitea-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "litefunctions.fullname" . }}-gitea-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+subjects:
+- kind: ServiceAccount
+  name: {{ include "litefunctions.fullname" . }}-gitea-setup
+roleRef:
+  kind: Role
+  name: {{ include "litefunctions.fullname" . }}-gitea-setup
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
