@@ -106,13 +106,15 @@ gitea:
       username: ashudev
       password: gitadmin
       email: gitea@ashudev.in
-    config:
-      database:
-        DB_TYPE: postgres
-        NAME: litefunctions
-        SCHEMA: gitea
-        SSL_MODE: require
-        HOST: "litefunctions-pgbouncer.litefunctions.svc"
+     config:
+       actions:
+         ENABLED: true
+       database:
+         DB_TYPE: postgres
+         NAME: litefunctions
+         SCHEMA: gitea
+         SSL_MODE: require
+         HOST: "litefunctions-pgbouncer.litefunctions.svc"
     additionalConfigFromEnvs:
     - name: GITEA__DATABASE__HOST
       valueFrom:
