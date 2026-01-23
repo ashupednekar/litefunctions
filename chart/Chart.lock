@@ -14,11 +14,14 @@ dependencies:
 - name: gitea
   repository: https://dl.gitea.com/charts/
   version: 12.4.0
+- name: actions
+  repository: https://dl.gitea.com/charts/
+  version: 0.0.2
 - name: harbor
   repository: https://helm.goharbor.io
   version: 1.14.0
 - name: litewebservices-portal
   repository: oci://ghcr.io/ashupednekar/charts
   version: 0.1.93
-digest: sha256:bb0065056e63c1b1dd929a39e512979e340b8431740167f2fe164475294ab291
-generated: "2026-01-23T16:16:13.95152+05:30"
+digest: sha256:16ee52982f10357f0e0d6422cbf4140624da6751a3adee6636ed478bf410cfb5
+generated: "2026-01-23T22:47:24.754184+05:30"

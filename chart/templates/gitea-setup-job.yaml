@@ -22,7 +22,11 @@ spec:
           until curl -f http://litefunctions-gitea-http:3000/api/v1/version; do sleep 5; done;
           TOKEN=$(curl -s -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/users/ashudev/tokens -H "Content-Type: application/json" -d '{"name": "admin-token", "scopes": ["write:repository", "write:user", "write:admin"]}' | jq -r .sha1);
           kubectl patch secret litefunctions-admin-token --type json -p "[{\"op\": \"replace\", \"path\": \"/data/token\", \"value\": \"$(echo -n $TOKEN | base64)\"}]";
-          curl -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/user/repos -H "Content-Type: application/json" -d '{"name": "test-repo", "private": false}'
+          curl -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/user/repos -H "Content-Type: application/json" -d '{"name": "test-repo", "private": false}';
+          REG_TOKEN=$(curl -H "Authorization: token $TOKEN" http://litefunctions-gitea-http:3000/api/v1/user/actions/runners/registration-token | jq -r .token);
+          kubectl patch secret litefunctions-registration-token --type json -p "[{\"op\": \"replace\", \"path\": \"/data/token\", \"value\": \"$(echo -n $REG_TOKEN | base64)\"}]";
+          curl -H "Authorization: token $TOKEN" -X PUT http://litefunctions-gitea-http:3000/api/v1/repos/ashudev/test-repo/actions/secrets/HARBOR_USERNAME -H "Content-Type: application/json" -d '{"data": "YXNodWRldg=="}';
+          curl -H "Authorization: token $TOKEN" -X PUT http://litefunctions-gitea-http:3000/api/v1/repos/ashudev/test-repo/actions/secrets/HARBOR_PASSWORD -H "Content-Type: application/json" -d '{"data": "aGFyYm9yYWRtaW4="}'
         env:
         - name: GITEA_APP_INI
           value: /data/gitea/conf/app.ini
