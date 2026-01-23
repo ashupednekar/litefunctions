@@ -20,5 +20,5 @@ dependencies:
 - name: litewebservices-portal
   repository: oci://ghcr.io/ashupednekar/charts
   version: 0.1.93
-digest: sha256:7d39e868db515232e561dfa3222b9f497cd2bb7c8b0f7a2675f0dc19574a69ba
-generated: "2026-01-22T16:05:11.551957+05:30"
+digest: sha256:bb0065056e63c1b1dd929a39e512979e340b8431740167f2fe164475294ab291
+generated: "2026-01-23T16:16:13.95152+05:30"

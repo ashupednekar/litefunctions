@@ -76,12 +76,13 @@ minio:
         cert-manager.io/cluster-issuer: letsencrypt
 
 valkey-cluster:
-  enabled: false
+  enabled: true
   global:
     security:
       allowInsecureImages: true
   auth:
-    enabled: false
+    enabled: true
+    password: valkeyadmin
   image:
     repository: bitnamilegacy/valkey-cluster
 
@@ -106,11 +107,12 @@ gitea:
       password: gitadmin
       email: gitea@ashudev.in
     config:
-       database:
-         DB_TYPE: postgres
-         NAME: litefunctions
-         SCHEMA: gitea
-         SSL_MODE: require
+      database:
+        DB_TYPE: postgres
+        NAME: litefunctions
+        SCHEMA: gitea
+        SSL_MODE: require
+        HOST: "litefunctions-pgbouncer.litefunctions.svc"
     additionalConfigFromEnvs:
     - name: GITEA__DATABASE__HOST
       valueFrom:
@@ -160,7 +162,7 @@ harbor:
     type: external
     external:
       addr: "litefunctions-valkey-cluster:6379"
-      password: ""
+      password: "valkeyadmin"
   database: # TODO: use external database
     type: internal
 
