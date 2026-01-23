@@ -82,7 +82,7 @@ valkey-cluster:
       allowInsecureImages: true
   auth:
     enabled: true
-    password: valkeyadmin
+  password: valkeyadmin
   image:
     repository: bitnamilegacy/valkey-cluster
 
