@@ -30,10 +30,6 @@ dependencies:
   repository: https://dl.gitea.com/charts/
   version: 0.0.2
   condition: gitea.enabled
-- name: harbor
-  repository: https://helm.goharbor.io
-  version: 1.14.0
-  condition: gitea.enabled
 - name: litewebservices-portal
   repository: oci://ghcr.io/ashupednekar/charts
   version: ">=0.1.89"

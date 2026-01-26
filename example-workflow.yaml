@@ -11,7 +11,7 @@ jobs:
       uses: docker://gcr.io/kaniko-project/executor:latest
       with:
         args: --dockerfile=Dockerfile --context=. --no-push --tarPath=/workspace/image.tar
-    - name: Push to Harbor
+    - name: Push to Gitea Registry
       uses: docker://quay.io/skopeo/stable:latest
       with:
-        args: copy --dest-creds ${{ secrets.HARBOR_USERNAME }}:${{ secrets.HARBOR_PASSWORD }} --dest-tls-verify=false docker-archive:/workspace/image.tar docker://litefunctions-harbor-registry:5000/test-repo:latest
+        args: copy --dest-creds ${{ secrets.GITEA_USERNAME }}:${{ secrets.GITEA_PASSWORD }} --dest-tls-verify=false docker-archive:/workspace/image.tar docker://litefunctions-gitea-http:3000/test-repo:latest

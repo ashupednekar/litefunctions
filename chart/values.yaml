@@ -108,7 +108,11 @@ gitea:
       email: gitea@ashudev.in
     config:
       actions:
-        ENABLED: true
+        enabled: true
+      packages:
+        enabled: true
+      registry:
+        enabled: true
       database:
         DB_TYPE: postgres
         NAME: litefunctions
@@ -152,26 +156,6 @@ actions:
   giteaRootURL: http://litefunctions-gitea-http:3000
   existingSecret: litefunctions-registration-token
   existingSecretKey: token
-
-harbor:
-  expose:
-    type: nodePort
-    tls:
-      enabled: false
-    nodePort:
-      ports:
-        http:
-          nodePort: 30082
-  trivy:
-    enabled: false
-  redis:
-    type: external
-    external:
-      addr: "litefunctions-valkey-cluster:6379"
-      password: "valkeyadmin"
-  database: # TODO: use external database
-    type: internal
-  harborAdminPassword: harboradmin
 
 ui:
   enabled: false
