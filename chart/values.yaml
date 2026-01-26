@@ -111,6 +111,9 @@ gitea:
         enabled: true
       packages:
         enabled: true
+      server:
+        ROOT_URL: "http://litefunctions-gitea-http.litefunctions.svc.cluster.local:3000/"
+        DOMAIN: "litefunctions-gitea-http.litefunctions.svc.cluster.local"
       registry:
         enabled: true
       database:
