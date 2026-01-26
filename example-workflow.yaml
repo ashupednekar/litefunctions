@@ -1,17 +1,23 @@
-name: Docker Build
-
+name: ci
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Build Docker image with Kaniko
-      uses: docker://gcr.io/kaniko-project/executor:latest
-      with:
-        args: --dockerfile=Dockerfile --context=. --no-push --tarPath=/workspace/image.tar
-    - name: Push to Gitea Registry
-      uses: docker://quay.io/skopeo/stable:latest
-      with:
-        args: copy --dest-creds ${{ secrets.GITEA_USERNAME }}:${{ secrets.GITEA_PASSWORD }} --dest-tls-verify=false docker-archive:/workspace/image.tar docker://litefunctions-gitea-http:3000/test-repo:latest
+      - uses: actions/checkout@v4
+      
+      - name: Setup Kaniko config
+        run: |
+          mkdir -p $HOME/.docker
+          echo '{"auths":{"litefunctions-gitea-http:3000":{"auth":"'$(echo -n ashudev:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
+          
+      - name: Build and Push with Kaniko  
+        uses: docker://gcr.io/kaniko-project/executor:latest
+        with:
+          args: >
+            --dockerfile=Dockerfile
+            --context=.
+            --destination=litefunctions-gitea-http:3000/ashudev/test-repo:latest
+            --skip-tls-verify
+            --insecure
+            --skip-push-permission-check
