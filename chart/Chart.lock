@@ -17,8 +17,11 @@ dependencies:
 - name: actions
   repository: https://dl.gitea.com/charts/
   version: 0.0.2
+- name: zot
+  repository: http://zotregistry.dev/helm-charts
+  version: 0.1.97
 - name: litewebservices-portal
   repository: oci://ghcr.io/ashupednekar/charts
   version: 0.1.93
-digest: sha256:7cbe0ff3c948c6acb928623a3210b455f7ac59aaeb2a58463c02e75831e11eba
-generated: "2026-01-25T11:41:29.408746+05:30"
+digest: sha256:8ef9ea2fb41ac3c4d723e4ff1a33bcf33f646238ebd52f27f789bf04f606c35d
+generated: "2026-01-27T20:57:47.356802+05:30"
