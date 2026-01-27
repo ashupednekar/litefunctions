@@ -19,6 +19,7 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -39,6 +40,7 @@ import (
 
 	appsv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
+	"github.com/ashupednekar/litefunctions/operator/internal/server"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -236,9 +238,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	go func(){
+		setupLog.Info("Starting hook server")
+		http.HandleFunc("/litefunctions/hook/", server.HandleHooks)
+		if err := http.ListenAndServe(":3000", nil); err != nil{
+			setupLog.Error(err, "error starting hook server")
+		}
+	}()
+
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+
 }
