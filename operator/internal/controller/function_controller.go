@@ -53,6 +53,8 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	labels := map[string]string{
 		"app":  "runtime",
 		"lang": function.Spec.Language,
+		"project": function.Spec.Project,
+		"function": function.Spec.Name,
 	}
 
 	deploymentName := fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
@@ -66,7 +68,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	case "lua":
 		image = "ashupednekar535/litefunctions-runtime-lua:latest"
 	default:
-		image = fmt.Sprintf("ghcr.io/lwsrepos/runtime-%s-%s-%s:latest", function.Spec.Language, function.Spec.Project, function.Name)
+		image = fmt.Sprintf("%s/%s/runtime-%s-%s-%s:latest", Cfg.Registry, Cfg.VcsUser, function.Spec.Language, function.Spec.Project, function.Name)
 	}
 
 	deploy := &appsv1.Deployment{
@@ -82,7 +84,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				ObjectMeta: metav1.ObjectMeta{Labels: labels},
 				Spec: corev1.PodSpec{
 					ImagePullSecrets: []corev1.LocalObjectReference{
-						{Name: "ghcr-secret"},
+						{Name: Cfg.PullSecret},
 					},
 					Containers: []corev1.Container{
 						{
@@ -95,19 +97,19 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
 											LocalObjectReference: corev1.LocalObjectReference{
-												Name: "litefunctions-pguser-litefunctions",
+												Name: Cfg.DbSecretName,
 											},
-											Key: "pgbouncer-uri",
+											Key: Cfg.DbSecretKey,
 										},
 									},
 								},
 								{
 									Name:  "REDIS_URL",
-									Value: "redis://litefunctions-redis-cluster:6379",
+									Value: Cfg.RedisUrl,
 								},
 								{
-									Name:  "NATS_BROKER_URL",
-									Value: "nats://litefunctions-nats:4222",
+									Name:  "NATS_URL", //TODO: multiple brokers
+									Value: Cfg.NatsUrl, 
 								},
 							},
 						},

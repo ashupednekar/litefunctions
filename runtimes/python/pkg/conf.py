@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     project: str
 
-    nats_broker_url: str
+    nats_url: str
 
     git_user: str
     git_token: str

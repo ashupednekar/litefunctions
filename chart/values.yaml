@@ -5,6 +5,11 @@ images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
   operator: ashupednekar535/litefunctions-operator:latest
 
+operator:
+  registry: localhost:30050
+  vcs_user: ashudev
+  #NOTE: rest are defaulting in operator manager settings, add here if needed
+
 ingestor:
   nats_broker_url: litefunctions-nats:4222
 
@@ -159,6 +164,10 @@ actions:
   giteaRootURL: http://litefunctions-gitea-http:3000
   existingSecret: litefunctions-registration-token
   existingSecretKey: token
+
+zot:
+  service:
+    nodePort: 30050
 
 ui:
   enabled: false

@@ -64,7 +64,7 @@ spec:
           - --leader-elect
           - --health-probe-bind-address=:8081
         image: controller:latest
-        name: manager
+        name: manager 
         ports: []
         securityContext:
           allowPrivilegeEscalation: false

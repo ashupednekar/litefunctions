@@ -6,5 +6,6 @@ import (
 )
 
 func HandleHooks(w http.ResponseWriter, r *http.Request) {
+
 	fmt.Printf("Got Hook")
 }
