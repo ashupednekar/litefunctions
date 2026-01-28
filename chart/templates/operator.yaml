@@ -1,3 +1,4 @@
+#TODO: avoid redundant manifest, kustomize manager.yaml from operator config
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,8 +31,37 @@ spec:
         args:
         - --leader-elect
         - --health-probe-bind-address=:8081
-        image: {{ .Values.images.operator }}
-        name: manager
+        image: {{ .Values.images.operator }} 
+        env:
+        {{- if .Values.operator.registry }}
+        - name: REGISTRY
+          value: {{ .Values.operator.registry | quote }}
+        {{- end }}
+        {{- if .Values.operator.vcs_user }}
+        - name: VCS_USER
+          value: {{ .Values.operator.vcs_user | quote }}
+        {{- end }}
+        {{- if .Values.operator.pull_secret }}
+        - name: PULL_SECRET
+          value: {{ .Values.operator.pull_secret | quote }}
+        {{- end }}
+        {{- if .Values.operator.db_secret_name }}
+        - name: DB_SECRET_NAME
+          value: {{ .Values.operator.db_secret_name | quote }}
+        {{- end }}
+        {{- if .Values.operator.db_secret_key }}
+        - name: DB_SECRET_KEY
+          value: {{ .Values.operator.db_secret_key | quote }}
+        {{- end }}
+        {{- if .Values.operator.redis_url }}
+        - name: REDIS_URL
+          value: {{ .Values.operator.redis_url | quote }}
+        {{- end }}
+        {{- if .Values.operator.nats_url }}
+        - name: NATS_URL
+          value: {{ .Values.operator.nats_url | quote }}
+        {{- end }}
+        name: litefunctions-manager
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

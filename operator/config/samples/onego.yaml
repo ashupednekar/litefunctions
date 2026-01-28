@@ -6,5 +6,5 @@ spec:
   name: one
   project: projectx
   language: go
-  git_creds: vcs-secret
+  git_creds: litefunctions-admin-token
 

@@ -13,7 +13,7 @@ type Settings struct{
 
 	DatabaseUrl string `env:"DATABASE_URL"`
 	RedisUrl string `env:"REDIS_URL"`
-	NatsBrokerUrl string `env:"NATS_BROKER_URL"`
+	NatsUrl string `env:"NATS_URL"`
 
 	OtlpHost string  `env:"OTLP_HOST"`
 	OtlpPort string `env:"OTLP_PORT"`
