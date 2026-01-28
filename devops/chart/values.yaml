@@ -5,7 +5,7 @@ server:
   image:
     registry: docker.io
     repository: ashupednekar535/litewebservices-portal
-    tag: "469d9a4"
+    tag: "6cc0465"
   db:
     secret: db-pguser-db
     key: pgbouncer-uri
