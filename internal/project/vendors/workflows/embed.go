@@ -5,7 +5,7 @@ import _ "embed"
 //go:embed github.yaml
 var GitHubWorkflow []byte
 
-//go:embed github.yaml
+//go:embed gitea.yaml
 var GiteaWorkflow []byte
 
 

@@ -1,51 +1,142 @@
-name: Gitea Docker
+name: litefunctions ci
+
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: gitea
+  REGISTRY: litefunctions-zot:5000
+  IMAGE_PREFIX: ashudev
 
 jobs:
-  build-gitea:
+  detect-changes:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+      go: ${{ steps.changes.outputs.go }}
+      rust-files: ${{ steps.get-changed-files.outputs.rust-files }}
+      go-files: ${{ steps.get-changed-files.outputs.go-files }}
+      repo_name: ${{ steps.set-repo-name.outputs.repo_name }}
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set repo owner (lowercase)
-        id: repo
-        run: |
-          echo "owner_lc=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login GHCR
-        uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Build and Push (native arch only)
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            rust:
+              - 'functions/rs/**'
+            go:
+              - 'functions/go/**'
+
+      - name: Get changed files
+        id: get-changed-files
         run: |
-          TAG_LATEST=${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lc }}/${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}:latest
-          TAG_SHA=${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lc }}/${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          CACHE_REF=${{ env.REGISTRY }}/${{ steps.repo.outputs.owner_lc }}/${{ github.event.repository.name }}/${{ env.IMAGE_NAME }}:cache
+          BEFORE_SHA=${{ gitea.event.before || '0000000000000000000000000000000000000000' }}
 
-          docker buildx build \
-            --pull \
-            --push \
-            --tag "${TAG_LATEST}" \
-            --tag "${TAG_SHA}" \
-            --cache-from=type=gha \
-            --cache-to=type=gha,mode=max \
-            -f build/gitea/Dockerfile \
-            build/gitea
+          RUST_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/rs/*.rs' \
+            | sed 's|functions/rs/||' | sed 's|\.rs$||' \
+            | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "rust-files=${RUST_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
+
+          GO_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/go/*.go' \
+            | sed 's|functions/go/||' | sed 's|\.go$||' \
+            | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "go-files=${GO_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
+          echo "Detected Go files JSON: ${GO_FILES_JSON}"
+
+          # Optional: fail if multiple files (uncomment if strict)
+          # GO_COUNT=$(echo "$GO_FILES_JSON" | jq 'length')
+          # if [ "$GO_COUNT" -gt 1 ]; then
+          #   echo "Error: Multiple Go files changed (${GO_COUNT}). Only one allowed."
+          #   exit 1
+          # fi
+
+      - name: Set repo name
+        id: set-repo-name
+        run: |
+          REPO_NAME=$(basename "${{ gitea.repository }}")
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+
+  build-go:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.go == 'true' && needs.detect-changes.outputs.go-files != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo (this Gitea repo)
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Clone litefunctions from github.com using git
+        run: |
+          git clone --depth 1 https://github.com/ashupednekar/litefunctions.git litefunctions
+
+      - name: Setup Kaniko config
+        run: |
+          mkdir -p $HOME/.docker
+          echo '{"auths":{"${{ env.REGISTRY }}":{"auth":"'$(echo -n ${{ env.IMAGE_PREFIX }}:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
+
+      - name: Verify Kaniko config (debug)
+        run: |
+          echo "HOME is: $HOME"
+          ls -la $HOME/.docker/
+          if [ -f "$HOME/.docker/config.json" ]; then
+            echo "config.json exists!"
+            cat $HOME/.docker/config.json | sed 's/"auth":"[^"]*"/"auth":"REDACTED"/'
+          else
+            echo "config.json MISSING!"
+          fi
+
+      - name: Prepare build parameters for single Go function
+        env:
+          GO_FILES_JSON: ${{ needs.detect-changes.outputs.go-files }}
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Detected Go files JSON: $GO_FILES_JSON"
+
+          # Extract single file name (first one only)
+          file=$(echo "$GO_FILES_JSON" | jq -r '.[0]')
+
+          if [ "$file" = "null" ] || [ -z "$file" ]; then
+            echo "No valid Go file detected - skipping build"
+            echo "SKIP_BUILD=true" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/$REPO_NAME-go-$file:latest"
+          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/$REPO_NAME-go-$file:${{ gitea.sha }}"
+
+          echo "Building function: $file"
+          echo "Resolved LATEST tag: $LATEST_TAG"
+          echo "Resolved SHA tag: $SHA_TAG"
+
+          # Export for next step
+          echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
+
+      - name: Build and Push with Kaniko
+        if: env.SKIP_BUILD != 'true'
+        uses: docker://gcr.io/kaniko-project/executor:latest
+        with:
+          args: >
+            --context=dir://litefunctions/runtimes/go
+            --dockerfile=../../build/runtimes/Dockerfile.go
+            --destination=${{ env.LATEST_TAG }}
+            --destination=${{ env.SHA_TAG }}
+            --build-arg PROJECT=${{ needs.detect-changes.outputs.repo_name }}
+            --build-arg NAME=${{ env.FUNCTION_NAME }}
+            --build-arg GIT_TOKEN=${{ secrets.GITEA_TOKEN }}
+            --cache=true
+            --cache-copy-layers=true
+            --cache-ttl=336h
+            --insecure
+            --skip-tls-verify
+            --skip-push-permission-check
+            --verbosity=debug
+
