@@ -107,9 +107,8 @@ jobs:
             echo "SKIP_BUILD=true" >> $GITHUB_ENV
             exit 0
           fi
-
-          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/$REPO_NAME-go-$file:latest"
-          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/$REPO_NAME-go-$file:${{ gitea.sha }}"
+          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:latest"
+          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:${{ gitea.sha }}"
 
           echo "Building function: $file"
           echo "Resolved LATEST tag: $LATEST_TAG"
