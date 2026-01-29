@@ -33,7 +33,7 @@ type PasskeyStore interface {
 
 func NewWebauthn() (*webauthn.WebAuthn, error) {
 	cfg := &webauthn.Config{
-		RPDisplayName: "Lite web services",
+		RPDisplayName: "Litefunctions",
 		RPID:          pkg.Cfg.Fqdn,
 		RPOrigins: []string{
 			fmt.Sprintf("http://%s:%d", pkg.Cfg.Fqdn, pkg.Cfg.Port),
