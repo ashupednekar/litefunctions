@@ -32,7 +32,7 @@ class AppState:
 
 
 async def get_jetstream() -> tuple[Client, JetStreamContext]:
-    nc: Client = await nats.connect(settings.nats_broker_url)
+    nc: Client = await nats.connect(settings.nats_url)
     js: JetStreamContext = nc.jetstream()
     await js.add_stream(
         name=settings.project,

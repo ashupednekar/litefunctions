@@ -9,7 +9,7 @@ import (
 
 type IngestorConf struct{
 	ListenPort int `env:"LISTEN_PORT"`
-	NatsBrokerUrl string `env:"NATS_BROKER_URL"`
+	NatsUrl string `env:"NATS_URL"`
 	ReplyTimeout string `env:"REPLY_TIMEOUT"`
 }
 
@@ -19,7 +19,7 @@ var (
 )
 
 func LoadSettings() (*IngestorConf, error) {
-	settings := IngestorConf{ListenPort: 3000, NatsBrokerUrl: "nats://localhost:4222", ReplyTimeout: "500ms"}
+	settings := IngestorConf{ListenPort: 3000, NatsUrl: "nats://localhost:4222", ReplyTimeout: "500ms"}
 	once.Do(func(){
 		err := env.Load(&settings, nil)
 		if err != nil{

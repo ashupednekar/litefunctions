@@ -19,7 +19,7 @@ impl AppState {
             redis::Client::open(settings.redis_url.as_str())
                 .map_err(|_| StandardError::new("ERR-REDIS-CONN"))?,
         );
-        let nc = connect(&settings.nats_broker_url)
+        let nc = connect(&settings.nats_url)
             .await
             .map_err(|_| StandardError::new("ERR-NATS_CONN"))?;
         let config = jetstream::stream::Config {
