@@ -23,7 +23,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: 0.126.0
+      HUGO_VERSION: 0.155.0
     steps:
       - name: Install Hugo CLI
         run: |
@@ -58,8 +58,7 @@ jobs:
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
           TZ: America/Los_Angeles
-        run: |
-          bun run build -- --baseURL "${{ steps.pages.outputs.base_url }}/"
+        run: bun run build -- --baseURL "${{ steps.pages.outputs.base_url }}/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
