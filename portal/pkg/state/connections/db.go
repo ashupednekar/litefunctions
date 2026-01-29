@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

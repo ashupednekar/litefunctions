@@ -3,7 +3,7 @@ package vendors
 import (
 	"context"
 	"fmt"
-	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 )
 
 

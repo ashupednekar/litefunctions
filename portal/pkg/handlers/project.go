@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	accessAdaptors "github.com/ashupednekar/litewebservices-portal/internal/access/adaptors"
-	"github.com/ashupednekar/litewebservices-portal/internal/project/adaptors"
-	"github.com/ashupednekar/litewebservices-portal/internal/project/vendors"
-	"github.com/ashupednekar/litewebservices-portal/pkg"
-	"github.com/ashupednekar/litewebservices-portal/pkg/state"
-	"github.com/ashupednekar/litewebservices-portal/templates"
+	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/internal/project/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg/state"
+	"github.com/ashupednekar/litefunctions/portal/templates"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 )

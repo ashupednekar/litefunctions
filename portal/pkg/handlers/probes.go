@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/ashupednekar/litewebservices-portal/pkg/state"
+	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
 )
 

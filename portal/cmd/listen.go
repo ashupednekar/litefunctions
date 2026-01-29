@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg/server"
+	"github.com/ashupednekar/litefunctions/portal/pkg/server"
 	"github.com/spf13/cobra"
 )
 

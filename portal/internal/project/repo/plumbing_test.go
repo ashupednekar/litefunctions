@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 )
 
 func TestVcs(t *testing.T) {

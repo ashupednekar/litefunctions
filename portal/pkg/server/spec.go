@@ -3,8 +3,8 @@ package server
 import (
 	"fmt"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg"
-	"github.com/ashupednekar/litewebservices-portal/pkg/state"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
 )
 

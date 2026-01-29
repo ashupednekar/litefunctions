@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ashupednekar/litewebservices-portal/internal/auth"
+	"github.com/ashupednekar/litefunctions/portal/internal/auth"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/jackc/pgx/v5/pgtype"
 )

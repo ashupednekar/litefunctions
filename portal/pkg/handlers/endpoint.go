@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	endpointadaptors "github.com/ashupednekar/litewebservices-portal/internal/endpoint/adaptors"
-	"github.com/ashupednekar/litewebservices-portal/pkg/state"
+	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 )

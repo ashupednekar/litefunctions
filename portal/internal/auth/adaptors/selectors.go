@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/ashupednekar/litewebservices-portal/internal/auth"
+	"github.com/ashupednekar/litefunctions/portal/internal/auth"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 )

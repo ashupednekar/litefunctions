@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/plumbing/transport/ssh"
