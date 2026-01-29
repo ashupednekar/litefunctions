@@ -8,7 +8,7 @@ draft: false
 seo:
   title: "LiteFunctions - Kubernetes Serverless Platform"
   description: "LiteFunctions is a Kubernetes-native serverless functions platform supporting Go, Python, and Rust runtimes. Deploy functions using GitOps with built-in CI/CD."
-  canonical: "" # custom canonical URL (optional)
+  canonical: "" 
   noindex: false
 ---
 
