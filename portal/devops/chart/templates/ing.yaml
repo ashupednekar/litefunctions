@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: litewebservices-portal-ingress
+  namespace: {{.Release.Namespace}}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: {{.Values.ingress.issuer}}
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{.Values.ingress.host}}
+      secretName: lws-tls
+  rules:
+    - host: {{.Values.ingress.host}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix 
+            backend:
+              service:
+                name: litewebservices-portal
+                port:
+                  number: 3000
+          
