@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 

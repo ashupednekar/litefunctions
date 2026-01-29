@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
-	"github.com/ashupednekar/litewebservices-portal/internal/project/vendors/workflows"
+	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
+	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors/workflows"
 )
 
 type GiteaClient struct {

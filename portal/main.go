@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ashupednekar/litewebservices-portal/cmd"
-	"github.com/ashupednekar/litewebservices-portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/cmd"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 )
 
 func main() {

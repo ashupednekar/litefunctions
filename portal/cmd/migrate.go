@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/ashupednekar/litewebservices-portal/migrations"
-	"github.com/ashupednekar/litewebservices-portal/pkg"
-	"github.com/ashupednekar/litewebservices-portal/pkg/state/connections"
+	"github.com/ashupednekar/litefunctions/portal/migrations"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/pkg/state/connections"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"

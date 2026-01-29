@@ -3,8 +3,8 @@ package state
 import (
 	"fmt"
 
-	"github.com/ashupednekar/litewebservices-portal/internal/auth"
-	"github.com/ashupednekar/litewebservices-portal/pkg/state/connections"
+	"github.com/ashupednekar/litefunctions/portal/internal/auth"
+	"github.com/ashupednekar/litefunctions/portal/pkg/state/connections"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

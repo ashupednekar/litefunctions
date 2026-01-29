@@ -4,9 +4,9 @@ import (
 	"io/fs"
 	"net/http"
 
-	"github.com/ashupednekar/litewebservices-portal/pkg/handlers"
-	"github.com/ashupednekar/litewebservices-portal/pkg/server/middleware"
-	"github.com/ashupednekar/litewebservices-portal/static"
+	"github.com/ashupednekar/litefunctions/portal/pkg/handlers"
+	"github.com/ashupednekar/litefunctions/portal/pkg/server/middleware"
+	"github.com/ashupednekar/litefunctions/portal/static"
 )
 
 func (s *Server) BuildRoutes() {

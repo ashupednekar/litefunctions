@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	endpointadaptors "github.com/ashupednekar/litewebservices-portal/internal/endpoint/adaptors"
-	functionadaptors "github.com/ashupednekar/litewebservices-portal/internal/function/adaptors"
-	"github.com/ashupednekar/litewebservices-portal/internal/project/repo"
+	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
+	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
