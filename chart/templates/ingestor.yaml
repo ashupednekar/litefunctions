@@ -32,8 +32,8 @@ spec:
         name: litefunctions-ingestor
         resources: {}
         env:
-        - name: NATS_BROKER_URL
-          value: {{ .Values.ingestor.nats_broker_url }}
+        - name: NATS_URL
+          value: {{ .Values.ingestor.nats_url }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst

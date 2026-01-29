@@ -32,7 +32,7 @@ func NewAppState(ctx context.Context) (*AppState, error){
 		return nil, fmt.Errorf("ERR-REDIS-CONN: %v", err)
 	}
 
-	nc, err := nats.Connect(settings.NatsBrokerUrl)
+	nc, err := nats.Connect(settings.NatsUrl)
 	if err != nil{
 		return nil, fmt.Errorf("ERR-NATS-CONN: %v", err)
 	}

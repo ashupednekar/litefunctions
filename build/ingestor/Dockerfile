@@ -15,6 +15,6 @@ WORKDIR /
 
 COPY --from=builder /app/main /ingestor
 
-ENV NATS_BROKER_URL=nats://litefunctions-nats:4222
+ENV NATS_URL=nats://litefunctions-nats:4222
 
 CMD ["/ingestor"]

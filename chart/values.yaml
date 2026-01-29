@@ -11,7 +11,7 @@ operator:
   #NOTE: rest are defaulting in operator manager settings, add here if needed
 
 ingestor:
-  nats_broker_url: litefunctions-nats:4222
+  nats_url: litefunctions-nats:4222
 
 nats:
   enabled: true
