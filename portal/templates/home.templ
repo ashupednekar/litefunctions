@@ -1,0 +1,185 @@
+package templates
+
+templ HomeContent() {
+	<script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
+	<script>
+  function extractPublicKey(opts) {
+    console.log("OPTIONS RECEIVED:", opts);
+    if (opts.publicKey) {return opts.publicKey;}
+    if (opts.response) {return opts.response;}
+    if (opts.challenge) {return opts;}
+    throw new Error("Backend did not return valid WebAuthn publicKey options");
+  }
+
+  window.registerPasskey = async function () {
+    try {
+      const username = document.getElementById("username").value.trim();
+      if (!username) {
+        toast("Please enter a username first.", "info");
+        return;
+      }
+
+      const startResp = await fetch("/passkey/register/start/", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username}),
+      });
+
+      if (!startResp.ok) {
+        const errText = await startResp.text();
+        toast("Failed to start registration: " + errText, "error");
+        return;
+      }
+
+      const sessionKey = startResp.headers.get("Session-Key");
+      const options = await startResp.json();
+      const publicKeyOpts = extractPublicKey(options);
+      const attResp = await SimpleWebAuthnBrowser.startRegistration(publicKeyOpts);
+
+      const finishResp = await fetch("/passkey/register/finish/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Session-Key": sessionKey,
+        },
+        body: JSON.stringify(attResp),
+      });
+
+      if (finishResp.ok) {
+        window.location.href = '/dashboard';
+      } else {
+        const msg = await finishResp.text();
+        toast("Registration failed: " + msg, "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Registration error: " + err, "error");
+    }
+  };
+
+  window.loginPasskey = async function () {
+    try {
+      const username = document.getElementById("username").value.trim();
+      if (!username) {
+        toast("Please enter your username first.", "info");
+        return;
+      }
+
+      const startResp = await fetch("/passkey/login/start/", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({username}),
+      });
+
+      if (!startResp.ok) {
+        const errText = await startResp.text();
+        toast("Failed to start login: " + errText, "error");
+        return;
+      }
+
+      const sessionKey = startResp.headers.get("Session-Key");
+      const options = await startResp.json();
+      const publicKeyOpts = extractPublicKey(options);
+      const assertionResp = await SimpleWebAuthnBrowser.startAuthentication(publicKeyOpts);
+
+      const finishResp = await fetch("/passkey/login/finish/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Session-Key": sessionKey,
+        },
+        body: JSON.stringify(assertionResp),
+      });
+
+      if (finishResp.ok) {
+        // Check if there's a redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        if (redirect) {
+          window.location.href = redirect;
+        } else {
+          window.location.href = '/dashboard';
+        }
+      } else {
+        const msg = await finishResp.text();
+        toast("Login failed: " + msg, "error");
+      }
+    } catch (err) {
+      console.error(err);
+      toast("Login error: " + err, "error");
+    }
+  };
+</script>
+	<div class="w-full px-6 md:px-20 py-16 md:py-24 relative min-h-[80vh] flex items-center">
+		<div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-16 w-full">
+			<!-- LEFT HERO -->
+			<div class="flex flex-col justify-center max-w-xl">
+				<h1 class="text-5xl md:text-6xl font-semibold tracking-tight text-white leading-tight">
+					Lite Web Services
+				</h1>
+				<p class="mt-6 text-lg md:text-xl text-neutral-400 leading-relaxed max-w-lg">
+					Deploy, scale, and connect tiny cloud primitives — fast.
+				</p>
+				<div class="mt-8 md:mt-10 overflow-hidden">
+					<div
+						class="flex gap-10 whitespace-nowrap text-neutral-300 text-lg font-medium animate-[marquee_18s_linear_infinite]"
+					>
+						<span>Litefunctions</span>
+						<span>Litestore</span>
+						<span>Litecron</span>
+						<span>Liteobjects</span>
+						<span>Litegateway</span>
+						<span>Litefunctions</span>
+						<span>Litestore</span>
+						<span>Litecron</span>
+						<span>Liteobjects</span>
+						<span>Litegateway</span>
+					</div>
+				</div>
+			</div>
+			<!-- CARD -->
+			<div class="bg-[#0e0e0f] border border-neutral-800 rounded-2xl shadow-xl w-full lg:w-[420px] max-w-[420px] p-6">
+				<header class="pb-3">
+					<h2 class="text-xl font-semibold text-white">Get Started</h2>
+					<p class="text-neutral-400 text-sm mt-1">
+						Create a new account using your device's secure passkey.
+					</p>
+				</header>
+				<section class="flex flex-col gap-4 pt-2">
+					<input
+						id="username"
+						type="text"
+						placeholder="Enter username"
+						class="w-full px-4 py-3 rounded-xl bg-neutral-900 text-neutral-200 border border-neutral-700 focus:outline-none"
+					/>
+					<button
+						onclick="registerPasskey()"
+						class="w-full bg-white text-black font-semibold px-4 py-3 rounded-xl hover:bg-neutral-200 transition"
+					>
+						Register with Passkey
+					</button>
+					<button
+						onclick="loginPasskey()"
+						class="w-full border border-neutral-700 text-neutral-300 px-4 py-3 rounded-xl hover:bg-neutral-800 transition"
+					>
+						Sign In with Passkey
+					</button>
+				</section>
+				<footer class="pt-4 text-neutral-700 text-xs">
+					Your device will securely store your passkey.
+				</footer>
+			</div>
+		</div>
+	</div>
+	<style>
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+</style>
+}

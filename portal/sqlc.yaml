@@ -1,0 +1,42 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "./internal/auth/adaptors/query.sql"
+    schema: "migrations/*.sql"
+    gen:
+      go:
+        package: "adaptors"
+        out: "./internal/auth/adaptors"
+        sql_package: "pgx/v5"
+  - engine: "postgresql"
+    queries: "./internal/project/adaptors/query.sql"
+    schema: "migrations/*.sql"
+    gen:
+      go:
+        package: "adaptors"
+        out: "./internal/project/adaptors"
+        sql_package: "pgx/v5"
+  - engine: "postgresql"
+    queries: "./internal/function/adaptors/query.sql"
+    schema: "migrations/*.sql"
+    gen:
+      go:
+        package: "adaptors"
+        out: "./internal/function/adaptors"
+        sql_package: "pgx/v5"
+  - engine: "postgresql"
+    queries: "./internal/access/adaptors/query.sql"
+    schema: "migrations/*.sql"
+    gen:
+      go:
+        package: "adaptors"
+        out: "./internal/access/adaptors"
+        sql_package: "pgx/v5"
+  - engine: "postgresql"
+    queries: "./internal/endpoint/adaptors/query.sql"
+    schema: "migrations/*.sql"
+    gen:
+      go:
+        package: "adaptors"
+        out: "./internal/endpoint/adaptors"
+        sql_package: "pgx/v5"
