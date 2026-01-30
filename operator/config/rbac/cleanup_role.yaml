@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: litefunctions-cleanup
+  labels:
+    app.kubernetes.io/name: litefunctions-operator
+    app.kubernetes.io/managed-by: kustomize
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: litefunctions-cleanup
+  labels:
+    app.kubernetes.io/name: litefunctions-operator
+    app.kubernetes.io/managed-by: kustomize
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: litefunctions-cleanup
+subjects:
+- kind: ServiceAccount
+  name: controller-manager

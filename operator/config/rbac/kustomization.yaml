@@ -26,4 +26,6 @@ resources:
 - function_admin_role.yaml
 - function_editor_role.yaml
 - function_viewer_role.yaml
+# Cleanup RBAC for CronJob that auto-deletes function deployments
+- cleanup_role.yaml
 

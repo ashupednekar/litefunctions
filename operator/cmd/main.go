@@ -238,11 +238,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	go func(){
+	go func() {
 		setupLog.Info("Starting hook server")
 		controller.LoadCfg(setupLog)
 		http.HandleFunc("/litefunctions/hook/", server.HandleHooks)
-		if err := http.ListenAndServe(":3000", nil); err != nil{
+		if err := http.ListenAndServe(":3000", nil); err != nil {
 			setupLog.Error(err, "error starting hook server")
 		}
 	}()
