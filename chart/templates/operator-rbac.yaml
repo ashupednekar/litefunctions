@@ -7,6 +7,15 @@ metadata:
   name: controller-manager
   namespace: litefunctions
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: litefunctions-operator
+  name: litefunctions-cleanup
+  namespace: litefunctions
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -47,6 +56,24 @@ rules:
   verbs:
   - create
   - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: litefunctions-operator
+  name: litefunctions-cleanup
+  namespace: litefunctions
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -144,6 +171,18 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -188,6 +227,23 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
+  namespace: litefunctions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: litefunctions-operator
+  name: litefunctions-cleanup
+  namespace: litefunctions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: litefunctions-cleanup
+subjects:
+- kind: ServiceAccount
+  name: litefunctions-cleanup
   namespace: litefunctions
 ---
 apiVersion: rbac.authorization.k8s.io/v1

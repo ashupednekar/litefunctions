@@ -15,6 +15,7 @@ limitations under the License.
 
 // +kubebuilder:rbac:groups=apps.ashupednekar.github.io,resources=functions,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
 package controller
 
 import (
@@ -31,6 +32,7 @@ import (
 
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,9 +53,9 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	labels := map[string]string{
-		"app":  "runtime",
-		"lang": function.Spec.Language,
-		"project": function.Spec.Project,
+		"app":      "runtime",
+		"lang":     function.Spec.Language,
+		"project":  function.Spec.Project,
 		"function": function.Spec.Name,
 	}
 
@@ -109,7 +111,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 								},
 								{
 									Name:  "NATS_URL", //TODO: multiple brokers
-									Value: Cfg.NatsUrl, 
+									Value: Cfg.NatsUrl,
 								},
 							},
 						},
@@ -134,6 +136,35 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, err
 		}
 		log.Info("Created new deployment for function", "deployment", deploymentName)
+
+		cronJobName := fmt.Sprintf("%s-cleanup", deploymentName)
+
+		cronJob := NewCleanupCronJob(&function, Cfg.DeprovisionDuration, "controller-manager")
+		if err := controllerutil.SetControllerReference(&function, cronJob, r.Scheme); err != nil {
+			log.Error(err, "Failed to set controller reference for cronjob")
+			return ctrl.Result{}, err
+		}
+
+		var existingCronJob batchv1.CronJob
+		cronErr := r.Get(ctx, types.NamespacedName{Name: cronJobName, Namespace: function.Namespace}, &existingCronJob)
+
+		if cronErr != nil && apierrs.IsNotFound(cronErr) {
+			if err := r.Create(ctx, cronJob); err != nil {
+				log.Error(err, "Failed to create cleanup cronjob", "cronjob", cronJobName)
+				return ctrl.Result{}, err
+			}
+			log.Info("Created cleanup cronjob for deployment", "cronjob", cronJobName)
+		} else if cronErr == nil {
+			cronJob.ResourceVersion = existingCronJob.ResourceVersion
+			if err := r.Update(ctx, cronJob); err != nil {
+				log.Error(err, "Failed to update cleanup cronjob", "cronjob", cronJobName)
+				return ctrl.Result{}, err
+			}
+			log.Info("Updated cleanup cronjob for deployment", "cronjob", cronJobName)
+		} else {
+			log.Error(cronErr, "Failed to get cronjob", "cronjob", cronJobName)
+			return ctrl.Result{}, cronErr
+		}
 	} else if err == nil {
 		deploy.ResourceVersion = existing.ResourceVersion
 		if err := r.Update(ctx, deploy); err != nil {

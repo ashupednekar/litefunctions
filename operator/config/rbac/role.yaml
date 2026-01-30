@@ -24,3 +24,15 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
