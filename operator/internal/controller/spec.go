@@ -97,6 +97,14 @@ func NewCleanupCronJob(function *apiv1.Function, ttl string, saName string) *bat
 		"managed-by": "litefunctions-operator",
 	}
 
+	script := fmt.Sprintf(`#!/bin/sh
+DEPROVISION_TIME=$(kubectl get function %s -n %s -o jsonpath='{.spec.deProvisionTime}')
+NOW=$(date -u +"%%Y-%%m-%%dT%%H:%%M:%%SZ")
+if [ -n "$DEPROVISION_TIME" ] && [ "$NOW" \> "$DEPROVISION_TIME" ]; then
+  kubectl patch function %s -n %s --type=merge -p '{"spec":{"isActive":false}}'
+fi
+`, function.Spec.Name, function.Namespace, function.Spec.Name, function.Namespace)
+
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cronJobName,
@@ -124,7 +132,7 @@ func NewCleanupCronJob(function *apiv1.Function, ttl string, saName string) *bat
 									Name:    "kubectl",
 									Image:   "bitnami/kubectl:latest",
 									Command: []string{"/bin/sh", "-c"},
-									Args:    []string{fmt.Sprintf("kubectl delete deployment %s -n %s", deploymentName, function.Namespace)},
+									Args:    []string{script},
 								},
 							},
 						},
