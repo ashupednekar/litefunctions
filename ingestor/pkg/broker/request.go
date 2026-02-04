@@ -1,52 +1,81 @@
-package broker 
+package broker
 
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 
-	"github.com/nats-io/nats.go"
 	"github.com/gorilla/websocket"
+	"github.com/nats-io/nats.go"
 )
 
-type Req struct{
+type Req struct {
 	Project string
-	Name string
-	Lang string
-	ReqId string
+	Name    string
+	Lang    string
+	ReqId   string
 }
 
-func Submit(nc *nats.Conn, r *http.Request) (*Req, error) {
-	req := Req{r.PathValue("project"), r.PathValue("project"), "rust", ""}
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func Submit(nc *nats.Conn, r *http.Request, lang string) (*Req, error) {
+	project, name := parsePath(r.URL.Path)
 	body, err := io.ReadAll(r.Body)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("error reading request body: %s", err)
 	}
 	if err := nc.Publish(
-		fmt.Sprintf("%s.%s.exec.%s.%s", req.Project, req.Name, req.Lang, req.ReqId),
+		fmt.Sprintf("%s.%s.exec.%s.%s", project, name, lang, randString(8)),
 		body,
-	); err != nil{
-		return nil, fmt.Errorf("error submittinng request: %v", err)
+	); err != nil {
+		return nil, fmt.Errorf("error submitting request: %v", err)
 	}
-	return &req, nil
+	return &Req{Project: project, Name: name, Lang: lang, ReqId: randString(8)}, nil
 }
 
-func Produce(nc *nats.Conn, ch chan []byte, w http.ResponseWriter, r *http.Request) (*Req, error){
-	req := Req{r.PathValue("project"), r.PathValue("project"), "rust", ""}
+func Produce(nc *nats.Conn, ch chan []byte, w http.ResponseWriter, r *http.Request, lang string) (*Req, error) {
+	project, name := parsePath(r.URL.Path)
+	req := Req{Project: project, Name: name, Lang: lang, ReqId: randString(8)}
 	upgrader := websocket.Upgrader{
-		ReadBufferSize: 1024,
+		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 	conn, err := upgrader.Upgrade(w, r, r.Header)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("error upgrading connection: %s", err)
 	}
-	for{
+	for {
 		_, msg, err := conn.ReadMessage()
-		if err != nil{
+		if err != nil {
 			break
 		}
 		ch <- msg
 	}
 	return &req, nil
+}
+
+func parsePath(path string) (string, string) {
+	if len(path) < 2 || path[0] != '/' {
+		return "", ""
+	}
+	parts := path[1:]
+	project := parts
+	name := ""
+	for i, p := range parts {
+		if p == '/' {
+			project = parts[:i]
+			name = parts[i+1:]
+			break
+		}
+	}
+	return project, name
+}
+
+func randString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }

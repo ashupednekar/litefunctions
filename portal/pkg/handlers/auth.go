@@ -46,6 +46,11 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 		return
 	}
 	options, session, err := h.State.Authn.BeginRegistration(user)
+	if err != nil {
+		slog.Error("can't begin registration", "error", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		return
+	}
 	expDur, parseErr := time.ParseDuration(pkg.Cfg.SessionExpiry)
 	if parseErr != nil {
 		slog.Error("invalid session expiry configured", "error", parseErr)
@@ -53,11 +58,6 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 		return
 	}
 	session.Expires = time.Now().Add(expDur)
-	if err != nil {
-		slog.Error("can't begin registration", "error", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
-		return
-	}
 
 	t := uuid.New().String()
 	slog.Debug("saving registration session", "username", username)

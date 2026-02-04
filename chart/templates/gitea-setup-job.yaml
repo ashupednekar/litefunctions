@@ -27,7 +27,7 @@ spec:
           kubectl patch secret litefunctions-registration-token --type json -p "[{\"op\": \"replace\", \"path\": \"/data/token\", \"value\": \"$(echo -n $REG_TOKEN | base64)\"}]";
           curl -H "Authorization: token $TOKEN" -X PUT http://litefunctions-gitea-http:3000/api/v1/user/actions/secrets/GITEA_TOKEN -H "Content-Type: application/json" -d '{"data": "'$(echo -n $TOKEN | base64)'"}';
           curl -H "Authorization: token $TOKEN" -X PUT http://litefunctions-gitea-http:3000/api/v1/user/actions/secrets/GITEA_USER -H "Content-Type: application/json" -d '{"data": "YXNodWRldg=="}';
-          sleep 5 && kubectl delete po litefunctions-actions-act-runner-0 --force
+          sleep 5 && kubectl delete po litefunctions-actions-act-runner-0 --force && k rollout restart deploy litefunctions-portal || true
 `}}
         env:
         - name: GITEA_APP_INI

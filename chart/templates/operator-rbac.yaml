@@ -5,16 +5,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: operator
   name: controller-manager
-  namespace: litefunctions
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: litefunctions-operator
-  name: litefunctions-cleanup
-  namespace: litefunctions
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -23,7 +13,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: operator
   name: leader-election-role
-  namespace: litefunctions
 rules:
 - apiGroups:
   - ""
@@ -64,16 +53,15 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: litefunctions-operator
   name: litefunctions-cleanup
-  namespace: litefunctions
 rules:
 - apiGroups:
-  - apps
+  - apps.ashupednekar.github.io
   resources:
-  - deployments
+  - functions
   verbs:
   - get
   - list
-  - delete
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -168,14 +156,6 @@ rules:
   resources:
   - functions
   verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - batch
-  resources:
-  - cronjobs
-  verbs:
   - create
   - delete
   - get
@@ -219,7 +199,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: operator
   name: leader-election-rolebinding
-  namespace: litefunctions
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -227,7 +206,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
-  namespace: litefunctions
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -236,15 +215,14 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: litefunctions-operator
   name: litefunctions-cleanup
-  namespace: litefunctions
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: litefunctions-cleanup
 subjects:
 - kind: ServiceAccount
-  name: litefunctions-cleanup
-  namespace: litefunctions
+  name: controller-manager
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -260,7 +238,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
-  namespace: litefunctions
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -273,4 +251,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
-  namespace: litefunctions
+  namespace: {{ .Release.Namespace }}
