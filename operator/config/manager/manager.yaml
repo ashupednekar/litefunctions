@@ -59,30 +59,23 @@ spec:
           type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /operator
         args:
           - --leader-elect
-          - --health-probe-bind-address=:8081
         image: controller:latest
         name: manager 
-        ports: []
+        ports:
+        - containerPort: 50051
+          name: grpc
+          protocol: TCP
+        env:
+        - name: GRPC_PORT
+          value: "50051"
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - "ALL"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
         # TODO(user): Configure the resources accordingly based on the project requirements.
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:

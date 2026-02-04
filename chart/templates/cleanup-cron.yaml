@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "litefunctions.fullname" . }}-cleanup
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ include "litefunctions.fullname" . }}-cleanup
+          containers:
+          - name: cleanup
+            image: {{ .Values.images.operator }}
+            imagePullPolicy: Always
+            command: ["/operator"]
+            args: ["cleanup", "--namespace={{ .Release.Namespace }}"]

@@ -9,6 +9,7 @@ import (
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -65,6 +66,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 		var fnID pgtype.UUID
 		fnName := strings.TrimSuffix(filepath.Base(path), ext)
 
+		createdFn := false
 		if id, exists := existingPaths[path]; exists {
 			fnID = id
 		} else {
@@ -80,6 +82,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 				return nil
 			}
 			fnID = fn.ID
+			createdFn = true
 		}
 
 		// Ensure automatic endpoint: /project/name (GET)
@@ -96,6 +99,21 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 				slog.Warn("Failed to create automatic endpoint", "name", fnName, "error", err)
 			} else {
 				slog.Debug("Created missing automatic endpoint", "name", fnName, "endpoint", epPath)
+			}
+		}
+
+		if createdFn {
+			_, err = functionadaptors.CreateFunctionCRD(
+				c.Request.Context(),
+				pkg.Cfg.OperatorUrl,
+				"default",
+				fnName,
+				projectName,
+				lang,
+				pkg.Cfg.VcsToken,
+			)
+			if err != nil {
+				slog.Warn("Failed to create function CRD", "name", fnName, "error", err)
 			}
 		}
 

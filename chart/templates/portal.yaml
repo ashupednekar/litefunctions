@@ -1,0 +1,104 @@
+{{- if .Values.ui.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litefunctions-portal
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-portal
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+      app: litefunctions-portal
+      {{- include "litefunctions.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: litefunctions-portal
+        {{- include "litefunctions.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - image: {{ .Values.images.portal }}
+        name: litefunctions-portal
+        env:
+        - name: VCS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ui.vcs.secret }}
+              key: {{ .Values.ui.vcs.key }}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ui.db.secret }}
+              key: {{ .Values.ui.db.key }}
+        - name: FQDN
+          value: {{ .Values.ui.domain | quote }}
+        - name: VCS_AUTH_MODE
+          value: token
+        - name: VCS_USER
+          value: {{ .Values.gitea.gitea.admin.username | quote }}
+        - name: VCS_VENDOR
+          value: gitea
+        - name: VCS_BASE_URL
+          value: {{ .Values.ui.vcs.baseUrl | quote }}
+        resources: {}
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /app/server
+              - migrate
+              - up
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litefunctions-portal
+  labels:
+    app: litefunctions-portal
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.ui.service.type }}
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+    {{- if eq .Values.ui.service.type "NodePort" }}
+    nodePort: {{ .Values.ui.service.nodePort }}
+    {{- end }}
+  selector:
+    app: litefunctions-portal
+    {{- include "litefunctions.selectorLabels" . | nindent 4 }}
+{{- if .Values.ui.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: litefunctions-portal-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: {{ .Values.ui.ingress.issuer }}
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - {{ .Values.ui.ingress.host }}
+    secretName: lws-portal-tls
+  rules:
+  - host: {{ .Values.ui.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: litefunctions-portal
+            port:
+              number: 3000
+{{- end }}
+{{- end }}

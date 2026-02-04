@@ -16,8 +16,8 @@ spec:
         - sh
         - -c
         - |
-           {{- range .Values.database.initialSchemas }}
-           psql -h litefunctions-primary.litefunctions.svc.cluster.local -U litefunctions -d litefunctions -c "CREATE SCHEMA IF NOT EXISTS {{ . }}; ALTER SCHEMA {{ . }} OWNER TO litefunctions; GRANT USAGE ON SCHEMA {{ . }} TO litefunctions; GRANT CREATE ON SCHEMA {{ . }} TO litefunctions;"
+           {{- range .Values.database.initialSchemas }} 
+           psql -h litefunctions-primary -U litefunctions -d litefunctions -c "CREATE SCHEMA IF NOT EXISTS {{ . }}; ALTER SCHEMA {{ . }} OWNER TO litefunctions; GRANT USAGE ON SCHEMA {{ . }} TO litefunctions; GRANT CREATE ON SCHEMA {{ . }} TO litefunctions;"
            {{- end }}
         env:
         - name: PGPASSWORD

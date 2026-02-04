@@ -1,5 +1,5 @@
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= ashupednekar535/litefunctions-operator:latest
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -43,7 +43,7 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:dir=config/crd/bases
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -98,20 +98,37 @@ lint-config: golangci-lint ## Verify golangci-lint linter configuration
 
 ##@ Build
 
+# GOOGLE_API_TOOLS_VERSION is the version of google.golang.org/api to use for setting up protoc-gen-go and protoc-gen-go-grpc binaries
+PROTOC_GEN_GO_VERSION ?= v1.36.5
+PROTOC_GEN_GO_GRPC_VERSION ?= v1.6.0
+PROTOC_GEN_GO ?= $(LOCALBIN)/protoc-gen-go
+PROTOC_GEN_GO_GRPC ?= $(LOCALBIN)/protoc-gen-go-grpc
+
+.PHONY: protoc
+protoc: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Download protoc-gen-go and protoc-gen-go-grpc locally if necessary.
+	@echo "Generating gRPC code..."
+	cd internal/server && PATH=$(LOCALBIN):$$PATH protoc \
+		--go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		function.proto
+
+$(PROTOC_GEN_GO): $(LOCALBIN)
+	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go,$(PROTOC_GEN_GO_VERSION))
+
+$(PROTOC_GEN_GO_GRPC): $(LOCALBIN)
+	$(call go-install-tool,$(PROTOC_GEN_GO_GRPC),google.golang.org/grpc/cmd/protoc-gen-go-grpc,$(PROTOC_GEN_GO_GRPC_VERSION))
+
 .PHONY: build
-build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/main.go
+build: protoc manifests generate fmt vet ## Build operator binary.
+	go build -o bin/operator ./cmd/
 
-.PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
-
-# If you wish to build the manager image targeting other platforms you can use the --platform flag.
-# (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
-# More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} .
+
+.PHONY: docker-build-ingestor
+docker-build-ingestor: ## Build docker image for the ingestor.
+	$(CONTAINER_TOOL) build -t ingestor:latest -f build/ingestor/Dockerfile .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -251,6 +268,9 @@ helm-sync: manifests kustomize ## Package CRDs + RBAC into Helm chart
 	@echo "==> Rendering RBAC via Kustomize"
 	mkdir -p $(HELM_TEMPLATES_PATH)
 	$(KUSTOMIZE) build config/rbac > $(HELM_RBAC_FILE)
+	@echo "==> Fixing namespace in RBAC"
+	sed -i '' 's/namespace: litefunctions/namespace: {{ .Release.Namespace }}/g' $(HELM_RBAC_FILE)
+	sed -i '' 's/namespace: system/namespace: {{ .Release.Namespace }}/g' $(HELM_RBAC_FILE)
 
 .PHONY: helm-install
 helm-install: helm-sync ## Fresh Helm install (into litefunctions namespace)

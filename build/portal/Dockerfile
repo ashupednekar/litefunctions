@@ -1,12 +1,13 @@
 FROM golang AS builder
 
-WORKDIR /app
+WORKDIR /app/portal
 
 RUN go install github.com/a-h/templ/cmd/templ@latest
-COPY go.mod go.sum ./
+COPY portal/go.mod portal/go.sum ./
+COPY ingestor /app/ingestor
 RUN go mod download
 
-COPY . .
+COPY portal ./
 RUN ls migrations
 
 RUN templ generate && \
@@ -19,7 +20,7 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 WORKDIR /app
-COPY --from=builder /app/app server
+COPY --from=builder /app/portal/app server
 
 ENV LISTEN_PORT=3000
 

@@ -21,14 +21,6 @@ rules:
   resources:
   - functions
   verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - batch
-  resources:
-  - cronjobs
-  verbs:
   - create
   - delete
   - get

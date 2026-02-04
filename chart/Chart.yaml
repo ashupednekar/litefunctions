@@ -34,9 +34,4 @@ dependencies:
   repository: http://zotregistry.dev/helm-charts
   version: 0.1.97
   condition: gitea.enabled
-- name: litewebservices-portal
-  repository: oci://ghcr.io/ashupednekar/charts
-  version: ">=0.1.89"
-  condition: ui.enabled
-
 

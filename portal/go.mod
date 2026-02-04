@@ -4,6 +4,7 @@ go 1.25.2
 
 require (
 	github.com/a-h/templ v0.3.977
+	github.com/ashupednekar/litefunctions/ingestor v0.0.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-git/go-billy/v6 v6.0.0-20260114122816-19306b749ecc
 	github.com/go-git/go-git/v6 v6.0.0-20260127175347-b5117ad1603d
@@ -14,6 +15,7 @@ require (
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/spf13/cobra v1.10.2
 	go-simpler.org/env v0.12.0
+	google.golang.org/grpc v1.78.0
 )
 
 require (
@@ -71,5 +73,8 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
-	google.golang.org/protobuf v1.36.9 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+replace github.com/ashupednekar/litefunctions/ingestor => ../ingestor

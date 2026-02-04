@@ -1,0 +1,37 @@
+{{- if and .Values.ui.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litefunctions-ngrok
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-ngrok
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+      app: litefunctions-ngrok
+      {{- include "litefunctions.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: litefunctions-ngrok
+        {{- include "litefunctions.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - image: ngrok/ngrok:latest
+        name: litefunctions-ngrok
+        args:
+        - http
+        - litefunctions-portal:3000
+        - --url=https://{{ .Values.ui.domain }}
+        env:
+        - name: NGROK_AUTHTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ui.ngrok.secret }}
+              key: {{ .Values.ui.ngrok.key }}
+---
+{{- end}}
