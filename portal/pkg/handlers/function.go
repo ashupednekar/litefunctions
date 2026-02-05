@@ -12,6 +12,7 @@ import (
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
 	"github.com/go-git/go-git/v6"
@@ -129,7 +130,19 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	if err != nil {
 		slog.Warn("Failed to create automatic endpoint", "name", req.Name, "error", err)
 	}
-
+	_, err = functionadaptors.CreateFunctionCRD(
+		c.Request.Context(),
+		pkg.Cfg.OperatorUrl,
+		"default",
+		req.Name,
+		projectName,
+		req.Language,
+		pkg.Cfg.VcsToken,
+	)
+	if err != nil {
+		slog.Warn("Failed to create function CRD", "name", req.Name, "error", err)
+	}
+	slog.Info("created function crd")
 	c.JSON(201, gin.H{
 		"id":       hex.EncodeToString(fn.ID.Bytes[:]),
 		"name":     fn.Name,

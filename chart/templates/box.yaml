@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: litefunctions-box
+  name: litefunctions-box
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litefunctions-box
+  template:
+    metadata:
+      labels:
+        app: litefunctions-box
+    spec:
+      containers:
+      - image: alpine
+        name: alpine
+        args:
+        - sleep
+        - infinity
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - apk 
+              - add
+              - curl
+              - postgresql-client
+

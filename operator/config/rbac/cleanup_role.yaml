@@ -8,13 +8,13 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
 rules:
 - apiGroups:
-  - apps
+  - apps.ashupednekar.github.io
   resources:
-  - deployments
+  - functions
   verbs:
   - get
   - list
-  - delete
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -30,3 +30,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
+  namespace: system
