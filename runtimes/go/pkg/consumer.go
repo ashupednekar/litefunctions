@@ -9,7 +9,7 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-func Consume(state *AppState, c jetstream.Consumer) error {
+func Consume(ctx context.Context, state *AppState, c jetstream.Consumer) error {
 	log.Printf("waiting for messages...")
 	cc, err := c.Consume(func(msg jetstream.Msg){
 		log.Printf("received event")
@@ -23,11 +23,16 @@ func Consume(state *AppState, c jetstream.Consumer) error {
 		}
 		state.Nc.Publish(fmt.Sprintf("%s.%s.res.go.%s", settings.Project, settings.Name, req_id), res)
 	})
-	defer cc.Stop()
 	if err != nil{
 		return err
 	}
-	return nil
+	defer cc.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-cc.Closed():
+		return fmt.Errorf("ERR-CONSUMER-CLOSED")
+	}
 }
 
 func StartFunction() error {
@@ -47,7 +52,7 @@ func StartFunction() error {
 	if err != nil{
 		return fmt.Errorf("ERR-CONSUMER-INIT: %v", err)
 	}
-	err = Consume(state, consumer)
+	err = Consume(ctx, state, consumer)
 	if err != nil{
 		return fmt.Errorf("ERR-CONSUMER: %v", err)
 	}
