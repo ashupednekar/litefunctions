@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
 	"github.com/ashupednekar/litefunctions/ingestor/pkg/broker"
+	"github.com/gorilla/websocket"
 )
 
 type IngestHandler struct {
@@ -88,21 +90,24 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ch := make(chan []byte)
-	req, err := broker.Produce(h.server.nc, ch, w, r, lang)
+	conn, req, err := broker.Produce(h.server.nc, w, r, lang)
 	if err != nil {
 		h.logger.Error("failed to produce message to broker", "error", err)
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
-	ch, err = broker.Subscribe(h.server.nc, req)
+	defer conn.Close()
+	ch, err := broker.Subscribe(h.server.nc, req)
 	if err != nil {
 		h.logger.Error("failed to subscribe to broker", "error", err)
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
 	for res := range ch {
-		w.Write(res)
+		if err := conn.WriteMessage(websocket.BinaryMessage, res); err != nil {
+			h.logger.Error("failed to write websocket response", "error", err)
+			return
+		}
 	}
 }
 

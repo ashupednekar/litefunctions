@@ -55,7 +55,9 @@ spec:
     port: 3000
     protocol: TCP
     targetPort: 3000
+    {{- if eq .Values.ingestor.service.type "NodePort" }}
     nodePort: {{ .Values.ingestor.service.nodePort }}
+    {{- end }}
   selector:
     app: litefunctions-ingestor
   type: {{ .Values.ingestor.service.type }}

@@ -1,15 +1,20 @@
-FROM golang:1.24-alpine
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod ./go.mod
-COPY go.sum ./go.sum
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go build -o /usr/local/bin/ingestor ./cmd/
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /out/ingestor ./cmd/main.go
 
-EXPOSE 8080
+FROM alpine:3.20
 
-ENTRYPOINT ["ingestor"]
+WORKDIR /
+
+COPY --from=builder /out/ingestor /ingestor
+
+EXPOSE 3000
+
+ENTRYPOINT ["/ingestor"]

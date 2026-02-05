@@ -13,13 +13,11 @@ operator:
   keep_warm_duration: 5m
   service:
     type: ClusterIP
-    nodePort: 30002
   #NOTE: rest are defaulting in operator manager settings, add here if needed
 
 ingestor:
   service:
     type: NodePort
-    nodePort: 30001
   nats_url: litefunctions-nats:4222
 
 nats:

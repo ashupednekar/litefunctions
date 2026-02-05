@@ -112,9 +112,11 @@ spec:
     port: 50051
     protocol: TCP
     targetPort: 50051
+    {{- if eq .Values.operator.service.type "NodePort" }}
     nodePort: {{ .Values.operator.service.nodePort }}
+    {{- end }}
   selector:
     control-plane: controller-manager
     {{- include "litefunctions.selectorLabels" . | nindent 4 }}
-  type: {{ .Values.ingestor.service.type }}
+  type: {{ .Values.operator.service.type }}
 ---
