@@ -25,34 +25,44 @@ func Submit(nc *nats.Conn, r *http.Request, lang string) (*Req, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error reading request body: %s", err)
 	}
+	reqID := randString(8)
 	if err := nc.Publish(
-		fmt.Sprintf("%s.%s.exec.%s.%s", project, name, lang, randString(8)),
+		fmt.Sprintf("%s.%s.exec.%s.%s", project, name, lang, reqID),
 		body,
 	); err != nil {
 		return nil, fmt.Errorf("error submitting request: %v", err)
 	}
-	return &Req{Project: project, Name: name, Lang: lang, ReqId: randString(8)}, nil
+	return &Req{Project: project, Name: name, Lang: lang, ReqId: reqID}, nil
 }
 
-func Produce(nc *nats.Conn, ch chan []byte, w http.ResponseWriter, r *http.Request, lang string) (*Req, error) {
+func Produce(nc *nats.Conn, w http.ResponseWriter, r *http.Request, lang string) (*websocket.Conn, *Req, error) {
 	project, name := parsePath(r.URL.Path)
-	req := Req{Project: project, Name: name, Lang: lang, ReqId: randString(8)}
+	reqID := randString(8)
+	req := Req{Project: project, Name: name, Lang: lang, ReqId: reqID}
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 	conn, err := upgrader.Upgrade(w, r, r.Header)
 	if err != nil {
-		return nil, fmt.Errorf("error upgrading connection: %s", err)
+		return nil, nil, fmt.Errorf("error upgrading connection: %s", err)
 	}
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			break
+	go func() {
+		defer conn.Close()
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			if err := nc.Publish(
+				fmt.Sprintf("%s.%s.exec.%s.%s", project, name, lang, reqID),
+				msg,
+			); err != nil {
+				return
+			}
 		}
-		ch <- msg
-	}
-	return &req, nil
+	}()
+	return conn, &req, nil
 }
 
 func parsePath(path string) (string, string) {
