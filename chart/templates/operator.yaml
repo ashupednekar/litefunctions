@@ -63,6 +63,10 @@ spec:
         - name: REDIS_URL
           value: {{ .Values.operator.redis_url | quote }}
         {{- end }}
+        {{- if (index .Values "valkey-cluster").password }}
+        - name: REDIS_PASSWORD
+          value: {{ (index .Values "valkey-cluster").password | quote }}
+        {{- end }}
         {{- if .Values.operator.nats_url }}
         - name: NATS_URL
           value: {{ .Values.operator.nats_url | quote }}

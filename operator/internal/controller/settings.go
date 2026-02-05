@@ -16,6 +16,7 @@ type Settings struct {
 	DbSecretName        string        `env:"DB_SECRET_NAME" default:"litefunctions-pguser-litefunctions"`
 	DbSecretKey         string        `env:"DB_SECRET_KEY" default:"pgbouncer-uri"`
 	RedisUrl            string        `env:"REDIS_URL" default:"redis://litefunctions-valkey-cluster:6379"`
+	RedisPassword       string        `env:"REDIS_PASSWORD" default:""`
 	NatsUrl             string        `env:"NATS_URL" default:"nats://litefunctions-nats:4222"`
 	DeprovisionDuration string        `env:"DEPROVISION_DURATION" default:"2m"`
 	KeepWarmDuration    time.Duration `env:"KEEP_WARM_DURATION" default:"5m"`

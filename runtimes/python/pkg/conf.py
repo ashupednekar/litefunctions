@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     use_redis_cluster: bool
     redis_url: str
+    redis_password: str | None = None
     redis_max_connections: int
 
 

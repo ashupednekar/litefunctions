@@ -7,32 +7,32 @@ import (
 	"go-simpler.org/env"
 )
 
-type Settings struct{
+type Settings struct {
 	Project string `env:"PROJECT"`
-	Name string `env:"NAME"`
+	Name    string `env:"NAME"`
 
-	DatabaseUrl string `env:"DATABASE_URL"`
-	RedisUrl string `env:"REDIS_URL"`
-	NatsUrl string `env:"NATS_URL"`
+	DatabaseUrl   string `env:"DATABASE_URL"`
+	RedisUrl      string `env:"REDIS_URL"`
+	RedisPassword string `env:"REDIS_PASSWORD"`
+	NatsUrl       string `env:"NATS_URL"`
 
-	OtlpHost string  `env:"OTLP_HOST"`
-	OtlpPort string `env:"OTLP_PORT"`
-	UseTelemetry bool `env:"USE_TELEMETRY"`
+	OtlpHost     string `env:"OTLP_HOST"`
+	OtlpPort     string `env:"OTLP_PORT"`
+	UseTelemetry bool   `env:"USE_TELEMETRY"`
 }
 
 var (
 	settings *Settings
-	once sync.Once
+	once     sync.Once
 )
 
 func LoadSettings() *Settings {
-	settings := Settings{}	
 	once.Do(func() {
-		err := env.Load(&settings, nil)
+		settings = &Settings{}
+		err := env.Load(settings, nil)
 		if err != nil {
 			fmt.Printf("%s", err)
 		}
 	})
-	return &settings
+	return settings
 }
-
