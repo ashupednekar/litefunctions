@@ -9,70 +9,74 @@ type Endpoint struct {
 }
 
 script toggleManageEndpoint(id string) {
-	document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
-		if (el.id === "endpoint-" + id) {
-			if (el.classList.contains('hidden')) el.classList.remove('hidden');
-			else el.classList.add('hidden');
-		} else {
-			el.classList.add('hidden');
-		}
-	});
+document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
+if (el.id === "endpoint-" + id) {
+if (el.classList.contains('hidden')) el.classList.remove('hidden');
+else el.classList.add('hidden');
+} else {
+el.classList.add('hidden');
+}
+});
 }
 
 script expandEndpointById(id string) {
-	document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
-		el.classList.add('hidden');
-	});
-	let target = document.getElementById("endpoint-" + id);
-	if (target) target.classList.remove('hidden');
+document.querySelectorAll('[id^="endpoint-"]').forEach(el => {
+el.classList.add('hidden');
+});
+let target = document.getElementById("endpoint-" + id);
+if (target) target.classList.remove('hidden');
 }
 
 script selectMethodForEndpoint(id string, method string) {
-	["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
-		let btn = document.getElementById("method-" + m + "-" + id);
-		if(btn) {
-			btn.classList.remove("border-blue-500", "bg-blue-500/20", "text-blue-400");
-			btn.classList.add("border-neutral-700", "text-neutral-400");
-		}
-	});
-	let selected = document.getElementById("method-" + method + "-" + id);
-	if(selected) {
-		selected.classList.remove("border-neutral-700", "text-neutral-400");
-		selected.classList.add("border-blue-500", "bg-blue-500/20", "text-blue-400");
-	}
-	document.getElementById("selected-method-" + id).value = method;
+["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
+let btn = document.getElementById("method-" + m + "-" + id);
+if(btn) {
+btn.classList.remove("border-blue-500", "bg-blue-500/20", "text-blue-400");
+btn.classList.add("border-neutral-700", "text-neutral-400");
+}
+});
+let selected = document.getElementById("method-" + method + "-" + id);
+if(selected) {
+selected.classList.remove("border-neutral-700", "text-neutral-400");
+selected.classList.add("border-blue-500", "bg-blue-500/20", "text-blue-400");
+}
+document.getElementById("selected-method-" + id).value = method;
 }
 
 script selectGatewayForEndpoint(id string, gateway string) {
-	["liteginx", "nginx", "envoy", "traefik"].forEach(g => {
-		let card = document.getElementById("gateway-" + g + "-" + id);
-		if(card) card.classList.remove("border-blue-500", "bg-blue-500/10");
-	});
-	let c = document.getElementById("gateway-" + gateway + "-" + id);
-	if(c) c.classList.add("border-blue-500", "bg-blue-500/10");
+["liteginx", "nginx", "envoy", "traefik"].forEach(g => {
+let card = document.getElementById("gateway-" + g + "-" + id);
+if(card) card.classList.remove("border-blue-500", "bg-blue-500/10");
+});
+let c = document.getElementById("gateway-" + gateway + "-" + id);
+if(c) c.classList.add("border-blue-500", "bg-blue-500/10");
 }
 
 script saveEndpointSettings(id string, scope string) {
-	const method = document.getElementById("selected-method-" + id).value;
-	const authEl = document.getElementById("auth-" + id);
-	let newScope = scope;
-	if (authEl) {
-		const authVal = authEl.value;
-		if (authVal === "No Auth") newScope = "public";
-		else if (authVal.includes("API Key")) newScope = "authn";
-	}
-	fetch("/api/endpoints/" + id + "/", {
-		method: "PUT",
-		headers: {"Content-Type": "application/json"},
-		body: JSON.stringify({method: method, scope: newScope})
-	}).then(res => {
-		if (res.ok) {
-			toast("Endpoint updated!", "success");
-			setTimeout(() => location.reload(), 500);
-		} else {
-			toast("Update failed", "error");
-		}
-	});
+const method = document.getElementById("selected-method-" + id).value;
+const authEl = document.getElementById("auth-" + id);
+let newScope = scope;
+if (authEl) {
+const authVal = authEl.value;
+if (authVal === "No Auth") newScope = "public";
+else if (authVal.includes("API Key")) newScope = "authn";
+}
+fetch("/api/endpoints/" + id + "/", {
+method: "PUT",
+headers: {"Content-Type": "application/json"},
+body: JSON.stringify({method: method, scope: newScope})
+}).then(res => {
+if (res.ok) {
+toast("Endpoint updated!", "success");
+setTimeout(() => location.reload(), 500);
+} else {
+toast("Update failed", "error");
+}
+});
+}
+
+script openTestModalForEndpoint(id string) {
+window.openTestModalForEndpoint(id);
 }
 
 templ EndpointsContent(endpoints []Endpoint) {
@@ -81,7 +85,13 @@ templ EndpointsContent(endpoints []Endpoint) {
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-6">
 				<a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
-					<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="w-5 h-5 text-neutral-400"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
 					</svg>
 				</a>
@@ -89,15 +99,22 @@ templ EndpointsContent(endpoints []Endpoint) {
 					Endpoints
 				</h1>
 				<!-- SEARCH TRIGGER -->
-				<button 
+				<button
 					onclick="openSpotlight()"
 					class="flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+						></path>
 					</svg>
 					<span class="flex-1 text-left">Search endpoints...</span>
-					<div class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium">
+					<div
+						class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium"
+					>
 						<span class="font-mono">⌘</span>K
 					</div>
 				</button>
@@ -109,35 +126,64 @@ templ EndpointsContent(endpoints []Endpoint) {
 		<!-- ENDPOINT LIST -->
 		<div id="endpoints-list" class="space-y-5 mt-10">
 			for _, ep := range endpoints {
-				<div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4">
+				<div
+					class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4"
+					data-endpoint-id={ ep.ID }
+					data-endpoint-name={ ep.Name }
+					data-endpoint-method={ ep.Method }
+				>
 					<div class="flex justify-between items-center">
 						<div class="flex items-center gap-3">
 							if ep.Method == "POST" {
-								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400">{ ep.Method }</span>
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400">
+									{ 
+            ep.Method }
+								</span>
 							} else if ep.Method == "PUT" {
-								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400">{ ep.Method }</span>
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400">
+									{ 
+            ep.Method }
+								</span>
 							} else if ep.Method == "DELETE" {
-								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400">{ ep.Method }</span>
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400">
+									{ ep.Method }
+								</span>
 							} else {
-								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400">{ ep.Method }</span>
+								<span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400">
+									{ ep.Method }
+								</span>
 							}
 							<h3 class="text-white text-lg font-semibold">{ ep.Name }</h3>
 							<span class="text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
 								{ ep.FunctionName }
 							</span>
 						</div>
-						<button onclick={ toggleManageEndpoint(ep.ID) } class="text-neutral-400 hover:text-white transition text-sm flex items-center gap-1">
-							Manage
-							<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-							</svg>
-						</button>
+						<div class="flex items-center gap-3">
+							<button
+								onclick={ openTestModalForEndpoint(ep.ID) }
+								class="px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide"
+							>
+								Test
+							</button>
+							<button
+								onclick={ toggleManageEndpoint(ep.ID) }
+								class="text-neutral-400 hover:text-white transition text-sm flex items-center gap-1"
+							>
+								Manage
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+									<path
+										fill-rule="evenodd"
+										d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+										clip-rule="evenodd"
+									></path>
+								</svg>
+							</button>
+						</div>
 					</div>
 					<!-- MANAGE COLLAPSIBLE -->
 					<div id={ "endpoint-" + ep.ID } class="hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200">
 						<!-- HIDDEN INPUTS FOR FORM STATE -->
 						<input type="hidden" id={ "selected-method-" + ep.ID } value={ ep.Method }/>
-
 						<!-- METHOD SELECTOR -->
 						<div>
 							<h4 class="text-white font-semibold mb-2">HTTP Method</h4>
@@ -148,18 +194,23 @@ templ EndpointsContent(endpoints []Endpoint) {
 											onclick={ selectMethodForEndpoint(ep.ID, m) }
 											id={ "method-" + m + "-" + ep.ID }
 											class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400"
-										>{ m }</button>
+										>
+											{ 
+              m }
+										</button>
 									} else {
 										<button
 											onclick={ selectMethodForEndpoint(ep.ID, m) }
 											id={ "method-" + m + "-" + ep.ID }
 											class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white"
-										>{ m }</button>
+										>
+											{ 
+              m }
+										</button>
 									}
 								}
 							</div>
 						</div>
-
 						<!-- GATEWAY SELECTION -->
 						<div>
 							<h4 class="text-white font-semibold mb-2">Gateway</h4>
@@ -211,7 +262,9 @@ templ EndpointsContent(endpoints []Endpoint) {
 									class="bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition"
 									placeholder="req/min"
 								/>
-								<button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20">
+								<button
+									class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20"
+								>
 									Save
 								</button>
 							</div>
@@ -220,7 +273,10 @@ templ EndpointsContent(endpoints []Endpoint) {
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 							<div>
 								<h4 class="text-white font-semibold mb-2">Authentication</h4>
-								<select id={ "auth-" + ep.ID } class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none">
+								<select
+									id={ "auth-" + ep.ID }
+									class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none"
+								>
 									if ep.Scope == "public" {
 										<option selected>No Auth</option>
 									} else {
@@ -237,7 +293,10 @@ templ EndpointsContent(endpoints []Endpoint) {
 							</div>
 							<div>
 								<h4 class="text-white font-semibold mb-2">Pub/Sub</h4>
-								<select id={ "pub-" + ep.ID } class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none">
+								<select
+									id={ "pub-" + ep.ID }
+									class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none"
+								>
 									<option>Off</option>
 									<option>Publish</option>
 									<option>Subscribe</option>
@@ -245,15 +304,20 @@ templ EndpointsContent(endpoints []Endpoint) {
 								</select>
 							</div>
 						</div>
-
 						<!-- SAVE BUTTON -->
 						<div class="pt-4 border-t border-neutral-800/50 flex justify-end">
-							<button 
+							<button
 								onclick={ saveEndpointSettings(ep.ID, ep.Scope) }
 								class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2"
 							>
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="w-4 h-4"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
 								</svg>
 								Save Changes
 							</button>
@@ -262,19 +326,292 @@ templ EndpointsContent(endpoints []Endpoint) {
 				</div>
 			}
 		</div>
+		<!-- TEST MODAL -->
+		<div
+			id="test-modal"
+			class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+			onclick="closeTestModal()"
+		>
+			<div
+				class="w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl"
+				onclick="event.stopPropagation()"
+			>
+				<!-- MODAL HEADER -->
+				<div class="flex items-center justify-between p-4 border-b border-neutral-800">
+					<div class="flex items-center gap-2">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="w-5 h-5 text-blue-500"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+						</svg>
+					</div>
+					<button
+						onclick="closeTestModal()"
+						class="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						</svg>
+					</button>
+				</div>
+				<!-- MODAL CONTENT -->
+				<div
+					class="flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden"
+				>
+					<!-- LEFT COLUMN: SETTINGS -->
+					<div class="p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50">
+						<div>
+							<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">Endpoint</label>
+							<select
+								id="test-endpoint-select"
+								class="w-full bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+							></select>
+						</div>
+						<div>
+							<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">Headers</label>
+							<div class="space-y-2">
+								<div class="grid grid-cols-2 gap-2 text-[10px] text-neutral-600 uppercase tracking-wider">
+									<span>Key</span>
+									<span>Value</span>
+								</div>
+								<div id="test-headers-list" class="space-y-2"></div>
+								<button
+									onclick="addHeaderRow('', '')"
+									class="w-full px-3 py-2 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold"
+								>
+									+ Add Header
+								</button>
+							</div>
+						</div>
+					</div>
+					<!-- RIGHT COLUMN: BODY & RESPONSE -->
+					<div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
+						<!-- REQUEST BODY -->
+						<div class="flex-1 p-4 border-b border-neutral-800 flex flex-col min-h-0">
+							<div class="flex items-center justify-between mb-2">
+								<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Request Body</label>
+								<div class="flex items-center gap-2">
+									<span class="text-[10px] text-neutral-600 font-mono">JSON</span>
+									<button
+										onclick="runEndpointTest()"
+										class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/10"
+									>
+										<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+											<path
+												fill-rule="evenodd"
+												d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+												clip-rule="evenodd"
+											></path>
+										</svg>
+										Send Request
+									</button>
+								</div>
+							</div>
+							<div id="test-body-ace" class="w-full flex-1 rounded-lg border border-neutral-800"></div>
+							<textarea id="test-body" class="hidden" placeholder='{&#10;  "key": "value"&#10;}'></textarea>
+						</div>
+						<!-- RESPONSE -->
+						<div class="flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30">
+							<div class="flex items-center justify-between mb-2">
+								<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Response</label>
+								<div
+									id="test-status"
+									class="text-xs font-mono font-bold text-neutral-400 bg-neutral-900 px-2 py-1 rounded"
+								>Waiting...</div>
+							</div>
+							<textarea
+								id="test-response"
+								class="w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs outline-none resize-none"
+								readonly
+								placeholder="Response will appear here..."
+							></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<script>
-			document.addEventListener('DOMContentLoaded', function() {
-				const params = new URLSearchParams(window.location.search);
-				const expandId = params.get('expand');
-				if (expandId) {
-					document.querySelectorAll('[id^="endpoint-"]').forEach(el => el.classList.add('hidden'));
-					let target = document.getElementById("endpoint-" + expandId);
-					if (target) {
-						target.classList.remove('hidden');
-						setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-					}
-				}
-			});
-		</script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const params = new URLSearchParams(window.location.search);
+      const expandId = params.get('expand');
+      if (expandId) {
+        document.querySelectorAll('[id^="endpoint-"]').forEach(el => el.classList.add('hidden'));
+        let target = document.getElementById("endpoint-" + expandId);
+        if (target) {
+          target.classList.remove('hidden');
+          setTimeout(() => target.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);
+        }
+      }
+    });
+  </script>
+		<script>
+    (function () {
+      const cdn = "https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/";
+      const loadAce = (cb) => {
+        if (window.ace) return cb();
+        const s1 = document.createElement("script");
+        s1.src = cdn + "ace.js";
+        s1.onload = () => {
+          ace.config.set("basePath", cdn);
+          ace.config.set("modePath", cdn);
+          ace.config.set("themePath", cdn);
+          cb();
+        };
+        document.head.appendChild(s1);
+      };
+
+      function initTestBodyEditor() {
+        if (window.__testBodyEditor || !window.ace) return;
+        const el = document.getElementById("test-body-ace");
+        if (!el) return;
+        window.__testBodyEditor = ace.edit(el);
+        window.__testBodyEditor.setTheme("ace/theme/dracula");
+        window.__testBodyEditor.session.setMode("ace/mode/json");
+        window.__testBodyEditor.setValue('{\n  "key": "value"\n}', -1);
+        window.__testBodyEditor.session.setUseWorker(false);
+      }
+
+      window.__initTestBodyEditor = initTestBodyEditor;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const list = document.getElementById("test-headers-list");
+        if (list && list.children.length === 0) {
+          addHeaderRow("Content-Type", "application/json");
+          addHeaderRow("Authorization", "Bearer ...");
+        }
+        loadAce(initTestBodyEditor);
+      });
+    })();
+  </script>
+		<script>
+    window.ensureTestModalOptions = function () {
+      const select = document.getElementById("test-endpoint-select");
+      if (!select) return null;
+      let list = [];
+      if (window.__endpointList && window.__endpointList.length > 0) {
+        list = window.__endpointList;
+      } else {
+        list = Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+          id: el.dataset.endpointId,
+          name: el.dataset.endpointName,
+          method: el.dataset.endpointMethod,
+        }));
+      }
+      if (list.length > 0 && select.options.length === 0) {
+        list.forEach(ep => {
+          const opt = document.createElement("option");
+          opt.value = ep.id;
+          opt.textContent = `${ep.method} ${ep.name}`;
+          select.appendChild(opt);
+        });
+      }
+      return select;
+    };
+
+    window.openTestModal = function () {
+      const modal = document.getElementById("test-modal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      const select = window.ensureTestModalOptions();
+      if (select) select.dispatchEvent(new Event("change"));
+      if (window.__initTestBodyEditor) window.__initTestBodyEditor();
+      if (window.__testBodyEditor) setTimeout(() => window.__testBodyEditor.resize(), 60);
+    };
+
+    window.openTestModalForEndpoint = function (id) {
+      window.openTestModal();
+      const select = window.ensureTestModalOptions();
+      if (!select) return;
+      select.value = id;
+      select.dispatchEvent(new Event("change"));
+    };
+
+    window.closeTestModal = function () {
+      const modal = document.getElementById("test-modal");
+      if (modal) modal.classList.add("hidden");
+    };
+
+    window.addHeaderRow = function (key, val) {
+      const list = document.getElementById("test-headers-list");
+      if (!list) return;
+      const row = document.createElement("div");
+      row.className = "header-row flex items-center gap-2";
+      row.innerHTML = `
+					<input class="header-key flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition" placeholder="Header" value="${key || ""}">
+					<span class="text-neutral-600 text-xs">:</span>
+					<input class="header-val flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition" placeholder="Value" value="${val || ""}">
+					<button class="remove-header px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition" title="Remove header">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+				`;
+      row.querySelector(".remove-header")?.addEventListener("click", () => {
+        row.remove();
+        if (list.querySelectorAll(".header-row").length === 0) {
+          window.addHeaderRow("", "");
+        }
+      });
+      list.appendChild(row);
+    };
+
+    window.getHeadersFromUI = function () {
+      const headers = {};
+      document.querySelectorAll("#test-headers-list .header-row").forEach(row => {
+        const key = row.querySelector(".header-key")?.value?.trim();
+        const val = row.querySelector(".header-val")?.value?.trim();
+        if (key) headers[key] = val || "";
+      });
+      return headers;
+    };
+
+    window.runEndpointTest = function () {
+      const select = document.getElementById("test-endpoint-select");
+      const epId = select?.value;
+      if (!epId) return;
+      const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById("test-body")?.value || "");
+      const headers = window.getHeadersFromUI();
+
+      const resEl = document.getElementById("test-response");
+      const statusEl = document.getElementById("test-status");
+      if (resEl) resEl.value = "Sending...";
+      if (statusEl) statusEl.textContent = "";
+
+      (async () => {
+        try {
+          const resp = await fetch(`/api/endpoints/${epId}/test/`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({headers: headers, body: bodyRaw})
+          });
+          const data = await resp.json();
+          if (statusEl) statusEl.textContent = `Status: ${data.status || resp.status}`;
+
+          let bodyStr = data.body || "";
+          try {
+            const jsonBody = JSON.parse(bodyStr);
+            bodyStr = JSON.stringify(jsonBody, null, 2);
+          } catch (e) { }
+
+          if (resEl) resEl.value = bodyStr;
+        } catch (e) {
+          if (statusEl) statusEl.textContent = "Status: error";
+          if (resEl) resEl.value = String(e);
+        }
+      })();
+    };
+  </script>
+		<style>
+    .ace_editor,
+    .ace_scroller,
+    .ace_content {
+      background: #0b0b0c !important;
+      color: #eee !important;
+    }
+  </style>
 	</div>
 }

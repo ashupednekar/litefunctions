@@ -1,4 +1,5 @@
 #TODO: avoid redundant manifest, kustomize manager.yaml from operator config
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,18 +28,23 @@ spec:
           type: RuntimeDefault
       containers:
       - command:
-        - /manager
+        - /operator
         args:
+        - manager
         - --leader-elect
-        - --health-probe-bind-address=:8081
         image: {{ .Values.images.operator }} 
         env:
+        - name: GRPC_PORT
+          value: "50051"
         {{- if .Values.operator.registry }}
         - name: REGISTRY
           value: {{ .Values.operator.registry | quote }}
         {{- end }}
-        {{- if .Values.operator.vcs_user }}
-        - name: VCS_USER
+        {{- if .Values.operator.registry_user }}
+        - name: REGISTRY_USER
+          value: {{ .Values.operator.registry_user | quote }}
+        {{- else if .Values.operator.vcs_user }}
+        - name: REGISTRY_USER
           value: {{ .Values.operator.vcs_user | quote }}
         {{- end }}
         {{- if .Values.operator.pull_secret }}
@@ -57,9 +63,21 @@ spec:
         - name: REDIS_URL
           value: {{ .Values.operator.redis_url | quote }}
         {{- end }}
+        {{- if (index .Values "valkey-cluster").password }}
+        - name: REDIS_PASSWORD
+          value: {{ (index .Values "valkey-cluster").password | quote }}
+        {{- end }}
         {{- if .Values.operator.nats_url }}
         - name: NATS_URL
           value: {{ .Values.operator.nats_url | quote }}
+        {{- end }}
+        {{- if .Values.operator.deprovision_duration }}
+        - name: DEPROVISION_DURATION
+          value: {{ .Values.operator.deprovision_duration | quote }}
+        {{- end }}
+        {{- if .Values.operator.keep_warm_duration }}
+        - name: KEEP_WARM_DURATION
+          value: {{ .Values.operator.keep_warm_duration | quote }}
         {{- end }}
         name: litefunctions-manager
         securityContext:
@@ -67,18 +85,10 @@ spec:
           capabilities:
             drop:
             - "ALL"
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
+        ports:
+        - containerPort: 50051
+          name: grpc
+          protocol: TCP
         resources:
           limits:
             cpu: 500m
@@ -88,3 +98,25 @@ spec:
             memory: 64Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+    {{- include "litefunctions.labels" . | nindent 4 }}
+  name: litefunctions-operator
+spec:
+  ports:
+  - name: grpc
+    port: 50051
+    protocol: TCP
+    targetPort: 50051
+    {{- if eq .Values.operator.service.type "NodePort" }}
+    nodePort: {{ .Values.operator.service.nodePort }}
+    {{- end }}
+  selector:
+    control-plane: controller-manager
+    {{- include "litefunctions.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.operator.service.type }}
+---

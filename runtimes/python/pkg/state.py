@@ -53,9 +53,11 @@ async def get_db_engine() -> AsyncEngine:
 
 
 async def get_redis_pool() -> ConnectionPool:
+    redis_password = settings.redis_password or None
     if settings.use_redis_cluster:
         pool = RedisCluster.from_url(
             settings.redis_url,
+            password=redis_password,
             max_connections=settings.redis_max_connections,
             decode_responses=True,
         )
@@ -67,6 +69,7 @@ async def get_redis_pool() -> ConnectionPool:
     else:
         pool = ConnectionPool.from_url(
             settings.redis_url,
+            password=redis_password,
             max_connections=settings.redis_max_connections,
             decode_responses=True,
         )

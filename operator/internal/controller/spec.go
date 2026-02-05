@@ -7,7 +7,6 @@ import (
 
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,7 +30,7 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 	case "lua":
 		image = "ashupednekar535/litefunctions-runtime-lua:latest"
 	default:
-		image = fmt.Sprintf("%s/%s/runtime-%s-%s-%s:latest", Cfg.Registry, Cfg.VcsUser, function.Spec.Language, function.Spec.Project, function.Name)
+		image = fmt.Sprintf("%s/%s/runtime-%s-%s-%s:latest", Cfg.Registry, Cfg.RegistryUser, function.Spec.Language, function.Spec.Project, function.Name)
 	}
 
 	return &appsv1.Deployment{
@@ -71,6 +70,10 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 									Value: Cfg.RedisUrl,
 								},
 								{
+									Name:  "REDIS_PASSWORD",
+									Value: Cfg.RedisPassword,
+								},
+								{
 									Name:  "NATS_URL",
 									Value: Cfg.NatsUrl,
 								},
@@ -85,52 +88,4 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 
 func GetDeploymentName(function *apiv1.Function) string {
 	return fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
-}
-
-func NewCleanupCronJob(function *apiv1.Function, ttl string, saName string) *batchv1.CronJob {
-	deploymentName := GetDeploymentName(function)
-	cronJobName := fmt.Sprintf("%s-cleanup", deploymentName)
-
-	labels := map[string]string{
-		"app":        "runtime-cleanup",
-		"deployment": deploymentName,
-		"managed-by": "litefunctions-operator",
-	}
-
-	return &batchv1.CronJob{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cronJobName,
-			Namespace: function.Namespace,
-			Labels:    labels,
-		},
-		Spec: batchv1.CronJobSpec{
-			Schedule: ttl,
-			JobTemplate: batchv1.JobTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
-				Spec: batchv1.JobSpec{
-					TTLSecondsAfterFinished: pointer.Int32(60),
-					BackoffLimit:            pointer.Int32(0),
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: labels,
-						},
-						Spec: corev1.PodSpec{
-							RestartPolicy:      corev1.RestartPolicyNever,
-							ServiceAccountName: saName,
-							Containers: []corev1.Container{
-								{
-									Name:    "kubectl",
-									Image:   "bitnami/kubectl:latest",
-									Command: []string{"/bin/sh", "-c"},
-									Args:    []string{fmt.Sprintf("kubectl delete deployment %s -n %s", deploymentName, function.Namespace)},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
 }

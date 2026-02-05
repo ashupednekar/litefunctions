@@ -20,8 +20,5 @@ dependencies:
 - name: zot
   repository: http://zotregistry.dev/helm-charts
   version: 0.1.97
-- name: litewebservices-portal
-  repository: oci://ghcr.io/ashupednekar/charts
-  version: 0.1.93
-digest: sha256:8ef9ea2fb41ac3c4d723e4ff1a33bcf33f646238ebd52f27f789bf04f606c35d
-generated: "2026-01-27T20:57:47.356802+05:30"
+digest: sha256:eb86c1901fda2c3d6da72ab178b41703a8d4f5d6f48b0e6fcd738ee6a43a0a70
+generated: "2026-02-04T22:42:12.608955+05:30"

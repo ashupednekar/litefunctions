@@ -9,6 +9,7 @@ pub struct Settings {
 
     pub database_url: String,
     pub redis_url: String,
+    pub redis_password: Option<String>,
     pub nats_url: String,
     //otel
     pub otlp_host: Option<String>,

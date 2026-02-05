@@ -4,13 +4,20 @@ redis:
 images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
   operator: ashupednekar535/litefunctions-operator:latest
+  portal: ashupednekar535/litefunctions-portal:latest
 
 operator:
   registry: localhost:30050
-  vcs_user: ashudev
+  registry_user: ashudev
+  deprovision_duration: 2m
+  keep_warm_duration: 5m
+  service:
+    type: ClusterIP
   #NOTE: rest are defaulting in operator manager settings, add here if needed
 
 ingestor:
+  service:
+    type: NodePort
   nats_url: litefunctions-nats:4222
 
 nats:
@@ -40,7 +47,7 @@ database:
   instanceVolumeSize: 4Gi
   initialSchemas:
     - gitea
-    - lwsportal
+    - litefunctions
 
 minio:
   enabled: false
@@ -170,7 +177,23 @@ zot:
     nodePort: 30050
 
 ui:
-  enabled: false
-  server:
-    db:
-      secret: litefunctions-pguser-litefunctions
+  enabled: true
+  replicas: 1
+  service:
+    type: ClusterIP
+    nodePort: 30003
+  db:
+    secret: litefunctions-pguser-litefunctions
+    key: pgbouncer-uri
+  vcs:
+    baseUrl: http://litefunctions-gitea-http:3000
+    secret: litefunctions-admin-token
+    key: token
+  domain: floatier-finnegan-stumblingly.ngrok-free.dev
+  ngrok:
+    secret: litefunctions-ngrok-secret
+    key: token
+  ingress:
+    enabled: false
+    host: localhost
+    issuer: letsencrypt
