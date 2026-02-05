@@ -3,6 +3,8 @@ package pkg
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/url"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,6 +21,17 @@ type AppState struct {
 
 func NewAppState(ctx context.Context) (*AppState, error) {
 	settings := LoadSettings()
+	if err := validateSettings(settings); err != nil {
+		return nil, err
+	}
+	log.Printf(
+		"settings: project=%s name=%s nats_url=%s database_url_set=%t redis_url_set=%t\n",
+		settings.Project,
+		settings.Name,
+		safeURLSummary(settings.NatsUrl),
+		settings.DatabaseUrl != "",
+		settings.RedisUrl != "",
+	)
 
 	dbPool, err := pgxpool.New(ctx, settings.DatabaseUrl)
 	if err != nil {
@@ -55,7 +68,12 @@ func NewAppState(ctx context.Context) (*AppState, error) {
 	}
 	stream, err := js.CreateOrUpdateStream(ctx, streamConfig)
 	if err != nil {
-		return nil, fmt.Errorf("ERR-NATS-STREAM: %v", err)
+		return nil, fmt.Errorf(
+			"ERR-NATS-STREAM: name=%q subjects=%v: %v",
+			streamConfig.Name,
+			streamConfig.Subjects,
+			err,
+		)
 	}
 	return &AppState{
 		DBPool:      dbPool,
@@ -63,4 +81,37 @@ func NewAppState(ctx context.Context) (*AppState, error) {
 		Nc:          nc,
 		Js:          stream,
 	}, nil
+}
+
+func validateSettings(settings *Settings) error {
+	if settings.Project == "" {
+		return fmt.Errorf("ERR-SETTINGS: PROJECT is required (set env PROJECT)")
+	}
+	if settings.Name == "" {
+		return fmt.Errorf("ERR-SETTINGS: NAME is required (set env NAME)")
+	}
+	if settings.DatabaseUrl == "" {
+		return fmt.Errorf("ERR-SETTINGS: DATABASE_URL is required (set env DATABASE_URL)")
+	}
+	if settings.RedisUrl == "" {
+		return fmt.Errorf("ERR-SETTINGS: REDIS_URL is required (set env REDIS_URL)")
+	}
+	if settings.NatsUrl == "" {
+		return fmt.Errorf("ERR-SETTINGS: NATS_URL is required (set env NATS_URL)")
+	}
+	return nil
+}
+
+func safeURLSummary(raw string) string {
+	if raw == "" {
+		return "(empty)"
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "(invalid)"
+	}
+	if u.Scheme == "" && u.Host == "" {
+		return "(invalid)"
+	}
+	return fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 }

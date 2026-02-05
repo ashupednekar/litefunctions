@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
+import logging
+from urllib.parse import urlparse
 from nats.aio.client import Client
 from nats.js import JetStreamContext
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
@@ -32,12 +34,25 @@ class AppState:
 
 
 async def get_jetstream() -> tuple[Client, JetStreamContext]:
+    validate_settings()
+    logging.info(
+        "settings: project=%s nats_url=%s database_url_set=%s redis_url_set=%s",
+        settings.project,
+        safe_url_summary(settings.nats_url),
+        bool(settings.database_url),
+        bool(settings.redis_url),
+    )
     nc: Client = await nats.connect(settings.nats_url)
     js: JetStreamContext = nc.jetstream()
-    await js.add_stream(
-        name=settings.project,
-        subjects=[f"{settings.project}.>"],
-    )
+    try:
+        await js.add_stream(
+            name=settings.project,
+            subjects=[f"{settings.project}.>"],
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            f"ERR-NATS-STREAM: name={settings.project} subjects={[f'{settings.project}.>']}: {exc}"
+        ) from exc
     return nc, js
 
 
@@ -79,3 +94,27 @@ async def get_redis_pool() -> ConnectionPool:
 
         setattr(pool, "get_conn", get_conn)
     return pool
+
+
+def validate_settings() -> None:
+    if not settings.project:
+        raise ValueError("ERR-SETTINGS: PROJECT is required (set env PROJECT)")
+    if not settings.nats_url:
+        raise ValueError("ERR-SETTINGS: NATS_URL is required (set env NATS_URL)")
+    if not settings.database_url:
+        raise ValueError("ERR-SETTINGS: DATABASE_URL is required (set env DATABASE_URL)")
+    if not settings.redis_url:
+        raise ValueError("ERR-SETTINGS: REDIS_URL is required (set env REDIS_URL)")
+
+
+def safe_url_summary(raw: str) -> str:
+    if not raw:
+        return "(empty)"
+    try:
+        parsed = urlparse(raw)
+    except Exception:
+        return "(invalid)"
+    if not parsed.scheme or not parsed.netloc:
+        return "(invalid)"
+    host = parsed.netloc.split("@")[-1]
+    return f"{parsed.scheme}://{host}"
