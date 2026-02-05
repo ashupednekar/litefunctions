@@ -276,40 +276,26 @@ templ EndpointsContent(endpoints []Endpoint) {
 								</button>
 							</div>
 						</div>
-						<!-- AUTH / PUB CONTROLS -->
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-							<div>
-								<h4 class="text-white font-semibold mb-2">Authentication</h4>
-								<select
-									id={ "auth-" + ep.ID }
-									class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none"
-								>
-									if ep.Scope == "public" {
-										<option selected>No Auth</option>
-									} else {
-										<option>No Auth</option>
-									}
-									if ep.Scope == "authn" {
-										<option selected>API Key (LWS Auth)</option>
-									} else {
-										<option>API Key (LWS Auth)</option>
-									}
-									<option>JWT</option>
-									<option>Session</option>
-								</select>
-							</div>
-							<div>
-								<h4 class="text-white font-semibold mb-2">Pub/Sub</h4>
-								<select
-									id={ "pub-" + ep.ID }
-									class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none"
-								>
-									<option>Off</option>
-									<option>Publish</option>
-									<option>Subscribe</option>
-									<option>Both</option>
-								</select>
-							</div>
+						<!-- AUTH CONTROLS -->
+						<div>
+							<h4 class="text-white font-semibold mb-2">Authentication</h4>
+							<select
+								id={ "auth-" + ep.ID }
+								class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none"
+							>
+								if ep.Scope == "public" {
+									<option selected>No Auth</option>
+								} else {
+									<option>No Auth</option>
+								}
+								if ep.Scope == "authn" {
+									<option selected>API Key (LWS Auth)</option>
+								} else {
+									<option>API Key (LWS Auth)</option>
+								}
+								<option>JWT</option>
+								<option>Session</option>
+							</select>
 						</div>
 						<!-- SAVE BUTTON -->
 						<div class="pt-4 border-t border-neutral-800/50 flex justify-end">

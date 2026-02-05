@@ -159,8 +159,9 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
                         class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
                         title="Endpoint settings">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />
                         </svg>
                     </a>
                 } else {
@@ -168,8 +169,9 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
                         class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed"
                         title="No endpoint">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />
                         </svg>
                     </span>
                 }
@@ -253,20 +255,26 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 
 			<div class="flex items-center justify-between mb-4">
 				<h2 class="text-xl font-semibold text-white">New Function</h2>
-				<button onclick="closeCreate()" class="p-2 text-neutral-300 hover:text-white">
-					<img src="/static/imgs/x.svg" class="w-5 h-5"/>
-				</button>
+				<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1">
+						<button id="create-mode-sync" onclick="setCreateMode('sync')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Sync</button>
+						<button id="create-mode-async" onclick="setCreateMode('async')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Async</button>
+					</div>
+					<button onclick="closeCreate()" class="p-2 text-neutral-300 hover:text-white">
+						<img src="/static/imgs/x.svg" class="w-5 h-5"/>
+					</button>
+				</div>
 			</div>
 
 			<label class="text-neutral-400 text-sm">Choose Language</label>
 
-			<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-3">
+			<div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 mt-3">
 				for _, lang := range langs {
 				<!-- store language id in data-lang so JS can bind click listeners -->
 				<button data-lang={ lang.ID }
-					class="lang-btn flex flex-col items-center justify-center gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800" id={ "lang-" + lang.ID }>
-					<img src={ lang.Icon } class="w-10 h-10 opacity-90"/>
-					<span class="text-white text-sm">{ lang.Label }</span>
+					class="lang-btn flex flex-col items-center justify-center gap-1.5 sm:gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800" id={ "lang-" + lang.ID }>
+					<img src={ lang.Icon } class="w-8 h-8 sm:w-10 sm:h-10 opacity-90"/>
+					<span class="text-white text-xs sm:text-sm">{ lang.Label }</span>
 				</button>
 				}
 			</div>
@@ -298,9 +306,15 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 
 			<div class="flex items-center justify-between mb-4">
 				<h2 class="text-xl font-semibold text-white">Edit Function</h2>
-				<button onclick="closeEdit()" class="p-2 text-neutral-300 hover:text-white">
-					<img src="/static/imgs/x.svg" class="w-5 h-5"/>
-				</button>
+				<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1">
+						<button id="edit-mode-sync" onclick="setEditMode('sync')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Sync</button>
+						<button id="edit-mode-async" onclick="setEditMode('async')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Async</button>
+					</div>
+					<button onclick="closeEdit()" class="p-2 text-neutral-300 hover:text-white">
+						<img src="/static/imgs/x.svg" class="w-5 h-5"/>
+					</button>
+				</div>
 			</div>
 
 			<div id="edit-ace" class="flex-1 w-full rounded-xl border border-neutral-800"></div>
@@ -386,9 +400,12 @@ window.__activeProjectID = "{ activeProjectID }";
 let createEditor = null;
 let editEditor = null;
 let selectedLang = "python";
+let selectedCreateMode = "sync";
+let selectedEditMode = "sync";
 
 const codeTemplates = {
-  python: `from fastapi import Request
+  python: {
+    sync: `from fastapi import Request
 from pydantic import BaseModel
 
 class Input(BaseModel):
@@ -403,8 +420,25 @@ async def handle(request: Request) -> Output:
     name = input.name or "stranger"
     return Output(message=f"Hello {name} from Python!")
 `,
+    async: `from fastapi import Request
+from pydantic import BaseModel
 
-  go: `package main
+class Input(BaseModel):
+    name: str | None = None
+
+class Output(BaseModel):
+    message: str
+
+async def handle(request: Request):
+    data = await request.json()
+    input = Input(**data)
+    name = input.name or "stranger"
+    yield Output(message=f"Hello {name} from Python!")
+`
+  },
+
+  go: {
+    sync: `package main
 
 import (
     "net/http"
@@ -437,8 +471,47 @@ func Handle(c *gin.Context) {
     })
 }
 `,
+    async: `package main
 
-  rust: `use axum::{Json};
+import (
+    "net/http"
+
+    "github.com/gin-gonic/gin"
+)
+
+type Input struct {
+    Name *string \`json:"name"\`
+}
+
+type Output struct {
+    Message string \`json:"message"\`
+}
+
+func Handle(c *gin.Context) <-chan Output {
+    ch := make(chan Output, 1)
+    go func() {
+        defer close(ch)
+        var input Input
+        if err := c.ShouldBindJSON(&input); err != nil {
+            return
+        }
+
+        name := "stranger"
+        if input.Name != nil && *input.Name != "" {
+            name = *input.Name
+        }
+
+        ch <- Output{
+            Message: "Hello " + name + " from Go!",
+        }
+    }()
+    return ch
+}
+`
+  },
+
+  rust: {
+    sync: `use axum::{Json};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -458,8 +531,36 @@ pub async fn handle(Json(input): Json<Input>) -> Json<Output> {
     })
 }
 `,
+    async: `use axum::Json;
+use serde::{Deserialize, Serialize};
+use std::sync::mpsc;
+use std::thread;
 
-  javascript: `export async function handle(req) {
+#[derive(Deserialize)]
+pub struct Input {
+    pub name: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct Output {
+    pub message: String,
+}
+
+pub fn handle(Json(input): Json<Input>) -> mpsc::Receiver<Output> {
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        let name = input.name.unwrap_or("stranger".into());
+        let _ = tx.send(Output {
+            message: format!("Hello {} from Rust!", name),
+        });
+    });
+    rx
+}
+`
+  },
+
+  javascript: {
+    sync: `export async function handle(req) {
   class Input {
     constructor(obj = {}) {
       this.name = obj.name ?? null;
@@ -481,8 +582,32 @@ pub async fn handle(Json(input): Json<Input>) -> Json<Output> {
   );
 }
 `,
+    async: `export async function handle(req) {
+  class Input {
+    constructor(obj = {}) {
+      this.name = obj.name ?? null;
+    }
+  }
 
-  lua: `-- Input serializer
+  class Output {
+    constructor(message) {
+      this.message = message;
+    }
+  }
+
+  const body = await req.json();
+  const input = new Input(body);
+  const name = input.name || "stranger";
+
+  return Response.json(
+    new Output(\`Hello \${name} from JavaScript!\`)
+  );
+}
+`
+  },
+
+  lua: {
+    sync: `-- Input serializer
 Input = {}
 Input.__index = Input
 
@@ -507,6 +632,33 @@ function handle(req)
   return Output:new(string.format("Hello %s from Lua!", name))
 end
 `
+,
+    async: `-- Input serializer
+Input = {}
+Input.__index = Input
+
+function Input:new(o)
+  o = o or {}
+  setmetatable(o, self)
+  o.name = o.name or nil
+  return o
+end
+
+-- Output serializer
+Output = {}
+Output.__index = Output
+
+function Output:new(message)
+  return setmetatable({ message = message }, self)
+end
+
+function handle(req)
+  local input = Input:new(req or {})
+  local name = input.name or "stranger"
+  return Output:new(string.format("Hello %s from Lua!", name))
+end
+`
+  }
 };
 
 
@@ -583,6 +735,66 @@ function copyFn(id){
   navigator.clipboard.writeText(curl);
 }
 
+function getTemplate(lang, mode) {
+  const entry = codeTemplates[lang];
+  if (!entry) return "";
+  if (typeof entry === "string") return entry;
+  return entry[mode] || entry.sync || "";
+}
+
+function setCreateMode(mode) {
+  if (!mode || mode === selectedCreateMode) {
+    updateCreateModeButtons();
+    return;
+  }
+  const template = getTemplate(selectedLang, mode);
+  if (createEditor) {
+    const current = createEditor.getValue();
+    if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
+      updateCreateModeButtons();
+      return;
+    }
+    createEditor.setValue(template || "", -1);
+  }
+  selectedCreateMode = mode;
+  updateCreateModeButtons();
+}
+
+function setEditMode(mode) {
+  if (!mode || mode === selectedEditMode) {
+    updateEditModeButtons();
+    return;
+  }
+  const lang = window.__editFnLang || "python";
+  const template = getTemplate(lang, mode);
+  if (editEditor) {
+    const current = editEditor.getValue();
+    if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
+      updateEditModeButtons();
+      return;
+    }
+    editEditor.setValue(template || "", -1);
+  }
+  selectedEditMode = mode;
+  updateEditModeButtons();
+}
+
+function updateCreateModeButtons() {
+  const syncBtn = document.getElementById("create-mode-sync");
+  const asyncBtn = document.getElementById("create-mode-async");
+  [syncBtn, asyncBtn].forEach(b => b?.classList.remove("selected"));
+  if (selectedCreateMode === "async") asyncBtn?.classList.add("selected");
+  else syncBtn?.classList.add("selected");
+}
+
+function updateEditModeButtons() {
+  const syncBtn = document.getElementById("edit-mode-sync");
+  const asyncBtn = document.getElementById("edit-mode-async");
+  [syncBtn, asyncBtn].forEach(b => b?.classList.remove("selected"));
+  if (selectedEditMode === "async") asyncBtn?.classList.add("selected");
+  else syncBtn?.classList.add("selected");
+}
+
 function openCreate(){
   window.__isCreateEditor = true;
   window.__isEditEditor = false;
@@ -601,9 +813,10 @@ function openCreate(){
 
   if(createEditor){
     createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);
-    createEditor.setValue(codeTemplates[selectedLang] || '', -1);
+    createEditor.setValue(getTemplate(selectedLang, selectedCreateMode) || '', -1);
     setTimeout(()=>createEditor.focus(),120);
   }
+  updateCreateModeButtons();
 }
 
 function selectLang(lang){
@@ -613,7 +826,7 @@ function selectLang(lang){
   if(el) el.classList.add('selected');
   if(createEditor){
     createEditor.session.setMode('ace/mode/' + modeMap[lang]);
-    createEditor.setValue(codeTemplates[lang] || '', -1);
+    createEditor.setValue(getTemplate(lang, selectedCreateMode) || '', -1);
     setTimeout(()=>createEditor.focus(),120);
   }
 }
@@ -653,6 +866,7 @@ function openEdit(id, lang){
   window.__isCreateEditor = false;
   window.__isEditEditor = true;
   window.__editFnID = id;
+  window.__editFnLang = lang;
   console.log("opening edit modal")
   document.getElementById('edit-modal').classList.remove('hidden');
   if(!editEditor && window.ace){
@@ -669,18 +883,19 @@ function openEdit(id, lang){
     editEditor.session.setMode('ace/mode/' + modeMap[lang]);
     editEditor.setValue('Loading...', -1);
     fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
-      editEditor.setValue(data.content || codeTemplates[lang] || '', -1);
+      editEditor.setValue(data.content || getTemplate(lang, selectedEditMode) || '', -1);
       editEditor.focus();
       // Second focus attempt after a tiny delay to be absolutely sure
       setTimeout(() => editEditor.focus(), 50);
     }).catch(()=>{
-      editEditor.setValue(codeTemplates[lang] || '', -1);
+      editEditor.setValue(getTemplate(lang, selectedEditMode) || '', -1);
       editEditor.focus();
     });
     
     // Immediate focus attempt
     editEditor.focus();
   }
+  updateEditModeButtons();
 }
 
 function closeEdit(){
@@ -713,6 +928,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // if server didn't provide activeProjectID, try cookie
   window.__activeProjectID = getActiveProjectID();
+  updateCreateModeButtons();
+  updateEditModeButtons();
 
   // Handle Vim Toggle
   const vimToggle = document.getElementById('vim-toggle');
@@ -799,14 +1016,16 @@ function refreshList() {
                         ' class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"' +
                         ' title="Endpoint settings">' +
                         '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />' +
                         '</svg></a>';
                 }
                 return '<span class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed" title="No endpoint">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />' +
                     '</svg></span>';
             };
 
@@ -911,6 +1130,7 @@ html,body{background:#0f0f10!important;}
 .lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}
 .lang-btn:hover{background:#1c1c1c;border-color:#666}
 .lang-btn.selected{background:#1f1f20;border-color:#888}
+.mode-btn.selected{background:#1f1f20;border-color:#888}
 	</style>
 
 </div>
