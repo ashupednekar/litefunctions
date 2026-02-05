@@ -159,13 +159,14 @@ func runManager(cmd *cobra.Command) error {
 	controller.LoadCfg(setupLog)
 
 	cfg := &client.Config{
-		Registry:     controller.Cfg.Registry,
-		RegistryUser: controller.Cfg.RegistryUser,
-		PullSecret:   controller.Cfg.PullSecret,
-		DbSecretName: controller.Cfg.DbSecretName,
-		DbSecretKey:  controller.Cfg.DbSecretKey,
-		RedisUrl:     controller.Cfg.RedisUrl,
-		NatsUrl:      controller.Cfg.NatsUrl,
+		Registry:      controller.Cfg.Registry,
+		RegistryUser:  controller.Cfg.RegistryUser,
+		PullSecret:    controller.Cfg.PullSecret,
+		DbSecretName:  controller.Cfg.DbSecretName,
+		DbSecretKey:   controller.Cfg.DbSecretKey,
+		RedisUrl:      controller.Cfg.RedisUrl,
+		RedisPassword: controller.Cfg.RedisPassword,
+		NatsUrl:       controller.Cfg.NatsUrl,
 	}
 
 	k8sClient := client.NewClient(mgr.GetClient(), setupLog, cfg)

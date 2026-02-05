@@ -23,13 +23,14 @@ type Client struct {
 }
 
 type Config struct {
-	Registry     string
-	RegistryUser string
-	PullSecret   string
-	DbSecretName string
-	DbSecretKey  string
-	RedisUrl     string
-	NatsUrl      string
+	Registry      string
+	RegistryUser  string
+	PullSecret    string
+	DbSecretName  string
+	DbSecretKey   string
+	RedisUrl      string
+	RedisPassword string
+	NatsUrl       string
 }
 
 func NewClient(c client.Client, log logr.Logger, cfg *Config) *Client {
@@ -245,6 +246,10 @@ func (c *Client) NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 								{
 									Name:  "REDIS_URL",
 									Value: c.Cfg.RedisUrl,
+								},
+								{
+									Name:  "REDIS_PASSWORD",
+									Value: c.Cfg.RedisPassword,
 								},
 								{
 									Name:  "NATS_URL",

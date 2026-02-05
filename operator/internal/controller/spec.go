@@ -70,6 +70,10 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 									Value: Cfg.RedisUrl,
 								},
 								{
+									Name:  "REDIS_PASSWORD",
+									Value: Cfg.RedisPassword,
+								},
+								{
 									Name:  "NATS_URL",
 									Value: Cfg.NatsUrl,
 								},
