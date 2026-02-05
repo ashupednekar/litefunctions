@@ -189,14 +189,14 @@ func (c *GiteaClient) AddWorkflow(project string) error {
 		".gitea/workflows/ci.yaml",
 		workflows.GiteaWorkflow,
 		"writing workflow file",
-	); err != nil{
+	); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string, opts ActionsProgressOptions) (*ActionsProgress, error) {
-	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/actions/runs", c.baseURL, owner, repo)
+	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/actions/tasks", c.baseURL, owner, repo)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -204,18 +204,6 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	}
 
 	q := req.URL.Query()
-	if opts.Branch != "" {
-		q.Add("branch", opts.Branch)
-	}
-	if opts.Status != "" {
-		q.Add("status", opts.Status)
-	}
-	if opts.Event != "" {
-		q.Add("event", opts.Event)
-	}
-	if opts.WorkflowID != "" {
-		q.Add("workflow_id", opts.WorkflowID)
-	}
 	if opts.Limit > 0 {
 		q.Add("limit", fmt.Sprintf("%d", opts.Limit))
 	} else {
@@ -247,14 +235,12 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 			ID           int64  `json:"id"`
 			Name         string `json:"name"`
 			Status       string `json:"status"`
-			Conclusion   string `json:"conclusion"`
 			HeadBranch   string `json:"head_branch"`
 			Event        string `json:"event"`
 			CreatedAt    string `json:"created_at"`
 			UpdatedAt    string `json:"updated_at"`
-			HTMLURL      string `json:"html_url"`
+			URL          string `json:"url"`
 			WorkflowID   string `json:"workflow_id"`
-			WorkflowName string `json:"workflow_name"`
 		} `json:"workflow_runs"`
 	}
 
@@ -271,14 +257,12 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 			ID:           run.ID,
 			Name:         run.Name,
 			Status:       run.Status,
-			Conclusion:   run.Conclusion,
 			Branch:       run.HeadBranch,
 			Event:        run.Event,
 			CreatedAt:    run.CreatedAt,
 			UpdatedAt:    run.UpdatedAt,
-			HTMLURL:      run.HTMLURL,
+			HTMLURL:      run.URL,
 			WorkflowID:   workflowID,
-			WorkflowName: run.WorkflowName,
 		})
 	}
 

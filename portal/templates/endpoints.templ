@@ -159,23 +159,30 @@ templ EndpointsContent(endpoints []Endpoint) {
 							</span>
 						</div>
 						<div class="flex items-center gap-3">
+							<a
+								id={ "build-status-" + ep.ID }
+								href="#"
+								target="_blank"
+								rel="noopener"
+								class="hidden px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition"
+							>
+								Build
+							</a>
 							<button
+								id={ "test-btn-" + ep.ID }
 								onclick={ openTestModalForEndpoint(ep.ID) }
-								class="px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide"
+								class="hidden px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide"
 							>
 								Test
 							</button>
 							<button
 								onclick={ toggleManageEndpoint(ep.ID) }
-								class="text-neutral-400 hover:text-white transition text-sm flex items-center gap-1"
+								class="p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition"
+								title="Endpoint settings"
 							>
-								Manage
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-									<path
-										fill-rule="evenodd"
-										d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-										clip-rule="evenodd"
-									></path>
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
 								</svg>
 							</button>
 						</div>
@@ -604,6 +611,124 @@ templ EndpointsContent(endpoints []Endpoint) {
         }
       })();
     };
+  </script>
+		<script>
+    (function () {
+      function isInProgress(run) {
+        if (!run) return false;
+        const rawStatus = run.status || run.Status;
+        if (!rawStatus) return false;
+        const status = String(rawStatus).toLowerCase();
+        return status === "in_progress" || status === "queued" || status === "waiting" || status === "running";
+      }
+
+      function getRuns(progress) {
+        if (!progress) return [];
+        if (Array.isArray(progress.Runs)) return progress.Runs;
+        if (Array.isArray(progress.runs)) return progress.runs;
+        return [];
+      }
+
+      function pickActiveRun(progress) {
+        const runs = getRuns(progress);
+        if (!runs.length) return null;
+        return runs.find(isInProgress) || null;
+      }
+
+      function pickDisplayRun(progress) {
+        const runs = getRuns(progress);
+        if (!runs.length) return null;
+        return runs.find(isInProgress) || runs[0];
+      }
+
+      function normalizeStatus(run) {
+        if (!run) return "";
+        const status = String(run.status || run.Status || "").toLowerCase();
+        const conclusion = String(run.conclusion || run.Conclusion || "").toLowerCase();
+        return { status, conclusion };
+      }
+
+      function statusClass(status, conclusion, running) {
+        if (running) {
+          return "border-[#6b3f17] bg-[#4a2a0c]/40 text-[#e5b07b] hover:bg-[#4a2a0c]/60";
+        }
+        if (conclusion === "success" || status === "success") {
+          return "border-green-700/60 bg-green-700/15 text-green-300 hover:bg-green-700/30";
+        }
+        if (["failure", "failed", "cancelled", "canceled", "error", "timed_out"].includes(conclusion) ||
+            ["failure", "failed", "cancelled", "canceled", "error", "timed_out"].includes(status)) {
+          return "border-red-700/60 bg-red-700/15 text-red-300 hover:bg-red-700/30";
+        }
+        return "border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:bg-neutral-800";
+      }
+
+      function statusLabel(run, running) {
+        const name = run?.Name || run?.name || "Build";
+        if (running) return `Running: ${name}`;
+        const { status, conclusion } = normalizeStatus(run);
+        if (conclusion === "success" || status === "success") return `Success: ${name}`;
+        if (["failure", "failed", "cancelled", "canceled", "error", "timed_out"].includes(conclusion) ||
+            ["failure", "failed", "cancelled", "canceled", "error", "timed_out"].includes(status)) {
+          return `Failed: ${name}`;
+        }
+        if (status) return `${status}: ${name}`;
+        return name;
+      }
+
+      function updateBuildButtons(progress) {
+        const active = pickActiveRun(progress);
+        const display = pickDisplayRun(progress);
+        const buildLinks = document.querySelectorAll('[id^="build-status-"]');
+        const testButtons = document.querySelectorAll('[id^="test-btn-"]');
+
+        const url = (display && (display.HTMLURL || display.htmlurl)) || "";
+        const running = !!active;
+        const cls = statusClass(
+          display?.status || display?.Status,
+          display?.conclusion || display?.Conclusion,
+          running
+        );
+        const label = display ? statusLabel(display, running) : "No Actions";
+        const { status, conclusion } = normalizeStatus(display);
+        const showTest = !running && (conclusion === "success" || status === "success");
+
+        buildLinks.forEach(el => {
+          if (url) {
+            el.setAttribute("href", url);
+            el.classList.remove("pointer-events-none", "opacity-70");
+          } else {
+            el.setAttribute("href", "#");
+            el.classList.add("pointer-events-none", "opacity-70");
+          }
+          el.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;
+          el.textContent = label;
+          el.classList.remove("hidden");
+        });
+        testButtons.forEach(el => {
+          if (showTest) el.classList.remove("hidden");
+          else el.classList.add("hidden");
+        });
+      }
+
+      function startActionsSSE() {
+        if (!window.EventSource) return;
+        const es = new EventSource("/api/actions/status/");
+        es.addEventListener("status", (ev) => {
+          try {
+            const data = JSON.parse(ev.data || "{}");
+            updateBuildButtons(data);
+          } catch (e) {
+            // ignore malformed payloads
+          }
+        });
+        es.addEventListener("error", () => {
+          // keep UI usable if stream drops
+          updateBuildButtons(null);
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", startActionsSSE);
+    })();
   </script>
 		<style>
     .ace_editor,

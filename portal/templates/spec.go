@@ -21,10 +21,11 @@ type AccessUser struct {
 }
 
 type Function struct {
-	ID       string
-	Name     string
-	Language string
-	Icon     string
+	ID         string
+	Name       string
+	Language   string
+	Icon       string
+	EndpointID string
 }
 
 type Lang struct {

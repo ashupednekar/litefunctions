@@ -70,6 +70,7 @@ func (s *Server) BuildRoutes() {
 	{
 		functionHandlers := handlers.NewFunctionHandlers(s.state)
 		endpointHandlers := handlers.NewEndpointHandlers(s.state)
+		actionHandlers := handlers.NewActionHandlers()
 
 		api.GET("/projects/", projectHandlers.ListProjects)
 		api.GET("/projects/:id/", projectHandlers.GetProject)
@@ -92,7 +93,7 @@ func (s *Server) BuildRoutes() {
 		api.PUT("/endpoints/:epID/", endpointHandlers.UpdateEndpoint)
 		api.POST("/endpoints/:epID/test/", endpointHandlers.TestEndpoint)
 
-		api.GET("/config/", handlers.GetProjectConfig)
-		api.PUT("/config/", handlers.UpdateProjectConfig)
+		api.GET("/actions/status/", actionHandlers.Status)
+
 	}
 }
