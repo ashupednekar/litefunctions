@@ -850,7 +850,8 @@ function saveCreate(exit){
     name: name,
     language: selectedLang,
     description: description,
-    path: createEditor ? createEditor.getValue() : ''
+    code: createEditor ? createEditor.getValue() : '',
+    is_async: selectedCreateMode === "async"
   };
   fetch(`/api/functions/`,{
     method:'POST',
@@ -883,6 +884,8 @@ function openEdit(id, lang){
     editEditor.session.setMode('ace/mode/' + modeMap[lang]);
     editEditor.setValue('Loading...', -1);
     fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
+      selectedEditMode = data?.is_async ? "async" : "sync";
+      updateEditModeButtons();
       editEditor.setValue(data.content || getTemplate(lang, selectedEditMode) || '', -1);
       editEditor.focus();
       // Second focus attempt after a tiny delay to be absolutely sure
@@ -908,8 +911,11 @@ function saveEdit(exit){
   const body = editEditor ? editEditor.getValue() : '';
   fetch(`/api/functions/${window.__editFnID}/`,{
     method:'PUT',
-    headers:{'Content-Type':'text/plain'},
-    body: body
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      code: body,
+      is_async: selectedEditMode === "async"
+    })
   }).then(()=>{ 
     if(exit) closeEdit(); 
     refreshList()

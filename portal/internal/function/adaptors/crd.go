@@ -12,7 +12,7 @@ import (
 
 const defaultGrpcTimeout = 5 * time.Second
 
-func CreateFunctionCRD(ctx context.Context, operatorAddr, namespace, name, project, language, gitCreds string) (bool, error) {
+func CreateFunctionCRD(ctx context.Context, operatorAddr, namespace, name, project, language, gitCreds string, isAsync bool) (bool, error) {
 	if operatorAddr == "" {
 		return false, fmt.Errorf("operator address is empty")
 	}
@@ -36,6 +36,7 @@ func CreateFunctionCRD(ctx context.Context, operatorAddr, namespace, name, proje
 		Project:   project,
 		Language:  language,
 		GitCreds:  gitCreds,
+		IsAsync:   isAsync,
 	})
 	if err != nil {
 		return false, err

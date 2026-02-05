@@ -1,6 +1,6 @@
 -- name: CreateFunction :one
-INSERT INTO functions (project_id, name, language, path, created_by)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO functions (project_id, name, language, path, is_async, created_by)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetFunctionByID :one
@@ -20,6 +20,11 @@ SET path = $2
 WHERE id = $1
 RETURNING *;
 
+-- name: UpdateFunctionIsAsync :one
+UPDATE functions
+SET is_async = $2
+WHERE id = $1
+RETURNING *;
 
 
 -- name: DeleteFunction :exec
@@ -36,4 +41,3 @@ WHERE project_id = $1
       )
 ORDER BY language ASC, created_at DESC
 LIMIT $3 OFFSET $4;
-

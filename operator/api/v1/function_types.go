@@ -7,6 +7,7 @@ import (
 
 type FunctionSpec struct {
 	IsActive        bool   `json:"isActive"`
+	IsAsync         bool   `json:"isAsync"`
 	DeProvisionTime string `json:"deProvisionTime"`
 	Language        string `json:"language"`
 	Name            string `json:"name"`

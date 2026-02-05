@@ -119,7 +119,7 @@ func (c *Client) MarkFunctionInactive(ctx context.Context, namespace, name strin
 	return nil
 }
 
-func (c *Client) CreateFunctionIfNotExists(ctx context.Context, namespace, name, project, language, gitCreds string) (bool, error) {
+func (c *Client) CreateFunctionIfNotExists(ctx context.Context, namespace, name, project, language, gitCreds string, isAsync bool) (bool, error) {
 	var existing apiv1.Function
 	err := c.Client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, &existing)
 	if err == nil {
@@ -137,6 +137,7 @@ func (c *Client) CreateFunctionIfNotExists(ctx context.Context, namespace, name,
 		},
 		Spec: apiv1.FunctionSpec{
 			IsActive:        false,
+			IsAsync:         isAsync,
 			DeProvisionTime: "",
 			Language:        language,
 			Name:            name,

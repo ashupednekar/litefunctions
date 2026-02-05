@@ -43,6 +43,8 @@ spec:
                 type: string
               isActive:
                 type: boolean
+              isAsync:
+                type: boolean
               language:
                 type: string
               name:
@@ -53,6 +55,7 @@ spec:
             - deProvisionTime
             - git_creds
             - isActive
+            - isAsync
             - language
             - name
             - project

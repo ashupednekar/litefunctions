@@ -41,7 +41,9 @@ var langExt = map[string]string{
 type createFunctionRequest struct {
 	Name     string `json:"name"`
 	Language string `json:"language"`
-	Code     string `json:"path"`
+	Code     string `json:"code"`
+	Path     string `json:"path"`
+	IsAsync  bool   `json:"is_async"`
 }
 
 func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
@@ -77,6 +79,9 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	}
 	codeContent := req.Code
 	if codeContent == "" {
+		codeContent = req.Path
+	}
+	if codeContent == "" {
 		codeContent = "// TODO: implement function\n"
 	}
 	f.Write([]byte(codeContent))
@@ -109,6 +114,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 			Name:      req.Name,
 			Language:  req.Language,
 			Path:      path,
+			IsAsync:   req.IsAsync,
 			CreatedBy: userID,
 		},
 	)
@@ -138,6 +144,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		projectName,
 		req.Language,
 		pkg.Cfg.VcsToken,
+		req.IsAsync,
 	)
 	if err != nil {
 		slog.Warn("Failed to create function CRD", "name", req.Name, "error", err)
@@ -148,6 +155,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		"name":     fn.Name,
 		"language": fn.Language,
 		"path":     fn.Path,
+		"is_async": fn.IsAsync,
 	})
 }
 
@@ -192,6 +200,7 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 			"name":        f.Name,
 			"language":    f.Language,
 			"path":        f.Path,
+			"is_async":    f.IsAsync,
 			"endpoint_id": endpointByFn[fnID],
 		})
 	}
@@ -241,6 +250,7 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 		"name":     f.Name,
 		"language": f.Language,
 		"path":     f.Path,
+		"is_async": f.IsAsync,
 		"content":  string(data),
 	})
 }
@@ -298,7 +308,9 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 	}
 
 	var req struct {
-		Path string `json:"path"`
+		Path    string `json:"path"`
+		Code    string `json:"code"`
+		IsAsync *bool  `json:"is_async"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -307,6 +319,44 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 	}
 
 	resp := gin.H{}
+
+	if req.IsAsync != nil {
+		upd, err := q.UpdateFunctionIsAsync(
+			c.Request.Context(),
+			functionadaptors.UpdateFunctionIsAsyncParams{
+				ID:      pgtype.UUID{Bytes: [16]byte(fnID)},
+				IsAsync: *req.IsAsync,
+			},
+		)
+		if err == nil {
+			resp["is_async"] = upd.IsAsync
+		}
+	}
+
+	if req.Code != "" {
+		fh, err := r.Fs.Create(f.Path)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "write error"})
+			return
+		}
+		fh.Write([]byte(req.Code))
+		fh.Close()
+
+		slog.Info("commiting file", "path", f.Path)
+		err = r.Commit(f.Path)
+		if err != nil && !errors.Is(err, git.ErrEmptyCommit) {
+			slog.Error("error commiting file", "path", f.Path, "error", err)
+			c.JSON(500, gin.H{"error": "commit error"})
+			return
+		}
+
+		if err := r.Push(); err != nil {
+			c.JSON(500, gin.H{"error": "push error"})
+			return
+		}
+
+		resp["status"] = "saved"
+	}
 
 	if req.Path != "" {
 		upd, err := q.UpdateFunctionPath(
@@ -357,6 +407,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			Name:      f.Name,
 			Language:  f.Language,
 			Path:      f.Path,
+			IsAsync:   f.IsAsync,
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
@@ -373,6 +424,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			Name:      f.Name,
 			Language:  f.Language,
 			Path:      f.Path,
+			IsAsync:   f.IsAsync,
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
@@ -389,6 +441,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			Name:      f.Name,
 			Language:  f.Language,
 			Path:      f.Path,
+			IsAsync:   f.IsAsync,
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
