@@ -82,18 +82,32 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	usernameStr := ctx.MustGet("userName").(string)
 
 	q := functionAdaptors.New(h.state.DBPool)
+	epQ := endpointAdaptors.New(h.state.DBPool)
 
 	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
+	endpointByFn := map[string]string{}
+	if eps, err := epQ.ListEndpointsForProject(ctx.Request.Context(), projUUID); err == nil {
+		for _, ep := range eps {
+			fnID := hex.EncodeToString(ep.FunctionID.Bytes[:])
+			if _, exists := endpointByFn[fnID]; exists {
+				continue
+			}
+			endpointByFn[fnID] = hex.EncodeToString(ep.ID.Bytes[:])
+		}
+	}
+
 	if dbFns, err := q.ListFunctionsForProject(ctx.Request.Context(), projUUID); err == nil {
 		for _, f := range dbFns {
 			lang := f.Language
 			icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
+			fnID := hex.EncodeToString(f.ID.Bytes[:])
 
 			functions = append(functions, templates.Function{
-				ID:       hex.EncodeToString(f.ID.Bytes[:]),
-				Name:     f.Name,
-				Language: lang,
-				Icon:     icon,
+				ID:         fnID,
+				Name:       f.Name,
+				Language:   lang,
+				Icon:       icon,
+				EndpointID: endpointByFn[fnID],
 			})
 		}
 	}

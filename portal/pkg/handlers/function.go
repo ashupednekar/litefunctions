@@ -161,6 +161,7 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 	offset, _ := strconv.Atoi(offsetStr)
 
 	q := functionadaptors.New(h.state.DBPool)
+	epQ := endpointadaptors.New(h.state.DBPool)
 	fns, err := q.ListFunctionsSearchPaged(c.Request.Context(), functionadaptors.ListFunctionsSearchPagedParams{
 		ProjectID: projectUUID,
 		Column2:   search,
@@ -172,13 +173,26 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 		return
 	}
 
+	endpointByFn := map[string]string{}
+	if eps, err := epQ.ListEndpointsForProject(c.Request.Context(), projectUUID); err == nil {
+		for _, ep := range eps {
+			fnID := hex.EncodeToString(ep.FunctionID.Bytes[:])
+			if _, exists := endpointByFn[fnID]; exists {
+				continue
+			}
+			endpointByFn[fnID] = hex.EncodeToString(ep.ID.Bytes[:])
+		}
+	}
+
 	out := make([]gin.H, 0, len(fns))
 	for _, f := range fns {
+		fnID := hex.EncodeToString(f.ID.Bytes[:])
 		out = append(out, gin.H{
-			"id":       hex.EncodeToString(f.ID.Bytes[:]),
-			"name":     f.Name,
-			"language": f.Language,
-			"path":     f.Path,
+			"id":          fnID,
+			"name":        f.Name,
+			"language":    f.Language,
+			"path":        f.Path,
+			"endpoint_id": endpointByFn[fnID],
 		})
 	}
 

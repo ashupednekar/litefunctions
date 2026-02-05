@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -251,8 +252,6 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 			owner: "testuser",
 			repo:  "test-repo",
 			opts: ActionsProgressOptions{
-				Branch: "main",
-				Status: "completed",
 				Limit:  10,
 			},
 			mockResponse: map[string]any{
@@ -261,28 +260,24 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 					{
 						"id":            1001,
 						"name":          "CI",
-						"status":        "completed",
-						"conclusion":    "success",
+						"status":        "success",
 						"head_branch":   "main",
 						"event":         "push",
 						"created_at":    "2023-01-01T00:00:00Z",
 						"updated_at":    "2023-01-01T00:10:00Z",
-						"html_url":      "https://gitea.example.com/testuser/test-repo/actions/runs/1001",
-						"workflow_id":   "5",
-						"workflow_name": "CI Workflow",
+						"url":           "https://gitea.example.com/testuser/test-repo/actions/runs/1001",
+						"workflow_id":   "ci.yaml",
 					},
 					{
 						"id":            1002,
 						"name":          "Tests",
-						"status":        "completed",
-						"conclusion":    "failure",
+						"status":        "failure",
 						"head_branch":   "main",
 						"event":         "push",
 						"created_at":    "2023-01-01T00:00:00Z",
 						"updated_at":    "2023-01-01T00:15:00Z",
-						"html_url":      "https://gitea.example.com/testuser/test-repo/actions/runs/1002",
-						"workflow_id":   "6",
-						"workflow_name": "Test Workflow",
+						"url":           "https://gitea.example.com/testuser/test-repo/actions/runs/1002",
+						"workflow_id":   "ci.yaml",
 					},
 				},
 			},
@@ -324,14 +319,14 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 				if r.Method != "GET" {
 					t.Errorf("Expected GET request, got %s", r.Method)
 				}
-				expectedPath := "/api/v1/repos/" + tt.owner + "/" + tt.repo + "/actions/runs"
+				expectedPath := "/api/v1/repos/" + tt.owner + "/" + tt.repo + "/actions/tasks"
 				if r.URL.Path != expectedPath {
 					t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
 				}
 
-				if tt.opts.Branch != "" {
-					if branch := r.URL.Query().Get("branch"); branch != tt.opts.Branch {
-						t.Errorf("Expected branch query param %s, got %s", tt.opts.Branch, branch)
+				if tt.opts.Limit > 0 {
+					if limit := r.URL.Query().Get("limit"); limit != "10" {
+						t.Errorf("Expected limit query param 10, got %s", limit)
 					}
 				}
 
@@ -358,5 +353,42 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestGiteaClient_GetActionsProgress_Integration(t *testing.T) {
+	token := os.Getenv("GITEA_TOKEN")
+	if token == "" {
+		token = os.Getenv("VCS_TOKEN")
+	}
+	if token == "" {
+		t.Skip("GITEA_TOKEN or VCS_TOKEN not set")
+	}
+
+	baseURL := os.Getenv("GITEA_BASE_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:30080"
+	}
+
+	owner := os.Getenv("GITEA_OWNER")
+	if owner == "" {
+		owner = "ashudev"
+	}
+
+	repo := os.Getenv("GITEA_REPO")
+	if repo == "" {
+		repo = "one"
+	}
+
+	client := NewGiteaClient(baseURL, token)
+
+	progress, err := client.GetActionsProgress(context.Background(), owner, repo, ActionsProgressOptions{
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("GetActionsProgress() error = %v", err)
+	}
+	if progress == nil {
+		t.Fatalf("GetActionsProgress() returned nil progress")
 	}
 }
