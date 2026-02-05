@@ -32,6 +32,7 @@ func Consume(state *AppState, c jetstream.Consumer) error {
 
 func StartFunction() error {
 	ctx := context.Background()
+	settings := LoadSettings()
 	state, err := NewAppState(ctx)
 	if err != nil{
 		return fmt.Errorf("ERR-STATE-INIT: %v", err)

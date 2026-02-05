@@ -66,6 +66,15 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 									},
 								},
 								{
+									Name: "PROJECT",
+									Value: function.Spec.Project,
+								},
+								{
+									Name: "NAME",
+									Value: function.Spec.Name,
+								},
+
+								{
 									Name:  "REDIS_URL",
 									Value: Cfg.RedisUrl,
 								},

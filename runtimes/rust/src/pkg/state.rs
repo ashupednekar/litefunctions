@@ -3,6 +3,7 @@ use async_nats::{connect, jetstream};
 use sqlx::PgPool;
 use standard_error::StandardError;
 use std::sync::Arc;
+use tracing::info;
 
 #[derive(Clone, Debug)]
 pub struct AppState {
@@ -14,6 +15,15 @@ pub struct AppState {
 
 impl AppState {
     pub async fn new() -> Result<AppState> {
+        validate_settings()?;
+        info!(
+            "settings: project={} name={} nats_url={} database_url_set={} redis_url_set={}",
+            settings.project,
+            settings.name,
+            safe_url_summary(&settings.nats_url),
+            !settings.database_url.is_empty(),
+            !settings.redis_url.is_empty()
+        );
         let db_pool = Arc::new(PgPool::connect(&settings.database_url).await?);
         let redis_url = redis_url_with_password();
         let redis_client = Arc::new(
@@ -32,7 +42,14 @@ impl AppState {
             jetstream::new(nc.clone())
                 .get_or_create_stream(config)
                 .await
-                .map_err(|e| StandardError::new(&format!("ERR-NATS-STREAM: {}", e)))?,
+                .map_err(|e| {
+                    StandardError::new(&format!(
+                        "ERR-NATS-STREAM: name={} subjects={:?}: {}",
+                        settings.project,
+                        vec![format!("{}.>", &settings.project)],
+                        e
+                    ))
+                })?,
         );
         let nc = Arc::new(nc);
         Ok(AppState {
@@ -42,6 +59,33 @@ impl AppState {
             js,
         })
     }
+}
+
+fn validate_settings() -> Result<()> {
+    if settings.project.trim().is_empty() {
+        return Err(StandardError::new(
+            "ERR-SETTINGS: PROJECT is required (set env PROJECT)",
+        ));
+    }
+    if settings.name.trim().is_empty() {
+        return Err(StandardError::new("ERR-SETTINGS: NAME is required (set env NAME)"));
+    }
+    if settings.database_url.trim().is_empty() {
+        return Err(StandardError::new(
+            "ERR-SETTINGS: DATABASE_URL is required (set env DATABASE_URL)",
+        ));
+    }
+    if settings.redis_url.trim().is_empty() {
+        return Err(StandardError::new(
+            "ERR-SETTINGS: REDIS_URL is required (set env REDIS_URL)",
+        ));
+    }
+    if settings.nats_url.trim().is_empty() {
+        return Err(StandardError::new(
+            "ERR-SETTINGS: NATS_URL is required (set env NATS_URL)",
+        ));
+    }
+    Ok(())
 }
 
 fn redis_url_with_password() -> String {
@@ -63,4 +107,22 @@ fn redis_url_with_password() -> String {
     }
 
     settings.redis_url.clone()
+}
+
+fn safe_url_summary(raw: &str) -> String {
+    if raw.trim().is_empty() {
+        return "(empty)".to_string();
+    }
+    let mut parts = raw.split("://");
+    let scheme = parts.next().unwrap_or("");
+    let rest = parts.next().unwrap_or("");
+    if scheme.is_empty() || rest.is_empty() {
+        return "(invalid)".to_string();
+    }
+    let host_part = rest.split('/').next().unwrap_or("");
+    let host = host_part.split('@').last().unwrap_or("");
+    if host.is_empty() {
+        return "(invalid)".to_string();
+    }
+    format!("{}://{}", scheme, host)
 }
