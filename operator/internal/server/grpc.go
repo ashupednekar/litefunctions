@@ -30,7 +30,7 @@ func (s *FunctionServer) CreateFunction(ctx context.Context, req *CreateFunction
 		return nil, status.Error(codes.InvalidArgument, "namespace, name, project, and language are required")
 	}
 
-	created, err := s.Client.CreateFunctionIfNotExists(ctx, req.Namespace, req.Name, req.Project, req.Language, req.GitCreds)
+	created, err := s.Client.CreateFunctionIfNotExists(ctx, req.Namespace, req.Name, req.Project, req.Language, req.GitCreds, req.IsAsync)
 	if err != nil {
 		s.Log.Error(err, "Failed to create function", "namespace", req.Namespace, "name", req.Name)
 		return nil, status.Error(codes.Internal, "Failed to create function: "+err.Error())

@@ -83,6 +83,7 @@ type Function struct {
 	Name      string
 	Language  string
 	Path      string
+	IsAsync   bool
 	CreatedBy []byte
 	CreatedAt pgtype.Timestamptz
 }

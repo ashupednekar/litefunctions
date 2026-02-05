@@ -75,6 +75,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 				Name:      fnName,
 				Language:  lang,
 				Path:      path,
+				IsAsync:   false,
 				CreatedBy: userID,
 			})
 			if err != nil {
@@ -111,6 +112,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 				projectName,
 				lang,
 				pkg.Cfg.VcsToken,
+				false,
 			)
 			if err != nil {
 				slog.Warn("Failed to create function CRD", "name", fnName, "error", err)

@@ -58,6 +58,7 @@ CREATE TABLE functions (
     name TEXT NOT NULL,
     language TEXT NOT NULL,                    -- e.g., "go", "js", "rust"
     path TEXT NOT NULL,                        -- repo path to function entrypoint
+    is_async BOOLEAN NOT NULL DEFAULT false,
     created_by BYTEA NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
