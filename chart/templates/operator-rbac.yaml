@@ -6,14 +6,6 @@ metadata:
     app.kubernetes.io/name: operator
   name: controller-manager
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: litefunctions-operator
-  name: {{ include "litefunctions.fullname" . }}-cleanup
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -229,7 +221,7 @@ roleRef:
   name: litefunctions-cleanup
 subjects:
 - kind: ServiceAccount
-  name: {{ include "litefunctions.fullname" . }}-cleanup
+  name: controller-manager
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
