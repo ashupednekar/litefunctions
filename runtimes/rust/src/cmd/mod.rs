@@ -56,7 +56,7 @@ async fn start_http_server(state: AppState) -> Result<()> {
 
 async fn handle_request(State(state): State<AppState>, body: Bytes) -> impl IntoResponse {
     match handler(state, None, body.to_vec()).await {
-        Ok(res) => res.into_response(),
+        Ok((status, res)) => (status, res).into_response(),
         Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
     }
 }

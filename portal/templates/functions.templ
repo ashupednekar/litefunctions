@@ -441,9 +441,8 @@ async def handle(request: Request):
     sync: `package main
 
 import (
+    "encoding/json"
     "net/http"
-
-    "github.com/gin-gonic/gin"
 )
 
 type Input struct {
@@ -454,10 +453,10 @@ type Output struct {
     Message string \`json:"message"\`
 }
 
-func Handle(c *gin.Context) {
+func Handle(w http.ResponseWriter, r *http.Request) {
     var input Input
-    if err := c.ShouldBindJSON(&input); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+        http.Error(w, "invalid request", http.StatusBadRequest)
         return
     }
 
@@ -466,7 +465,8 @@ func Handle(c *gin.Context) {
         name = *input.Name
     }
 
-    c.JSON(http.StatusOK, Output{
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(Output{
         Message: "Hello " + name + " from Go!",
     })
 }
@@ -474,9 +474,8 @@ func Handle(c *gin.Context) {
     async: `package main
 
 import (
+    "encoding/json"
     "net/http"
-
-    "github.com/gin-gonic/gin"
 )
 
 type Input struct {
@@ -487,31 +486,34 @@ type Output struct {
     Message string \`json:"message"\`
 }
 
-func Handle(c *gin.Context) <-chan Output {
-    ch := make(chan Output, 1)
-    go func() {
-        defer close(ch)
-        var input Input
-        if err := c.ShouldBindJSON(&input); err != nil {
-            return
-        }
+func Handle(w http.ResponseWriter, r *http.Request) {
+    var input Input
+    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+        http.Error(w, "invalid request", http.StatusBadRequest)
+        return
+    }
 
-        name := "stranger"
-        if input.Name != nil && *input.Name != "" {
-            name = *input.Name
-        }
+    name := "stranger"
+    if input.Name != nil && *input.Name != "" {
+        name = *input.Name
+    }
 
-        ch <- Output{
-            Message: "Hello " + name + " from Go!",
-        }
-    }()
-    return ch
+    go func(n string) {
+        _ = n
+        // Do async work here
+    }(name)
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusAccepted)
+    json.NewEncoder(w).Encode(Output{
+        Message: "Queued: Hello " + name + " from Go!",
+    })
 }
 `
   },
 
   rust: {
-    sync: `use axum::{Json};
+    sync: `use axum::{Json, http::StatusCode};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -524,11 +526,14 @@ pub struct Output {
     pub message: String,
 }
 
-pub async fn handle(Json(input): Json<Input>) -> Json<Output> {
+pub async fn handle(Json(input): Json<Input>) -> (StatusCode, Json<Output>) {
     let name = input.name.unwrap_or("stranger".into());
-    Json(Output { 
-        message: format!("Hello {} from Rust!", name) 
-    })
+    (
+        StatusCode::OK,
+        Json(Output {
+            message: format!("Hello {} from Rust!", name),
+        }),
+    )
 }
 `,
     async: `use axum::Json;
@@ -546,15 +551,18 @@ pub struct Output {
     pub message: String,
 }
 
-pub fn handle(Json(input): Json<Input>) -> mpsc::Receiver<Output> {
-    let (tx, rx) = mpsc::channel();
+pub async fn handle(Json(input): Json<Input>) -> (axum::http::StatusCode, Json<Output>) {
+    let name = input.name.unwrap_or("stranger".into());
     thread::spawn(move || {
-        let name = input.name.unwrap_or("stranger".into());
-        let _ = tx.send(Output {
-            message: format!("Hello {} from Rust!", name),
-        });
+        let _ = name;
+        // Do async work here
     });
-    rx
+    (
+        axum::http::StatusCode::ACCEPTED,
+        Json(Output {
+            message: format!("Queued: Hello {} from Rust!", name),
+        }),
+    )
 }
 `
   },

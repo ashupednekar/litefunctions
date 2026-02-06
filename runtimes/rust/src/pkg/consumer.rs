@@ -20,7 +20,8 @@ fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
             msg.ack().await.map_err(natserr)?;
             if let Some(req_id) = msg.subject.split(".").last() {
                 tracing::debug!("request id: {}", &req_id);
-                let res: Vec<u8> = handler(state.clone(), Some(req_id), msg.payload.to_vec()).await?;
+                let (_status, res): (axum::http::StatusCode, Vec<u8>) =
+                    handler(state.clone(), Some(req_id), msg.payload.to_vec()).await?;
                 tracing::debug!("handler run complete");
                 state
                     .nc
