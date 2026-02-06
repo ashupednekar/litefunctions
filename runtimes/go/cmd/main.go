@@ -39,6 +39,7 @@ func startHTTPServer(state *pkg.AppState, settings *pkg.Settings) {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Printf("http server error: %v", err)
+		log.Printf("http server error: %v\n", err)
 	}
+	log.Printf("listening http at: %d\n", port)
 }
