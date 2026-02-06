@@ -50,6 +50,7 @@ func (s *Server) activateFunction(project, name string) (*proto.ActivateResponse
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// TODO: remove operator activation hop once ingestor can call runtime directly.
 	req := &proto.ActivateRequest{
 		Namespace: "default",
 		Name:      name,
@@ -60,6 +61,13 @@ func (s *Server) activateFunction(project, name string) (*proto.ActivateResponse
 		return nil, fmt.Errorf("failed to call operator gRPC: %w", err)
 	}
 
-	slog.Info("successfully activated function", "project", project, "name", name, "language", resp.Language)
+	slog.Info(
+		"function activation ensured (lease extended if already active)",
+		"project", project,
+		"name", name,
+		"language", resp.Language,
+		"service_name", resp.ServiceName,
+		"service_port", resp.ServicePort,
+	)
 	return resp, nil
 }
