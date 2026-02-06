@@ -19,6 +19,8 @@ type Settings struct {
 	OtlpHost     string `env:"OTLP_HOST"`
 	OtlpPort     string `env:"OTLP_PORT"`
 	UseTelemetry bool   `env:"USE_TELEMETRY"`
+
+	HttpPort string `env:"HTTP_PORT"`
 }
 
 var (

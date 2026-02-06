@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package server;
 
-option go_package = "github.com/ashupednekar/litefunctions/ingestor/pkg/proto";
+option go_package = "github.com/ashupednekar/litefunctions/common/proto";
 
 service FunctionService {
   rpc CreateFunction(CreateFunctionRequest) returns (CreateFunctionResponse);
@@ -31,6 +31,11 @@ message ActivateRequest {
 message ActivateResponse {
   bool is_active = 1;
   string language = 2;
+  bool is_async = 3;
+  string project = 4;
+  string name = 5;
+  string service_name = 6;
+  int32 service_port = 7;
 }
 
 message StatusRequest {

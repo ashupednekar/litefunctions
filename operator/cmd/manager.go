@@ -21,6 +21,7 @@ import (
 	"github.com/ashupednekar/litefunctions/operator/internal/client"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
 	functionserver "github.com/ashupednekar/litefunctions/operator/internal/server"
+	functionproto "github.com/ashupednekar/litefunctions/common/proto"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -183,7 +184,7 @@ func runManager(cmd *cobra.Command) error {
 	}
 
 	grpcServer := grpc.NewServer()
-	functionserver.RegisterFunctionServiceServer(grpcServer, functionserver.NewFunctionServer(k8sClient, setupLog, controller.Cfg.KeepWarmDuration))
+	functionproto.RegisterFunctionServiceServer(grpcServer, functionserver.NewFunctionServer(k8sClient, setupLog, controller.Cfg.KeepWarmDuration))
 
 	go func() {
 		setupLog.Info("Starting gRPC server", "address", grpcAddr)

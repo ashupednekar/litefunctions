@@ -58,10 +58,10 @@ func (c *Client) IsFunctionActive(ctx context.Context, namespace, name string) (
 	return function.Spec.IsActive, nil
 }
 
-func (c *Client) MarkFunctionActive(ctx context.Context, namespace, name string, keepWarmDuration time.Duration) (string, error) {
+func (c *Client) MarkFunctionActive(ctx context.Context, namespace, name string, keepWarmDuration time.Duration) (*apiv1.Function, error) {
 	function, err := c.GetFunction(ctx, namespace, name)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	function.Spec.IsActive = true
@@ -70,11 +70,11 @@ func (c *Client) MarkFunctionActive(ctx context.Context, namespace, name string,
 	function.Spec.DeProvisionTime = deprovisionTime.Format(time.RFC3339)
 
 	if err := c.Client.Update(ctx, function); err != nil {
-		return "", fmt.Errorf("failed to update function: %w", err)
+		return nil, fmt.Errorf("failed to update function: %w", err)
 	}
 
 	c.Log.Info("Marked function as active", "namespace", namespace, "name", name, "deprovisionTime", deprovisionTime)
-	return function.Spec.Language, nil
+	return function, nil
 }
 
 func (c *Client) ExtendFunctionLease(ctx context.Context, namespace, name string, keepWarmDuration time.Duration) (bool, error) {
@@ -232,6 +232,17 @@ func (c *Client) NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 							Name:            deploymentName,
 							Image:           image,
 							ImagePullPolicy: corev1.PullAlways,
+							Ports: func() []corev1.ContainerPort {
+								if supportsHTTP(function.Spec.Language) {
+									return []corev1.ContainerPort{
+										{
+											Name:          "http",
+											ContainerPort: 8080,
+										},
+									}
+								}
+								return nil
+							}(),
 							Env: []corev1.EnvVar{
 								{
 									Name: "DATABASE_URL",
@@ -256,6 +267,10 @@ func (c *Client) NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 									Name:  "NATS_URL",
 									Value: c.Cfg.NatsUrl,
 								},
+								{
+									Name:  "HTTP_PORT",
+									Value: "8080",
+								},
 							},
 						},
 					},
@@ -265,6 +280,19 @@ func (c *Client) NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 	}
 }
 
+func supportsHTTP(lang string) bool {
+	switch lang {
+	case "go", "rust", "rs":
+		return true
+	default:
+		return false
+	}
+}
+
 func GetDeploymentName(function *apiv1.Function) string {
 	return fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
+}
+
+func GetServiceName(function *apiv1.Function) string {
+	return fmt.Sprintf("litefunctions-runtime-svc-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
 }

@@ -12,7 +12,7 @@ PROTOC_GEN_GO_GRPC ?= $(LOCALBIN)/protoc-gen-go-grpc
 .PHONY: protoc
 protoc: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC)
 	@echo "Generating gRPC code..."
-	cd pkg/proto && PATH=$(LOCALBIN):$$PATH protoc \
+	cd ../common/proto && PATH=$(LOCALBIN):$$PATH protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		function.proto
@@ -33,7 +33,7 @@ build: protoc
 .PHONY: docker-build
 docker-build: 
 	@echo "Building docker image..."
-	docker build -t ${IMG} -f ../build/ingestor/Dockerfile .
+	docker build -t ${IMG} -f ../build/ingestor/Dockerfile ..
 
 .PHONY: docker-push
 docker-push: 

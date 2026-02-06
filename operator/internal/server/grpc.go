@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	functionproto "github.com/ashupednekar/litefunctions/common/proto"
 	"github.com/ashupednekar/litefunctions/operator/internal/client"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc/codes"
@@ -11,7 +12,7 @@ import (
 )
 
 type FunctionServer struct {
-	UnimplementedFunctionServiceServer
+	functionproto.UnimplementedFunctionServiceServer
 	Client           *client.Client
 	Log              logr.Logger
 	KeepWarmDuration time.Duration
@@ -25,7 +26,7 @@ func NewFunctionServer(k8sClient *client.Client, log logr.Logger, keepWarmDurati
 	}
 }
 
-func (s *FunctionServer) CreateFunction(ctx context.Context, req *CreateFunctionRequest) (*CreateFunctionResponse, error) {
+func (s *FunctionServer) CreateFunction(ctx context.Context, req *functionproto.CreateFunctionRequest) (*functionproto.CreateFunctionResponse, error) {
 	if req.Namespace == "" || req.Name == "" || req.Project == "" || req.Language == "" {
 		return nil, status.Error(codes.InvalidArgument, "namespace, name, project, and language are required")
 	}
@@ -36,12 +37,12 @@ func (s *FunctionServer) CreateFunction(ctx context.Context, req *CreateFunction
 		return nil, status.Error(codes.Internal, "Failed to create function: "+err.Error())
 	}
 
-	return &CreateFunctionResponse{
+	return &functionproto.CreateFunctionResponse{
 		Created: created,
 	}, nil
 }
 
-func (s *FunctionServer) Activate(ctx context.Context, req *ActivateRequest) (*ActivateResponse, error) {
+func (s *FunctionServer) Activate(ctx context.Context, req *functionproto.ActivateRequest) (*functionproto.ActivateResponse, error) {
 	if req.Namespace == "" || req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "namespace and name are required")
 	}
@@ -50,19 +51,37 @@ func (s *FunctionServer) Activate(ctx context.Context, req *ActivateRequest) (*A
 	if keepWarm <= 0 {
 		keepWarm = 5 * time.Minute
 	}
-	lang, err := s.Client.MarkFunctionActive(ctx, req.Namespace, req.Name, keepWarm)
+	fn, err := s.Client.MarkFunctionActive(ctx, req.Namespace, req.Name, keepWarm)
 	if err != nil {
 		s.Log.Error(err, "Failed to mark function as active", "namespace", req.Namespace, "name", req.Name)
 		return nil, status.Error(codes.Internal, "Failed to activate function: "+err.Error())
 	}
 
-	return &ActivateResponse{
+	resp := &functionproto.ActivateResponse{
 		IsActive: true,
-		Language: lang,
-	}, nil
+		Language: fn.Spec.Language,
+		IsAsync:  fn.Spec.IsAsync,
+		Project:  fn.Spec.Project,
+		Name:     fn.Spec.Name,
+	}
+	if supportsHTTP(fn.Spec.Language) {
+		resp.ServiceName = client.GetServiceName(fn)
+		resp.ServicePort = 8080
+	}
+
+	return resp, nil
 }
 
-func (s *FunctionServer) GetStatus(ctx context.Context, req *StatusRequest) (*StatusResponse, error) {
+func supportsHTTP(lang string) bool {
+	switch lang {
+	case "go", "rust", "rs":
+		return true
+	default:
+		return false
+	}
+}
+
+func (s *FunctionServer) GetStatus(ctx context.Context, req *functionproto.StatusRequest) (*functionproto.StatusResponse, error) {
 	if req.Namespace == "" || req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "namespace and name are required")
 	}
@@ -84,7 +103,7 @@ func (s *FunctionServer) GetStatus(ctx context.Context, req *StatusRequest) (*St
 		}
 	}
 
-	return &StatusResponse{
+	return &functionproto.StatusResponse{
 		IsActive: isActive,
 	}, nil
 }
