@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"net/http"
 	"time"
@@ -32,15 +31,7 @@ func startHTTPServer(state *pkg.AppState, settings *pkg.Settings) {
 		port = "8080"
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		res, err := pkg.Handler(state, nil, body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Write(res)
-	})
+	mux.HandleFunc("/", pkg.Handle)
 
 	server := &http.Server{
 		Addr:              ":" + port,
