@@ -3,25 +3,31 @@ package pkg
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
+	"log/slog"
 
 	"github.com/nats-io/nats.go/jetstream"
 )
 
 func Consume(ctx context.Context, state *AppState, c jetstream.Consumer) error {
-	log.Printf("waiting for messages...")
+	logger := slog.Default().With(
+		"project", settings.Project,
+		"function", settings.Name,
+	)
+	logger.Info("waiting for messages")
 	cc, err := c.Consume(func(msg jetstream.Msg){
-		log.Printf("received event")
+		logger.Info("received event", "subject", msg.Subject())
 		msg.Ack()
 		parts := strings.Split(msg.Subject(), ".")
 		req_id := parts[len(parts)-1]
-		log.Printf("request id: %s", req_id)
+		logger.Info("request id extracted", "request_id", req_id)
 		res, err := Handler(state, &req_id, msg.Data())
 		if err != nil{
-			log.Printf("ERR-FUNCTION: %v", err)
+			logger.Error("function handler failed", "error", err, "request_id", req_id)
 		}
-		state.Nc.Publish(fmt.Sprintf("%s.%s.res.go.%s", settings.Project, settings.Name, req_id), res)
+		if err := state.Nc.Publish(fmt.Sprintf("%s.%s.res.go.%s", settings.Project, settings.Name, req_id), res); err != nil {
+			logger.Error("failed to publish response", "error", err, "request_id", req_id)
+		}
 	})
 	if err != nil{
 		return err
@@ -37,9 +43,13 @@ func Consume(ctx context.Context, state *AppState, c jetstream.Consumer) error {
 
 func StartFunction(ctx context.Context, state *AppState) error {
 	settings := LoadSettings()
+	logger := slog.Default().With(
+		"project", settings.Project,
+		"function", settings.Name,
+	)
 	name := fmt.Sprintf("%s-%s", settings.Project, settings.Name)
 	subject := fmt.Sprintf("%s.%s.exec.go.*", settings.Project, settings.Name)
-	log.Printf("starting consumer listening to subject: %s", subject)
+	logger.Info("starting consumer", "subject", subject, "durable", name)
 	consumer, err := state.Js.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
 		Durable: name,
 		FilterSubject: subject,

@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
+	"log/slog"
 	"time"
 
 	"github.com/ashupednekar/litefunctions/runtimes/go/pkg"
@@ -11,21 +11,25 @@ import (
 
 func main() {
 	settings := pkg.LoadSettings()
+	logger := slog.Default().With(
+		"project", settings.Project,
+		"function", settings.Name,
+	)
 	ctx := context.Background()
 	state, err := pkg.NewAppState(ctx)
 	if err != nil {
-		log.Printf("error starting function: %v", err)
+		logger.Error("failed to initialize runtime state", "error", err)
 		return
 	}
 
-	go startHTTPServer(state, settings)
+	go startHTTPServer(state, settings, logger)
 
 	if err := pkg.StartFunction(ctx, state); err != nil {
-		log.Printf("error starting function: %v", err)
+		logger.Error("function consumer exited", "error", err)
 	}
 }
 
-func startHTTPServer(state *pkg.AppState, settings *pkg.Settings) {
+func startHTTPServer(state *pkg.AppState, settings *pkg.Settings, logger *slog.Logger) {
 	port := settings.HttpPort
 	if port == "" {
 		port = "8080"
@@ -38,8 +42,8 @@ func startHTTPServer(state *pkg.AppState, settings *pkg.Settings) {
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+	logger.Info("starting http server", "addr", server.Addr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Printf("http server error: %v\n", err)
+		logger.Error("http server error", "error", err)
 	}
-	log.Printf("listening http at: %d\n", port)
 }
