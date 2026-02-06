@@ -107,7 +107,7 @@ PROTOC_GEN_GO_GRPC ?= $(LOCALBIN)/protoc-gen-go-grpc
 .PHONY: protoc
 protoc: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Download protoc-gen-go and protoc-gen-go-grpc locally if necessary.
 	@echo "Generating gRPC code..."
-	cd internal/server && PATH=$(LOCALBIN):$$PATH protoc \
+	cd ../common/proto && PATH=$(LOCALBIN):$$PATH protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		function.proto
@@ -124,11 +124,11 @@ build: protoc manifests generate fmt vet ## Build operator binary.
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+	$(CONTAINER_TOOL) build -t ${IMG} -f Dockerfile ..
 
 .PHONY: docker-build-ingestor
 docker-build-ingestor: ## Build docker image for the ingestor.
-	$(CONTAINER_TOOL) build -t ingestor:latest -f build/ingestor/Dockerfile .
+	$(CONTAINER_TOOL) build -t ingestor:latest -f ../build/ingestor/Dockerfile ..
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -147,7 +147,7 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
 	- $(CONTAINER_TOOL) buildx create --name operator-builder
 	$(CONTAINER_TOOL) buildx use operator-builder
-	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross ..
 	- $(CONTAINER_TOOL) buildx rm operator-builder
 	rm Dockerfile.cross
 
@@ -279,4 +279,3 @@ helm-install: helm-sync ## Fresh Helm install (into litefunctions namespace)
 .PHONY: helm-uninstall
 helm-uninstall: ## Helm uninstall (from litefunctions namespace)
 	$(HELM) uninstall $(HELM_RELEASE) --namespace litefunctions || true
-

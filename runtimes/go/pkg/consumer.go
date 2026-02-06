@@ -17,7 +17,7 @@ func Consume(ctx context.Context, state *AppState, c jetstream.Consumer) error {
 		parts := strings.Split(msg.Subject(), ".")
 		req_id := parts[len(parts)-1]
 		log.Printf("request id: %s", req_id)
-		res, err := Handler(state, &req_id)
+		res, err := Handler(state, &req_id, msg.Data())
 		if err != nil{
 			log.Printf("ERR-FUNCTION: %v", err)
 		}
@@ -35,13 +35,8 @@ func Consume(ctx context.Context, state *AppState, c jetstream.Consumer) error {
 	}
 }
 
-func StartFunction() error {
-	ctx := context.Background()
+func StartFunction(ctx context.Context, state *AppState) error {
 	settings := LoadSettings()
-	state, err := NewAppState(ctx)
-	if err != nil{
-		return fmt.Errorf("ERR-STATE-INIT: %v", err)
-	}
 	name := fmt.Sprintf("%s-%s", settings.Project, settings.Name)
 	subject := fmt.Sprintf("%s.%s.exec.go.*", settings.Project, settings.Name)
 	log.Printf("starting consumer listening to subject: %s", subject)

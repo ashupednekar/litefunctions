@@ -4,7 +4,7 @@ go 1.25.2
 
 require (
 	github.com/a-h/templ v0.3.977
-	github.com/ashupednekar/litefunctions/ingestor v0.0.0
+	github.com/ashupednekar/litefunctions/common v0.0.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-git/go-billy/v6 v6.0.0-20260114122816-19306b749ecc
 	github.com/go-git/go-git/v6 v6.0.0-20260127175347-b5117ad1603d
@@ -78,3 +78,5 @@ require (
 )
 
 replace github.com/ashupednekar/litefunctions/ingestor => ../ingestor
+
+replace github.com/ashupednekar/litefunctions/common => ../common

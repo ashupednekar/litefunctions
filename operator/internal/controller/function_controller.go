@@ -15,6 +15,7 @@ limitations under the License.
 
 // +kubebuilder:rbac:groups=apps.ashupednekar.github.io,resources=functions,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
 package controller
 
 import (
@@ -30,6 +31,7 @@ import (
 
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -47,6 +49,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	deploymentName := GetDeploymentName(&function)
+	serviceName := GetServiceName(&function)
 
 	if !function.Spec.IsActive {
 		var existing appsv1.Deployment
@@ -63,14 +66,37 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, err
 		}
 
+		var existingSvc corev1.Service
+		svcErr := r.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: function.Namespace}, &existingSvc)
+		if svcErr == nil {
+			if err := r.Delete(ctx, &existingSvc); err != nil {
+				log.Error(err, "Failed to delete service", "service", serviceName)
+				return ctrl.Result{}, err
+			}
+			log.Info("Deleted service for inactive function", "service", serviceName)
+		} else if !apierrs.IsNotFound(svcErr) {
+			log.Error(svcErr, "Failed to get service", "service", serviceName)
+			return ctrl.Result{}, svcErr
+		}
+
 		return ctrl.Result{}, nil
 	}
 
 	deploy := NewDeployment(&function)
+	var svc *corev1.Service
+	if supportsHTTP(function.Spec.Language) {
+		svc = NewService(&function)
+	}
 
 	if err := controllerutil.SetControllerReference(&function, deploy, r.Scheme); err != nil {
 		log.Error(err, "Failed to set controller reference")
 		return ctrl.Result{}, err
+	}
+	if svc != nil {
+		if err := controllerutil.SetControllerReference(&function, svc, r.Scheme); err != nil {
+			log.Error(err, "Failed to set controller reference for service")
+			return ctrl.Result{}, err
+		}
 	}
 
 	var existing appsv1.Deployment
@@ -92,6 +118,30 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	} else {
 		log.Error(err, "Failed to get deployment", "deployment", deploymentName)
 		return ctrl.Result{}, err
+	}
+
+	if svc != nil {
+		var existingSvc corev1.Service
+		svcErr := r.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: function.Namespace}, &existingSvc)
+		if svcErr != nil && apierrs.IsNotFound(svcErr) {
+			if err := r.Create(ctx, svc); err != nil {
+				log.Error(err, "Failed to create service", "service", serviceName)
+				return ctrl.Result{}, err
+			}
+			log.Info("Created new service for function", "service", serviceName)
+		} else if svcErr == nil {
+			svc.ResourceVersion = existingSvc.ResourceVersion
+			svc.Spec.ClusterIP = existingSvc.Spec.ClusterIP
+			svc.Spec.ClusterIPs = existingSvc.Spec.ClusterIPs
+			if err := r.Update(ctx, svc); err != nil {
+				log.Error(err, "Failed to update service", "service", serviceName)
+				return ctrl.Result{}, err
+			}
+			log.Info("Updated existing service for function", "service", serviceName)
+		} else {
+			log.Error(svcErr, "Failed to get service", "service", serviceName)
+			return ctrl.Result{}, svcErr
+		}
 	}
 
 	now := time.Now()

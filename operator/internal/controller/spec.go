@@ -53,6 +53,17 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 							Name:            deploymentName,
 							Image:           image,
 							ImagePullPolicy: corev1.PullAlways,
+							Ports: func() []corev1.ContainerPort {
+								if supportsHTTP(function.Spec.Language) {
+									return []corev1.ContainerPort{
+										{
+											Name:          "http",
+											ContainerPort: 8080,
+										},
+									}
+								}
+								return nil
+							}(),
 							Env: []corev1.EnvVar{
 								{
 									Name: "DATABASE_URL",
@@ -86,6 +97,10 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 									Name:  "NATS_URL",
 									Value: Cfg.NatsUrl,
 								},
+								{
+									Name:  "HTTP_PORT",
+									Value: "8080",
+								},
 							},
 						},
 					},
@@ -97,4 +112,43 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 
 func GetDeploymentName(function *apiv1.Function) string {
 	return fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
+}
+
+func GetServiceName(function *apiv1.Function) string {
+	return fmt.Sprintf("litefunctions-runtime-svc-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
+}
+
+func NewService(function *apiv1.Function) *corev1.Service {
+	labels := map[string]string{
+		"app":      "runtime",
+		"lang":     function.Spec.Language,
+		"project":  function.Spec.Project,
+		"function": function.Spec.Name,
+	}
+
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetServiceName(function),
+			Namespace: function.Namespace,
+			Labels:    labels,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: labels,
+			Ports: []corev1.ServicePort{
+				{
+					Name: "http",
+					Port: 8080,
+				},
+			},
+		},
+	}
+}
+
+func supportsHTTP(lang string) bool {
+	switch lang {
+	case "go", "rust", "rs":
+		return true
+	default:
+		return false
+	}
 }

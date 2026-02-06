@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.33.4
-// source: function.proto
+// source: common/proto/function.proto
 
 package proto
 
@@ -193,5 +193,5 @@ var FunctionService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "function.proto",
+	Metadata: "common/proto/function.proto",
 }

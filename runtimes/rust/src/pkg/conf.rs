@@ -15,6 +15,7 @@ pub struct Settings {
     pub otlp_host: Option<String>,
     pub otlp_port: Option<String>,
     pub use_telemetry: bool,
+    pub http_port: Option<u16>,
 }
 
 impl Settings {

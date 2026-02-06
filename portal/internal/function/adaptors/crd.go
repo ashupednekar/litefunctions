@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	functionproto "github.com/ashupednekar/litefunctions/ingestor/pkg/proto"
+	functionproto "github.com/ashupednekar/litefunctions/common/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

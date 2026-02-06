@@ -20,7 +20,7 @@ fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
             msg.ack().await.map_err(natserr)?;
             if let Some(req_id) = msg.subject.split(".").last() {
                 tracing::debug!("request id: {}", &req_id);
-                let res: Vec<u8> = handler(state.clone(), Some(req_id)).await?;
+                let res: Vec<u8> = handler(state.clone(), Some(req_id), msg.payload.to_vec()).await?;
                 tracing::debug!("handler run complete");
                 state
                     .nc
@@ -39,8 +39,7 @@ fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
     })
 }
 
-pub async fn start_function() -> Result<()> {
-    let state = AppState::new().await?;
+pub async fn start_function(state: AppState) -> Result<()> {
     let js = &*state.js;
 
     let consumer_name = format!("{}-{}", settings.project, settings.name);
@@ -74,7 +73,8 @@ mod tests{
     #[traced_test]
     #[tokio::test]
     async fn test_consume() -> Result<()>{
-        start_function().await?;
+        let state = AppState::new().await?;
+        start_function(state).await?;
         Ok(())
     }
 }
