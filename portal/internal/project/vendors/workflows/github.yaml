@@ -200,7 +200,8 @@ jobs:
             echo "Function source not found: $SRC"
             exit 1
           fi
-          sed -E 's/^package[[:space:]]+main$/package pkg/' "$SRC" > "$DST"
+          cp "$SRC" "$DST"
+          sed -i -E 's/^package[[:space:]]+main$/package pkg/' "$DST"
 
       - name: Build and push Go Docker image
         run: |
