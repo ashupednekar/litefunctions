@@ -6,6 +6,7 @@ RUN go install github.com/a-h/templ/cmd/templ@latest
 COPY portal/go.mod portal/go.sum ./
 COPY ingestor /app/ingestor
 COPY common /app/common
+COPY runtimes /app/runtime-assets/runtimes
 RUN go mod download
 
 COPY portal ./

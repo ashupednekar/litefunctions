@@ -12,6 +12,10 @@ import (
 	appsv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
 	"github.com/spf13/cobra"
+	k8sappsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var cleanupCmd = &cobra.Command{
@@ -72,6 +76,32 @@ func runCleanup(cmd *cobra.Command) {
 					log.Error(err, "Failed to patch function", "function", function.Name)
 				} else {
 					log.Info("Successfully deactivated function", "function", function.Name)
+				}
+
+				deploymentName := controller.GetDeploymentName(&function)
+				var existingDeploy k8sappsv1.Deployment
+				deployErr := k8sClient.Get(ctx, types.NamespacedName{Name: deploymentName, Namespace: function.Namespace}, &existingDeploy)
+				if deployErr == nil {
+					if err := k8sClient.Delete(ctx, &existingDeploy); err != nil {
+						log.Error(err, "Failed to delete deployment", "deployment", deploymentName)
+					} else {
+						log.Info("Deleted deployment for inactive function", "deployment", deploymentName)
+					}
+				} else if !apierrs.IsNotFound(deployErr) {
+					log.Error(deployErr, "Failed to get deployment", "deployment", deploymentName)
+				}
+
+				serviceName := controller.GetServiceName(&function)
+				var existingSvc corev1.Service
+				svcErr := k8sClient.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: function.Namespace}, &existingSvc)
+				if svcErr == nil {
+					if err := k8sClient.Delete(ctx, &existingSvc); err != nil {
+						log.Error(err, "Failed to delete service", "service", serviceName)
+					} else {
+						log.Info("Deleted service for inactive function", "service", serviceName)
+					}
+				} else if !apierrs.IsNotFound(svcErr) {
+					log.Error(svcErr, "Failed to get service", "service", serviceName)
 				}
 			}
 		}

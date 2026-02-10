@@ -177,9 +177,14 @@ func (h *EndpointHandlers) TestEndpoint(c *gin.Context) {
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
-	c.JSON(200, gin.H{
-		"status":  resp.StatusCode,
-		"body":    string(respBody),
-		"headers": resp.Header,
-	})
+	for k, vals := range resp.Header {
+		for _, v := range vals {
+			c.Header(k, v)
+		}
+	}
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "text/plain; charset=utf-8"
+	}
+	c.Data(resp.StatusCode, contentType, respBody)
 }

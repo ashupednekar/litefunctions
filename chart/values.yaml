@@ -187,6 +187,7 @@ ui:
     key: pgbouncer-uri
   vcs:
     baseUrl: http://litefunctions-gitea-http:3000
+    nodePort: 30080
     secret: litefunctions-admin-token
     key: token
   domain: floatier-finnegan-stumblingly.ngrok-free.dev

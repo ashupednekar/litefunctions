@@ -6,6 +6,8 @@ type Endpoint struct {
 	Method       string
 	Scope        string
 	FunctionName string
+	URL          string
+	IsAsync      bool
 }
 
 script toggleManageEndpoint(id string) {
@@ -28,17 +30,34 @@ if (target) target.classList.remove('hidden');
 }
 
 script selectMethodForEndpoint(id string, method string) {
+const methodStyles = {
+  GET: ["border-blue-500", "bg-blue-500/20", "text-blue-400"],
+  POST: ["border-green-500", "bg-green-500/20", "text-green-400"],
+  PUT: ["border-yellow-500", "bg-yellow-500/20", "text-yellow-400"],
+  PATCH: ["border-purple-500", "bg-purple-500/20", "text-purple-400"],
+  DELETE: ["border-red-500", "bg-red-500/20", "text-red-400"]
+};
+const allMethodClasses = [
+  "border-blue-500","bg-blue-500/20","text-blue-400",
+  "border-green-500","bg-green-500/20","text-green-400",
+  "border-yellow-500","bg-yellow-500/20","text-yellow-400",
+  "border-purple-500","bg-purple-500/20","text-purple-400",
+  "border-red-500","bg-red-500/20","text-red-400"
+];
+const neutralClasses = ["border-neutral-700", "text-neutral-400"];
 ["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
 let btn = document.getElementById("method-" + m + "-" + id);
 if(btn) {
-btn.classList.remove("border-blue-500", "bg-blue-500/20", "text-blue-400");
-btn.classList.add("border-neutral-700", "text-neutral-400");
+btn.classList.remove(...allMethodClasses);
+btn.classList.remove(...neutralClasses);
+btn.classList.add(...neutralClasses);
 }
 });
 let selected = document.getElementById("method-" + method + "-" + id);
 if(selected) {
-selected.classList.remove("border-neutral-700", "text-neutral-400");
-selected.classList.add("border-blue-500", "bg-blue-500/20", "text-blue-400");
+selected.classList.remove(...neutralClasses);
+const style = methodStyles[method] || methodStyles.GET;
+selected.classList.add(...style);
 }
 document.getElementById("selected-method-" + id).value = method;
 }
@@ -77,6 +96,14 @@ toast("Update failed", "error");
 
 script openTestModalForEndpoint(id string) {
 window.openTestModalForEndpoint(id);
+}
+
+script openWsTestModalForEndpoint(id string) {
+if (window.openWsTestModalForEndpoint) {
+window.openWsTestModalForEndpoint(id);
+} else {
+window.openTestModalForEndpoint(id);
+}
 }
 
 templ EndpointsContent(endpoints []Endpoint) {
@@ -131,6 +158,8 @@ templ EndpointsContent(endpoints []Endpoint) {
 					data-endpoint-id={ ep.ID }
 					data-endpoint-name={ ep.Name }
 					data-endpoint-method={ ep.Method }
+					data-endpoint-function={ ep.FunctionName }
+					data-endpoint-async={ ep.IsAsync }
 				>
 					<div class="flex justify-between items-center">
 						<div class="flex items-center gap-3">
@@ -159,6 +188,27 @@ templ EndpointsContent(endpoints []Endpoint) {
 							</span>
 						</div>
 						<div class="flex items-center gap-3">
+							<button
+								id={ "ws-test-btn-" + ep.ID }
+								onclick={ openWsTestModalForEndpoint(ep.ID) }
+								class="hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition"
+								title="Test websocket"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8m-8 4h8m-6-8h6" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
+								</svg>
+							</button>
+							<button
+								id={ "test-btn-" + ep.ID }
+								onclick={ openTestModalForEndpoint(ep.ID) }
+								class="hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition"
+								title="Test endpoint"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.445-10.832A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+								</svg>
+							</button>
 							<a
 								id={ "build-status-" + ep.ID }
 								href="#"
@@ -168,6 +218,10 @@ templ EndpointsContent(endpoints []Endpoint) {
 							>
 								Build
 							</a>
+							<span
+								id={ "build-step-" + ep.ID }
+								class="hidden text-[10px] text-neutral-500 font-mono"
+							></span>
 							<button
 								id={ "test-btn-" + ep.ID }
 								onclick={ openTestModalForEndpoint(ep.ID) }
@@ -194,29 +248,36 @@ templ EndpointsContent(endpoints []Endpoint) {
 						<!-- METHOD SELECTOR -->
 						<div>
 							<h4 class="text-white font-semibold mb-2">HTTP Method</h4>
-							<div class="flex gap-2 flex-wrap">
-								for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
-									if m == ep.Method {
-										<button
-											onclick={ selectMethodForEndpoint(ep.ID, m) }
-											id={ "method-" + m + "-" + ep.ID }
-											class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400"
-										>
-											{ 
-              m }
-										</button>
-									} else {
-										<button
-											onclick={ selectMethodForEndpoint(ep.ID, m) }
-											id={ "method-" + m + "-" + ep.ID }
-											class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white"
-										>
-											{ 
-              m }
-										</button>
+							if ep.IsAsync {
+								<div class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-cyan-700/60 bg-cyan-700/15 text-cyan-300 text-xs font-semibold tracking-wide">
+									WebSocket (GET)
+								</div>
+								<p class="text-neutral-500 text-xs mt-2">Method selection is disabled for async endpoints.</p>
+							} else {
+								<div class="flex gap-2 flex-wrap">
+									for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+										if m == ep.Method {
+											<button
+												onclick={ selectMethodForEndpoint(ep.ID, m) }
+												id={ "method-" + m + "-" + ep.ID }
+												class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400"
+											>
+												{ 
+	              m }
+											</button>
+										} else {
+											<button
+												onclick={ selectMethodForEndpoint(ep.ID, m) }
+												id={ "method-" + m + "-" + ep.ID }
+												class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white"
+											>
+												{ 
+	              m }
+											</button>
+										}
 									}
-								}
-							</div>
+								</div>
+							}
 						</div>
 						<!-- GATEWAY SELECTION -->
 						<div>
@@ -581,14 +642,17 @@ templ EndpointsContent(endpoints []Endpoint) {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({headers: headers, body: bodyRaw})
           });
-          const data = await resp.json();
-          if (statusEl) statusEl.textContent = `Status: ${data.status || resp.status}`;
+          const contentType = resp.headers.get("Content-Type") || "";
+          const textBody = await resp.text();
+          if (statusEl) statusEl.textContent = `Status: ${resp.status}`;
 
-          let bodyStr = data.body || "";
-          try {
-            const jsonBody = JSON.parse(bodyStr);
-            bodyStr = JSON.stringify(jsonBody, null, 2);
-          } catch (e) { }
+          let bodyStr = textBody || "";
+          if (contentType.includes("application/json")) {
+            try {
+              const jsonBody = JSON.parse(bodyStr);
+              bodyStr = JSON.stringify(jsonBody, null, 2);
+            } catch (e) { }
+          }
 
           if (resEl) resEl.value = bodyStr;
         } catch (e) {
@@ -627,6 +691,33 @@ templ EndpointsContent(endpoints []Endpoint) {
         return runs.find(isInProgress) || runs[0];
       }
 
+      function normalizeName(val) {
+        return String(val || "").trim().toLowerCase();
+      }
+
+      function getRunName(run) {
+        return normalizeName(run?.FunctionName || run?.function_name || run?.WorkflowName || run?.workflow_name || run?.Name || run?.name || "");
+      }
+
+      function extractFunctionName(run) {
+        const title = String(run?.DisplayTitle || run?.display_title || "").toLowerCase();
+        if (!title) return "";
+        const m = title.match(/functions\/(?:go|rs|rust|py|python|js|javascript|lua)\/([^.\s\/]+)\./);
+        return m ? m[1] : "";
+      }
+
+      function pickRunForFunction(runs, functionName) {
+        const target = normalizeName(functionName);
+        if (!target) return null;
+        const matching = runs.filter(r => {
+          const byName = getRunName(r) === target;
+          const byDisplay = extractFunctionName(r) === target;
+          return byName || byDisplay;
+        });
+        if (!matching.length) return null;
+        return matching.find(isInProgress) || matching[0];
+      }
+
       function normalizeStatus(run) {
         if (!run) return "";
         const status = String(run.status || run.Status || "").toLowerCase();
@@ -662,37 +753,62 @@ templ EndpointsContent(endpoints []Endpoint) {
       }
 
       function updateBuildButtons(progress) {
-        const active = pickActiveRun(progress);
-        const display = pickDisplayRun(progress);
-        const buildLinks = document.querySelectorAll('[id^="build-status-"]');
-        const testButtons = document.querySelectorAll('[id^="test-btn-"]');
+        const runs = getRuns(progress);
+        document.querySelectorAll("[data-endpoint-id]").forEach(card => {
+          const endpointId = card.getAttribute("data-endpoint-id");
+          const fnName = card.getAttribute("data-endpoint-function");
+          const isAsync = card.getAttribute("data-endpoint-async") === "true";
+          const buildLink = document.getElementById(`build-status-${endpointId}`);
+          const stepLabel = document.getElementById(`build-step-${endpointId}`);
+          const testBtn = document.getElementById(`test-btn-${endpointId}`);
+          const wsTestBtn = document.getElementById(`ws-test-btn-${endpointId}`);
+          if (!buildLink) return;
 
-        const url = (display && (display.HTMLURL || display.htmlurl)) || "";
-        const running = !!active;
-        const cls = statusClass(
-          display?.status || display?.Status,
-          display?.conclusion || display?.Conclusion,
-          running
-        );
-        const label = display ? statusLabel(display, running) : "No Actions";
-        const { status, conclusion } = normalizeStatus(display);
-        const showTest = !running && (conclusion === "success" || status === "success");
+          const display = pickRunForFunction(runs, fnName);
+          const running = display ? isInProgress(display) : false;
+          const url = (display && (display.HTMLURL || display.htmlurl)) || "";
+          const cls = statusClass(
+            display?.status || display?.Status,
+            display?.conclusion || display?.Conclusion,
+            running
+          );
+          const label = display ? statusLabel(display, running) : "No Actions";
+          const jobName = display?.CurrentJob || display?.current_job || "";
+          const stepName = display?.CurrentStep || display?.current_step || "";
+          const stepText = stepName ? (jobName ? `${jobName} • ${stepName}` : stepName) : jobName;
 
-        buildLinks.forEach(el => {
           if (url) {
-            el.setAttribute("href", url);
-            el.classList.remove("pointer-events-none", "opacity-70");
+            buildLink.setAttribute("href", url);
+            buildLink.classList.remove("pointer-events-none", "opacity-70");
           } else {
-            el.setAttribute("href", "#");
-            el.classList.add("pointer-events-none", "opacity-70");
+            buildLink.setAttribute("href", "#");
+            buildLink.classList.add("pointer-events-none", "opacity-70");
           }
-          el.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;
-          el.textContent = label;
-          el.classList.remove("hidden");
-        });
-        testButtons.forEach(el => {
-          if (showTest) el.classList.remove("hidden");
-          else el.classList.add("hidden");
+          buildLink.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;
+          buildLink.textContent = label;
+          buildLink.classList.remove("hidden");
+          if (stepLabel) {
+            if (stepText) {
+              stepLabel.textContent = `Step: ${stepText}`;
+              stepLabel.classList.remove("hidden");
+            } else {
+              stepLabel.textContent = "";
+              stepLabel.classList.add("hidden");
+            }
+          }
+
+          if (isAsync) {
+            if (wsTestBtn) wsTestBtn.classList.remove("hidden");
+            if (testBtn) testBtn.classList.add("hidden");
+          } else {
+            if (wsTestBtn) wsTestBtn.classList.add("hidden");
+            if (testBtn) {
+              const { status, conclusion } = normalizeStatus(display);
+              const showTest = display && !running && (conclusion === "success" || status === "success");
+              if (showTest) testBtn.classList.remove("hidden");
+              else testBtn.classList.add("hidden");
+            }
+          }
         });
       }
 
@@ -715,6 +831,15 @@ templ EndpointsContent(endpoints []Endpoint) {
 
       document.addEventListener("DOMContentLoaded", startActionsSSE);
     })();
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('input[id^="selected-method-"]').forEach(el => {
+        const id = el.id.replace("selected-method-", "");
+        const method = el.value || "GET";
+        selectMethodForEndpoint(id, method);
+      });
+    });
   </script>
 		<style>
     .ace_editor,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -69,6 +70,7 @@ func (h *ActionHandelrs) Status(ctx *gin.Context) {
 			flusher.Flush()
 			return
 		}
+		enrichActionFunctions(progress)
 		ctx.SSEvent("status", progress)
 		flusher.Flush()
 	}
@@ -84,6 +86,30 @@ func (h *ActionHandelrs) Status(ctx *gin.Context) {
 			return
 		case <-ticker.C:
 			send()
+		}
+	}
+}
+
+var functionNameFromPath = regexp.MustCompile(`functions/(?:go|rs|rust|py|python|js|javascript|lua)/([^.\s/]+)\.`)
+
+func enrichActionFunctions(progress *vendors.ActionsProgress) {
+	if progress == nil || len(progress.Runs) == 0 {
+		return
+	}
+	for i := range progress.Runs {
+		run := &progress.Runs[i]
+		if run.FunctionName != "" {
+			continue
+		}
+		if run.DisplayTitle != "" {
+			if match := functionNameFromPath.FindStringSubmatch(run.DisplayTitle); len(match) > 1 {
+				run.FunctionName = match[1]
+				continue
+			}
+		}
+		// Fallback to workflow/run name.
+		if run.Name != "" {
+			run.FunctionName = run.Name
 		}
 	}
 }
