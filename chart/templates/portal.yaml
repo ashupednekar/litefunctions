@@ -44,6 +44,8 @@ spec:
           value: gitea
         - name: VCS_BASE_URL
           value: {{ .Values.ui.vcs.baseUrl | quote }}
+        - name: VCS_NODE_PORT
+          value: {{ .Values.ui.vcs.nodePort | quote }}
         resources: {}
         lifecycle:
           postStart:

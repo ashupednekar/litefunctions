@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
 	authAdaptors "github.com/ashupednekar/litefunctions/portal/internal/auth/adaptors"
 	endpointAdaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionAdaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/ashupednekar/litefunctions/portal/templates"
 	"github.com/gin-gonic/gin"
@@ -153,6 +155,7 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 	var endpoints []templates.Endpoint
 	dbEps, err := q.ListEndpointsForProject(ctx.Request.Context(), projUUID)
 	if err == nil {
+		baseURL := strings.TrimRight(pkg.Cfg.IngestorUrl, "/")
 		for _, e := range dbEps {
 			// e.ID is available, e.Name is available, e.Method is available, e.Scope is available, e.FunctionName is available from join
 			endpoints = append(endpoints, templates.Endpoint{
@@ -161,6 +164,8 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 				Method:       e.Method,
 				Scope:        e.Scope,
 				FunctionName: e.FunctionName,
+				URL:          baseURL + e.Name,
+				IsAsync:      e.IsAsync,
 			})
 		}
 	} else {

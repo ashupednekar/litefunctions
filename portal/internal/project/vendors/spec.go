@@ -6,7 +6,6 @@ import (
 	"github.com/ashupednekar/litefunctions/portal/pkg"
 )
 
-
 type VendorClient interface {
 	CreateRepo(ctx context.Context, opts CreateRepoOptions) (*Repository, error)
 	DeleteRepo(ctx context.Context, owner, repo string) error
@@ -15,15 +14,13 @@ type VendorClient interface {
 	GetActionsProgress(ctx context.Context, owner, repo string, opts ActionsProgressOptions) (*ActionsProgress, error)
 }
 
-
 type CreateRepoOptions struct {
 	Name          string
 	Description   string
 	Private       bool
-	AutoInit      bool 
+	AutoInit      bool
 	DefaultBranch string
 }
-
 
 type Repository struct {
 	ID            int64
@@ -39,16 +36,14 @@ type Repository struct {
 	UpdatedAt     string
 }
 
-
 type WebhookOptions struct {
 	URL         string
-	ContentType string 
+	ContentType string
 	Secret      string
-	Events      []string 
+	Events      []string
 	Active      bool
 	InsecureSSL bool
 }
-
 
 type Webhook struct {
 	ID        int64
@@ -59,27 +54,25 @@ type Webhook struct {
 	UpdatedAt string
 }
 
-
 type ActionsProgressOptions struct {
 	Branch     string
-	Status     string 
-	Event      string 
-	WorkflowID string 
-	Limit      int    
+	Status     string
+	Event      string
+	WorkflowID string
+	Limit      int
 }
-
 
 type ActionsProgress struct {
 	TotalCount int
 	Runs       []WorkflowRun
 }
 
-
 type WorkflowRun struct {
 	ID           int64
 	Name         string
-	Status       string 
-	Conclusion   string 
+	DisplayTitle string
+	Status       string
+	Conclusion   string
 	Branch       string
 	Event        string
 	CreatedAt    string
@@ -87,9 +80,10 @@ type WorkflowRun struct {
 	HTMLURL      string
 	WorkflowID   int64
 	WorkflowName string
+	FunctionName string
+	CurrentJob   string
+	CurrentStep  string
 }
-
-
 
 func NewVendorClient() (VendorClient, error) {
 	switch pkg.Cfg.VcsVendor {

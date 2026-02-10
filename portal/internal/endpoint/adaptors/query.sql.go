@@ -78,7 +78,7 @@ func (q *Queries) GetEndpointByID(ctx context.Context, id pgtype.UUID) (Endpoint
 }
 
 const listEndpointsForProject = `-- name: ListEndpointsForProject :many
-SELECT e.id, e.project_id, e.name, e.method, e.scope, e.function_id, e.created_at, f.name as function_name
+SELECT e.id, e.project_id, e.name, e.method, e.scope, e.function_id, e.created_at, f.name as function_name, f.is_async
 FROM endpoints e
 JOIN functions f ON e.function_id = f.id
 WHERE e.project_id = $1
@@ -94,6 +94,7 @@ type ListEndpointsForProjectRow struct {
 	FunctionID   pgtype.UUID
 	CreatedAt    pgtype.Timestamptz
 	FunctionName string
+	IsAsync      bool
 }
 
 func (q *Queries) ListEndpointsForProject(ctx context.Context, projectID pgtype.UUID) ([]ListEndpointsForProjectRow, error) {
@@ -114,6 +115,7 @@ func (q *Queries) ListEndpointsForProject(ctx context.Context, projectID pgtype.
 			&i.FunctionID,
 			&i.CreatedAt,
 			&i.FunctionName,
+			&i.IsAsync,
 		); err != nil {
 			return nil, err
 		}
@@ -126,7 +128,7 @@ func (q *Queries) ListEndpointsForProject(ctx context.Context, projectID pgtype.
 }
 
 const listEndpointsSearch = `-- name: ListEndpointsSearch :many
-SELECT e.id, e.project_id, e.name, e.method, e.scope, e.function_id, e.created_at, f.name as function_name
+SELECT e.id, e.project_id, e.name, e.method, e.scope, e.function_id, e.created_at, f.name as function_name, f.is_async
 FROM endpoints e
 JOIN functions f ON e.function_id = f.id
 WHERE e.project_id = $1
@@ -154,6 +156,7 @@ type ListEndpointsSearchRow struct {
 	FunctionID   pgtype.UUID
 	CreatedAt    pgtype.Timestamptz
 	FunctionName string
+	IsAsync      bool
 }
 
 func (q *Queries) ListEndpointsSearch(ctx context.Context, arg ListEndpointsSearchParams) ([]ListEndpointsSearchRow, error) {
@@ -179,6 +182,7 @@ func (q *Queries) ListEndpointsSearch(ctx context.Context, arg ListEndpointsSear
 			&i.FunctionID,
 			&i.CreatedAt,
 			&i.FunctionName,
+			&i.IsAsync,
 		); err != nil {
 			return nil, err
 		}

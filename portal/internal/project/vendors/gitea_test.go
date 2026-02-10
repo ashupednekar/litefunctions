@@ -260,6 +260,7 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 					{
 						"id":            1001,
 						"name":          "CI",
+						"display_title": "update functions/go/test-repo.go",
 						"status":        "success",
 						"head_branch":   "main",
 						"event":         "push",
@@ -271,6 +272,7 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 					{
 						"id":            1002,
 						"name":          "Tests",
+						"display_title": "update functions/go/test-repo.go",
 						"status":        "failure",
 						"head_branch":   "main",
 						"event":         "push",

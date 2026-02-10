@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
@@ -21,6 +22,17 @@ type GitHubClient struct {
 	token      string
 	httpClient *http.Client
 	baseURL    string
+}
+
+type ghStep struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type ghJob struct {
+	Name   string   `json:"name"`
+	Status string   `json:"status"`
+	Steps  []ghStep `json:"steps"`
 }
 
 func NewGitHubClient(token string) *GitHubClient {
@@ -115,7 +127,7 @@ func (c *GitHubClient) AddWorkflow(project string) error {
 		".github/workflows/ci.yaml",
 		workflows.GitHubWorkflow,
 		"writing workflow file",
-	); err != nil{
+	); err != nil {
 		return err
 	}
 	return nil
@@ -288,12 +300,110 @@ func (c *GitHubClient) GetActionsProgress(ctx context.Context, owner, repo strin
 		})
 	}
 
+	c.populateCurrentSteps(ctx, owner, repo, runs)
+
 	return &ActionsProgress{
 		TotalCount: ghActions.TotalCount,
 		Runs:       runs,
 	}, nil
 }
 
+func (c *GitHubClient) populateCurrentSteps(ctx context.Context, owner, repo string, runs []WorkflowRun) {
+	const maxLookups = 6
+	lookups := 0
+	for i := range runs {
+		if lookups >= maxLookups {
+			return
+		}
+		status := strings.ToLower(runs[i].Status)
+		if status != "in_progress" && status != "queued" && status != "waiting" && status != "running" {
+			continue
+		}
+		job, step, ok := c.getRunCurrentStep(ctx, owner, repo, runs[i].ID)
+		if ok {
+			runs[i].CurrentJob = job
+			runs[i].CurrentStep = step
+		}
+		lookups++
+	}
+}
+
+func (c *GitHubClient) getRunCurrentStep(ctx context.Context, owner, repo string, runID int64) (string, string, bool) {
+	url := fmt.Sprintf("%s/repos/%s/%s/actions/runs/%d/jobs", c.baseURL, owner, repo, runID)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return "", "", false
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", "", false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", "", false
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", false
+	}
+
+	var payload struct {
+		Jobs []ghJob `json:"jobs"`
+	}
+
+	if err := json.Unmarshal(respBody, &payload); err != nil {
+		return "", "", false
+	}
+
+	jobName, stepName := pickJobStep(payload.Jobs)
+	if jobName == "" && stepName == "" {
+		return "", "", false
+	}
+	return jobName, stepName, true
+}
+
+func pickJobStep(jobs []ghJob) (string, string) {
+	if len(jobs) == 0 {
+		return "", ""
+	}
+
+	pickStep := func(steps []ghStep) string {
+		if len(steps) == 0 {
+			return ""
+		}
+		for _, step := range steps {
+			if strings.EqualFold(step.Status, "in_progress") || strings.EqualFold(step.Status, "running") {
+				return step.Name
+			}
+		}
+		for _, step := range steps {
+			if strings.EqualFold(step.Status, "queued") || strings.EqualFold(step.Status, "waiting") {
+				return step.Name
+			}
+		}
+		return steps[len(steps)-1].Name
+	}
+
+	for _, job := range jobs {
+		if strings.EqualFold(job.Status, "in_progress") || strings.EqualFold(job.Status, "running") {
+			return job.Name, pickStep(job.Steps)
+		}
+	}
+	for _, job := range jobs {
+		if strings.EqualFold(job.Status, "queued") || strings.EqualFold(job.Status, "waiting") {
+			return job.Name, pickStep(job.Steps)
+		}
+	}
+
+	return jobs[0].Name, pickStep(jobs[0].Steps)
+}
 
 func (c *GitHubClient) DeleteRepo(ctx context.Context, owner, repo string) error {
 	url := fmt.Sprintf("%s/repos/%s/%s", c.baseURL, owner, repo)
@@ -320,7 +430,6 @@ func (c *GitHubClient) DeleteRepo(ctx context.Context, owner, repo string) error
 
 	return nil
 }
-
 
 func (c *GitHubClient) GetRepo(
 	ctx context.Context,

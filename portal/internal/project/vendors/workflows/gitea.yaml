@@ -7,6 +7,7 @@ on:
 env:
   REGISTRY: litefunctions-zot:5000
   IMAGE_PREFIX: ashudev
+  PORTAL_RUNTIME_ASSETS_URL: http://litefunctions-portal:3000/api/runtime-assets/runtimes.tar.gz
 
 jobs:
   detect-changes:
@@ -72,9 +73,39 @@ jobs:
         with:
           path: current-repo
 
-      - name: Clone litefunctions from github.com using git
+      - name: Fetch litefunctions runtimes
+        env:
+          PORTAL_RUNTIME_ASSETS_URL: ${{ env.PORTAL_RUNTIME_ASSETS_URL }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+          LITEFUNCTIONS_REPO_URL: ${{ env.LITEFUNCTIONS_REPO_URL }}
         run: |
-          git clone --depth 1 https://github.com/ashupednekar/litefunctions.git litefunctions
+          set -e
+          mkdir -p litefunctions
+          if ! curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions; then
+            echo "Runtime assets download failed, falling back to git clone..."
+            REPO_URL="${LITEFUNCTIONS_REPO_URL:-https://github.com/ashupednekar/litefunctions.git}"
+            if ! git clone --depth 1 "$REPO_URL" litefunctions; then
+              echo "Primary clone failed, falling back to in-cluster Gitea..."
+              if [ -n "${GITEA_TOKEN:-}" ]; then
+                git clone --depth 1 "http://ashudev:${GITEA_TOKEN}@litefunctions-gitea-http:3000/ashudev/litefunctions.git" litefunctions
+              else
+                git clone --depth 1 "http://litefunctions-gitea-http:3000/ashudev/litefunctions.git" litefunctions
+              fi
+            fi
+          fi
+          if [ ! -d "litefunctions/runtimes/go/pkg" ]; then
+            echo "Runtime assets missing after download, falling back to git clone..."
+            rm -rf litefunctions
+            REPO_URL="${LITEFUNCTIONS_REPO_URL:-https://github.com/ashupednekar/litefunctions.git}"
+            if ! git clone --depth 1 "$REPO_URL" litefunctions; then
+              echo "Primary clone failed, falling back to in-cluster Gitea..."
+              if [ -n "${GITEA_TOKEN:-}" ]; then
+                git clone --depth 1 "http://ashudev:${GITEA_TOKEN}@litefunctions-gitea-http:3000/ashudev/litefunctions.git" litefunctions
+              else
+                git clone --depth 1 "http://litefunctions-gitea-http:3000/ashudev/litefunctions.git" litefunctions
+              fi
+            fi
+          fi
 
       - name: Setup Kaniko config
         run: |
@@ -119,6 +150,17 @@ jobs:
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
           echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
 
+      - name: Inject Go function into runtime
+        if: env.SKIP_BUILD != 'true'
+        run: |
+          SRC="current-repo/functions/go/${FUNCTION_NAME}.go"
+          DST="litefunctions/runtimes/go/pkg/function.go"
+          if [ ! -f "$SRC" ]; then
+            echo "Function source not found: $SRC"
+            exit 1
+          fi
+          sed -E 's/^package[[:space:]]+main$/package pkg/' "$SRC" > "$DST"
+
       - name: Build and Push with Kaniko
         if: env.SKIP_BUILD != 'true'
         uses: docker://gcr.io/kaniko-project/executor:latest
@@ -138,4 +180,3 @@ jobs:
             --skip-tls-verify
             --skip-push-permission-check
             --verbosity=debug
-

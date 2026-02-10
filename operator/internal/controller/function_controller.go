@@ -83,20 +83,15 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	deploy := NewDeployment(&function)
-	var svc *corev1.Service
-	if supportsHTTP(function.Spec.Language) {
-		svc = NewService(&function)
-	}
+	svc := NewService(&function)
 
 	if err := controllerutil.SetControllerReference(&function, deploy, r.Scheme); err != nil {
 		log.Error(err, "Failed to set controller reference")
 		return ctrl.Result{}, err
 	}
-	if svc != nil {
-		if err := controllerutil.SetControllerReference(&function, svc, r.Scheme); err != nil {
-			log.Error(err, "Failed to set controller reference for service")
-			return ctrl.Result{}, err
-		}
+	if err := controllerutil.SetControllerReference(&function, svc, r.Scheme); err != nil {
+		log.Error(err, "Failed to set controller reference for service")
+		return ctrl.Result{}, err
 	}
 
 	var existing appsv1.Deployment
@@ -120,28 +115,26 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	if svc != nil {
-		var existingSvc corev1.Service
-		svcErr := r.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: function.Namespace}, &existingSvc)
-		if svcErr != nil && apierrs.IsNotFound(svcErr) {
-			if err := r.Create(ctx, svc); err != nil {
-				log.Error(err, "Failed to create service", "service", serviceName)
-				return ctrl.Result{}, err
-			}
-			log.Info("Created new service for function", "service", serviceName)
-		} else if svcErr == nil {
-			svc.ResourceVersion = existingSvc.ResourceVersion
-			svc.Spec.ClusterIP = existingSvc.Spec.ClusterIP
-			svc.Spec.ClusterIPs = existingSvc.Spec.ClusterIPs
-			if err := r.Update(ctx, svc); err != nil {
-				log.Error(err, "Failed to update service", "service", serviceName)
-				return ctrl.Result{}, err
-			}
-			log.Info("Updated existing service for function", "service", serviceName)
-		} else {
-			log.Error(svcErr, "Failed to get service", "service", serviceName)
-			return ctrl.Result{}, svcErr
+	var existingSvc corev1.Service
+	svcErr := r.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: function.Namespace}, &existingSvc)
+	if svcErr != nil && apierrs.IsNotFound(svcErr) {
+		if err := r.Create(ctx, svc); err != nil {
+			log.Error(err, "Failed to create service", "service", serviceName)
+			return ctrl.Result{}, err
 		}
+		log.Info("Created new service for function", "service", serviceName)
+	} else if svcErr == nil {
+		svc.ResourceVersion = existingSvc.ResourceVersion
+		svc.Spec.ClusterIP = existingSvc.Spec.ClusterIP
+		svc.Spec.ClusterIPs = existingSvc.Spec.ClusterIPs
+		if err := r.Update(ctx, svc); err != nil {
+			log.Error(err, "Failed to update service", "service", serviceName)
+			return ctrl.Result{}, err
+		}
+		log.Info("Updated existing service for function", "service", serviceName)
+	} else {
+		log.Error(svcErr, "Failed to get service", "service", serviceName)
+		return ctrl.Result{}, svcErr
 	}
 
 	now := time.Now()

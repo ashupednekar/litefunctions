@@ -107,6 +107,10 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 	}
 	w.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(w, resp.Body)
+	if err != nil {
+		slog.Error("error writing response body", "error", err)
+	}
+	slog.Info("response", "resp", resp)
 	return err
 }
 

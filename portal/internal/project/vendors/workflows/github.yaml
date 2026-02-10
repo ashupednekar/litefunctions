@@ -9,6 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   REPO_NAME: ${{ github.repository }}
+  PORTAL_RUNTIME_ASSETS_URL: ""
 
 jobs:
   detect-changes:
@@ -68,7 +69,21 @@ jobs:
         with:
           path: current-repo
 
-      - name: Checkout litefunctions repository
+      - name: Fetch litefunctions runtimes (optional)
+        run: |
+          if [ -n "${PORTAL_RUNTIME_ASSETS_URL}" ]; then
+            mkdir -p litefunctions
+            curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions
+            if [ ! -d "litefunctions/runtimes/go/pkg" ]; then
+              echo "Runtime assets missing after download, cleaning up..."
+              rm -rf litefunctions
+            fi
+          else
+            echo "PORTAL_RUNTIME_ASSETS_URL not set, skipping runtime asset download."
+          fi
+
+      - name: Checkout litefunctions repository (fallback)
+        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/pkg/function.go') == '') }}
         uses: actions/checkout@v4
         with:
           repository: ashupednekar/litefunctions
@@ -145,7 +160,21 @@ jobs:
         with:
           path: current-repo
 
-      - name: Checkout litefunctions repository
+      - name: Fetch litefunctions runtimes (optional)
+        run: |
+          if [ -n "${PORTAL_RUNTIME_ASSETS_URL}" ]; then
+            mkdir -p litefunctions
+            curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions
+            if [ ! -d "litefunctions/runtimes/go/pkg" ]; then
+              echo "Runtime assets missing after download, cleaning up..."
+              rm -rf litefunctions
+            fi
+          else
+            echo "PORTAL_RUNTIME_ASSETS_URL not set, skipping runtime asset download."
+          fi
+
+      - name: Checkout litefunctions repository (fallback)
+        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/pkg/function.go') == '') }}
         uses: actions/checkout@v4
         with:
           repository: ashupednekar/litefunctions
@@ -161,6 +190,17 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Inject Go function into runtime
+        run: |
+          GO_FILE="${{ matrix.go-file }}"
+          SRC="current-repo/functions/go/${GO_FILE}.go"
+          DST="litefunctions/runtimes/go/pkg/function.go"
+          if [ ! -f "$SRC" ]; then
+            echo "Function source not found: $SRC"
+            exit 1
+          fi
+          sed -E 's/^package[[:space:]]+main$/package pkg/' "$SRC" > "$DST"
 
       - name: Build and push Go Docker image
         run: |
@@ -178,4 +218,3 @@ jobs:
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             docker push ${{ env.REGISTRY }}/${{ env.REPO_NAME }}-go-${GO_FILE}:${{ github.sha }}
           fi
-

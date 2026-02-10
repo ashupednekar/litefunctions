@@ -7,16 +7,29 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
 	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors/workflows"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 )
 
 type GiteaClient struct {
 	token      string
 	httpClient *http.Client
 	baseURL    string
+}
+
+type giteaStep struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type giteaJob struct {
+	Name   string      `json:"name"`
+	Status string      `json:"status"`
+	Steps  []giteaStep `json:"steps"`
 }
 
 func NewGiteaClient(baseURL, token string) *GiteaClient {
@@ -234,6 +247,7 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 		WorkflowRuns []struct {
 			ID           int64  `json:"id"`
 			Name         string `json:"name"`
+			DisplayTitle string `json:"display_title"`
 			Status       string `json:"status"`
 			HeadBranch   string `json:"head_branch"`
 			Event        string `json:"event"`
@@ -252,24 +266,157 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	for _, run := range giteaActions.WorkflowRuns {
 		var workflowID int64 //gitea uses int, unlike github
 		fmt.Sscanf(run.WorkflowID, "%d", &workflowID)
+		htmlURL := rewriteToNodePort(run.URL, pkg.Cfg.Fqdn, pkg.Cfg.VcsNodePort)
 
 		runs = append(runs, WorkflowRun{
 			ID:           run.ID,
 			Name:         run.Name,
+			DisplayTitle: run.DisplayTitle,
 			Status:       run.Status,
 			Branch:       run.HeadBranch,
 			Event:        run.Event,
 			CreatedAt:    run.CreatedAt,
 			UpdatedAt:    run.UpdatedAt,
-			HTMLURL:      run.URL,
+			HTMLURL:      htmlURL,
 			WorkflowID:   workflowID,
 		})
 	}
+
+	c.populateCurrentSteps(ctx, owner, repo, runs)
 
 	return &ActionsProgress{
 		TotalCount: giteaActions.TotalCount,
 		Runs:       runs,
 	}, nil
+}
+
+func rewriteToNodePort(raw, fqdn string, nodePort int) string {
+	// TODO: Once ingress is enabled, prefer HTTPS and drop nodePort rewriting.
+	if raw == "" || nodePort <= 0 {
+		return raw
+	}
+
+	host := strings.TrimSpace(fqdn)
+	if host == "" {
+		host = "localhost"
+	}
+	host = strings.TrimPrefix(strings.TrimPrefix(host, "http://"), "https://")
+
+	scheme := "http"
+	if strings.HasPrefix(strings.TrimSpace(fqdn), "https://") {
+		scheme = "https"
+	}
+
+	trimmed := strings.TrimLeft(raw, "/")
+	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+		if idx := strings.Index(trimmed, "://"); idx >= 0 {
+			if slash := strings.Index(trimmed[idx+3:], "/"); slash >= 0 {
+				trimmed = trimmed[idx+3+slash+1:]
+			} else {
+				trimmed = ""
+			}
+		}
+	}
+
+	if trimmed == "" {
+		return fmt.Sprintf("%s://%s:%d", scheme, host, nodePort)
+	}
+	return fmt.Sprintf("%s://%s:%d/%s", scheme, host, nodePort, trimmed)
+}
+
+func (c *GiteaClient) populateCurrentSteps(ctx context.Context, owner, repo string, runs []WorkflowRun) {
+	const maxLookups = 6
+	lookups := 0
+	for i := range runs {
+		if lookups >= maxLookups {
+			return
+		}
+		status := strings.ToLower(runs[i].Status)
+		if status != "in_progress" && status != "queued" && status != "waiting" && status != "running" {
+			continue
+		}
+		job, step, ok := c.getRunCurrentStep(ctx, owner, repo, runs[i].ID)
+		if ok {
+			runs[i].CurrentJob = job
+			runs[i].CurrentStep = step
+		}
+		lookups++
+	}
+}
+
+func (c *GiteaClient) getRunCurrentStep(ctx context.Context, owner, repo string, runID int64) (string, string, bool) {
+	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/actions/runs/%d/jobs", c.baseURL, owner, repo, runID)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return "", "", false
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", "", false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", "", false
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", false
+	}
+
+	var payload struct {
+		Jobs []giteaJob `json:"jobs"`
+	}
+	if err := json.Unmarshal(respBody, &payload); err != nil {
+		return "", "", false
+	}
+
+	jobName, stepName := pickGiteaJobStep(payload.Jobs)
+	if jobName == "" && stepName == "" {
+		return "", "", false
+	}
+	return jobName, stepName, true
+}
+
+func pickGiteaJobStep(jobs []giteaJob) (string, string) {
+	if len(jobs) == 0 {
+		return "", ""
+	}
+
+	pickStep := func(steps []giteaStep) string {
+		if len(steps) == 0 {
+			return ""
+		}
+		for _, step := range steps {
+			if strings.EqualFold(step.Status, "in_progress") || strings.EqualFold(step.Status, "running") {
+				return step.Name
+			}
+		}
+		for _, step := range steps {
+			if strings.EqualFold(step.Status, "queued") || strings.EqualFold(step.Status, "waiting") {
+				return step.Name
+			}
+		}
+		return steps[len(steps)-1].Name
+	}
+
+	for _, job := range jobs {
+		if strings.EqualFold(job.Status, "in_progress") || strings.EqualFold(job.Status, "running") {
+			return job.Name, pickStep(job.Steps)
+		}
+	}
+	for _, job := range jobs {
+		if strings.EqualFold(job.Status, "queued") || strings.EqualFold(job.Status, "waiting") {
+			return job.Name, pickStep(job.Steps)
+		}
+	}
+
+	return jobs[0].Name, pickStep(jobs[0].Steps)
 }
 
 func (c *GiteaClient) DeleteRepo(ctx context.Context, owner, repo string) error {

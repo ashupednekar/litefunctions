@@ -31,6 +31,10 @@ func (s *Server) BuildRoutes() {
 	s.router.GET("/logout/", auth.Logout)
 	s.router.POST("/logout/", auth.Logout)
 
+	runtimeAssets := handlers.NewRuntimeAssetsHandler()
+	s.router.GET("/api/runtime-assets/runtimes.tar.gz", runtimeAssets.RuntimesTarGz)
+	s.router.GET("/api/runtime-assets/runtimes/*filepath", runtimeAssets.RuntimesFile)
+
 	ui := handlers.NewUIHandlers(s.state)
 
 	s.router.GET("/", ui.Home)
