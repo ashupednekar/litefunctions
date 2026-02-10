@@ -25,7 +25,7 @@ spec:
         name: litefunctions-ngrok
         args:
         - http
-        - litefunctions-portal:3000
+        - istio-ingress.istio-ingress.svc:80
         - --url=https://{{ .Values.ui.domain }}
         env:
         - name: NGROK_AUTHTOKEN
