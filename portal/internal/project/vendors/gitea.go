@@ -266,7 +266,7 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	for _, run := range giteaActions.WorkflowRuns {
 		var workflowID int64 //gitea uses int, unlike github
 		fmt.Sscanf(run.WorkflowID, "%d", &workflowID)
-		htmlURL := rewriteToNodePort(run.URL, pkg.Cfg.Fqdn, pkg.Cfg.VcsNodePort)
+		htmlURL := rewriteToFqdn(run.URL, pkg.Cfg.Fqdn)
 
 		runs = append(runs, WorkflowRun{
 			ID:           run.ID,
@@ -290,21 +290,23 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	}, nil
 }
 
-func rewriteToNodePort(raw, fqdn string, nodePort int) string {
-	// TODO: Once ingress is enabled, prefer HTTPS and drop nodePort rewriting.
-	if raw == "" || nodePort <= 0 {
+func rewriteToFqdn(raw, fqdn string) string {
+	if raw == "" {
 		return raw
 	}
 
 	host := strings.TrimSpace(fqdn)
 	if host == "" {
-		host = "localhost"
+		return raw
 	}
-	host = strings.TrimPrefix(strings.TrimPrefix(host, "http://"), "https://")
 
-	scheme := "http"
-	if strings.HasPrefix(strings.TrimSpace(fqdn), "https://") {
+	scheme := "https"
+	if strings.HasPrefix(host, "http://") {
+		scheme = "http"
+		host = strings.TrimPrefix(host, "http://")
+	} else if strings.HasPrefix(host, "https://") {
 		scheme = "https"
+		host = strings.TrimPrefix(host, "https://")
 	}
 
 	trimmed := strings.TrimLeft(raw, "/")
@@ -319,9 +321,9 @@ func rewriteToNodePort(raw, fqdn string, nodePort int) string {
 	}
 
 	if trimmed == "" {
-		return fmt.Sprintf("%s://%s:%d", scheme, host, nodePort)
+		return fmt.Sprintf("%s://%s", scheme, host)
 	}
-	return fmt.Sprintf("%s://%s:%d/%s", scheme, host, nodePort, trimmed)
+	return fmt.Sprintf("%s://%s/%s", scheme, host, trimmed)
 }
 
 func (c *GiteaClient) populateCurrentSteps(ctx context.Context, owner, repo string, runs []WorkflowRun) {

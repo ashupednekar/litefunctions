@@ -438,7 +438,7 @@ async def handle(request: Request):
   },
 
   go: {
-    sync: `package main
+    sync: `package pkg
 
 import (
     "encoding/json"
@@ -471,7 +471,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
     })
 }
 `,
-    async: `package main
+    async: `package pkg
 
 import (
     "encoding/json"

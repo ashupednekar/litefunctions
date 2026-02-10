@@ -26,7 +26,6 @@ type Settings struct {
 	VcsUser                 string `env:"VCS_USER"`
 	VcsVendor               string `env:"VCS_VENDOR"`
 	VcsBaseUrl              string `env:"VCS_BASE_URL"`
-	VcsNodePort             int    `env:"VCS_NODE_PORT"`
 	OperatorUrl             string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
 }
