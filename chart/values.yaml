@@ -1,5 +1,5 @@
-redis:
-  enabled: true
+istio:
+  enabled: false
 
 images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
