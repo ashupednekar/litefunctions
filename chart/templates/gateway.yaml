@@ -1,0 +1,104 @@
+{{- if .Values.istio.enabled | default false }}
+{{- $portalHost := .Values.ui.domain | default "litefunctions.portal" }}
+{{- $ingestorHost := .Values.ui.domain | default "litefunctions.portal" }}
+{{- $giteaHost := "gitea.local" }}
+{{- $localPortalHost := "litefunctions.portal" }}
+{{- $localGiteaHost := "litefunctions.gitea" }}
+{{- with .Values.gitea }}
+  {{- with .ingress }}
+    {{- if and .hosts (gt (len .hosts) 0) }}
+      {{- $giteaHost = (index .hosts 0).host | default $giteaHost }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: litefunctions-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    istio: ingress
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - {{ $localPortalHost | quote }}
+    - {{ $localGiteaHost | quote }}
+    - {{ $portalHost | quote }}
+    - {{ $ingestorHost | quote }}
+    - {{ $giteaHost | quote }}
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: litefunctions-local-tls
+    hosts:
+    - {{ $localPortalHost | quote }}
+    - {{ $localGiteaHost | quote }}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: litefunctions-portal
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+  - {{ $localPortalHost | quote }}
+  {{- if ne $portalHost $localPortalHost }}
+  - {{ $portalHost | quote }}
+  {{- end }}
+  gateways:
+  - litefunctions-gateway
+  http:
+  - route:
+    - destination:
+        host: litefunctions-portal
+        port:
+          number: 3000
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: litefunctions-ingestor
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+  - {{ $ingestorHost | quote }}
+  gateways:
+  - litefunctions-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /lambda/
+    - uri:
+        exact: /lambda
+    route:
+    - destination:
+        host: litefunctions-ingestor
+        port:
+          number: 3000
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: litefunctions-gitea
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+  - {{ $localGiteaHost | quote }}
+  - {{ $giteaHost | quote }}
+  gateways:
+  - litefunctions-gateway
+  http:
+  - route:
+    - destination:
+        host: litefunctions-gitea-http
+        port:
+          number: 3000
+{{- end }}
