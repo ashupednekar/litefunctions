@@ -1,1 +1,20 @@
 Welcome to litefunctions :)
+
+If using Istio local gateway with mkcert:
+
+1. Ensure hostnames resolve to your Istio LB IP:
+   `LB_IP=$(kubectl -n istio-ingress get svc istio-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')`
+   `echo "$LB_IP litefunctions.portal litefunctions.gitea" | sudo tee -a /etc/hosts`
+
+2. Install mkcert CA once:
+   `mkcert -install`
+
+3. Create local cert and key:
+   `mkcert -cert-file /tmp/litefunctions-local.pem -key-file /tmp/litefunctions-local-key.pem litefunctions.portal litefunctions.gitea`
+
+4. Create/update Istio TLS secret in `istio-ingress` namespace:
+   `kubectl -n istio-ingress create secret tls litefunctions-local-tls --cert=/tmp/litefunctions-local.pem --key=/tmp/litefunctions-local-key.pem --dry-run=client -o yaml | kubectl apply -f -`
+
+5. Validate:
+   `curl -I https://litefunctions.gitea`
+   `curl -I https://litefunctions.portal`

@@ -1,4 +1,7 @@
 istio:
+  enabled: true
+
+ngrok:
   enabled: false
 
 images:
@@ -189,7 +192,7 @@ ui:
     baseUrl: http://litefunctions-gitea-http:3000
     secret: litefunctions-admin-token
     key: token
-  domain: floatier-finnegan-stumblingly.ngrok-free.dev
+  domain: litefunctions.portal
   ngrok:
     secret: litefunctions-ngrok-secret
     key: token
