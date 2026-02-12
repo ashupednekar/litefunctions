@@ -147,6 +147,87 @@ templ EndpointsContent(endpoints []Endpoint) {
 				</button>
 			</div>
 		</div>
+		<!-- WS TEST MODAL -->
+		<div
+			id="ws-test-modal"
+			class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+			onclick="closeWsTestModal()"
+		>
+			<div
+				class="w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl"
+				onclick="event.stopPropagation()"
+			>
+				<!-- MODAL HEADER -->
+				<div class="flex items-center justify-between p-4 border-b border-neutral-800">
+					<div class="flex items-center gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8m-8 4h8m-6-8h6" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
+						</svg>
+						<span class="text-sm text-neutral-300">WebSocket Tester</span>
+					</div>
+					<button onclick="closeWsTestModal()" class="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						</svg>
+					</button>
+				</div>
+				<!-- MODAL CONTENT -->
+				<div class="flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden">
+					<!-- LEFT COLUMN: SETTINGS -->
+					<div class="p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50">
+						<div>
+							<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">Endpoint</label>
+							<select id="ws-endpoint-select" class="w-full bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"></select>
+						</div>
+						<div>
+							<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">WebSocket URL</label>
+							<div class="flex items-center gap-2">
+								<input id="ws-url" class="w-full bg-[#151516] border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" readonly />
+								<button onclick="copyWsUrl()" class="px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition" title="Copy URL">
+									<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16h8M8 12h8m-6-4h6M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
+									</svg>
+								</button>
+							</div>
+							<p class="text-[11px] text-neutral-500 mt-2">Browser WebSockets can't send custom headers. Use query params if your gateway needs auth.</p>
+						</div>
+						<div class="space-y-2">
+							<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider block">Connection</label>
+							<div class="flex items-center gap-2">
+								<button id="ws-connect-btn" onclick="connectWs()" class="px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold transition">Connect</button>
+								<button id="ws-disconnect-btn" onclick="disconnectWs()" class="px-3 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-xs font-semibold transition">Disconnect</button>
+								<span id="ws-status" class="text-xs font-mono text-neutral-400 bg-neutral-900 px-2 py-1 rounded">Disconnected</span>
+							</div>
+						</div>
+					</div>
+					<!-- RIGHT COLUMN: MESSAGES -->
+					<div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
+						<!-- SEND MESSAGE -->
+						<div class="p-4 border-b border-neutral-800 flex flex-col gap-3">
+							<div class="flex items-center justify-between">
+								<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Send Message</label>
+								<button onclick="sendWsMessage()" class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-cyan-500/10">
+									<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+										<path d="M2.94 2.94a1.5 1.5 0 012.12 0l12 12a1.5 1.5 0 01-2.12 2.12l-12-12a1.5 1.5 0 010-2.12zM10.94 2.94a1.5 1.5 0 012.12 0l2.12 2.12a1.5 1.5 0 01-2.12 2.12l-2.12-2.12a1.5 1.5 0 010-2.12z" />
+									</svg>
+									Send
+								</button>
+							</div>
+							<textarea id="ws-message" class="w-full h-24 bg-[#0e0e0f] border border-neutral-800 text-white rounded-lg p-3 font-mono text-xs outline-none resize-none" placeholder='{"hello":"world"}'></textarea>
+						</div>
+						<!-- MESSAGE LOG -->
+						<div class="flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30">
+							<div class="flex items-center justify-between mb-2">
+								<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Messages</label>
+								<button onclick="clearWsLog()" class="px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold">Clear</button>
+							</div>
+							<div id="ws-log" class="w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs overflow-y-auto"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<p class="text-neutral-400 text-sm md:text-base -mt-6">
 			View and manage your service endpoints. Routes are automatically mapped when functions are created.
 		</p>
@@ -449,6 +530,13 @@ templ EndpointsContent(endpoints []Endpoint) {
 							<div class="flex items-center justify-between mb-2">
 								<label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Request Body</label>
 								<div class="flex items-center gap-2">
+									<select id="test-method-select" class="bg-[#151516] border border-neutral-800 text-white rounded px-2 py-1 text-xs outline-none focus:border-blue-500">
+										<option value="GET">GET</option>
+										<option value="POST">POST</option>
+										<option value="PUT">PUT</option>
+										<option value="PATCH">PATCH</option>
+										<option value="DELETE">DELETE</option>
+									</select>
 									<span class="text-[10px] text-neutral-600 font-mono">JSON</span>
 									<button
 										onclick="runEndpointTest()"
@@ -627,6 +715,21 @@ templ EndpointsContent(endpoints []Endpoint) {
       const select = document.getElementById("test-endpoint-select");
       const epId = select?.value;
       if (!epId) return;
+      const endpointList = (window.__endpointList && window.__endpointList.length > 0)
+        ? window.__endpointList
+        : Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+            id: el.dataset.endpointId,
+            name: el.dataset.endpointName,
+            method: el.dataset.endpointMethod,
+          }));
+      const endpoint = endpointList.find(ep => ep.id === epId);
+      if (!endpoint || !endpoint.name) return;
+
+      const methodSelect = document.getElementById("test-method-select");
+      const methodInput = document.getElementById("selected-method-" + epId);
+      let method = String(methodSelect?.value || methodInput?.value || endpoint.method || "GET").toUpperCase();
+      
+      const url = `/lambda${endpoint.name}`;
       const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById("test-body")?.value || "");
       const headers = window.getHeadersFromUI();
 
@@ -637,11 +740,11 @@ templ EndpointsContent(endpoints []Endpoint) {
 
       (async () => {
         try {
-          const resp = await fetch(`/api/endpoints/${epId}/test/`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({headers: headers, body: bodyRaw})
-          });
+          const request = { method, headers };
+          if (bodyRaw.trim() !== "") {
+            request.body = bodyRaw;
+          }
+          const resp = await fetch(url, request);
           const contentType = resp.headers.get("Content-Type") || "";
           const textBody = await resp.text();
           if (statusEl) statusEl.textContent = `Status: ${resp.status}`;
@@ -661,6 +764,174 @@ templ EndpointsContent(endpoints []Endpoint) {
         }
       })();
     };
+  </script>
+		<script>
+    (function () {
+      function ensureWsModalOptions() {
+        const select = document.getElementById("ws-endpoint-select");
+        if (!select) return null;
+        let list = [];
+        if (window.__endpointList && window.__endpointList.length > 0) {
+          list = window.__endpointList;
+        } else {
+          list = Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+            id: el.dataset.endpointId,
+            name: el.dataset.endpointName,
+            method: el.dataset.endpointMethod,
+          }));
+        }
+        if (list.length > 0 && select.options.length === 0) {
+          list.forEach(ep => {
+            const opt = document.createElement("option");
+            opt.value = ep.id;
+            opt.textContent = `${ep.method} ${ep.name}`;
+            select.appendChild(opt);
+          });
+        }
+        return select;
+      }
+
+      function wsBaseUrl() {
+        const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+        return proto + "//" + window.location.host;
+      }
+
+      function toWsPath(path) {
+        if (!path) return "";
+        if (path.startsWith("/lambda/ws/")) return path;
+        if (path.startsWith("/lambda/")) {
+          return "/lambda/ws/" + path.replace("/lambda/", "");
+        }
+        if (path.startsWith("/")) return "/lambda/ws" + path;
+        return "/lambda/ws/" + path;
+      }
+
+      function setWsUrl() {
+        const select = document.getElementById("ws-endpoint-select");
+        const urlEl = document.getElementById("ws-url");
+        if (!select || !urlEl) return;
+        const epId = select.value;
+        const endpointList = (window.__endpointList && window.__endpointList.length > 0)
+          ? window.__endpointList
+          : Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+              id: el.dataset.endpointId,
+              name: el.dataset.endpointName,
+              method: el.dataset.endpointMethod,
+            }));
+        const endpoint = endpointList.find(ep => ep.id === epId);
+        const path = endpoint?.name || "";
+        const wsUrl = wsBaseUrl() + toWsPath(path);
+        urlEl.value = wsUrl;
+      }
+
+      function setWsStatus(text, cls) {
+        const el = document.getElementById("ws-status");
+        if (!el) return;
+        el.textContent = text;
+        el.className = "text-xs font-mono bg-neutral-900 px-2 py-1 rounded " + (cls || "text-neutral-400");
+      }
+
+      function logWsMessage(kind, payload) {
+        const log = document.getElementById("ws-log");
+        if (!log) return;
+        const ts = new Date().toLocaleTimeString();
+        const color = kind === "sent" ? "text-cyan-300" : (kind === "recv" ? "text-green-400" : "text-yellow-400");
+        const line = document.createElement("div");
+        line.className = "mb-2";
+        line.innerHTML = `<span class="text-neutral-500">[${ts}]</span> <span class="${color}">${kind.toUpperCase()}</span> <span class="text-neutral-300">•</span> <span class="text-neutral-200 whitespace-pre-wrap break-words"></span>`;
+        line.querySelector("span:last-child").textContent = payload;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function closeWs() {
+        if (window.__wsConn) {
+          try { window.__wsConn.close(); } catch (e) {}
+          window.__wsConn = null;
+        }
+      }
+
+      window.openWsTestModal = function () {
+        const modal = document.getElementById("ws-test-modal");
+        if (!modal) return;
+        modal.classList.remove("hidden");
+        const select = ensureWsModalOptions();
+        if (select) {
+          select.removeEventListener("change", setWsUrl);
+          select.addEventListener("change", setWsUrl);
+          setWsUrl();
+        }
+      };
+
+      window.openWsTestModalForEndpoint = function (id) {
+        window.openWsTestModal();
+        const select = ensureWsModalOptions();
+        if (!select) return;
+        select.value = id;
+        setWsUrl();
+      };
+
+      window.closeWsTestModal = function () {
+        closeWs();
+        const modal = document.getElementById("ws-test-modal");
+        if (modal) modal.classList.add("hidden");
+        setWsStatus("Disconnected");
+      };
+
+      window.copyWsUrl = function () {
+        const url = document.getElementById("ws-url")?.value || "";
+        if (!url) return;
+        navigator.clipboard.writeText(url);
+      };
+
+      window.connectWs = function () {
+        const url = document.getElementById("ws-url")?.value;
+        if (!url) return;
+        closeWs();
+        setWsStatus("Connecting...", "text-cyan-300");
+        try {
+          const ws = new WebSocket(url);
+          ws.binaryType = "arraybuffer";
+          ws.onopen = () => setWsStatus("Connected", "text-green-400");
+          ws.onclose = () => setWsStatus("Disconnected", "text-neutral-400");
+          ws.onerror = () => setWsStatus("Error", "text-red-400");
+          ws.onmessage = (ev) => {
+            if (typeof ev.data === "string") {
+              logWsMessage("recv", ev.data);
+            } else {
+              const view = new Uint8Array(ev.data);
+              const text = new TextDecoder().decode(view);
+              logWsMessage("recv", text || "[binary]");
+            }
+          };
+          window.__wsConn = ws;
+        } catch (e) {
+          setWsStatus("Error", "text-red-400");
+          logWsMessage("info", String(e));
+        }
+      };
+
+      window.disconnectWs = function () {
+        closeWs();
+        setWsStatus("Disconnected", "text-neutral-400");
+      };
+
+      window.sendWsMessage = function () {
+        const ws = window.__wsConn;
+        const msg = document.getElementById("ws-message")?.value || "";
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          logWsMessage("info", "Not connected.");
+          return;
+        }
+        ws.send(msg);
+        logWsMessage("sent", msg);
+      };
+
+      window.clearWsLog = function () {
+        const log = document.getElementById("ws-log");
+        if (log) log.innerHTML = "";
+      };
+    })();
   </script>
 		<script>
     (function () {
@@ -831,6 +1102,43 @@ templ EndpointsContent(endpoints []Endpoint) {
 
       document.addEventListener("DOMContentLoaded", startActionsSSE);
     })();
+  </script>
+  <script>
+    // Provide a global method selector for DOMContentLoaded initialization.
+    // templ component scripts are scoped, so we expose a stable name here.
+    window.selectMethodForEndpoint = function (id, method) {
+      const methodStyles = {
+        GET: ["border-blue-500", "bg-blue-500/20", "text-blue-400"],
+        POST: ["border-green-500", "bg-green-500/20", "text-green-400"],
+        PUT: ["border-yellow-500", "bg-yellow-500/20", "text-yellow-400"],
+        PATCH: ["border-purple-500", "bg-purple-500/20", "text-purple-400"],
+        DELETE: ["border-red-500", "bg-red-500/20", "text-red-400"]
+      };
+      const allMethodClasses = [
+        "border-blue-500","bg-blue-500/20","text-blue-400",
+        "border-green-500","bg-green-500/20","text-green-400",
+        "border-yellow-500","bg-yellow-500/20","text-yellow-400",
+        "border-purple-500","bg-purple-500/20","text-purple-400",
+        "border-red-500","bg-red-500/20","text-red-400"
+      ];
+      const neutralClasses = ["border-neutral-700", "text-neutral-400"];
+      ["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
+        const btn = document.getElementById("method-" + m + "-" + id);
+        if (btn) {
+          btn.classList.remove(...allMethodClasses);
+          btn.classList.remove(...neutralClasses);
+          btn.classList.add(...neutralClasses);
+        }
+      });
+      const selected = document.getElementById("method-" + method + "-" + id);
+      if (selected) {
+        selected.classList.remove(...neutralClasses);
+        const style = methodStyles[method] || methodStyles.GET;
+        selected.classList.add(...style);
+      }
+      const input = document.getElementById("selected-method-" + id);
+      if (input) input.value = method;
+    };
   </script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
