@@ -72,27 +72,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: current-repo
-
-      - name: Fetch litefunctions runtimes
-        env:
-          PORTAL_RUNTIME_ASSETS_URL: ${{ env.PORTAL_RUNTIME_ASSETS_URL }}
-          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
-          LITEFUNCTIONS_REPO_URL: ${{ env.LITEFUNCTIONS_REPO_URL }}
-        run: |
-          set -e
-          mkdir -p litefunctions
-          if ! curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions; then
-            echo "Runtime assets download failed, falling back to git clone..."
-            REPO_URL="${LITEFUNCTIONS_REPO_URL:-https://github.com/ashupednekar/litefunctions.git}"
-            if ! git clone --depth 1 "$REPO_URL" litefunctions; then
-              echo "Primary clone failed, falling back to in-cluster Gitea..."
-              if [ -n "${GITEA_TOKEN:-}" ]; then
-                git clone --depth 1 "http://ashudev:${GITEA_TOKEN}@litefunctions-gitea-http:3000/ashudev/litefunctions.git" litefunctions
-              else
-                git clone --depth 1 "http://litefunctions-gitea-http:3000/ashudev/litefunctions.git" litefunctions
-              fi
-            fi
-          fi
           
       - name: Setup Kaniko config
         run: |
@@ -132,22 +111,21 @@ jobs:
           echo "Resolved LATEST tag: $LATEST_TAG"
           echo "Resolved SHA tag: $SHA_TAG"
 
-          # Export for next step
+          git clone https://github.com/ashupednekar/litefunctions
+          TARGET_FILE="function.go"
+          if grep -Eq "func[[:space:]]+StreamHandler" "current-repo/functions/go/$file.go"; then
+            TARGET_FILE="function_async.go"
+          fi
+          echo "Using runtime template: ${TARGET_FILE}"
+          cp "current-repo/functions/go/$file.go" \
+             "litefunctions/runtimes/go/pkg/${TARGET_FILE}"
+
+
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
           echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
 
-      - name: Inject Go function into runtime
-        if: env.SKIP_BUILD != 'true'
-        run: |
-          SRC="current-repo/functions/go/${FUNCTION_NAME}.go"
-          DST="litefunctions/runtimes/go/pkg/function.go"
-          if [ ! -f "$SRC" ]; then
-            echo "Function source not found: $SRC"
-            exit 1
-          fi
-          ls current-repo/functions/go/
-          cp "current-repo/functions/go/${FUNCTION_NAME}.go" "litefunctions/runtimes/go/pkg/function.go"
+     
 
       - name: Build and Push with Kaniko
         if: env.SKIP_BUILD != 'true'

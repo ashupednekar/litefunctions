@@ -3,8 +3,8 @@ package pkg
 import (
 	"context"
 	"fmt"
-	"strings"
 	"log/slog"
+	"strings"
 
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -15,21 +15,29 @@ func Consume(ctx context.Context, state *AppState, c jetstream.Consumer) error {
 		"function", settings.Name,
 	)
 	logger.Info("waiting for messages")
-	cc, err := c.Consume(func(msg jetstream.Msg){
+	cc, err := c.Consume(func(msg jetstream.Msg) {
 		logger.Info("received event", "subject", msg.Subject())
 		msg.Ack()
 		parts := strings.Split(msg.Subject(), ".")
-		req_id := parts[len(parts)-1]
-		logger.Info("request id extracted", "request_id", req_id)
-		res, err := Handler(state, &req_id, msg.Data())
-		if err != nil{
-			logger.Error("function handler failed", "error", err, "request_id", req_id)
-		}
-		if err := state.Nc.Publish(fmt.Sprintf("%s.%s.res.go.%s", settings.Project, settings.Name, req_id), res); err != nil {
-			logger.Error("failed to publish response", "error", err, "request_id", req_id)
-		}
+		reqID := parts[len(parts)-1]
+		logger.Info("request id extracted", "request_id", reqID)
+		go func(reqID string, payload []byte) {
+			in := make(chan []byte, 1)
+			in <- payload
+			close(in)
+			out := StreamHandler(in)
+			if out == nil {
+				logger.Error("stream handler returned nil channel", "request_id", reqID)
+				return
+			}
+			for res := range out {
+				if err := state.Nc.Publish(fmt.Sprintf("%s.%s.res.go.%s", settings.Project, settings.Name, reqID), res); err != nil {
+					logger.Error("failed to publish response", "error", err, "request_id", reqID)
+				}
+			}
+		}(reqID, msg.Data())
 	})
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	defer cc.Stop()
@@ -51,14 +59,14 @@ func StartFunction(ctx context.Context, state *AppState) error {
 	subject := fmt.Sprintf("%s.%s.exec.go.*", settings.Project, settings.Name)
 	logger.Info("starting consumer", "subject", subject, "durable", name)
 	consumer, err := state.Js.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
-		Durable: name,
+		Durable:       name,
 		FilterSubject: subject,
 	})
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("ERR-CONSUMER-INIT: %v", err)
 	}
 	err = Consume(ctx, state, consumer)
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("ERR-CONSUMER: %v", err)
 	}
 	return nil
