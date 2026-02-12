@@ -72,7 +72,7 @@ func (h *IngestHandler) Sync(w http.ResponseWriter, r *http.Request) {
 }
 
 func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, namespace, service string, port int) error {
-	runtimePath := strings.TrimPrefix(r.URL.Path, "/"+project+"/"+name)
+	runtimePath := strings.TrimPrefix(r.URL.Path, "/lambda/"+project+"/"+name)
 	if runtimePath == "" {
 		runtimePath = "/"
 	}
@@ -177,18 +177,24 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 }
 
 func parsePath(path string) (string, string) {
-	if len(path) < 2 || path[0] != '/' {
+	trimmed := strings.Trim(path, "/")
+	if trimmed == "" {
 		return "", ""
 	}
-	parts := path[1:]
-	project := parts
-	name := ""
-	for i, p := range parts {
-		if p == '/' {
-			project = parts[:i]
-			name = parts[i+1:]
-			break
-		}
+
+	parts := strings.Split(trimmed, "/")
+	if len(parts) < 3 || parts[0] != "lambda" {
+		return "", ""
 	}
-	return project, name
+
+	idx := 1
+	if parts[1] == "sse" || parts[1] == "ws" {
+		idx = 2
+	}
+
+	if len(parts) <= idx+1 {
+		return "", ""
+	}
+
+	return parts[idx], parts[idx+1]
 }

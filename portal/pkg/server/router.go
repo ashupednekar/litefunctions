@@ -95,7 +95,6 @@ func (s *Server) BuildRoutes() {
 		api.GET("/endpoints/", endpointHandlers.ListEndpoints)
 		api.GET("/endpoints/:epID/", endpointHandlers.GetEndpoint)
 		api.PUT("/endpoints/:epID/", endpointHandlers.UpdateEndpoint)
-		api.POST("/endpoints/:epID/test/", endpointHandlers.TestEndpoint)
 
 		api.GET("/actions/status/", actionHandlers.Status)
 

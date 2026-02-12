@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/nats-io/nats.go"
@@ -66,20 +67,26 @@ func Produce(nc *nats.Conn, w http.ResponseWriter, r *http.Request, lang string)
 }
 
 func parsePath(path string) (string, string) {
-	if len(path) < 2 || path[0] != '/' {
+	trimmed := strings.Trim(path, "/")
+	if trimmed == "" {
 		return "", ""
 	}
-	parts := path[1:]
-	project := parts
-	name := ""
-	for i, p := range parts {
-		if p == '/' {
-			project = parts[:i]
-			name = parts[i+1:]
-			break
-		}
+
+	parts := strings.Split(trimmed, "/")
+	if len(parts) < 3 || parts[0] != "lambda" {
+		return "", ""
 	}
-	return project, name
+
+	idx := 1
+	if parts[1] == "sse" || parts[1] == "ws" {
+		idx = 2
+	}
+
+	if len(parts) <= idx+1 {
+		return "", ""
+	}
+
+	return parts[idx], parts[idx+1]
 }
 
 func randString(n int) string {
