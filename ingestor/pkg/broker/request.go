@@ -44,7 +44,9 @@ func Produce(nc *nats.Conn, w http.ResponseWriter, r *http.Request, lang string)
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
-	conn, err := upgrader.Upgrade(w, r, r.Header)
+	// Do not echo request headers into the response. Gorilla rejects
+	// application-specific Sec-WebSocket-Extensions headers.
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error upgrading connection: %s", err)
 	}

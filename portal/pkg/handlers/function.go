@@ -49,6 +49,7 @@ type createFunctionRequest struct {
 func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	r := c.MustGet("repo").(*repo.GitRepo)
 	userID := c.MustGet("userID").([]byte)
+	projectUUID := c.MustGet("projectUUID").(pgtype.UUID)
 
 	var req createFunctionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -60,6 +61,20 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	if ext == "" {
 		c.JSON(400, gin.H{"error": "invalid language"})
 		return
+	}
+
+	q := functionadaptors.New(h.state.DBPool)
+	fns, err := q.ListFunctionsForProject(c.Request.Context(), projectUUID)
+	if err != nil {
+		slog.Error("ListFunctionsForProject failed", "error", err)
+		c.JSON(500, gin.H{"error": "database error"})
+		return
+	}
+	for _, fn := range fns {
+		if fn.Name == req.Name {
+			c.JSON(409, gin.H{"error": "function with this name already exists"})
+			return
+		}
 	}
 
 	path := fmt.Sprintf("functions/%s/%s%s", req.Language, req.Name, ext)
@@ -101,10 +116,8 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		return
 	}
 
-	q := functionadaptors.New(h.state.DBPool)
 	eq := endpointadaptors.New(h.state.DBPool)
 
-	projectUUID := c.MustGet("projectUUID").(pgtype.UUID)
 	projectName := c.MustGet("projectName").(string)
 
 	fn, err := q.CreateFunction(

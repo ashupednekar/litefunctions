@@ -132,14 +132,23 @@ func (h *IngestHandler) SSE(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
-	ch, err := broker.Subscribe(h.server.nc, req)
+	ch, cleanup, err := broker.Subscribe(h.server.nc, req)
 	if err != nil {
 		h.logger.Error("failed to subscribe to broker", "error", err)
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
-	for res := range ch {
-		w.Write(res)
+	defer cleanup()
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case res, ok := <-ch:
+			if !ok {
+				return
+			}
+			w.Write(res)
+		}
 	}
 }
 
@@ -158,20 +167,28 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 	conn, req, err := broker.Produce(h.server.nc, w, r, info.Language)
 	if err != nil {
 		h.logger.Error("failed to produce message to broker", "error", err)
-		http.Error(w, fmt.Sprintf("%s", err), http.StatusInternalServerError)
 		return
 	}
 	defer conn.Close()
-	ch, err := broker.Subscribe(h.server.nc, req)
+	ch, cleanup, err := broker.Subscribe(h.server.nc, req)
 	if err != nil {
 		h.logger.Error("failed to subscribe to broker", "error", err)
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
-	for res := range ch {
-		if err := conn.WriteMessage(websocket.BinaryMessage, res); err != nil {
-			h.logger.Error("failed to write websocket response", "error", err)
+	defer cleanup()
+	for {
+		select {
+		case <-r.Context().Done():
 			return
+		case res, ok := <-ch:
+			if !ok {
+				return
+			}
+			if err := conn.WriteMessage(websocket.BinaryMessage, res); err != nil {
+				h.logger.Error("failed to write websocket response", "error", err)
+				return
+			}
 		}
 	}
 }

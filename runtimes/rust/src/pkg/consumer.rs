@@ -1,6 +1,5 @@
-use std::pin::Pin;
+use std::{future::Future, pin::Pin};
 
-use async_nats::jetstream::{self, consumer::PullConsumer};
 use futures::StreamExt;
 
 use super::{conf::settings, state::AppState};
@@ -9,16 +8,15 @@ use crate::{
     prelude::{Result, natserr},
 };
 
-type BoxedConsumer<'a> = Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
+type BoxedConsumer = Pin<Box<dyn Future<Output = Result<()>> + Send>>;
 
-fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
+fn consume(state: AppState, mut subscriber: async_nats::Subscriber) -> BoxedConsumer {
     Box::pin(async move {
         let state = state.clone(); //ok, cuz it's a bunch of arcs
         tracing::debug!("waiting for messages...");
-        while let Some(Ok(msg)) = consumer.messages().await.map_err(natserr)?.next().await {
+        while let Some(msg) = subscriber.next().await {
             tracing::debug!("received event");
-            msg.ack().await.map_err(natserr)?;
-            if let Some(req_id) = msg.subject.split(".").last() {
+            if let Some(req_id) = msg.subject.to_string().split('.').next_back() {
                 tracing::debug!("request id: {}", &req_id);
                 let (_status, res): (axum::http::StatusCode, Vec<u8>) =
                     handler(state.clone(), Some(req_id), msg.payload.to_vec()).await?;
@@ -41,24 +39,15 @@ fn consume(state: AppState, consumer: &PullConsumer) -> BoxedConsumer {
 }
 
 pub async fn start_function(state: AppState) -> Result<()> {
-    let js = &*state.js;
-
-    let consumer_name = format!("{}-{}", settings.project, settings.name);
     let subject = format!("{}.{}.exec.rs.*", settings.project, settings.name);
 
     tracing::info!("starting consumer listening to subject: {}", &subject);
-    let consumer: PullConsumer = js
-        .get_or_create_consumer(
-            &consumer_name,
-            jetstream::consumer::pull::Config {
-                durable_name: Some(consumer_name.clone()),
-                filter_subject: subject,
-                ..Default::default()
-            },
-        )
+    let subscriber = state
+        .nc
+        .subscribe(subject)
         .await
         .map_err(natserr)?;
-    consume(state, &consumer).await?;
+    consume(state, subscriber).await?;
     Ok(())
 }
 
