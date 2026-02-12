@@ -9,14 +9,12 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
-	"github.com/nats-io/nats.go/jetstream"
 )
 
 type AppState struct {
 	DBPool      *pgxpool.Pool
 	RedisClient *redis.Client
 	Nc          *nats.Conn
-	Js          jetstream.Stream
 }
 
 func NewAppState(ctx context.Context) (*AppState, error) {
@@ -58,28 +56,10 @@ func NewAppState(ctx context.Context) (*AppState, error) {
 		return nil, fmt.Errorf("ERR-NATS-CONN: %v", err)
 	}
 
-	js, err := jetstream.New(nc)
-	if err != nil {
-		return nil, fmt.Errorf("ERR-NATS-JS: %v", err)
-	}
-	streamConfig := jetstream.StreamConfig{
-		Name:     settings.Project,
-		Subjects: []string{fmt.Sprintf("%s.>", settings.Project)},
-	}
-	stream, err := js.CreateOrUpdateStream(ctx, streamConfig)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"ERR-NATS-STREAM: name=%q subjects=%v: %v",
-			streamConfig.Name,
-			streamConfig.Subjects,
-			err,
-		)
-	}
 	return &AppState{
 		DBPool:      dbPool,
 		RedisClient: redisClient,
 		Nc:          nc,
-		Js:          stream,
 	}, nil
 }
 

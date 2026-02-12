@@ -266,7 +266,11 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	for _, run := range giteaActions.WorkflowRuns {
 		var workflowID int64 //gitea uses int, unlike github
 		fmt.Sscanf(run.WorkflowID, "%d", &workflowID)
-		htmlURL := rewriteToFqdn(run.URL, pkg.Cfg.Fqdn)
+		publicBaseURL := pkg.Cfg.VcsPublicBaseUrl
+		if strings.TrimSpace(publicBaseURL) == "" {
+			publicBaseURL = pkg.Cfg.Fqdn
+		}
+		htmlURL := rewriteToBaseURL(run.URL, publicBaseURL)
 
 		runs = append(runs, WorkflowRun{
 			ID:           run.ID,
@@ -290,24 +294,25 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	}, nil
 }
 
-func rewriteToFqdn(raw, fqdn string) string {
+func rewriteToBaseURL(raw, base string) string {
 	if raw == "" {
 		return raw
 	}
 
-	host := strings.TrimSpace(fqdn)
-	if host == "" {
+	target := strings.TrimSpace(base)
+	if target == "" {
 		return raw
 	}
 
 	scheme := "https"
-	if strings.HasPrefix(host, "http://") {
+	if strings.HasPrefix(target, "http://") {
 		scheme = "http"
-		host = strings.TrimPrefix(host, "http://")
-	} else if strings.HasPrefix(host, "https://") {
+		target = strings.TrimPrefix(target, "http://")
+	} else if strings.HasPrefix(target, "https://") {
 		scheme = "https"
-		host = strings.TrimPrefix(host, "https://")
+		target = strings.TrimPrefix(target, "https://")
 	}
+	target = strings.TrimRight(target, "/")
 
 	trimmed := strings.TrimLeft(raw, "/")
 	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
@@ -321,9 +326,9 @@ func rewriteToFqdn(raw, fqdn string) string {
 	}
 
 	if trimmed == "" {
-		return fmt.Sprintf("%s://%s", scheme, host)
+		return fmt.Sprintf("%s://%s", scheme, target)
 	}
-	return fmt.Sprintf("%s://%s/%s", scheme, host, trimmed)
+	return fmt.Sprintf("%s://%s/%s", scheme, target, trimmed)
 }
 
 func (c *GiteaClient) populateCurrentSteps(ctx context.Context, owner, repo string, runs []WorkflowRun) {
