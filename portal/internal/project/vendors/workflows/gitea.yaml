@@ -48,14 +48,8 @@ jobs:
             | sed 's|functions/go/||' | sed 's|\.go$||' \
             | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "go-files=${GO_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
+          echo "Detected Rust files JSON: ${RUST_FILES_JSON}"
           echo "Detected Go files JSON: ${GO_FILES_JSON}"
-
-          # Optional: fail if multiple files (uncomment if strict)
-          # GO_COUNT=$(echo "$GO_FILES_JSON" | jq 'length')
-          # if [ "$GO_COUNT" -gt 1 ]; then
-          #   echo "Error: Multiple Go files changed (${GO_COUNT}). Only one allowed."
-          #   exit 1
-          # fi
 
       - name: Set repo name
         id: set-repo-name
@@ -63,22 +57,51 @@ jobs:
           REPO_NAME=$(basename "${{ gitea.repository }}")
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
-  build-go:
+  build-runtime:
     needs: detect-changes
-    if: needs.detect-changes.outputs.go == 'true' && needs.detect-changes.outputs.go-files != '[]'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - lang: go
+            lang_tag: go
+            changed: ${{ needs.detect-changes.outputs.go }}
+            files_json: ${{ needs.detect-changes.outputs.go-files }}
+            context: dir://litefunctions/runtimes/go
+            dockerfile: ../../build/runtimes/Dockerfile.go
+            source_dir: functions/go
+            source_ext: go
+            runtime_target: runtimes/go/pkg
+          - lang: rs
+            lang_tag: rust
+            changed: ${{ needs.detect-changes.outputs.rust }}
+            files_json: ${{ needs.detect-changes.outputs.rust-files }}
+            context: dir://litefunctions/runtimes/rust
+            dockerfile: ../../build/runtimes/Dockerfile.rust
+            source_dir: functions/rs
+            source_ext: rs
+            runtime_target: runtimes/rust/src/pkg
     steps:
+      - name: Skip unchanged language
+        if: matrix.changed != 'true'
+        run: |
+          echo "No ${{ matrix.lang }} changes detected."
+          echo "SKIP_BUILD=true" >> $GITHUB_ENV
+
       - name: Checkout current repo (this Gitea repo)
+        if: matrix.changed == 'true'
         uses: actions/checkout@v4
         with:
           path: current-repo
           
       - name: Setup Kaniko config
+        if: matrix.changed == 'true'
         run: |
           mkdir -p $HOME/.docker
           echo '{"auths":{"${{ env.REGISTRY }}":{"auth":"'$(echo -n ${{ env.IMAGE_PREFIX }}:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
 
       - name: Verify Kaniko config (debug)
+        if: matrix.changed == 'true'
         run: |
           echo "HOME is: $HOME"
           ls -la $HOME/.docker/
@@ -89,51 +112,56 @@ jobs:
             echo "config.json MISSING!"
           fi
 
-      - name: Prepare build parameters for single Go function
+      - name: Prepare build parameters
+        if: matrix.changed == 'true'
         env:
-          GO_FILES_JSON: ${{ needs.detect-changes.outputs.go-files }}
+          FILES_JSON: ${{ matrix.files_json }}
+          LANG: ${{ matrix.lang }}
+          LANG_TAG: ${{ matrix.lang_tag }}
+          SOURCE_DIR: ${{ matrix.source_dir }}
+          SOURCE_EXT: ${{ matrix.source_ext }}
+          RUNTIME_TARGET: ${{ matrix.runtime_target }}
+          BUILD_CONTEXT: ${{ matrix.context }}
+          BUILD_DOCKERFILE: ${{ matrix.dockerfile }}
           REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
         run: |
-          echo "Detected Go files JSON: $GO_FILES_JSON"
-
-          # Extract single file name (first one only)
-          file=$(echo "$GO_FILES_JSON" | jq -r '.[0]')
+          echo "Detected ${LANG} files JSON: $FILES_JSON"
+          file=$(echo "$FILES_JSON" | jq -r '.[0]')
 
           if [ "$file" = "null" ] || [ -z "$file" ]; then
-            echo "No valid Go file detected - skipping build"
+            echo "No valid ${LANG} file detected - skipping build"
             echo "SKIP_BUILD=true" >> $GITHUB_ENV
             exit 0
           fi
-          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:latest"
-          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:${{ gitea.sha }}"
+          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-${LANG_TAG}-$REPO_NAME-$file:latest"
+          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-${LANG_TAG}-$REPO_NAME-$file:${{ gitea.sha }}"
 
-          echo "Building function: $file"
+          echo "Building ${LANG} function: $file"
           echo "Resolved LATEST tag: $LATEST_TAG"
           echo "Resolved SHA tag: $SHA_TAG"
 
           git clone https://github.com/ashupednekar/litefunctions
-          TARGET_FILE="function.go"
-          if grep -Eq "func[[:space:]]+StreamHandler" "current-repo/functions/go/$file.go"; then
+          TARGET_FILE="function.${SOURCE_EXT}"
+          if [ "$LANG" = "go" ] && grep -Eq "func[[:space:]]+StreamHandler" "current-repo/${SOURCE_DIR}/$file.${SOURCE_EXT}"; then
             TARGET_FILE="function_async.go"
           fi
           echo "Using runtime template: ${TARGET_FILE}"
-          cp "current-repo/functions/go/$file.go" \
-             "litefunctions/runtimes/go/pkg/${TARGET_FILE}"
-
+          cp "current-repo/${SOURCE_DIR}/$file.${SOURCE_EXT}" \
+             "litefunctions/${RUNTIME_TARGET}/${TARGET_FILE}"
 
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
           echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
-
-     
+          echo "BUILD_CONTEXT=$BUILD_CONTEXT" >> $GITHUB_ENV
+          echo "BUILD_DOCKERFILE=$BUILD_DOCKERFILE" >> $GITHUB_ENV
 
       - name: Build and Push with Kaniko
         if: env.SKIP_BUILD != 'true'
         uses: docker://gcr.io/kaniko-project/executor:latest
         with:
           args: >
-            --context=dir://litefunctions/runtimes/go
-            --dockerfile=../../build/runtimes/Dockerfile.go
+            --context=${{ env.BUILD_CONTEXT }}
+            --dockerfile=${{ env.BUILD_DOCKERFILE }}
             --destination=${{ env.LATEST_TAG }}
             --destination=${{ env.SHA_TAG }}
             --build-arg PROJECT=${{ needs.detect-changes.outputs.repo_name }}

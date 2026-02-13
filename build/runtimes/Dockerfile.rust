@@ -1,24 +1,32 @@
-FROM ashupednekar535/litefunctions-runtime-rs:base AS builder
+FROM rust:1.84-alpine AS builder
+
+RUN apk add --no-cache git ca-certificates musl-dev pkgconfig openssl-dev
 
 ARG GIT_TOKEN
 ARG GIT_USER=lwsrepos
 ARG PROJECT
-ARG NAME 
+ARG NAME
 
-RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
+WORKDIR /app
 
-RUN echo "building function: $NAME from project: $PROJECT" && \
-    cat src/pkg/function.rs && \
-    cargo build --release 
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir -p src/pkg && \
+    echo 'fn main(){}' > src/main.rs && \
+    cargo fetch
+
+COPY . .
+
+RUN cargo build --release
 
 FROM gcr.io/distroless/cc-debian12:nonroot
 
-COPY --from=builder /app/target/release/function /
-COPY --from=builder /app/errors.yaml /
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /app/target/release/function /function
+
 WORKDIR /
 
 ARG PROJECT
-ARG NAME 
+ARG NAME
 ENV PROJECT=$PROJECT
 ENV NAME=$NAME
 ENV RUST_LOG=debug,async_nats=info,h2=info,tower_http=info
