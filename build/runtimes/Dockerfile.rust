@@ -1,4 +1,4 @@
-FROM rust:1.84-alpine AS builder
+FROM rust AS builder
 
 RUN apk add --no-cache git ca-certificates musl-dev pkgconfig openssl-dev
 
