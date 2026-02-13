@@ -1,0 +1,29 @@
+FROM ashupednekar535/litefunctions-runtime-rs:base AS builder
+
+ARG GIT_TOKEN
+ARG GIT_USER=lwsrepos
+ARG PROJECT
+ARG NAME 
+
+RUN curl -H "Authorization: Bearer $GIT_TOKEN" https://raw.githubusercontent.com/$GIT_USER/$PROJECT/main/functions/rs/$NAME.rs -o src/pkg/function.rs
+
+RUN echo "building function: $NAME from project: $PROJECT" && \
+    cat src/pkg/function.rs && \
+    cargo build --release 
+
+FROM gcr.io/distroless/cc-debian12:nonroot
+
+COPY --from=builder /app/target/release/function /
+COPY --from=builder /app/errors.yaml /
+WORKDIR /
+
+ARG PROJECT
+ARG NAME 
+ENV PROJECT=$PROJECT
+ENV NAME=$NAME
+ENV RUST_LOG=debug,async_nats=info,h2=info,tower_http=info
+ENV USE_TELEMETRY=false
+
+USER nonroot
+
+CMD ["/function", "listen"]
