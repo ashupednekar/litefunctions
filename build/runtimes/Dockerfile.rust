@@ -1,6 +1,5 @@
 FROM rust AS chef
 
-RUN apk add --no-cache git ca-certificates musl-dev pkgconfig openssl-dev
 RUN cargo install cargo-chef
 
 WORKDIR /app
@@ -9,7 +8,6 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM rust AS builder
 
-RUN apk add --no-cache git ca-certificates musl-dev pkgconfig openssl-dev
 RUN cargo install cargo-chef
 
 WORKDIR /app
