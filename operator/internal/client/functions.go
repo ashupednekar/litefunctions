@@ -197,7 +197,9 @@ func (c *Client) NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 		"app":      "runtime",
 		"lang":     function.Spec.Language,
 		"project":  function.Spec.Project,
-		"function": function.Spec.Name,
+	}
+	if !isDynamicLanguage(function.Spec.Language) {
+		labels["function"] = function.Spec.Name
 	}
 
 	var image string
@@ -290,9 +292,24 @@ func supportsHTTP(lang string) bool {
 }
 
 func GetDeploymentName(function *apiv1.Function) string {
+	if isDynamicLanguage(function.Spec.Language) {
+		return fmt.Sprintf("litefunctions-runtime-%s-%s", function.Spec.Language, function.Spec.Project)
+	}
 	return fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
 }
 
 func GetServiceName(function *apiv1.Function) string {
+	if isDynamicLanguage(function.Spec.Language) {
+		return fmt.Sprintf("litefunctions-runtime-svc-%s-%s", function.Spec.Language, function.Spec.Project)
+	}
 	return fmt.Sprintf("litefunctions-runtime-svc-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
+}
+
+func isDynamicLanguage(lang string) bool {
+	switch lang {
+	case "python", "js", "lua":
+		return true
+	default:
+		return false
+	}
 }

@@ -12,13 +12,15 @@ import (
 )
 
 func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
-	deploymentName := fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
+	deploymentName := GetDeploymentName(function)
 
 	labels := map[string]string{
 		"app":      "runtime",
 		"lang":     function.Spec.Language,
 		"project":  function.Spec.Project,
-		"function": function.Spec.Name,
+	}
+	if !isDynamicLanguage(function.Spec.Language) {
+		labels["function"] = function.Spec.Name
 	}
 
 	var image string
@@ -111,10 +113,16 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 }
 
 func GetDeploymentName(function *apiv1.Function) string {
+	if isDynamicLanguage(function.Spec.Language) {
+		return fmt.Sprintf("litefunctions-runtime-%s-%s", function.Spec.Language, function.Spec.Project)
+	}
 	return fmt.Sprintf("litefunctions-runtime-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
 }
 
 func GetServiceName(function *apiv1.Function) string {
+	if isDynamicLanguage(function.Spec.Language) {
+		return fmt.Sprintf("litefunctions-runtime-svc-%s-%s", function.Spec.Language, function.Spec.Project)
+	}
 	return fmt.Sprintf("litefunctions-runtime-svc-%s-%s-%s", function.Spec.Language, function.Spec.Project, function.Name)
 }
 
@@ -123,7 +131,9 @@ func NewService(function *apiv1.Function) *corev1.Service {
 		"app":      "runtime",
 		"lang":     function.Spec.Language,
 		"project":  function.Spec.Project,
-		"function": function.Spec.Name,
+	}
+	if !isDynamicLanguage(function.Spec.Language) {
+		labels["function"] = function.Spec.Name
 	}
 
 	return &corev1.Service{
@@ -147,6 +157,15 @@ func NewService(function *apiv1.Function) *corev1.Service {
 func supportsHTTP(lang string) bool {
 	switch lang {
 	case "go", "rust", "rs":
+		return true
+	default:
+		return false
+	}
+}
+
+func isDynamicLanguage(lang string) bool {
+	switch lang {
+	case "python", "js", "lua":
 		return true
 	default:
 		return false
