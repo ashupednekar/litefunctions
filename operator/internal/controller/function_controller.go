@@ -52,8 +52,18 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	serviceName := GetServiceName(&function)
 
 	if !function.Spec.IsActive {
+		sharedInUse, err := r.hasOtherActiveFunctionUsingSharedRuntime(ctx, &function)
+		if err != nil {
+			log.Error(err, "Failed to check shared runtime usage", "deployment", deploymentName)
+			return ctrl.Result{}, err
+		}
+		if sharedInUse {
+			log.Info("Skipping shared runtime cleanup; another active function still uses it", "deployment", deploymentName)
+			return ctrl.Result{}, nil
+		}
+
 		var existing appsv1.Deployment
-		err := r.Get(ctx, types.NamespacedName{Name: deploymentName, Namespace: function.Namespace}, &existing)
+		err = r.Get(ctx, types.NamespacedName{Name: deploymentName, Namespace: function.Namespace}, &existing)
 
 		if err == nil {
 			if err := r.Delete(ctx, &existing); err != nil {
@@ -85,13 +95,15 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	deploy := NewDeployment(&function)
 	svc := NewService(&function)
 
-	if err := controllerutil.SetControllerReference(&function, deploy, r.Scheme); err != nil {
-		log.Error(err, "Failed to set controller reference")
-		return ctrl.Result{}, err
-	}
-	if err := controllerutil.SetControllerReference(&function, svc, r.Scheme); err != nil {
-		log.Error(err, "Failed to set controller reference for service")
-		return ctrl.Result{}, err
+	if !isDynamicLanguage(function.Spec.Language) {
+		if err := controllerutil.SetControllerReference(&function, deploy, r.Scheme); err != nil {
+			log.Error(err, "Failed to set controller reference")
+			return ctrl.Result{}, err
+		}
+		if err := controllerutil.SetControllerReference(&function, svc, r.Scheme); err != nil {
+			log.Error(err, "Failed to set controller reference for service")
+			return ctrl.Result{}, err
+		}
 	}
 
 	var existing appsv1.Deployment
@@ -147,6 +159,32 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *FunctionReconciler) hasOtherActiveFunctionUsingSharedRuntime(ctx context.Context, function *apiv1.Function) (bool, error) {
+	if !isDynamicLanguage(function.Spec.Language) {
+		return false, nil
+	}
+
+	var functions apiv1.FunctionList
+	if err := r.List(ctx, &functions, client.InNamespace(function.Namespace)); err != nil {
+		return false, err
+	}
+
+	for i := range functions.Items {
+		fn := &functions.Items[i]
+		if fn.Name == function.Name {
+			continue
+		}
+		if fn.Spec.Language != function.Spec.Language || fn.Spec.Project != function.Spec.Project {
+			continue
+		}
+		if fn.Spec.IsActive {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (r *FunctionReconciler) SetupWithManager(mgr ctrl.Manager) error {
