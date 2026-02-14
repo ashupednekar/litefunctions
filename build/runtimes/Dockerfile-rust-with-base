@@ -22,7 +22,7 @@ ARG NAME
 COPY . .
 
 RUN echo "building function: $NAME from project: $PROJECT" && \
-    cat src/pkg/function.rs && \
+    cat pkg/function.rs && \
     cargo build --release
 
 FROM gcr.io/distroless/cc-debian12:nonroot

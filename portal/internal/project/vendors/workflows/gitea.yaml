@@ -204,8 +204,13 @@ jobs:
             echo "Source function not found: $SOURCE_PATH"
             exit 1
           fi
+          TARGET_FILE="function.rs"
+          if grep -Eq "stream_handler" "$SOURCE_PATH"; then
+            TARGET_FILE="function_async.rs"
+          fi
+          echo "Using runtime template: ${TARGET_FILE}"
           cp "$SOURCE_PATH" \
-             "litefunctions/runtimes/rust/src/pkg/function.rs"
+             "litefunctions/runtimes/rust/pkg/${TARGET_FILE}"
 
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
