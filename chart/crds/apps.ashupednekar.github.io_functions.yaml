@@ -47,6 +47,8 @@ spec:
                 type: boolean
               language:
                 type: string
+              method:
+                type: string
               name:
                 type: string
               project:
@@ -57,6 +59,7 @@ spec:
             - isActive
             - isAsync
             - language
+            - method
             - name
             - project
             type: object

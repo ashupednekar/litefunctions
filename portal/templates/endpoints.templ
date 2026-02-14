@@ -1074,8 +1074,7 @@ templ EndpointsContent(endpoints []Endpoint) {
           } else {
             if (wsTestBtn) wsTestBtn.classList.add("hidden");
             if (testBtn) {
-              const { status, conclusion } = normalizeStatus(display);
-              const showTest = display && !running && (conclusion === "success" || status === "success");
+              const showTest = !running;
               if (showTest) testBtn.classList.remove("hidden");
               else testBtn.classList.add("hidden");
             }
