@@ -49,7 +49,7 @@ async fn start_http_server(_state: pkg::state::AppState, settings: &pkg::conf::S
         }
     };
 
-    let app = axum::Router::new().route("/", axum::routing::get(pkg::function::Handle));
+    let app = axum::Router::new().route("/", axum::routing::get(pkg::function::handle));
 
     info!(addr = %addr, "starting http server");
     let listener = match tokio::net::TcpListener::bind(addr).await {
