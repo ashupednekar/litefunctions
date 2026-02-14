@@ -35,6 +35,9 @@ func (h *IngestHandler) Sync(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
+	if !h.validateMethod(w, r, info.Method, project, name) {
+		return
+	}
 
 	if info.IsAsync {
 		_, err := broker.Submit(h.server.nc, r, info.Language)
@@ -125,6 +128,9 @@ func (h *IngestHandler) SSE(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
+	if !h.validateMethod(w, r, info.Method, project, name) {
+		return
+	}
 
 	req, err := broker.Submit(h.server.nc, r, info.Language)
 	if err != nil {
@@ -163,6 +169,9 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("%s", err), http.StatusBadRequest)
 		return
 	}
+	if !h.validateMethod(w, r, info.Method, project, name) {
+		return
+	}
 
 	conn, req, err := broker.Produce(h.server.nc, w, r, info.Language)
 	if err != nil {
@@ -191,6 +200,20 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func (h *IngestHandler) validateMethod(w http.ResponseWriter, r *http.Request, expected, project, name string) bool {
+	if expected == "" {
+		return true
+	}
+	if strings.EqualFold(r.Method, expected) {
+		return true
+	}
+	allowed := strings.ToUpper(expected)
+	w.Header().Set("Allow", allowed)
+	h.logger.Warn("method mismatch", "project", project, "name", name, "expected", allowed, "actual", r.Method)
+	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	return false
 }
 
 func parsePath(path string) (string, string) {

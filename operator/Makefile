@@ -22,6 +22,10 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: all
 all: build
 
+ifndef LOCALBIN
+LOCALBIN := $(shell pwd)/bin
+endif
+
 ##@ General
 
 # The help target prints out all targets with their descriptions organized
@@ -101,16 +105,54 @@ lint-config: golangci-lint ## Verify golangci-lint linter configuration
 # GOOGLE_API_TOOLS_VERSION is the version of google.golang.org/api to use for setting up protoc-gen-go and protoc-gen-go-grpc binaries
 PROTOC_GEN_GO_VERSION ?= v1.36.5
 PROTOC_GEN_GO_GRPC_VERSION ?= v1.6.0
+PROTOC_VERSION ?= 30.2
+SYSTEM_PROTOC := $(shell command -v protoc 2>/dev/null)
+LOCAL_PROTOC ?= $(LOCALBIN)/protoc
+PROTOC ?= $(if $(SYSTEM_PROTOC),$(SYSTEM_PROTOC),$(LOCAL_PROTOC))
+PROTOC_VERSIONED ?= $(LOCAL_PROTOC)-$(PROTOC_VERSION)
 PROTOC_GEN_GO ?= $(LOCALBIN)/protoc-gen-go
 PROTOC_GEN_GO_GRPC ?= $(LOCALBIN)/protoc-gen-go-grpc
 
+ifeq ($(SYSTEM_PROTOC),)
+PROTOC_DEP := $(PROTOC)
+else
+PROTOC_DEP :=
+endif
+
 .PHONY: protoc
-protoc: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Download protoc-gen-go and protoc-gen-go-grpc locally if necessary.
+protoc: $(PROTOC_DEP) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) ## Download protoc (if missing), protoc-gen-go and protoc-gen-go-grpc locally if necessary.
 	@echo "Generating gRPC code..."
-	cd ../common/proto && PATH=$(LOCALBIN):$$PATH protoc \
-		--go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		function.proto
+	PATH=$(LOCALBIN):$$PATH $(PROTOC) \
+		-I ../common/proto \
+		--go_out=../common/proto --go_opt=paths=source_relative \
+		--go-grpc_out=../common/proto --go-grpc_opt=paths=source_relative \
+		../common/proto/function.proto
+
+$(LOCAL_PROTOC): $(LOCALBIN)
+	@[ -f "$(PROTOC_VERSIONED)" ] || { \
+	set -e; \
+	OS="$$(uname -s)"; \
+	ARCH="$$(uname -m)"; \
+	case "$$OS" in \
+		Darwin) PROTOC_OS="osx" ;; \
+		Linux) PROTOC_OS="linux" ;; \
+		*) echo "Unsupported OS '$$OS' for protoc install."; exit 1 ;; \
+	esac; \
+	case "$$ARCH" in \
+		x86_64|amd64) PROTOC_ARCH="x86_64" ;; \
+		arm64|aarch64) PROTOC_ARCH="aarch_64" ;; \
+		*) echo "Unsupported architecture '$$ARCH' for protoc install."; exit 1 ;; \
+	esac; \
+	URL="https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$${PROTOC_OS}-$${PROTOC_ARCH}.zip"; \
+	TMPDIR="$$(mktemp -d)"; \
+	echo "Downloading protoc $(PROTOC_VERSION) from $$URL"; \
+	curl -fsSL "$$URL" -o "$$TMPDIR/protoc.zip"; \
+	unzip -qo "$$TMPDIR/protoc.zip" -d "$$TMPDIR"; \
+	mv "$$TMPDIR/bin/protoc" "$(PROTOC_VERSIONED)"; \
+	chmod +x "$(PROTOC_VERSIONED)"; \
+	rm -rf "$$TMPDIR"; \
+	} ;\
+	ln -sf "$(PROTOC_VERSIONED)" "$(LOCAL_PROTOC)"
 
 $(PROTOC_GEN_GO): $(LOCALBIN)
 	$(call go-install-tool,$(PROTOC_GEN_GO),google.golang.org/protobuf/cmd/protoc-gen-go,$(PROTOC_GEN_GO_VERSION))

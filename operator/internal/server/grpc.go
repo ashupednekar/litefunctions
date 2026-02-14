@@ -63,6 +63,7 @@ func (s *FunctionServer) Activate(ctx context.Context, req *functionproto.Activa
 		IsAsync:  fn.Spec.IsAsync,
 		Project:  fn.Spec.Project,
 		Name:     fn.Spec.Name,
+		Method: fn.Spec.Method,
 	}
 	if supportsHTTP(fn.Spec.Language) {
 		resp.ServiceName = client.GetServiceName(fn)
