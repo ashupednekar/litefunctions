@@ -146,7 +146,7 @@ jobs:
             --insecure
             --skip-tls-verify
             --skip-push-permission-check
-            --verbosity=debug
+            --verbosity=info
 
   build-rust:
     needs: detect-changes
@@ -234,4 +234,4 @@ jobs:
             --insecure
             --skip-tls-verify
             --skip-push-permission-check
-            --verbosity=debug
+            --verbosity=info
