@@ -11,6 +11,7 @@ type FunctionSpec struct {
 	DeProvisionTime string `json:"deProvisionTime"`
 	Language        string `json:"language"`
 	Name            string `json:"name"`
+	Method          string `json:"method"`
 	Project         string `json:"project"`
 	GitCreds        string `json:"git_creds"`
 }

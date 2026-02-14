@@ -35,7 +35,8 @@ message ActivateResponse {
   string project = 4;
   string name = 5;
   string service_name = 6;
-  int32 service_port = 7;
+  string method = 7;
+  int32 service_port = 8;
 }
 
 message StatusRequest {

@@ -12,7 +12,8 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let settings = load_settings();
-    let span = tracing::info_span!("runtime", project = %settings.project, function = %settings.name);
+    let span =
+        tracing::info_span!("runtime", project = %settings.project, function = %settings.name);
     let _enter = span.enter();
 
     let state = match new_app_state().await {
@@ -49,7 +50,7 @@ async fn start_http_server(_state: pkg::state::AppState, settings: &pkg::conf::S
         }
     };
 
-    let app = axum::Router::new().route("/", axum::routing::get(pkg::function::handle));
+    let app = axum::Router::new().route("/", axum::routing::any(pkg::function::handle));
 
     info!(addr = %addr, "starting http server");
     let listener = match tokio::net::TcpListener::bind(addr).await {
