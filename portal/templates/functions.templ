@@ -536,33 +536,40 @@ pub async fn handle(Json(input): Json<Input>) -> (StatusCode, Json<Output>) {
     )
 }
 `,
-    async: `use axum::Json;
-use serde::{Deserialize, Serialize};
-use std::sync::mpsc;
-use std::thread;
-
-#[derive(Deserialize)]
-pub struct Input {
-    pub name: Option<String>,
-}
+    async: `use rand::seq::SliceRandom;
+use serde::Serialize;
+use tokio::sync::mpsc::{self, Receiver};
 
 #[derive(Serialize)]
-pub struct Output {
-    pub message: String,
+struct Payload {
+    word: String,
 }
 
-pub async fn handle(Json(input): Json<Input>) -> (axum::http::StatusCode, Json<Output>) {
-    let name = input.name.unwrap_or("stranger".into());
-    thread::spawn(move || {
-        let _ = name;
-        // Do async work here
+fn random_word() -> String {
+    let words = ["apple", "banana", "cherry", "date", "elderberry"];
+    words
+        .choose(&mut rand::thread_rng())
+        .unwrap_or(&"apple")
+        .to_string()
+}
+
+pub fn stream_handler(mut input: Receiver<Vec<u8>>) -> Receiver<Vec<u8>> {
+    let (tx, rx) = mpsc::channel(16);
+
+    tokio::spawn(async move {
+        while input.recv().await.is_some() {
+            let payload = Payload {
+                word: random_word(),
+            };
+            if let Ok(json_bytes) = serde_json::to_vec(&payload) {
+                if tx.send(json_bytes).await.is_err() {
+                    break;
+                }
+            }
+        }
     });
-    (
-        axum::http::StatusCode::ACCEPTED,
-        Json(Output {
-            message: format!("Queued: Hello {} from Rust!", name),
-        }),
-    )
+
+    rx
 }
 `
   },

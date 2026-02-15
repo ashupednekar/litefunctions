@@ -164,6 +164,7 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 				Method:       e.Method,
 				Scope:        e.Scope,
 				FunctionName: e.FunctionName,
+				Language:     e.FunctionLanguage,
 				URL:          baseURL + e.Name,
 				IsAsync:      e.IsAsync,
 			})

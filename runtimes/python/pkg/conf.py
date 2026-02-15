@@ -3,9 +3,11 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     project: str
+    name: str = ""
 
     nats_url: str
 
+    vcs_base_url: str = "https://github.com"
     git_user: str
     git_token: str
 

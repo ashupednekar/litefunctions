@@ -14,6 +14,7 @@ type Endpoint struct {
 	Method       string
 	Scope        string
 	FunctionName string
+	Language     string
 	URL          string
 	IsAsync      bool
 }
@@ -189,7 +190,7 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 239, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 240, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -202,7 +203,7 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 240, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 241, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -215,7 +216,7 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 241, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 242, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -228,50 +229,44 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 242, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 243, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" data-endpoint-async=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" data-endpoint-language=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ep.IsAsync)
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Language)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 243, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 244, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><div class=\"flex justify-between items-center\"><div class=\"flex items-center gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" data-endpoint-async=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ep.IsAsync)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 245, Col: 37}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><div class=\"flex justify-between items-center\"><div class=\"flex items-center gap-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if ep.Method == "POST" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(
-					ep.Method)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 250, Col: 21}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else if ep.Method == "PUT" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -279,80 +274,125 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(
 					ep.Method)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 255, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 252, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-			} else if ep.Method == "DELETE" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400\">")
+			} else if ep.Method == "PUT" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(
+					ep.Method)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 259, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 257, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400\">")
+			} else if ep.Method == "DELETE" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 263, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 261, Col: 20}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var11 string
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 265, Col: 20}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<h3 class=\"text-white text-lg font-semibold\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 266, Col: 61}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</h3><span class=\"text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<h3 class=\"text-white text-lg font-semibold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 268, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 268, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></div><div class=\"flex items-center gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</h3><img src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/static/imgs/" + ep.Language + "-svgrepo-com.svg")
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 269, Col: 68}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"w-4 h-4 opacity-80\" title=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 string
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Language)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 269, Col: 117}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"> <span class=\"text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 271, Col: 25}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></div><div class=\"flex items-center gap-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -360,46 +400,16 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("ws-test-btn-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 273, Col: 35}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var14 templ.ComponentScript = openWsTestModalForEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Test websocket\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12h8m-8 4h8m-6-8h6\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z\"></path></svg></button> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openTestModalForEndpoint(ep.ID))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("ws-test-btn-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 284, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 276, Col: 35}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -407,38 +417,12 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16.Call)
+			var templ_7745c5c3_Var17 templ.ComponentScript = openWsTestModalForEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Test endpoint\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm-1.445-10.832A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg></button> <a id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs("build-status-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 294, Col: 36}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" href=\"#\" target=\"_blank\" rel=\"noopener\" class=\"hidden px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition\">Build</a> <span id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("build-step-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 303, Col: 34}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"hidden text-[10px] text-neutral-500 font-mono\"></span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Test websocket\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12h8m-8 4h8m-6-8h6\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z\"></path></svg></button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -446,29 +430,85 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<button id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var19 string
-			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 307, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 287, Col: 32}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" onclick=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var20 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20.Call)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" class=\"hidden px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide\">Test</button> ")
+			var templ_7745c5c3_Var19 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Test endpoint\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm-1.445-10.832A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg></button> <a id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var20 string
+			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("build-status-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 297, Col: 36}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" href=\"#\" target=\"_blank\" rel=\"noopener\" class=\"hidden px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition\">Build</a> <span id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var21 string
+			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("build-step-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 306, Col: 34}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" class=\"hidden text-[10px] text-neutral-500 font-mono\"></span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openTestModalForEndpoint(ep.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<button id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var22 string
+			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 310, Col: 32}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var23 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" class=\"hidden px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide\">Test</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -476,65 +516,65 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var21 templ.ComponentScript = toggleManageEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21.Call)
+			var templ_7745c5c3_Var24 templ.ComponentScript = toggleManageEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" class=\"p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Endpoint settings\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z\"></path></svg></button></div></div><!-- MANAGE COLLAPSIBLE --><div id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" class=\"p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Endpoint settings\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z\"></path></svg></button></div></div><!-- MANAGE COLLAPSIBLE --><div id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var22 string
-			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("endpoint-" + ep.ID)
+			var templ_7745c5c3_Var25 string
+			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("endpoint-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 326, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 329, Col: 34}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" class=\"hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200\"><!-- HIDDEN INPUTS FOR FORM STATE --><input type=\"hidden\" id=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var23 string
-			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("selected-method-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 328, Col: 58}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" class=\"hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200\"><!-- HIDDEN INPUTS FOR FORM STATE --><input type=\"hidden\" id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" value=\"")
+			var templ_7745c5c3_Var26 string
+			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("selected-method-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 331, Col: 58}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var24 string
-			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 328, Col: 78}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\"><!-- METHOD SELECTOR --><div><h4 class=\"text-white font-semibold mb-2\">HTTP Method</h4>")
+			var templ_7745c5c3_Var27 string
+			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 331, Col: 78}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\"><!-- METHOD SELECTOR --><div><h4 class=\"text-white font-semibold mb-2\">HTTP Method</h4>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if ep.IsAsync {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<div class=\"inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-cyan-700/60 bg-cyan-700/15 text-cyan-300 text-xs font-semibold tracking-wide\">WebSocket (GET)</div><p class=\"text-neutral-500 text-xs mt-2\">Method selection is disabled for async endpoints.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div class=\"inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-cyan-700/60 bg-cyan-700/15 text-cyan-300 text-xs font-semibold tracking-wide\">WebSocket (GET)</div><p class=\"text-neutral-500 text-xs mt-2\">Method selection is disabled for async endpoints.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"flex gap-2 flex-wrap\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"flex gap-2 flex-wrap\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -544,52 +584,7 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<button onclick=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var25 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25.Call)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" id=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var26 string
-						templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 343, Col: 44}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var27 string
-						templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(
-							m)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 347, Col: 16}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</button>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else {
-						templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<button onclick=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<button onclick=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -598,20 +593,20 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\" id=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" id=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var29 string
 						templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 352, Col: 44}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 346, Col: 44}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -619,24 +614,69 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(
 							m)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 356, Col: 16}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 350, Col: 16}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</button>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</button>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<button onclick=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var31 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31.Call)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\" id=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var32 string
+						templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 355, Col: 44}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var33 string
+						templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(
+							m)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 359, Col: 16}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</button>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</div><!-- GATEWAY SELECTION --><div><h4 class=\"text-white font-semibold mb-2\">Gateway</h4><p class=\"text-neutral-500 text-sm mb-3\">Choose which gateway handles this route.</p><div class=\"grid grid-cols-2 md:grid-cols-4 gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div><!-- GATEWAY SELECTION --><div><h4 class=\"text-white font-semibold mb-2\">Gateway</h4><p class=\"text-neutral-500 text-sm mb-3\">Choose which gateway handles this route.</p><div class=\"grid grid-cols-2 md:grid-cols-4 gap-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -644,42 +684,12 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<button onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var31 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "liteginx")
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var32 string
-			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-liteginx-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 370, Col: 41}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Liteginx</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Small + fast</p></button> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "nginx"))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var33 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "nginx")
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var33.Call)
+			var templ_7745c5c3_Var34 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "liteginx")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var34.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -687,20 +697,20 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var34 string
-			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-nginx-" + ep.ID)
+			var templ_7745c5c3_Var35 string
+			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-liteginx-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 378, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 373, Col: 41}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Nginx</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Industry standard</p></button> ")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "envoy"))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Liteginx</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Small + fast</p></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "nginx"))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -708,8 +718,8 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var35 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "envoy")
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35.Call)
+			var templ_7745c5c3_Var36 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "nginx")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -717,20 +727,20 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var36 string
-			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-envoy-" + ep.ID)
+			var templ_7745c5c3_Var37 string
+			templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-nginx-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 386, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 381, Col: 38}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Envoy</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Modern proxy</p></button> ")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "traefik"))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Nginx</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Industry standard</p></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "envoy"))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -738,8 +748,8 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var37 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "traefik")
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var37.Call)
+			var templ_7745c5c3_Var38 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "envoy")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var38.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -747,68 +757,98 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var38 string
-			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-traefik-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 394, Col: 40}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Traefik</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Dynamic routing</p></button></div></div><!-- RATE LIMITING --><div><h4 class=\"text-white font-semibold mb-2\">Rate Limiting</h4><p class=\"text-neutral-500 text-sm mb-3\">Protect the endpoint with simple throttling.</p><div class=\"flex items-center gap-3\"><input type=\"number\" min=\"1\" id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
 			var templ_7745c5c3_Var39 string
-			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs("rl-" + ep.ID)
+			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-envoy-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 410, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 389, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition\" placeholder=\"req/min\"> <button class=\"bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20\">Save</button></div></div><!-- AUTH CONTROLS --><div><h4 class=\"text-white font-semibold mb-2\">Authentication</h4><select id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Envoy</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Modern proxy</p></button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var40 string
-			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs("auth-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 425, Col: 28}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectGatewayForEndpoint(ep.ID, "traefik"))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\" class=\"bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<button onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var40 templ.ComponentScript = selectGatewayForEndpoint(ep.ID, "traefik")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var41 string
+			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs("gateway-traefik-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 397, Col: 40}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "\" class=\"p-3 rounded-xl border border-neutral-800 hover:border-neutral-600 hover:bg-[#151516] transition text-left\"><p class=\"text-white text-sm font-semibold\">Traefik</p><p class=\"text-neutral-500 text-[10px] mt-0.5\">Dynamic routing</p></button></div></div><!-- RATE LIMITING --><div><h4 class=\"text-white font-semibold mb-2\">Rate Limiting</h4><p class=\"text-neutral-500 text-sm mb-3\">Protect the endpoint with simple throttling.</p><div class=\"flex items-center gap-3\"><input type=\"number\" min=\"1\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var42 string
+			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs("rl-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 413, Col: 27}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\" class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition\" placeholder=\"req/min\"> <button class=\"bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20\">Save</button></div></div><!-- AUTH CONTROLS --><div><h4 class=\"text-white font-semibold mb-2\">Authentication</h4><select id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var43 string
+			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs("auth-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 428, Col: 28}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "\" class=\"bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if ep.Scope == "public" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<option selected>No Auth</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<option selected>No Auth</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<option>No Auth</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<option>No Auth</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if ep.Scope == "authn" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<option selected>API Key (LWS Auth)</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<option selected>API Key (LWS Auth)</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<option>API Key (LWS Auth)</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<option>API Key (LWS Auth)</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<option>JWT</option> <option>Session</option></select></div><!-- SAVE BUTTON --><div class=\"pt-4 border-t border-neutral-800/50 flex justify-end\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<option>JWT</option> <option>Session</option></select></div><!-- SAVE BUTTON --><div class=\"pt-4 border-t border-neutral-800/50 flex justify-end\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -816,21 +856,21 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var41 templ.ComponentScript = saveEndpointSettings(ep.ID, ep.Scope)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var41.Call)
+			var templ_7745c5c3_Var44 templ.ComponentScript = saveEndpointSettings(ep.ID, ep.Scope)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var44.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"></path></svg> Save Changes</button></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"></path></svg> Save Changes</button></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</div><!-- TEST MODAL --><div id=\"test-modal\" class=\"hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4\" onclick=\"closeTestModal()\"><div class=\"w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl\" onclick=\"event.stopPropagation()\"><!-- MODAL HEADER --><div class=\"flex items-center justify-between p-4 border-b border-neutral-800\"><div class=\"flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-blue-500\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg></div><button onclick=\"closeTestModal()\" class=\"p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- MODAL CONTENT --><div class=\"flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden\"><!-- LEFT COLUMN: SETTINGS --><div class=\"p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50\"><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Endpoint</label> <select id=\"test-endpoint-select\" class=\"w-full bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\"></select></div><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Headers</label><div class=\"space-y-2\"><div class=\"grid grid-cols-2 gap-2 text-[10px] text-neutral-600 uppercase tracking-wider\"><span>Key</span> <span>Value</span></div><div id=\"test-headers-list\" class=\"space-y-2\"></div><button onclick=\"addHeaderRow('', '')\" class=\"w-full px-3 py-2 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold\">+ Add Header</button></div></div></div><!-- RIGHT COLUMN: BODY & RESPONSE --><div class=\"lg:col-span-2 flex flex-col h-full overflow-hidden\"><!-- REQUEST BODY --><div class=\"flex-1 p-4 border-b border-neutral-800 flex flex-col min-h-0\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Request Body</label><div class=\"flex items-center gap-2\"><select id=\"test-method-select\" class=\"bg-[#151516] border border-neutral-800 text-white rounded px-2 py-1 text-xs outline-none focus:border-blue-500\"><option value=\"GET\">GET</option> <option value=\"POST\">POST</option> <option value=\"PUT\">PUT</option> <option value=\"PATCH\">PATCH</option> <option value=\"DELETE\">DELETE</option></select> <span class=\"text-[10px] text-neutral-600 font-mono\">JSON</span> <button onclick=\"runEndpointTest()\" class=\"px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/10\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg> Send Request</button></div></div><div id=\"test-body-ace\" class=\"w-full flex-1 rounded-lg border border-neutral-800\"></div><textarea id=\"test-body\" class=\"hidden\" placeholder='{&#10;  \"key\": \"value\"&#10;}'></textarea></div><!-- RESPONSE --><div class=\"flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Response</label><div id=\"test-status\" class=\"text-xs font-mono font-bold text-neutral-400 bg-neutral-900 px-2 py-1 rounded\">Waiting...</div></div><textarea id=\"test-response\" class=\"w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs outline-none resize-none\" readonly placeholder=\"Response will appear here...\"></textarea></div></div></div></div></div><script>\n    document.addEventListener('DOMContentLoaded', function () {\n      const params = new URLSearchParams(window.location.search);\n      const expandId = params.get('expand');\n      if (expandId) {\n        document.querySelectorAll('[id^=\"endpoint-\"]').forEach(el => el.classList.add('hidden'));\n        let target = document.getElementById(\"endpoint-\" + expandId);\n        if (target) {\n          target.classList.remove('hidden');\n          setTimeout(() => target.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);\n        }\n      }\n    });\n  </script><script>\n    (function () {\n      const cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n      const loadAce = (cb) => {\n        if (window.ace) return cb();\n        const s1 = document.createElement(\"script\");\n        s1.src = cdn + \"ace.js\";\n        s1.onload = () => {\n          ace.config.set(\"basePath\", cdn);\n          ace.config.set(\"modePath\", cdn);\n          ace.config.set(\"themePath\", cdn);\n          cb();\n        };\n        document.head.appendChild(s1);\n      };\n\n      function initTestBodyEditor() {\n        if (window.__testBodyEditor || !window.ace) return;\n        const el = document.getElementById(\"test-body-ace\");\n        if (!el) return;\n        window.__testBodyEditor = ace.edit(el);\n        window.__testBodyEditor.setTheme(\"ace/theme/dracula\");\n        window.__testBodyEditor.session.setMode(\"ace/mode/json\");\n        window.__testBodyEditor.setValue('{\\n  \"key\": \"value\"\\n}', -1);\n        window.__testBodyEditor.session.setUseWorker(false);\n      }\n\n      window.__initTestBodyEditor = initTestBodyEditor;\n\n      document.addEventListener(\"DOMContentLoaded\", () => {\n        const list = document.getElementById(\"test-headers-list\");\n        if (list && list.children.length === 0) {\n          addHeaderRow(\"Content-Type\", \"application/json\");\n          addHeaderRow(\"Authorization\", \"Bearer ...\");\n        }\n        loadAce(initTestBodyEditor);\n      });\n    })();\n  </script><script>\n    window.ensureTestModalOptions = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      if (!select) return null;\n      let list = [];\n      if (window.__endpointList && window.__endpointList.length > 0) {\n        list = window.__endpointList;\n      } else {\n        list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n          id: el.dataset.endpointId,\n          name: el.dataset.endpointName,\n          method: el.dataset.endpointMethod,\n        }));\n      }\n      if (list.length > 0 && select.options.length === 0) {\n        list.forEach(ep => {\n          const opt = document.createElement(\"option\");\n          opt.value = ep.id;\n          opt.textContent = `${ep.method} ${ep.name}`;\n          select.appendChild(opt);\n        });\n      }\n      return select;\n    };\n\n    window.openTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (!modal) return;\n      modal.classList.remove(\"hidden\");\n      const select = window.ensureTestModalOptions();\n      if (select) select.dispatchEvent(new Event(\"change\"));\n      if (window.__initTestBodyEditor) window.__initTestBodyEditor();\n      if (window.__testBodyEditor) setTimeout(() => window.__testBodyEditor.resize(), 60);\n    };\n\n    window.openTestModalForEndpoint = function (id) {\n      window.openTestModal();\n      const select = window.ensureTestModalOptions();\n      if (!select) return;\n      select.value = id;\n      select.dispatchEvent(new Event(\"change\"));\n    };\n\n    window.closeTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (modal) modal.classList.add(\"hidden\");\n    };\n\n    window.addHeaderRow = function (key, val) {\n      const list = document.getElementById(\"test-headers-list\");\n      if (!list) return;\n      const row = document.createElement(\"div\");\n      row.className = \"header-row flex items-center gap-2\";\n      row.innerHTML = `\n\t\t\t\t\t<input class=\"header-key flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Header\" value=\"${key || \"\"}\">\n\t\t\t\t\t<span class=\"text-neutral-600 text-xs\">:</span>\n\t\t\t\t\t<input class=\"header-val flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Value\" value=\"${val || \"\"}\">\n\t\t\t\t\t<button class=\"remove-header px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition\" title=\"Remove header\">\n\t\t\t\t\t\t<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n\t\t\t\t\t\t\t<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\" />\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</button>\n\t\t\t\t`;\n      row.querySelector(\".remove-header\")?.addEventListener(\"click\", () => {\n        row.remove();\n        if (list.querySelectorAll(\".header-row\").length === 0) {\n          window.addHeaderRow(\"\", \"\");\n        }\n      });\n      list.appendChild(row);\n    };\n\n    window.getHeadersFromUI = function () {\n      const headers = {};\n      document.querySelectorAll(\"#test-headers-list .header-row\").forEach(row => {\n        const key = row.querySelector(\".header-key\")?.value?.trim();\n        const val = row.querySelector(\".header-val\")?.value?.trim();\n        if (key) headers[key] = val || \"\";\n      });\n      return headers;\n    };\n\n    window.runEndpointTest = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      const epId = select?.value;\n      if (!epId) return;\n      const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n        ? window.__endpointList\n        : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n      const endpoint = endpointList.find(ep => ep.id === epId);\n      if (!endpoint || !endpoint.name) return;\n\n      const methodSelect = document.getElementById(\"test-method-select\");\n      const methodInput = document.getElementById(\"selected-method-\" + epId);\n      let method = String(methodSelect?.value || methodInput?.value || endpoint.method || \"GET\").toUpperCase();\n      \n      const url = `/lambda${endpoint.name}`;\n      const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById(\"test-body\")?.value || \"\");\n      const headers = window.getHeadersFromUI();\n\n      const resEl = document.getElementById(\"test-response\");\n      const statusEl = document.getElementById(\"test-status\");\n      if (resEl) resEl.value = \"Sending...\";\n      if (statusEl) statusEl.textContent = \"\";\n\n      (async () => {\n        try {\n          const request = { method, headers };\n          if (bodyRaw.trim() !== \"\") {\n            request.body = bodyRaw;\n          }\n          const resp = await fetch(url, request);\n          const contentType = resp.headers.get(\"Content-Type\") || \"\";\n          const textBody = await resp.text();\n          if (statusEl) statusEl.textContent = `Status: ${resp.status}`;\n\n          let bodyStr = textBody || \"\";\n          if (contentType.includes(\"application/json\")) {\n            try {\n              const jsonBody = JSON.parse(bodyStr);\n              bodyStr = JSON.stringify(jsonBody, null, 2);\n            } catch (e) { }\n          }\n\n          if (resEl) resEl.value = bodyStr;\n        } catch (e) {\n          if (statusEl) statusEl.textContent = \"Status: error\";\n          if (resEl) resEl.value = String(e);\n        }\n      })();\n    };\n  </script><script>\n    (function () {\n      function ensureWsModalOptions() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        if (!select) return null;\n        let list = [];\n        if (window.__endpointList && window.__endpointList.length > 0) {\n          list = window.__endpointList;\n        } else {\n          list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        }\n        if (list.length > 0 && select.options.length === 0) {\n          list.forEach(ep => {\n            const opt = document.createElement(\"option\");\n            opt.value = ep.id;\n            opt.textContent = `${ep.method} ${ep.name}`;\n            select.appendChild(opt);\n          });\n        }\n        return select;\n      }\n\n      function wsBaseUrl() {\n        const proto = window.location.protocol === \"https:\" ? \"wss:\" : \"ws:\";\n        return proto + \"//\" + window.location.host;\n      }\n\n      function toWsPath(path) {\n        if (!path) return \"\";\n        if (path.startsWith(\"/lambda/ws/\")) return path;\n        if (path.startsWith(\"/lambda/\")) {\n          return \"/lambda/ws/\" + path.replace(\"/lambda/\", \"\");\n        }\n        if (path.startsWith(\"/\")) return \"/lambda/ws\" + path;\n        return \"/lambda/ws/\" + path;\n      }\n\n      function setWsUrl() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        const urlEl = document.getElementById(\"ws-url\");\n        if (!select || !urlEl) return;\n        const epId = select.value;\n        const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n          ? window.__endpointList\n          : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n              id: el.dataset.endpointId,\n              name: el.dataset.endpointName,\n              method: el.dataset.endpointMethod,\n            }));\n        const endpoint = endpointList.find(ep => ep.id === epId);\n        const path = endpoint?.name || \"\";\n        const wsUrl = wsBaseUrl() + toWsPath(path);\n        urlEl.value = wsUrl;\n      }\n\n      function setWsStatus(text, cls) {\n        const el = document.getElementById(\"ws-status\");\n        if (!el) return;\n        el.textContent = text;\n        el.className = \"text-xs font-mono bg-neutral-900 px-2 py-1 rounded \" + (cls || \"text-neutral-400\");\n      }\n\n      function logWsMessage(kind, payload) {\n        const log = document.getElementById(\"ws-log\");\n        if (!log) return;\n        const ts = new Date().toLocaleTimeString();\n        const color = kind === \"sent\" ? \"text-cyan-300\" : (kind === \"recv\" ? \"text-green-400\" : \"text-yellow-400\");\n        const line = document.createElement(\"div\");\n        line.className = \"mb-2\";\n        line.innerHTML = `<span class=\"text-neutral-500\">[${ts}]</span> <span class=\"${color}\">${kind.toUpperCase()}</span> <span class=\"text-neutral-300\">•</span> <span class=\"text-neutral-200 whitespace-pre-wrap break-words\"></span>`;\n        line.querySelector(\"span:last-child\").textContent = payload;\n        log.appendChild(line);\n        log.scrollTop = log.scrollHeight;\n      }\n\n      function closeWs() {\n        if (window.__wsConn) {\n          try { window.__wsConn.close(); } catch (e) {}\n          window.__wsConn = null;\n        }\n      }\n\n      window.openWsTestModal = function () {\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (!modal) return;\n        modal.classList.remove(\"hidden\");\n        const select = ensureWsModalOptions();\n        if (select) {\n          select.removeEventListener(\"change\", setWsUrl);\n          select.addEventListener(\"change\", setWsUrl);\n          setWsUrl();\n        }\n      };\n\n      window.openWsTestModalForEndpoint = function (id) {\n        window.openWsTestModal();\n        const select = ensureWsModalOptions();\n        if (!select) return;\n        select.value = id;\n        setWsUrl();\n      };\n\n      window.closeWsTestModal = function () {\n        closeWs();\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (modal) modal.classList.add(\"hidden\");\n        setWsStatus(\"Disconnected\");\n      };\n\n      window.copyWsUrl = function () {\n        const url = document.getElementById(\"ws-url\")?.value || \"\";\n        if (!url) return;\n        navigator.clipboard.writeText(url);\n      };\n\n      window.connectWs = function () {\n        const url = document.getElementById(\"ws-url\")?.value;\n        if (!url) return;\n        closeWs();\n        setWsStatus(\"Connecting...\", \"text-cyan-300\");\n        try {\n          const ws = new WebSocket(url);\n          ws.binaryType = \"arraybuffer\";\n          ws.onopen = () => setWsStatus(\"Connected\", \"text-green-400\");\n          ws.onclose = () => setWsStatus(\"Disconnected\", \"text-neutral-400\");\n          ws.onerror = () => setWsStatus(\"Error\", \"text-red-400\");\n          ws.onmessage = (ev) => {\n            if (typeof ev.data === \"string\") {\n              logWsMessage(\"recv\", ev.data);\n            } else {\n              const view = new Uint8Array(ev.data);\n              const text = new TextDecoder().decode(view);\n              logWsMessage(\"recv\", text || \"[binary]\");\n            }\n          };\n          window.__wsConn = ws;\n        } catch (e) {\n          setWsStatus(\"Error\", \"text-red-400\");\n          logWsMessage(\"info\", String(e));\n        }\n      };\n\n      window.disconnectWs = function () {\n        closeWs();\n        setWsStatus(\"Disconnected\", \"text-neutral-400\");\n      };\n\n      window.sendWsMessage = function () {\n        const ws = window.__wsConn;\n        const msg = document.getElementById(\"ws-message\")?.value || \"\";\n        if (!ws || ws.readyState !== WebSocket.OPEN) {\n          logWsMessage(\"info\", \"Not connected.\");\n          return;\n        }\n        ws.send(msg);\n        logWsMessage(\"sent\", msg);\n      };\n\n      window.clearWsLog = function () {\n        const log = document.getElementById(\"ws-log\");\n        if (log) log.innerHTML = \"\";\n      };\n    })();\n  </script><script>\n    (function () {\n      function isInProgress(run) {\n        if (!run) return false;\n        const rawStatus = run.status || run.Status;\n        if (!rawStatus) return false;\n        const status = String(rawStatus).toLowerCase();\n        return status === \"in_progress\" || status === \"queued\" || status === \"waiting\" || status === \"running\";\n      }\n\n      function getRuns(progress) {\n        if (!progress) return [];\n        if (Array.isArray(progress.Runs)) return progress.Runs;\n        if (Array.isArray(progress.runs)) return progress.runs;\n        return [];\n      }\n\n      function pickActiveRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || null;\n      }\n\n      function pickDisplayRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || runs[0];\n      }\n\n      function normalizeName(val) {\n        return String(val || \"\").trim().toLowerCase();\n      }\n\n      function getRunName(run) {\n        return normalizeName(run?.FunctionName || run?.function_name || run?.WorkflowName || run?.workflow_name || run?.Name || run?.name || \"\");\n      }\n\n      function extractFunctionName(run) {\n        const title = String(run?.DisplayTitle || run?.display_title || \"\").toLowerCase();\n        if (!title) return \"\";\n        const m = title.match(/functions\\/(?:go|rs|rust|py|python|js|javascript|lua)\\/([^.\\s\\/]+)\\./);\n        return m ? m[1] : \"\";\n      }\n\n      function pickRunForFunction(runs, functionName) {\n        const target = normalizeName(functionName);\n        if (!target) return null;\n        const matching = runs.filter(r => {\n          const byName = getRunName(r) === target;\n          const byDisplay = extractFunctionName(r) === target;\n          return byName || byDisplay;\n        });\n        if (!matching.length) return null;\n        return matching.find(isInProgress) || matching[0];\n      }\n\n      function normalizeStatus(run) {\n        if (!run) return \"\";\n        const status = String(run.status || run.Status || \"\").toLowerCase();\n        const conclusion = String(run.conclusion || run.Conclusion || \"\").toLowerCase();\n        return { status, conclusion };\n      }\n\n      function statusClass(status, conclusion, running) {\n        if (running) {\n          return \"border-[#6b3f17] bg-[#4a2a0c]/40 text-[#e5b07b] hover:bg-[#4a2a0c]/60\";\n        }\n        if (conclusion === \"success\" || status === \"success\") {\n          return \"border-green-700/60 bg-green-700/15 text-green-300 hover:bg-green-700/30\";\n        }\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n            [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return \"border-red-700/60 bg-red-700/15 text-red-300 hover:bg-red-700/30\";\n        }\n        return \"border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:bg-neutral-800\";\n      }\n\n      function statusLabel(run, running) {\n        const name = run?.Name || run?.name || \"Build\";\n        if (running) return `Running: ${name}`;\n        const { status, conclusion } = normalizeStatus(run);\n        if (conclusion === \"success\" || status === \"success\") return `Success: ${name}`;\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n            [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return `Failed: ${name}`;\n        }\n        if (status) return `${status}: ${name}`;\n        return name;\n      }\n\n      function updateBuildButtons(progress) {\n        const runs = getRuns(progress);\n        document.querySelectorAll(\"[data-endpoint-id]\").forEach(card => {\n          const endpointId = card.getAttribute(\"data-endpoint-id\");\n          const fnName = card.getAttribute(\"data-endpoint-function\");\n          const isAsync = card.getAttribute(\"data-endpoint-async\") === \"true\";\n          const buildLink = document.getElementById(`build-status-${endpointId}`);\n          const stepLabel = document.getElementById(`build-step-${endpointId}`);\n          const testBtn = document.getElementById(`test-btn-${endpointId}`);\n          const wsTestBtn = document.getElementById(`ws-test-btn-${endpointId}`);\n          if (!buildLink) return;\n\n          const display = pickRunForFunction(runs, fnName);\n          const running = display ? isInProgress(display) : false;\n          const url = (display && (display.HTMLURL || display.htmlurl)) || \"\";\n          const cls = statusClass(\n            display?.status || display?.Status,\n            display?.conclusion || display?.Conclusion,\n            running\n          );\n          const label = display ? statusLabel(display, running) : \"No Actions\";\n          const jobName = display?.CurrentJob || display?.current_job || \"\";\n          const stepName = display?.CurrentStep || display?.current_step || \"\";\n          const stepText = stepName ? (jobName ? `${jobName} • ${stepName}` : stepName) : jobName;\n\n          if (url) {\n            buildLink.setAttribute(\"href\", url);\n            buildLink.classList.remove(\"pointer-events-none\", \"opacity-70\");\n          } else {\n            buildLink.setAttribute(\"href\", \"#\");\n            buildLink.classList.add(\"pointer-events-none\", \"opacity-70\");\n          }\n          buildLink.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;\n          buildLink.textContent = label;\n          buildLink.classList.remove(\"hidden\");\n          if (stepLabel) {\n            if (stepText) {\n              stepLabel.textContent = `Step: ${stepText}`;\n              stepLabel.classList.remove(\"hidden\");\n            } else {\n              stepLabel.textContent = \"\";\n              stepLabel.classList.add(\"hidden\");\n            }\n          }\n\n          if (isAsync) {\n            if (wsTestBtn) wsTestBtn.classList.remove(\"hidden\");\n            if (testBtn) testBtn.classList.add(\"hidden\");\n          } else {\n            if (wsTestBtn) wsTestBtn.classList.add(\"hidden\");\n            if (testBtn) {\n              const showTest = !running;\n              if (showTest) testBtn.classList.remove(\"hidden\");\n              else testBtn.classList.add(\"hidden\");\n            }\n          }\n        });\n      }\n\n      function startActionsSSE() {\n        if (!window.EventSource) return;\n        const es = new EventSource(\"/api/actions/status/\");\n        es.addEventListener(\"status\", (ev) => {\n          try {\n            const data = JSON.parse(ev.data || \"{}\");\n            updateBuildButtons(data);\n          } catch (e) {\n            // ignore malformed payloads\n          }\n        });\n        es.addEventListener(\"error\", () => {\n          // keep UI usable if stream drops\n          updateBuildButtons(null);\n        });\n      }\n\n      document.addEventListener(\"DOMContentLoaded\", startActionsSSE);\n    })();\n  </script><script>\n    // Provide a global method selector for DOMContentLoaded initialization.\n    // templ component scripts are scoped, so we expose a stable name here.\n    window.selectMethodForEndpoint = function (id, method) {\n      const methodStyles = {\n        GET: [\"border-blue-500\", \"bg-blue-500/20\", \"text-blue-400\"],\n        POST: [\"border-green-500\", \"bg-green-500/20\", \"text-green-400\"],\n        PUT: [\"border-yellow-500\", \"bg-yellow-500/20\", \"text-yellow-400\"],\n        PATCH: [\"border-purple-500\", \"bg-purple-500/20\", \"text-purple-400\"],\n        DELETE: [\"border-red-500\", \"bg-red-500/20\", \"text-red-400\"]\n      };\n      const allMethodClasses = [\n        \"border-blue-500\",\"bg-blue-500/20\",\"text-blue-400\",\n        \"border-green-500\",\"bg-green-500/20\",\"text-green-400\",\n        \"border-yellow-500\",\"bg-yellow-500/20\",\"text-yellow-400\",\n        \"border-purple-500\",\"bg-purple-500/20\",\"text-purple-400\",\n        \"border-red-500\",\"bg-red-500/20\",\"text-red-400\"\n      ];\n      const neutralClasses = [\"border-neutral-700\", \"text-neutral-400\"];\n      [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\"].forEach(m => {\n        const btn = document.getElementById(\"method-\" + m + \"-\" + id);\n        if (btn) {\n          btn.classList.remove(...allMethodClasses);\n          btn.classList.remove(...neutralClasses);\n          btn.classList.add(...neutralClasses);\n        }\n      });\n      const selected = document.getElementById(\"method-\" + method + \"-\" + id);\n      if (selected) {\n        selected.classList.remove(...neutralClasses);\n        const style = methodStyles[method] || methodStyles.GET;\n        selected.classList.add(...style);\n      }\n      const input = document.getElementById(\"selected-method-\" + id);\n      if (input) input.value = method;\n    };\n  </script><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n      document.querySelectorAll('input[id^=\"selected-method-\"]').forEach(el => {\n        const id = el.id.replace(\"selected-method-\", \"\");\n        const method = el.value || \"GET\";\n        selectMethodForEndpoint(id, method);\n      });\n    });\n  </script><style>\n    .ace_editor,\n    .ace_scroller,\n    .ace_content {\n      background: #0b0b0c !important;\n      color: #eee !important;\n    }\n  </style></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</div><!-- TEST MODAL --><div id=\"test-modal\" class=\"hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4\" onclick=\"closeTestModal()\"><div class=\"w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl\" onclick=\"event.stopPropagation()\"><!-- MODAL HEADER --><div class=\"flex items-center justify-between p-4 border-b border-neutral-800\"><div class=\"flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-blue-500\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg></div><button onclick=\"closeTestModal()\" class=\"p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- MODAL CONTENT --><div class=\"flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden\"><!-- LEFT COLUMN: SETTINGS --><div class=\"p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50\"><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Endpoint</label> <select id=\"test-endpoint-select\" class=\"w-full bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\"></select></div><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Headers</label><div class=\"space-y-2\"><div class=\"grid grid-cols-2 gap-2 text-[10px] text-neutral-600 uppercase tracking-wider\"><span>Key</span> <span>Value</span></div><div id=\"test-headers-list\" class=\"space-y-2\"></div><button onclick=\"addHeaderRow('', '')\" class=\"w-full px-3 py-2 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold\">+ Add Header</button></div></div></div><!-- RIGHT COLUMN: BODY & RESPONSE --><div class=\"lg:col-span-2 flex flex-col h-full overflow-hidden\"><!-- REQUEST BODY --><div class=\"flex-1 p-4 border-b border-neutral-800 flex flex-col min-h-0\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Request Body</label><div class=\"flex items-center gap-2\"><select id=\"test-method-select\" class=\"bg-[#151516] border border-neutral-800 text-white rounded px-2 py-1 text-xs outline-none focus:border-blue-500\"><option value=\"GET\">GET</option> <option value=\"POST\">POST</option> <option value=\"PUT\">PUT</option> <option value=\"PATCH\">PATCH</option> <option value=\"DELETE\">DELETE</option></select> <span class=\"text-[10px] text-neutral-600 font-mono\">JSON</span> <button onclick=\"runEndpointTest()\" class=\"px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/10\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg> Send Request</button></div></div><div id=\"test-body-ace\" class=\"w-full flex-1 rounded-lg border border-neutral-800\"></div><textarea id=\"test-body\" class=\"hidden\" placeholder='{&#10;  \"key\": \"value\"&#10;}'></textarea></div><!-- RESPONSE --><div class=\"flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Response</label><div id=\"test-status\" class=\"text-xs font-mono font-bold text-neutral-400 bg-neutral-900 px-2 py-1 rounded\">Waiting...</div></div><textarea id=\"test-response\" class=\"w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs outline-none resize-none\" readonly placeholder=\"Response will appear here...\"></textarea></div></div></div></div></div><script>\n    document.addEventListener('DOMContentLoaded', function () {\n      const params = new URLSearchParams(window.location.search);\n      const expandId = params.get('expand');\n      if (expandId) {\n        document.querySelectorAll('[id^=\"endpoint-\"]').forEach(el => el.classList.add('hidden'));\n        let target = document.getElementById(\"endpoint-\" + expandId);\n        if (target) {\n          target.classList.remove('hidden');\n          setTimeout(() => target.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);\n        }\n      }\n    });\n  </script><script>\n    (function () {\n      const cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n      const loadAce = (cb) => {\n        if (window.ace) return cb();\n        const s1 = document.createElement(\"script\");\n        s1.src = cdn + \"ace.js\";\n        s1.onload = () => {\n          ace.config.set(\"basePath\", cdn);\n          ace.config.set(\"modePath\", cdn);\n          ace.config.set(\"themePath\", cdn);\n          cb();\n        };\n        document.head.appendChild(s1);\n      };\n\n      function initTestBodyEditor() {\n        if (window.__testBodyEditor || !window.ace) return;\n        const el = document.getElementById(\"test-body-ace\");\n        if (!el) return;\n        window.__testBodyEditor = ace.edit(el);\n        window.__testBodyEditor.setTheme(\"ace/theme/dracula\");\n        window.__testBodyEditor.session.setMode(\"ace/mode/json\");\n        window.__testBodyEditor.setValue('{\\n  \"key\": \"value\"\\n}', -1);\n        window.__testBodyEditor.session.setUseWorker(false);\n      }\n\n      window.__initTestBodyEditor = initTestBodyEditor;\n\n      document.addEventListener(\"DOMContentLoaded\", () => {\n        const list = document.getElementById(\"test-headers-list\");\n        if (list && list.children.length === 0) {\n          addHeaderRow(\"Content-Type\", \"application/json\");\n          addHeaderRow(\"Authorization\", \"Bearer ...\");\n        }\n        loadAce(initTestBodyEditor);\n      });\n    })();\n  </script><script>\n    window.ensureTestModalOptions = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      if (!select) return null;\n      let list = [];\n      if (window.__endpointList && window.__endpointList.length > 0) {\n        list = window.__endpointList;\n      } else {\n        list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n          id: el.dataset.endpointId,\n          name: el.dataset.endpointName,\n          method: el.dataset.endpointMethod,\n        }));\n      }\n      if (list.length > 0 && select.options.length === 0) {\n        list.forEach(ep => {\n          const opt = document.createElement(\"option\");\n          opt.value = ep.id;\n          opt.textContent = `${ep.method} ${ep.name}`;\n          select.appendChild(opt);\n        });\n      }\n      return select;\n    };\n\n    window.openTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (!modal) return;\n      modal.classList.remove(\"hidden\");\n      const select = window.ensureTestModalOptions();\n      if (select) select.dispatchEvent(new Event(\"change\"));\n      if (window.__initTestBodyEditor) window.__initTestBodyEditor();\n      if (window.__testBodyEditor) setTimeout(() => window.__testBodyEditor.resize(), 60);\n    };\n\n    window.openTestModalForEndpoint = function (id) {\n      window.openTestModal();\n      const select = window.ensureTestModalOptions();\n      if (!select) return;\n      select.value = id;\n      select.dispatchEvent(new Event(\"change\"));\n    };\n\n    window.closeTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (modal) modal.classList.add(\"hidden\");\n    };\n\n    window.addHeaderRow = function (key, val) {\n      const list = document.getElementById(\"test-headers-list\");\n      if (!list) return;\n      const row = document.createElement(\"div\");\n      row.className = \"header-row flex items-center gap-2\";\n      row.innerHTML = `\n\t\t\t\t\t<input class=\"header-key flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Header\" value=\"${key || \"\"}\">\n\t\t\t\t\t<span class=\"text-neutral-600 text-xs\">:</span>\n\t\t\t\t\t<input class=\"header-val flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Value\" value=\"${val || \"\"}\">\n\t\t\t\t\t<button class=\"remove-header px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition\" title=\"Remove header\">\n\t\t\t\t\t\t<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n\t\t\t\t\t\t\t<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\" />\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</button>\n\t\t\t\t`;\n      row.querySelector(\".remove-header\")?.addEventListener(\"click\", () => {\n        row.remove();\n        if (list.querySelectorAll(\".header-row\").length === 0) {\n          window.addHeaderRow(\"\", \"\");\n        }\n      });\n      list.appendChild(row);\n    };\n\n    window.getHeadersFromUI = function () {\n      const headers = {};\n      document.querySelectorAll(\"#test-headers-list .header-row\").forEach(row => {\n        const key = row.querySelector(\".header-key\")?.value?.trim();\n        const val = row.querySelector(\".header-val\")?.value?.trim();\n        if (key) headers[key] = val || \"\";\n      });\n      return headers;\n    };\n\n    window.runEndpointTest = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      const epId = select?.value;\n      if (!epId) return;\n      const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n        ? window.__endpointList\n        : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n      const endpoint = endpointList.find(ep => ep.id === epId);\n      if (!endpoint || !endpoint.name) return;\n\n      const methodSelect = document.getElementById(\"test-method-select\");\n      const methodInput = document.getElementById(\"selected-method-\" + epId);\n      let method = String(methodSelect?.value || methodInput?.value || endpoint.method || \"GET\").toUpperCase();\n      \n      const url = `/lambda${endpoint.name}`;\n      const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById(\"test-body\")?.value || \"\");\n      const headers = window.getHeadersFromUI();\n\n      const resEl = document.getElementById(\"test-response\");\n      const statusEl = document.getElementById(\"test-status\");\n      if (resEl) resEl.value = \"Sending...\";\n      if (statusEl) statusEl.textContent = \"\";\n\n      (async () => {\n        try {\n          const request = { method, headers };\n          if (bodyRaw.trim() !== \"\") {\n            request.body = bodyRaw;\n          }\n          const resp = await fetch(url, request);\n          const contentType = resp.headers.get(\"Content-Type\") || \"\";\n          const textBody = await resp.text();\n          if (statusEl) statusEl.textContent = `Status: ${resp.status}`;\n\n          let bodyStr = textBody || \"\";\n          if (contentType.includes(\"application/json\")) {\n            try {\n              const jsonBody = JSON.parse(bodyStr);\n              bodyStr = JSON.stringify(jsonBody, null, 2);\n            } catch (e) { }\n          }\n\n          if (resEl) resEl.value = bodyStr;\n        } catch (e) {\n          if (statusEl) statusEl.textContent = \"Status: error\";\n          if (resEl) resEl.value = String(e);\n        }\n      })();\n    };\n  </script><script>\n    (function () {\n      function ensureWsModalOptions() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        if (!select) return null;\n        let list = [];\n        if (window.__endpointList && window.__endpointList.length > 0) {\n          list = window.__endpointList;\n        } else {\n          list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        }\n        if (list.length > 0 && select.options.length === 0) {\n          list.forEach(ep => {\n            const opt = document.createElement(\"option\");\n            opt.value = ep.id;\n            opt.textContent = `${ep.method} ${ep.name}`;\n            select.appendChild(opt);\n          });\n        }\n        return select;\n      }\n\n      function wsBaseUrl() {\n        const proto = window.location.protocol === \"https:\" ? \"wss:\" : \"ws:\";\n        return proto + \"//\" + window.location.host;\n      }\n\n      function toWsPath(path) {\n        if (!path) return \"\";\n        if (path.startsWith(\"/lambda/ws/\")) return path;\n        if (path.startsWith(\"/lambda/\")) {\n          return \"/lambda/ws/\" + path.replace(\"/lambda/\", \"\");\n        }\n        if (path.startsWith(\"/\")) return \"/lambda/ws\" + path;\n        return \"/lambda/ws/\" + path;\n      }\n\n      function setWsUrl() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        const urlEl = document.getElementById(\"ws-url\");\n        if (!select || !urlEl) return;\n        const epId = select.value;\n        const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n          ? window.__endpointList\n          : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n              id: el.dataset.endpointId,\n              name: el.dataset.endpointName,\n              method: el.dataset.endpointMethod,\n            }));\n        const endpoint = endpointList.find(ep => ep.id === epId);\n        const path = endpoint?.name || \"\";\n        const wsUrl = wsBaseUrl() + toWsPath(path);\n        urlEl.value = wsUrl;\n      }\n\n      function setWsStatus(text, cls) {\n        const el = document.getElementById(\"ws-status\");\n        if (!el) return;\n        el.textContent = text;\n        el.className = \"text-xs font-mono bg-neutral-900 px-2 py-1 rounded \" + (cls || \"text-neutral-400\");\n      }\n\n      function logWsMessage(kind, payload) {\n        const log = document.getElementById(\"ws-log\");\n        if (!log) return;\n        const ts = new Date().toLocaleTimeString();\n        const color = kind === \"sent\" ? \"text-cyan-300\" : (kind === \"recv\" ? \"text-green-400\" : \"text-yellow-400\");\n        const line = document.createElement(\"div\");\n        line.className = \"mb-2\";\n        line.innerHTML = `<span class=\"text-neutral-500\">[${ts}]</span> <span class=\"${color}\">${kind.toUpperCase()}</span> <span class=\"text-neutral-300\">•</span> <span class=\"text-neutral-200 whitespace-pre-wrap break-words\"></span>`;\n        line.querySelector(\"span:last-child\").textContent = payload;\n        log.appendChild(line);\n        log.scrollTop = log.scrollHeight;\n      }\n\n      function closeWs() {\n        if (window.__wsConn) {\n          try { window.__wsConn.close(); } catch (e) {}\n          window.__wsConn = null;\n        }\n      }\n\n      window.openWsTestModal = function () {\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (!modal) return;\n        modal.classList.remove(\"hidden\");\n        const select = ensureWsModalOptions();\n        if (select) {\n          select.removeEventListener(\"change\", setWsUrl);\n          select.addEventListener(\"change\", setWsUrl);\n          setWsUrl();\n        }\n      };\n\n      window.openWsTestModalForEndpoint = function (id) {\n        window.openWsTestModal();\n        const select = ensureWsModalOptions();\n        if (!select) return;\n        select.value = id;\n        setWsUrl();\n      };\n\n      window.closeWsTestModal = function () {\n        closeWs();\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (modal) modal.classList.add(\"hidden\");\n        setWsStatus(\"Disconnected\");\n      };\n\n      window.copyWsUrl = function () {\n        const url = document.getElementById(\"ws-url\")?.value || \"\";\n        if (!url) return;\n        navigator.clipboard.writeText(url);\n      };\n\n      window.connectWs = function () {\n        const url = document.getElementById(\"ws-url\")?.value;\n        if (!url) return;\n        closeWs();\n        setWsStatus(\"Connecting...\", \"text-cyan-300\");\n        try {\n          const ws = new WebSocket(url);\n          ws.binaryType = \"arraybuffer\";\n          ws.onopen = () => setWsStatus(\"Connected\", \"text-green-400\");\n          ws.onclose = () => setWsStatus(\"Disconnected\", \"text-neutral-400\");\n          ws.onerror = () => setWsStatus(\"Error\", \"text-red-400\");\n          ws.onmessage = (ev) => {\n            if (typeof ev.data === \"string\") {\n              logWsMessage(\"recv\", ev.data);\n            } else {\n              const view = new Uint8Array(ev.data);\n              const text = new TextDecoder().decode(view);\n              logWsMessage(\"recv\", text || \"[binary]\");\n            }\n          };\n          window.__wsConn = ws;\n        } catch (e) {\n          setWsStatus(\"Error\", \"text-red-400\");\n          logWsMessage(\"info\", String(e));\n        }\n      };\n\n      window.disconnectWs = function () {\n        closeWs();\n        setWsStatus(\"Disconnected\", \"text-neutral-400\");\n      };\n\n      window.sendWsMessage = function () {\n        const ws = window.__wsConn;\n        const msg = document.getElementById(\"ws-message\")?.value || \"\";\n        if (!ws || ws.readyState !== WebSocket.OPEN) {\n          logWsMessage(\"info\", \"Not connected.\");\n          return;\n        }\n        ws.send(msg);\n        logWsMessage(\"sent\", msg);\n      };\n\n      window.clearWsLog = function () {\n        const log = document.getElementById(\"ws-log\");\n        if (log) log.innerHTML = \"\";\n      };\n    })();\n  </script><script>\n    (function () {\n      function isInProgress(run) {\n        if (!run) return false;\n        const rawStatus = run.status || run.Status;\n        if (!rawStatus) return false;\n        const status = String(rawStatus).toLowerCase();\n        return status === \"in_progress\" || status === \"queued\" || status === \"waiting\" || status === \"running\";\n      }\n\n      function getRuns(progress) {\n        if (!progress) return [];\n        if (Array.isArray(progress.Runs)) return progress.Runs;\n        if (Array.isArray(progress.runs)) return progress.runs;\n        return [];\n      }\n\n      function pickActiveRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || null;\n      }\n\n      function pickDisplayRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || runs[0];\n      }\n\n      function normalizeName(val) {\n        return String(val || \"\").trim().toLowerCase();\n      }\n\n      function getRunName(run) {\n        return normalizeName(run?.FunctionName || run?.function_name || run?.WorkflowName || run?.workflow_name || run?.Name || run?.name || \"\");\n      }\n\n      function extractFunctionName(run) {\n        const title = String(run?.DisplayTitle || run?.display_title || \"\").toLowerCase();\n        if (!title) return \"\";\n        const m = title.match(/functions\\/(?:go|rs|rust|py|python|js|javascript|lua)\\/([^.\\s\\/]+)\\./);\n        return m ? m[1] : \"\";\n      }\n\n      function pickRunForFunction(runs, functionName) {\n        const target = normalizeName(functionName);\n        if (!target) return null;\n        const matching = runs.filter(r => {\n          const byName = getRunName(r) === target;\n          const byDisplay = extractFunctionName(r) === target;\n          return byName || byDisplay;\n        });\n        if (!matching.length) return null;\n        return matching.find(isInProgress) || matching[0];\n      }\n\n      function normalizeStatus(run) {\n        if (!run) return \"\";\n        const status = String(run.status || run.Status || \"\").toLowerCase();\n        const conclusion = String(run.conclusion || run.Conclusion || \"\").toLowerCase();\n        return { status, conclusion };\n      }\n\n      function statusClass(status, conclusion, running) {\n        if (running) {\n          return \"border-[#6b3f17] bg-[#4a2a0c]/40 text-[#e5b07b] hover:bg-[#4a2a0c]/60\";\n        }\n        if (conclusion === \"success\" || status === \"success\") {\n          return \"border-green-700/60 bg-green-700/15 text-green-300 hover:bg-green-700/30\";\n        }\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n            [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return \"border-red-700/60 bg-red-700/15 text-red-300 hover:bg-red-700/30\";\n        }\n        return \"border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:bg-neutral-800\";\n      }\n\n      function statusLabel(run, running) {\n        const name = run?.Name || run?.name || \"Build\";\n        if (running) return `Running: ${name}`;\n        const { status, conclusion } = normalizeStatus(run);\n        if (conclusion === \"success\" || status === \"success\") return `Success: ${name}`;\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n            [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return `Failed: ${name}`;\n        }\n        if (status) return `${status}: ${name}`;\n        return name;\n      }\n\n      function normalizeLanguage(val) {\n        const lang = normalizeName(val);\n        if (lang === \"rs\") return \"rust\";\n        if (lang === \"javascript\") return \"js\";\n        return lang;\n      }\n\n      function getRelevantJobs(language) {\n        switch (normalizeLanguage(language)) {\n          case \"go\":\n            return [\"build-go\"];\n          case \"rust\":\n            return [\"build-rust\"];\n          case \"python\":\n            return [\"hook-python\"];\n          case \"js\":\n            return [\"hook-js\"];\n          case \"lua\":\n            return [\"hook-lua\"];\n          default:\n            return [];\n        }\n      }\n\n      function isRelevantCurrentJob(language, currentJob) {\n        const relevant = getRelevantJobs(language);\n        if (!relevant.length) return true;\n        const job = normalizeName(currentJob);\n        if (!job) return true;\n        return relevant.some(r => job.includes(r));\n      }\n\n      function updateBuildButtons(progress) {\n        const runs = getRuns(progress);\n        document.querySelectorAll(\"[data-endpoint-id]\").forEach(card => {\n          const endpointId = card.getAttribute(\"data-endpoint-id\");\n          const fnName = card.getAttribute(\"data-endpoint-function\");\n          const language = card.getAttribute(\"data-endpoint-language\") || \"\";\n          const isAsync = card.getAttribute(\"data-endpoint-async\") === \"true\";\n          const buildLink = document.getElementById(`build-status-${endpointId}`);\n          const stepLabel = document.getElementById(`build-step-${endpointId}`);\n          const testBtn = document.getElementById(`test-btn-${endpointId}`);\n          const wsTestBtn = document.getElementById(`ws-test-btn-${endpointId}`);\n          if (!buildLink) return;\n\n          const display = pickRunForFunction(runs, fnName);\n          const baseRunning = display ? isInProgress(display) : false;\n          const url = (display && (display.HTMLURL || display.htmlurl)) || \"\";\n          const jobName = display?.CurrentJob || display?.current_job || \"\";\n          const stepName = display?.CurrentStep || display?.current_step || \"\";\n          const relevantRunning = baseRunning && isRelevantCurrentJob(language, jobName);\n          const effectiveStatus = (baseRunning && !relevantRunning) ? \"success\" : (display?.status || display?.Status);\n          const effectiveConclusion = (baseRunning && !relevantRunning) ? \"success\" : (display?.conclusion || display?.Conclusion);\n          const cls = statusClass(\n            effectiveStatus,\n            effectiveConclusion,\n            relevantRunning\n          );\n          const label = display\n            ? (baseRunning && !relevantRunning\n                ? `Success: ${jobName || (display?.Name || display?.name || \"Build\")}`\n                : statusLabel(display, relevantRunning))\n            : \"No Actions\";\n          const stepText = stepName ? (jobName ? `${jobName} • ${stepName}` : stepName) : jobName;\n\n          if (url) {\n            buildLink.setAttribute(\"href\", url);\n            buildLink.classList.remove(\"pointer-events-none\", \"opacity-70\");\n          } else {\n            buildLink.setAttribute(\"href\", \"#\");\n            buildLink.classList.add(\"pointer-events-none\", \"opacity-70\");\n          }\n          buildLink.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;\n          buildLink.textContent = label;\n          buildLink.classList.remove(\"hidden\");\n          if (stepLabel) {\n            if (stepText) {\n              stepLabel.textContent = `Step: ${stepText}`;\n              stepLabel.classList.remove(\"hidden\");\n            } else {\n              stepLabel.textContent = \"\";\n              stepLabel.classList.add(\"hidden\");\n            }\n          }\n\n          if (isAsync) {\n            if (wsTestBtn) wsTestBtn.classList.remove(\"hidden\");\n            if (testBtn) testBtn.classList.add(\"hidden\");\n          } else {\n            if (wsTestBtn) wsTestBtn.classList.add(\"hidden\");\n            if (testBtn) {\n              const showTest = !relevantRunning;\n              if (showTest) testBtn.classList.remove(\"hidden\");\n              else testBtn.classList.add(\"hidden\");\n            }\n          }\n        });\n      }\n\n      function startActionsSSE() {\n        if (!window.EventSource) return;\n        const es = new EventSource(\"/api/actions/status/\");\n        es.addEventListener(\"status\", (ev) => {\n          try {\n            const data = JSON.parse(ev.data || \"{}\");\n            updateBuildButtons(data);\n          } catch (e) {\n            // ignore malformed payloads\n          }\n        });\n        es.addEventListener(\"error\", () => {\n          // keep UI usable if stream drops\n          updateBuildButtons(null);\n        });\n      }\n\n      document.addEventListener(\"DOMContentLoaded\", startActionsSSE);\n    })();\n  </script><script>\n    // Provide a global method selector for DOMContentLoaded initialization.\n    // templ component scripts are scoped, so we expose a stable name here.\n    window.selectMethodForEndpoint = function (id, method) {\n      const methodStyles = {\n        GET: [\"border-blue-500\", \"bg-blue-500/20\", \"text-blue-400\"],\n        POST: [\"border-green-500\", \"bg-green-500/20\", \"text-green-400\"],\n        PUT: [\"border-yellow-500\", \"bg-yellow-500/20\", \"text-yellow-400\"],\n        PATCH: [\"border-purple-500\", \"bg-purple-500/20\", \"text-purple-400\"],\n        DELETE: [\"border-red-500\", \"bg-red-500/20\", \"text-red-400\"]\n      };\n      const allMethodClasses = [\n        \"border-blue-500\",\"bg-blue-500/20\",\"text-blue-400\",\n        \"border-green-500\",\"bg-green-500/20\",\"text-green-400\",\n        \"border-yellow-500\",\"bg-yellow-500/20\",\"text-yellow-400\",\n        \"border-purple-500\",\"bg-purple-500/20\",\"text-purple-400\",\n        \"border-red-500\",\"bg-red-500/20\",\"text-red-400\"\n      ];\n      const neutralClasses = [\"border-neutral-700\", \"text-neutral-400\"];\n      [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\"].forEach(m => {\n        const btn = document.getElementById(\"method-\" + m + \"-\" + id);\n        if (btn) {\n          btn.classList.remove(...allMethodClasses);\n          btn.classList.remove(...neutralClasses);\n          btn.classList.add(...neutralClasses);\n        }\n      });\n      const selected = document.getElementById(\"method-\" + method + \"-\" + id);\n      if (selected) {\n        selected.classList.remove(...neutralClasses);\n        const style = methodStyles[method] || methodStyles.GET;\n        selected.classList.add(...style);\n      }\n      const input = document.getElementById(\"selected-method-\" + id);\n      if (input) input.value = method;\n    };\n  </script><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n      document.querySelectorAll('input[id^=\"selected-method-\"]').forEach(el => {\n        const id = el.id.replace(\"selected-method-\", \"\");\n        const method = el.value || \"GET\";\n        selectMethodForEndpoint(id, method);\n      });\n    });\n  </script><style>\n    .ace_editor,\n    .ace_scroller,\n    .ace_content {\n      background: #0b0b0c !important;\n      color: #eee !important;\n    }\n  </style></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

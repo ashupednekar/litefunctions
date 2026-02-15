@@ -71,6 +71,12 @@ spec:
         env:
         - name: GRPC_PORT
           value: "50051"
+        - name: VCS_BASE_URL
+          value: "http://litefunctions-gitea-http:3000"
+        - name: GIT_TOKEN_SECRET_NAME
+          value: "litefunctions-admin-token"
+        - name: GIT_TOKEN_SECRET_KEY
+          value: "token"
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

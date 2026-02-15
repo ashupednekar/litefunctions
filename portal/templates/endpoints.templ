@@ -6,6 +6,7 @@ type Endpoint struct {
 	Method       string
 	Scope        string
 	FunctionName string
+	Language     string
 	URL          string
 	IsAsync      bool
 }
@@ -240,6 +241,7 @@ templ EndpointsContent(endpoints []Endpoint) {
 					data-endpoint-name={ ep.Name }
 					data-endpoint-method={ ep.Method }
 					data-endpoint-function={ ep.FunctionName }
+					data-endpoint-language={ ep.Language }
 					data-endpoint-async={ ep.IsAsync }
 				>
 					<div class="flex justify-between items-center">
@@ -264,6 +266,7 @@ templ EndpointsContent(endpoints []Endpoint) {
 								</span>
 							}
 							<h3 class="text-white text-lg font-semibold">{ ep.Name }</h3>
+							<img src={ "/static/imgs/" + ep.Language + "-svgrepo-com.svg" } class="w-4 h-4 opacity-80" title={ ep.Language }/>
 							<span class="text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
 								{ ep.FunctionName }
 							</span>
@@ -1023,11 +1026,44 @@ templ EndpointsContent(endpoints []Endpoint) {
         return name;
       }
 
+      function normalizeLanguage(val) {
+        const lang = normalizeName(val);
+        if (lang === "rs") return "rust";
+        if (lang === "javascript") return "js";
+        return lang;
+      }
+
+      function getRelevantJobs(language) {
+        switch (normalizeLanguage(language)) {
+          case "go":
+            return ["build-go"];
+          case "rust":
+            return ["build-rust"];
+          case "python":
+            return ["hook-python"];
+          case "js":
+            return ["hook-js"];
+          case "lua":
+            return ["hook-lua"];
+          default:
+            return [];
+        }
+      }
+
+      function isRelevantCurrentJob(language, currentJob) {
+        const relevant = getRelevantJobs(language);
+        if (!relevant.length) return true;
+        const job = normalizeName(currentJob);
+        if (!job) return true;
+        return relevant.some(r => job.includes(r));
+      }
+
       function updateBuildButtons(progress) {
         const runs = getRuns(progress);
         document.querySelectorAll("[data-endpoint-id]").forEach(card => {
           const endpointId = card.getAttribute("data-endpoint-id");
           const fnName = card.getAttribute("data-endpoint-function");
+          const language = card.getAttribute("data-endpoint-language") || "";
           const isAsync = card.getAttribute("data-endpoint-async") === "true";
           const buildLink = document.getElementById(`build-status-${endpointId}`);
           const stepLabel = document.getElementById(`build-step-${endpointId}`);
@@ -1036,16 +1072,23 @@ templ EndpointsContent(endpoints []Endpoint) {
           if (!buildLink) return;
 
           const display = pickRunForFunction(runs, fnName);
-          const running = display ? isInProgress(display) : false;
+          const baseRunning = display ? isInProgress(display) : false;
           const url = (display && (display.HTMLURL || display.htmlurl)) || "";
-          const cls = statusClass(
-            display?.status || display?.Status,
-            display?.conclusion || display?.Conclusion,
-            running
-          );
-          const label = display ? statusLabel(display, running) : "No Actions";
           const jobName = display?.CurrentJob || display?.current_job || "";
           const stepName = display?.CurrentStep || display?.current_step || "";
+          const relevantRunning = baseRunning && isRelevantCurrentJob(language, jobName);
+          const effectiveStatus = (baseRunning && !relevantRunning) ? "success" : (display?.status || display?.Status);
+          const effectiveConclusion = (baseRunning && !relevantRunning) ? "success" : (display?.conclusion || display?.Conclusion);
+          const cls = statusClass(
+            effectiveStatus,
+            effectiveConclusion,
+            relevantRunning
+          );
+          const label = display
+            ? (baseRunning && !relevantRunning
+                ? `Success: ${jobName || (display?.Name || display?.name || "Build")}`
+                : statusLabel(display, relevantRunning))
+            : "No Actions";
           const stepText = stepName ? (jobName ? `${jobName} • ${stepName}` : stepName) : jobName;
 
           if (url) {
@@ -1074,7 +1117,7 @@ templ EndpointsContent(endpoints []Endpoint) {
           } else {
             if (wsTestBtn) wsTestBtn.classList.add("hidden");
             if (testBtn) {
-              const showTest = !running;
+              const showTest = !relevantRunning;
               if (showTest) testBtn.classList.remove("hidden");
               else testBtn.classList.add("hidden");
             }

@@ -17,11 +17,11 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	functionproto "github.com/ashupednekar/litefunctions/common/proto"
 	appsv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/ashupednekar/litefunctions/operator/internal/client"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
 	functionserver "github.com/ashupednekar/litefunctions/operator/internal/server"
-	functionproto "github.com/ashupednekar/litefunctions/common/proto"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -160,14 +160,17 @@ func runManager(cmd *cobra.Command) error {
 	controller.LoadCfg(setupLog)
 
 	cfg := &client.Config{
-		Registry:      controller.Cfg.Registry,
-		RegistryUser:  controller.Cfg.RegistryUser,
-		PullSecret:    controller.Cfg.PullSecret,
-		DbSecretName:  controller.Cfg.DbSecretName,
-		DbSecretKey:   controller.Cfg.DbSecretKey,
-		RedisUrl:      controller.Cfg.RedisUrl,
-		RedisPassword: controller.Cfg.RedisPassword,
-		NatsUrl:       controller.Cfg.NatsUrl,
+		Registry:           controller.Cfg.Registry,
+		VcsUser:            controller.Cfg.VcsUser,
+		VcsBaseUrl:         controller.Cfg.VcsBaseUrl,
+		GitTokenSecretName: controller.Cfg.GitTokenSecretName,
+		GitTokenSecretKey:  controller.Cfg.GitTokenSecretKey,
+		PullSecret:         controller.Cfg.PullSecret,
+		DbSecretName:       controller.Cfg.DbSecretName,
+		DbSecretKey:        controller.Cfg.DbSecretKey,
+		RedisUrl:           controller.Cfg.RedisUrl,
+		RedisPassword:      controller.Cfg.RedisPassword,
+		NatsUrl:            controller.Cfg.NatsUrl,
 	}
 
 	k8sClient := client.NewClient(mgr.GetClient(), setupLog, cfg)

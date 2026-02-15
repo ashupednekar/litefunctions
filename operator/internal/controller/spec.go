@@ -15,9 +15,9 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 	deploymentName := GetDeploymentName(function)
 
 	labels := map[string]string{
-		"app":      "runtime",
-		"lang":     function.Spec.Language,
-		"project":  function.Spec.Project,
+		"app":     "runtime",
+		"lang":    function.Spec.Language,
+		"project": function.Spec.Project,
 	}
 	if !isDynamicLanguage(function.Spec.Language) {
 		labels["function"] = function.Spec.Name
@@ -32,8 +32,67 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 	case "lua":
 		image = "ashupednekar535/litefunctions-runtime-lua:latest"
 	default:
-		image = fmt.Sprintf("%s/%s/runtime-%s-%s-%s:latest", Cfg.Registry, Cfg.RegistryUser, function.Spec.Language, function.Spec.Project, function.Name)
+		image = fmt.Sprintf("%s/%s/runtime-%s-%s-%s:latest", Cfg.Registry, Cfg.VcsUser, function.Spec.Language, function.Spec.Project, function.Name)
 	}
+
+	envVars := []corev1.EnvVar{
+		{
+			Name: "DATABASE_URL",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: Cfg.DbSecretName,
+					},
+					Key: Cfg.DbSecretKey,
+				},
+			},
+		},
+		{
+			Name:  "GIT_USER",
+			Value: Cfg.VcsUser,
+		},
+		{
+			Name:  "VCS_BASE_URL",
+			Value: Cfg.VcsBaseUrl,
+		},
+		{
+			Name:  "PROJECT",
+			Value: function.Spec.Project,
+		},
+		{
+			Name:  "REDIS_URL",
+			Value: Cfg.RedisUrl,
+		},
+		{
+			Name:  "REDIS_PASSWORD",
+			Value: Cfg.RedisPassword,
+		},
+		{
+			Name:  "NATS_URL",
+			Value: Cfg.NatsUrl,
+		},
+		{
+			Name:  "HTTP_PORT",
+			Value: "8080",
+		},
+	}
+	if !isDynamicLanguage(function.Spec.Language) {
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  "NAME",
+			Value: function.Spec.Name,
+		})
+	}
+	envVars = append(envVars, corev1.EnvVar{
+		Name: "GIT_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: Cfg.GitTokenSecretName,
+				},
+				Key: Cfg.GitTokenSecretKey,
+			},
+		},
+	})
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -66,44 +125,7 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 								}
 								return nil
 							}(),
-							Env: []corev1.EnvVar{
-								{
-									Name: "DATABASE_URL",
-									ValueFrom: &corev1.EnvVarSource{
-										SecretKeyRef: &corev1.SecretKeySelector{
-											LocalObjectReference: corev1.LocalObjectReference{
-												Name: Cfg.DbSecretName,
-											},
-											Key: Cfg.DbSecretKey,
-										},
-									},
-								},
-								{
-									Name: "PROJECT",
-									Value: function.Spec.Project,
-								},
-								{
-									Name: "NAME",
-									Value: function.Spec.Name,
-								},
-
-								{
-									Name:  "REDIS_URL",
-									Value: Cfg.RedisUrl,
-								},
-								{
-									Name:  "REDIS_PASSWORD",
-									Value: Cfg.RedisPassword,
-								},
-								{
-									Name:  "NATS_URL",
-									Value: Cfg.NatsUrl,
-								},
-								{
-									Name:  "HTTP_PORT",
-									Value: "8080",
-								},
-							},
+							Env: envVars,
 						},
 					},
 				},
@@ -128,9 +150,9 @@ func GetServiceName(function *apiv1.Function) string {
 
 func NewService(function *apiv1.Function) *corev1.Service {
 	labels := map[string]string{
-		"app":      "runtime",
-		"lang":     function.Spec.Language,
-		"project":  function.Spec.Project,
+		"app":     "runtime",
+		"lang":    function.Spec.Language,
+		"project": function.Spec.Project,
 	}
 	if !isDynamicLanguage(function.Spec.Language) {
 		labels["function"] = function.Spec.Name
@@ -156,7 +178,7 @@ func NewService(function *apiv1.Function) *corev1.Service {
 
 func supportsHTTP(lang string) bool {
 	switch lang {
-	case "go", "rust", "rs":
+	case "go", "rust", "rs", "python":
 		return true
 	default:
 		return false

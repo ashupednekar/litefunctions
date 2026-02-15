@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"os"
 	"sync"
 	"time"
 
@@ -11,7 +10,10 @@ import (
 
 type Settings struct {
 	Registry            string        `env:"REGISTRY" default:"ghcr.io"`
-	RegistryUser        string        `env:"REGISTRY_USER" default:"lwsrepos"`
+	VcsUser             string        `env:"VCS_USER" default:"lwsrepos"`
+	VcsBaseUrl          string        `env:"VCS_BASE_URL" default:"https://github.com"`
+	GitTokenSecretName  string        `env:"GIT_TOKEN_SECRET_NAME" default:"litefunctions-admin-token"`
+	GitTokenSecretKey   string        `env:"GIT_TOKEN_SECRET_KEY" default:"token"`
 	PullSecret          string        `env:"PULL_SECRET" default:"ghcr-secret"`
 	DbSecretName        string        `env:"DB_SECRET_NAME" default:"litefunctions-pguser-litefunctions"`
 	DbSecretKey         string        `env:"DB_SECRET_KEY" default:"pgbouncer-uri"`
@@ -32,11 +34,6 @@ func LoadCfg(logger logr.Logger) {
 	once.Do(func() {
 		if err := env.Load(&Cfg, nil); err != nil {
 			LoadErr = err
-		}
-		if _, ok := os.LookupEnv("REGISTRY_USER"); !ok {
-			if legacy, ok := os.LookupEnv("VCS_USER"); ok && legacy != "" {
-				Cfg.RegistryUser = legacy
-			}
 		}
 	})
 	if LoadErr != nil {

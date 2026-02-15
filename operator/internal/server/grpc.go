@@ -75,7 +75,7 @@ func (s *FunctionServer) Activate(ctx context.Context, req *functionproto.Activa
 
 func supportsHTTP(lang string) bool {
 	switch lang {
-	case "go", "rust", "rs":
+	case "go", "rust", "rs", "python":
 		return true
 	default:
 		return false
