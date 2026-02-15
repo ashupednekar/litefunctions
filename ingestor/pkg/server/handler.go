@@ -148,10 +148,20 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 	return nil
 }
 
-func (h *IngestHandler) PythonHook(w http.ResponseWriter, r *http.Request) {
+func (h *IngestHandler) RuntimeHook(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	language := strings.ToLower(strings.TrimSpace(r.PathValue("language")))
+	if language == "" {
+		http.Error(w, "language is required", http.StatusBadRequest)
+		return
+	}
+	if strings.ContainsAny(language, ".*>") {
+		http.Error(w, "invalid language", http.StatusBadRequest)
 		return
 	}
 
@@ -161,15 +171,15 @@ func (h *IngestHandler) PythonHook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subject := fmt.Sprintf("%s.hook.py", project)
+	subject := fmt.Sprintf("%s.hook.%s", project, language)
 	payload := []byte(time.Now().UTC().Format(time.RFC3339Nano))
-	h.logger.Info("publishing python hook", "project", project, "subject", subject)
+	h.logger.Info("publishing runtime hook", "project", project, "language", language, "subject", subject)
 	if err := h.server.nc.Publish(subject, payload); err != nil {
-		h.logger.Error("failed to publish python hook", "project", project, "error", err)
+		h.logger.Error("failed to publish runtime hook", "project", project, "language", language, "error", err)
 		http.Error(w, "failed to publish hook", http.StatusInternalServerError)
 		return
 	}
-	h.logger.Info("python hook published", "project", project, "subject", subject)
+	h.logger.Info("runtime hook published", "project", project, "language", language, "subject", subject)
 
 	w.WriteHeader(http.StatusAccepted)
 	_, _ = w.Write([]byte("ok"))

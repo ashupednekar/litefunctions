@@ -125,7 +125,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 		{ID: "rust", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "rust"), Label: "Rust", AceMode: "rust"},
 		{ID: "go", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "go"), Label: "Go", AceMode: "golang"},
 		{ID: "python", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "python"), Label: "Python", AceMode: "python"},
-		{ID: "javascript", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "javascript"), Label: "JavaScript", AceMode: "javascript"},
+		{ID: "ts", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "typescript"), Label: "TypeScript", AceMode: "typescript"},
 		{ID: "lua", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "lua"), Label: "Lua", AceMode: "lua"},
 	}
 
