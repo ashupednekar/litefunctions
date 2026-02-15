@@ -78,6 +78,20 @@ func runCleanup(cmd *cobra.Command) {
 					log.Info("Successfully deactivated function", "function", function.Name)
 				}
 
+				sharedInUse, err := hasOtherActiveFunctionUsingSharedRuntime(ctx, k8sClient, &function)
+				if err != nil {
+					log.Error(err, "Failed to check shared runtime usage", "function", function.Name)
+					continue
+				}
+				if sharedInUse {
+					log.Info(
+						"Skipping shared runtime cleanup; another active function still uses it",
+						"project", function.Spec.Project,
+						"language", function.Spec.Language,
+					)
+					continue
+				}
+
 				deploymentName := controller.GetDeploymentName(&function)
 				var existingDeploy k8sappsv1.Deployment
 				deployErr := k8sClient.Get(ctx, types.NamespacedName{Name: deploymentName, Namespace: function.Namespace}, &existingDeploy)
@@ -108,4 +122,39 @@ func runCleanup(cmd *cobra.Command) {
 	}
 
 	log.Info("Cleanup completed")
+}
+
+func hasOtherActiveFunctionUsingSharedRuntime(ctx context.Context, k8sClient client.Client, function *appsv1.Function) (bool, error) {
+	if !isDynamicLanguage(function.Spec.Language) {
+		return false, nil
+	}
+
+	var functionList appsv1.FunctionList
+	if err := k8sClient.List(ctx, &functionList, client.InNamespace(function.Namespace)); err != nil {
+		return false, err
+	}
+
+	for i := range functionList.Items {
+		fn := &functionList.Items[i]
+		if fn.Name == function.Name {
+			continue
+		}
+		if fn.Spec.Project != function.Spec.Project || fn.Spec.Language != function.Spec.Language {
+			continue
+		}
+		if fn.Spec.IsActive {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func isDynamicLanguage(lang string) bool {
+	switch lang {
+	case "python", "js", "lua":
+		return true
+	default:
+		return false
+	}
 }

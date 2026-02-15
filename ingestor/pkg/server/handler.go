@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/ashupednekar/litefunctions/ingestor/pkg/broker"
 	"github.com/gorilla/websocket"
@@ -75,6 +76,7 @@ func (h *IngestHandler) Sync(w http.ResponseWriter, r *http.Request) {
 }
 
 func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, namespace, service string, port int) error {
+	start := time.Now()
 	runtimePath := strings.TrimPrefix(r.URL.Path, "/lambda/"+project+"/"+name)
 	if runtimePath == "" {
 		runtimePath = "/"
@@ -96,6 +98,8 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 		return err
 	}
 	req.Header = r.Header.Clone()
+	req.Header.Set("X-Litefunction-Name", name)
+	req.Header.Set("X-Litefunction-Project", project)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -103,18 +107,72 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 	}
 	defer resp.Body.Close()
 
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		slog.Error("failed reading runtime response body", "project", project, "name", name, "service", service, "error", readErr)
+		return readErr
+	}
+
 	for k, vals := range resp.Header {
 		for _, v := range vals {
 			w.Header().Add(k, v)
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	_, err = io.Copy(w, resp.Body)
-	if err != nil {
-		slog.Error("error writing response body", "error", err)
+	if _, err = w.Write(body); err != nil {
+		slog.Error("failed writing response body to client", "project", project, "name", name, "service", service, "error", err)
+		return err
 	}
-	slog.Info("response", "resp", resp)
-	return err
+
+	attrs := []any{
+		"project", project,
+		"name", name,
+		"method", r.Method,
+		"path", runtimePath,
+		"upstream", u.String(),
+		"service", service,
+		"status", resp.StatusCode,
+		"bytes", len(body),
+		"duration_ms", time.Since(start).Milliseconds(),
+	}
+	if resp.StatusCode >= 400 {
+		snippet := string(body)
+		if len(snippet) > 512 {
+			snippet = snippet[:512]
+		}
+		attrs = append(attrs, "body_snippet", snippet)
+		slog.Warn("runtime proxy returned error response", attrs...)
+	} else {
+		slog.Info("runtime proxy completed", attrs...)
+	}
+	return nil
+}
+
+func (h *IngestHandler) PythonHook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	project := r.PathValue("project")
+	if project == "" {
+		http.Error(w, "project is required", http.StatusBadRequest)
+		return
+	}
+
+	subject := fmt.Sprintf("%s.hook.py", project)
+	payload := []byte(time.Now().UTC().Format(time.RFC3339Nano))
+	h.logger.Info("publishing python hook", "project", project, "subject", subject)
+	if err := h.server.nc.Publish(subject, payload); err != nil {
+		h.logger.Error("failed to publish python hook", "project", project, "error", err)
+		http.Error(w, "failed to publish hook", http.StatusInternalServerError)
+		return
+	}
+	h.logger.Info("python hook published", "project", project, "subject", subject)
+
+	w.WriteHeader(http.StatusAccepted)
+	_, _ = w.Write([]byte("ok"))
 }
 
 func (h *IngestHandler) SSE(w http.ResponseWriter, r *http.Request) {

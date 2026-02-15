@@ -4,7 +4,7 @@ VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: ListEndpointsForProject :many
-SELECT e.*, f.name as function_name, f.is_async
+SELECT e.*, f.name as function_name, f.language as function_language, f.is_async
 FROM endpoints e
 JOIN functions f ON e.function_id = f.id
 WHERE e.project_id = $1
@@ -32,7 +32,7 @@ DELETE FROM endpoints
 WHERE id = $1;
 
 -- name: ListEndpointsSearch :many
-SELECT e.*, f.name as function_name, f.is_async
+SELECT e.*, f.name as function_name, f.language as function_language, f.is_async
 FROM endpoints e
 JOIN functions f ON e.function_id = f.id
 WHERE e.project_id = $1

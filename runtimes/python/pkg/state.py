@@ -50,9 +50,10 @@ async def get_jetstream() -> tuple[Client, JetStreamContext]:
             subjects=[f"{settings.project}.>"],
         )
     except Exception as exc:
-        raise RuntimeError(
-            f"ERR-NATS-STREAM: name={settings.project} subjects={[f'{settings.project}.>']}: {exc}"
-        ) from exc
+        if "stream name already in use" not in str(exc).lower():
+            raise RuntimeError(
+                f"ERR-NATS-STREAM: name={settings.project} subjects={[f'{settings.project}.>']}: {exc}"
+            ) from exc
     return nc, js
 
 

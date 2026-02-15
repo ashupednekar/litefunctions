@@ -41,15 +41,27 @@ spec:
           value: {{ .Values.operator.registry | quote }}
         {{- end }}
         {{- if .Values.operator.registry_user }}
-        - name: REGISTRY_USER
+        - name: VCS_USER
           value: {{ .Values.operator.registry_user | quote }}
         {{- else if .Values.operator.vcs_user }}
-        - name: REGISTRY_USER
+        - name: VCS_USER
           value: {{ .Values.operator.vcs_user | quote }}
+        {{- end }}
+        {{- if .Values.operator.vcs_base_url }}
+        - name: VCS_BASE_URL
+          value: {{ .Values.operator.vcs_base_url | quote }}
         {{- end }}
         {{- if .Values.operator.pull_secret }}
         - name: PULL_SECRET
           value: {{ .Values.operator.pull_secret | quote }}
+        {{- end }}
+        {{- if .Values.operator.git_token_secret_name }}
+        - name: GIT_TOKEN_SECRET_NAME
+          value: {{ .Values.operator.git_token_secret_name | quote }}
+        {{- end }}
+        {{- if .Values.operator.git_token_secret_key }}
+        - name: GIT_TOKEN_SECRET_KEY
+          value: {{ .Values.operator.git_token_secret_key | quote }}
         {{- end }}
         {{- if .Values.operator.db_secret_name }}
         - name: DB_SECRET_NAME
