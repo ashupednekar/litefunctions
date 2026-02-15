@@ -15,6 +15,9 @@ jobs:
     outputs:
       rust: ${{ steps.changes.outputs.rust }}
       go: ${{ steps.changes.outputs.go }}
+      python: ${{ steps.changes.outputs.python }}
+      ts: ${{ steps.changes.outputs.ts }}
+      lua: ${{ steps.changes.outputs.lua }}
       rust-files: ${{ steps.get-changed-files.outputs.rust-files }}
       go-files: ${{ steps.get-changed-files.outputs.go-files }}
       repo_name: ${{ steps.set-repo-name.outputs.repo_name }}
@@ -34,6 +37,12 @@ jobs:
               - 'functions/rust/**'
             go:
               - 'functions/go/**'
+            python:
+              - 'functions/python/**'
+            ts:
+              - 'functions/ts/**'
+            lua:
+              - 'functions/lua/**'
 
       - name: Get changed files
         id: get-changed-files
@@ -235,3 +244,39 @@ jobs:
             --skip-tls-verify
             --skip-push-permission-check
             --verbosity=info
+
+  hook-python:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Python runtime hook
+        env:
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Triggering Python hook for ${REPO_NAME}"
+          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/python/${REPO_NAME}"
+
+  hook-ts:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify TypeScript runtime hook
+        env:
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Triggering TypeScript hook for ${REPO_NAME}"
+          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/ts/${REPO_NAME}"
+
+  hook-lua:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lua == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Lua runtime hook
+        env:
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Triggering Lua hook for ${REPO_NAME}"
+          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/lua/${REPO_NAME}"

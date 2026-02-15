@@ -31,11 +31,11 @@ func NewFunctionHandlers(s *state.AppState) *FunctionHandlers {
 }
 
 var langExt = map[string]string{
-	"python":     ".py",
-	"go":         ".go",
-	"rust":       ".rs",
-	"javascript": ".js",
-	"lua":        ".lua",
+	"python": ".py",
+	"go":     ".go",
+	"rust":   ".rs",
+	"ts":     ".ts",
+	"lua":    ".lua",
 }
 
 type createFunctionRequest struct {

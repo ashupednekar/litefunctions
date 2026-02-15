@@ -389,7 +389,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 	<script>
 window.ACE_MODES = {
     python: "python",
-    javascript: "javascript",
+    ts: "typescript",
     go: "golang",
     rust: "rust",
     lua: "lua"
@@ -574,7 +574,7 @@ pub fn stream_handler(mut input: Receiver<Vec<u8>>) -> Receiver<Vec<u8>> {
 `
   },
 
-  javascript: {
+  ts: {
     sync: `export async function handle(req) {
   class Input {
     constructor(obj = {}) {
@@ -593,7 +593,7 @@ pub fn stream_handler(mut input: Receiver<Vec<u8>>) -> Receiver<Vec<u8>> {
   const name = input.name || "stranger";
 
   return Response.json(
-    new Output(\`Hello \${name} from JavaScript!\`)
+    new Output(\`Hello \${name} from TypeScript!\`)
   );
 }
 `,
@@ -615,7 +615,7 @@ pub fn stream_handler(mut input: Receiver<Vec<u8>>) -> Receiver<Vec<u8>> {
   const name = input.name || "stranger";
 
   return Response.json(
-    new Output(\`Hello \${name} from JavaScript!\`)
+    new Output(\`Hello \${name} from TypeScript!\`)
   );
 }
 `
