@@ -118,31 +118,29 @@ templ HomeContent() {
 					Litefunctions
 				</h1>
 				<p class="mt-6 text-lg md:text-xl text-neutral-400 leading-relaxed max-w-lg">
-					Deploy, scale, and connect tiny cloud primitives — fast.
+					Self-hosted function platform for Kubernetes. No vendor lock-in. No language lock-in.
 				</p>
-				<div class="mt-8 md:mt-10 overflow-hidden">
-					<div
-						class="flex gap-10 whitespace-nowrap text-neutral-300 text-lg font-medium animate-[marquee_18s_linear_infinite]"
-					>
-						<span>Litefunctions</span>
-						<span>Litestore</span>
-						<span>Litecron</span>
-						<span>Liteobjects</span>
-						<span>Litegateway</span>
-						<span>Litefunctions</span>
-						<span>Litestore</span>
-						<span>Litecron</span>
-						<span>Liteobjects</span>
-						<span>Litegateway</span>
+				<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<div class="rounded-xl border border-neutral-800 bg-[#101012] px-4 py-3 text-sm text-neutral-300">
+						<span class="text-white font-semibold">Sync + Async</span>
+						<div class="text-neutral-500 mt-1">HTTP, SSE, WebSocket, and pub/sub workloads</div>
+					</div>
+					<div class="rounded-xl border border-neutral-800 bg-[#101012] px-4 py-3 text-sm text-neutral-300">
+						<span class="text-white font-semibold">Languages</span>
+						<div class="text-neutral-500 mt-1">Go, Rust, Python, TypeScript, Lua</div>
+					</div>
+					<div class="rounded-xl border border-neutral-800 bg-[#101012] px-4 py-3 text-sm text-neutral-300 sm:col-span-2">
+						<span class="text-white font-semibold">Git-driven runtime refresh</span>
+						<div class="text-neutral-500 mt-1">Push code, trigger hooks, execute immediately</div>
 					</div>
 				</div>
 			</div>
 			<!-- CARD -->
 			<div class="bg-[#0e0e0f] border border-neutral-800 rounded-2xl shadow-xl w-full lg:w-[420px] max-w-[420px] p-6">
 				<header class="pb-3">
-					<h2 class="text-xl font-semibold text-white">Get Started</h2>
+					<h2 class="text-xl font-semibold text-white">Sign in to LiteFunctions</h2>
 					<p class="text-neutral-400 text-sm mt-1">
-						Create a new account using your device's secure passkey.
+						Use a passkey from your device to register or sign in.
 					</p>
 				</header>
 				<section class="flex flex-col gap-4 pt-2">
@@ -171,15 +169,4 @@ templ HomeContent() {
 			</div>
 		</div>
 	</div>
-	<style>
-  @keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-</style>
 }
