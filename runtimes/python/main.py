@@ -264,25 +264,29 @@ async def reconcile_consumers(state: AppState) -> None:
 
 
 async def watch_python_hook(state: AppState) -> None:
-    subject = f"{settings.project}.hook.py"
-    consumer = await state.js.pull_subscribe(subject, stream=settings.project)
-    logger.info("python hook listener started project=%s subject=%s", settings.project, subject)
-    while True:
-        msgs = await consumer.fetch(timeout=None)
-        msg: Msg = msgs[0]
-        await msg.ack()
-        try:
-            logger.info(
-                "python hook received project=%s subject=%s payload=%s",
-                settings.project,
-                msg.subject,
-                msg.data.decode("utf-8", "ignore"),
-            )
-            await sync_repo_and_reload()
-            await reconcile_consumers(state)
-            logger.info("runtime code refreshed via hook project=%s", settings.project)
-        except Exception as exc:
-            logger.exception("failed to refresh runtime code: %s", exc)
+    subjects = [f"{settings.project}.hook.py", f"{settings.project}.hook.python"]
+    logger.info("python hook listener started project=%s subjects=%s", settings.project, ",".join(subjects))
+
+    async def _watch(subject: str) -> None:
+        consumer = await state.js.pull_subscribe(subject, stream=settings.project)
+        while True:
+            msgs = await consumer.fetch(timeout=None)
+            msg: Msg = msgs[0]
+            await msg.ack()
+            try:
+                logger.info(
+                    "python hook received project=%s subject=%s payload=%s",
+                    settings.project,
+                    msg.subject,
+                    msg.data.decode("utf-8", "ignore"),
+                )
+                await sync_repo_and_reload()
+                await reconcile_consumers(state)
+                logger.info("runtime code refreshed via hook project=%s", settings.project)
+            except Exception as exc:
+                logger.exception("failed to refresh runtime code: %s", exc)
+
+    await asyncio.gather(*[_watch(s) for s in subjects])
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])

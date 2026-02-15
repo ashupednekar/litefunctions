@@ -90,7 +90,7 @@ func (h *ActionHandelrs) Status(ctx *gin.Context) {
 	}
 }
 
-var functionNameFromPath = regexp.MustCompile(`functions/(?:go|rs|rust|py|python|js|javascript|lua)/([^.\s/]+)\.`)
+var functionNameFromPath = regexp.MustCompile(`functions/(?:go|rs|rust|py|python|ts|typescript|lua)/([^.\s/]+)\.`)
 
 func enrichActionFunctions(progress *vendors.ActionsProgress) {
 	if progress == nil || len(progress.Runs) == 0 {

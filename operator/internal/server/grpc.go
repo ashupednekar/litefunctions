@@ -63,23 +63,12 @@ func (s *FunctionServer) Activate(ctx context.Context, req *functionproto.Activa
 		IsAsync:  fn.Spec.IsAsync,
 		Project:  fn.Spec.Project,
 		Name:     fn.Spec.Name,
-		Method: fn.Spec.Method,
+		Method:   fn.Spec.Method,
 	}
-	if supportsHTTP(fn.Spec.Language) {
-		resp.ServiceName = client.GetServiceName(fn)
-		resp.ServicePort = 8080
-	}
+	resp.ServiceName = client.GetServiceName(fn)
+	resp.ServicePort = 8080
 
 	return resp, nil
-}
-
-func supportsHTTP(lang string) bool {
-	switch lang {
-	case "go", "rust", "rs", "python":
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *FunctionServer) GetStatus(ctx context.Context, req *functionproto.StatusRequest) (*functionproto.StatusResponse, error) {
