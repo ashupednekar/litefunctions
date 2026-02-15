@@ -28,12 +28,8 @@ The LiteFunctions Helm chart simplifies deployment of the entire platform to Kub
 ### Installation
 
 ```bash
-# Add repository (if using remote chart)
-helm repo add litefunctions https://charts.litefunctions.io
-helm repo update
-
-# Install the chart
-helm install litefunctions litefunctions/litefunctions
+# Install from OCI registry
+helm install litefunctions oci://ghcr.io/ashupednekar/charts/litefunctions
 
 # Or install from local directory
 helm install litefunctions ./chart

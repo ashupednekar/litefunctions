@@ -140,7 +140,7 @@ Documentation for the LiteFunctions platform.
 
 **Location:** `docs/`
 
-Built with [Thulite](https://github.com/gethyas/thulite) and Doks theme.
+Built with Hugo for LiteFunctions documentation.
 
 ## Development Workflow
 
