@@ -27,8 +27,8 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 	switch function.Spec.Language {
 	case "python":
 		image = "ashupednekar535/litefunctions-runtime-py:latest"
-	case "js":
-		image = "ashupednekar535/litefunctions-runtime-js:latest"
+	case "ts":
+		image = "ashupednekar535/litefunctions-runtime-ts:latest"
 	case "lua":
 		image = "ashupednekar535/litefunctions-runtime-lua:latest"
 	default:
@@ -114,17 +114,12 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 							Name:            deploymentName,
 							Image:           image,
 							ImagePullPolicy: corev1.PullAlways,
-							Ports: func() []corev1.ContainerPort {
-								if supportsHTTP(function.Spec.Language) {
-									return []corev1.ContainerPort{
-										{
-											Name:          "http",
-											ContainerPort: 8080,
-										},
-									}
-								}
-								return nil
-							}(),
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "http",
+									ContainerPort: 8080,
+								},
+							},
 							Env: envVars,
 						},
 					},
@@ -176,18 +171,9 @@ func NewService(function *apiv1.Function) *corev1.Service {
 	}
 }
 
-func supportsHTTP(lang string) bool {
-	switch lang {
-	case "go", "rust", "rs", "python":
-		return true
-	default:
-		return false
-	}
-}
-
 func isDynamicLanguage(lang string) bool {
 	switch lang {
-	case "python", "js", "lua":
+	case "python", "ts", "lua":
 		return true
 	default:
 		return false

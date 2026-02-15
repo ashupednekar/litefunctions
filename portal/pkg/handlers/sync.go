@@ -19,7 +19,7 @@ var extLang = map[string]string{
 	".py":  "python",
 	".go":  "go",
 	".rs":  "rust",
-	".js":  "javascript",
+	".ts":  "ts",
 	".lua": "lua",
 }
 

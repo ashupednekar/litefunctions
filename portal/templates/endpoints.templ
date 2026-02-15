@@ -714,6 +714,18 @@ templ EndpointsContent(endpoints []Endpoint) {
       return headers;
     };
 
+    function setTestBodyEnabled(method) {
+      const isGetLike = method === "GET" || method === "HEAD";
+      const aceWrap = document.getElementById("test-body-ace");
+      if (window.__testBodyEditor) {
+        window.__testBodyEditor.setReadOnly(isGetLike);
+      }
+      if (aceWrap) {
+        if (isGetLike) aceWrap.classList.add("opacity-60");
+        else aceWrap.classList.remove("opacity-60");
+      }
+    }
+
     window.runEndpointTest = function () {
       const select = document.getElementById("test-endpoint-select");
       const epId = select?.value;
@@ -744,7 +756,7 @@ templ EndpointsContent(endpoints []Endpoint) {
       (async () => {
         try {
           const request = { method, headers };
-          if (bodyRaw.trim() !== "") {
+          if (method !== "GET" && method !== "HEAD" && bodyRaw.trim() !== "") {
             request.body = bodyRaw;
           }
           const resp = await fetch(url, request);
@@ -767,6 +779,28 @@ templ EndpointsContent(endpoints []Endpoint) {
         }
       })();
     };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const select = document.getElementById("test-endpoint-select");
+      const methodSelect = document.getElementById("test-method-select");
+      const syncMethodFromEndpoint = () => {
+        if (!select || !methodSelect) return;
+        const endpointList = (window.__endpointList && window.__endpointList.length > 0)
+          ? window.__endpointList
+          : Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+              id: el.dataset.endpointId,
+              name: el.dataset.endpointName,
+              method: el.dataset.endpointMethod,
+            }));
+        const endpoint = endpointList.find(ep => ep.id === select.value);
+        methodSelect.value = String(endpoint?.method || "GET").toUpperCase();
+        setTestBodyEnabled(methodSelect.value);
+      };
+
+      select?.addEventListener("change", syncMethodFromEndpoint);
+      methodSelect?.addEventListener("change", () => setTestBodyEnabled(String(methodSelect.value || "GET").toUpperCase()));
+      syncMethodFromEndpoint();
+    });
   </script>
 		<script>
     (function () {
@@ -976,7 +1010,7 @@ templ EndpointsContent(endpoints []Endpoint) {
       function extractFunctionName(run) {
         const title = String(run?.DisplayTitle || run?.display_title || "").toLowerCase();
         if (!title) return "";
-        const m = title.match(/functions\/(?:go|rs|rust|py|python|js|javascript|lua)\/([^.\s\/]+)\./);
+        const m = title.match(/functions\/(?:go|rs|rust|py|python|ts|typescript|lua)\/([^.\s\/]+)\./);
         return m ? m[1] : "";
       }
 
@@ -989,6 +1023,38 @@ templ EndpointsContent(endpoints []Endpoint) {
           return byName || byDisplay;
         });
         if (!matching.length) return null;
+        return matching;
+      }
+
+      function isRunSuccess(run) {
+        const { status, conclusion } = normalizeStatus(run);
+        if (conclusion === "success" || status === "success") return true;
+        if (status === "completed" && !conclusion) return true;
+        return false;
+      }
+
+      function jobNameForRun(run) {
+        return normalizeName(run?.CurrentJob || run?.current_job || run?.Name || run?.name || "");
+      }
+
+      function isRelevantRunForLanguage(run, language) {
+        const relevant = getRelevantJobs(language);
+        if (!relevant.length) return true;
+        const job = jobNameForRun(run);
+        if (!job) return false;
+        return relevant.some(r => job.includes(r));
+      }
+
+      function pickRunForFunctionAndLanguage(runs, functionName, language) {
+        const matching = pickRunForFunction(runs, functionName);
+        if (!matching || !matching.length) return null;
+
+        const activeRelevant = matching.find(r => isInProgress(r) && isRelevantRunForLanguage(r, language));
+        if (activeRelevant) return activeRelevant;
+
+        const successRelevant = matching.find(r => isRunSuccess(r) && isRelevantRunForLanguage(r, language));
+        if (successRelevant) return successRelevant;
+
         return matching.find(isInProgress) || matching[0];
       }
 
@@ -1029,7 +1095,6 @@ templ EndpointsContent(endpoints []Endpoint) {
       function normalizeLanguage(val) {
         const lang = normalizeName(val);
         if (lang === "rs") return "rust";
-        if (lang === "javascript") return "js";
         return lang;
       }
 
@@ -1041,8 +1106,8 @@ templ EndpointsContent(endpoints []Endpoint) {
             return ["build-rust"];
           case "python":
             return ["hook-python"];
-          case "js":
-            return ["hook-js"];
+          case "ts":
+            return ["hook-ts"];
           case "lua":
             return ["hook-lua"];
           default:
@@ -1071,7 +1136,7 @@ templ EndpointsContent(endpoints []Endpoint) {
           const wsTestBtn = document.getElementById(`ws-test-btn-${endpointId}`);
           if (!buildLink) return;
 
-          const display = pickRunForFunction(runs, fnName);
+          const display = pickRunForFunctionAndLanguage(runs, fnName, language);
           const baseRunning = display ? isInProgress(display) : false;
           const url = (display && (display.HTMLURL || display.htmlurl)) || "";
           const jobName = display?.CurrentJob || display?.current_job || "";

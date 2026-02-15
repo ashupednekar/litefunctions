@@ -152,7 +152,7 @@ func hasOtherActiveFunctionUsingSharedRuntime(ctx context.Context, k8sClient cli
 
 func isDynamicLanguage(lang string) bool {
 	switch lang {
-	case "python", "js", "lua":
+	case "python", "ts", "lua":
 		return true
 	default:
 		return false
