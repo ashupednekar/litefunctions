@@ -15,3 +15,5 @@ seo:
 ---
 
 Welcome to the LiteFunctions docs. Start with the overview to understand the platform, then follow the quickstart to install and deploy your first functions.
+
+> note: the docs content is not reviewed yet, stop get AI filler
