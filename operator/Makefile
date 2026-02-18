@@ -19,6 +19,13 @@ CONTAINER_TOOL ?= docker
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+SED_INPLACE = sed -i ''
+else
+SED_INPLACE = sed -i
+endif
+
 .PHONY: all
 all: build
 
@@ -311,8 +318,8 @@ helm-sync: manifests kustomize ## Package CRDs + RBAC into Helm chart
 	mkdir -p $(HELM_TEMPLATES_PATH)
 	$(KUSTOMIZE) build config/rbac > $(HELM_RBAC_FILE)
 	@echo "==> Fixing namespace in RBAC"
-	sed -i '' 's/namespace: litefunctions/namespace: {{ .Release.Namespace }}/g' $(HELM_RBAC_FILE)
-	sed -i '' 's/namespace: system/namespace: {{ .Release.Namespace }}/g' $(HELM_RBAC_FILE)
+	$(SED_INPLACE) 's/namespace: litefunctions/namespace: {{ .Release.Namespace }}/g' $(HELM_RBAC_FILE)
+	$(SED_INPLACE) 's/namespace: system/namespace: {{ .Release.Namespace }}/g' $(HELM_RBAC_FILE)
 
 .PHONY: helm-install
 helm-install: helm-sync ## Fresh Helm install (into litefunctions namespace)

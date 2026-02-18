@@ -20,7 +20,7 @@ LiteFunctions runs entirely inside your cluster. The control plane coordinates d
 
 ## Architecture Diagram
 
-![LiteFunctions architecture](/images/architecture.png)
+![LiteFunctions architecture](../../images/architecture.png)
 
 If you don’t see the diagram, ensure the image exists at `docs/static/images/architecture.png` and refresh.
 
