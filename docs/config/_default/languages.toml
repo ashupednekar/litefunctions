@@ -1,32 +1,7 @@
 [en]
   languageName = "English"
-  contentDir = "content/en"
+  contentDir = "content"
   weight = 10
-  [en.params]
-    languageISO = "EN"
-    languageTag = "en-US"
-    footer = 'LiteFunctions Documentation'
-    alertText = ''
-
-[de]
-  languageName = "German"
-  contentDir = "content/de"
-  weight = 15
-  [de.params]
-    languageISO = "DE"
-    languageTag = "de-DE"
-    footer = 'LiteFunctions Dokumentation'
-    alertText = ''
-
-[nl]
-  languageName = "Nederlands"
-  contentDir = "content/nl"
-  weight = 20
-  [nl.params]
-    languageISO = "NL"
-    languageTag = "nl-NL"
-    titleAddition = "LiteFunctions documentatie"
-    description = "LiteFunctions is een Kubernetes-native functiesplatform."
-    titleHome = "LiteFunctions"
-    footer = 'LiteFunctions documentatie'
-    alertText = ''
+[en.params]
+  languageISO = "EN"
+  languageTag = "en-US"

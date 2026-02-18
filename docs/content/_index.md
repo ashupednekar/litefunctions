@@ -1,7 +1,6 @@
 ---
 title: "LiteFunctions"
 description: "Self-hosted, Kubernetes-native functions platform"
-lead: "Run functions on your infrastructure with no vendor lock-in and no language lock-in."
 date: 2026-01-30T00:00:00+05:30
 lastmod: 2026-02-15T00:00:00+05:30
 draft: false
@@ -13,10 +12,6 @@ seo:
 ---
 
 LiteFunctions gives you a function platform that stays inside your cluster and your workflow.
-
-- Kubernetes-native control plane
-- Sync and async execution
-- Multi-language runtimes
-- Git-driven updates and hook-based refresh for dynamic runtimes
-
-Use the docs to install, configure, and operate the platform.
+It is Kubernetes-native by design, supports both synchronous HTTP requests and asynchronous event workloads,
+and ships with multiple runtimes so teams can use the languages they already trust.
+Deploy with Git-driven updates and keep the operational control plane in your own infrastructure.

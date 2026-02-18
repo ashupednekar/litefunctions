@@ -36,5 +36,5 @@ bin/
 tmp/
 target
 __pycache__
-node_modules
+docs/node_modules
 charts

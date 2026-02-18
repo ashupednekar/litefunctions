@@ -1,0 +1,109 @@
+# Lotus Docs landing config for LiteFunctions
+
+hero:
+  enable: true
+  weight: 10
+  template: hero
+
+  backgroundImage:
+    path: "images/templates/hero"
+    filename:
+      desktop: "gradient-desktop.webp"
+      mobile: "gradient-mobile.webp"
+
+  badge:
+    text: "v0.1.0"
+    color: primary
+    pill: false
+    soft: true
+
+  title: "LiteFunctions"
+  subtitle: "Run functions on your infrastructure with no vendor lock-in and no language lock-in. A Kubernetes-native platform for **sync + async** workloads."
+
+  image:
+    path: "images"
+    filename: "lf-hero.jpg"
+    alt: "LiteFunctions console"
+    boxShadow: true
+    rounded: true
+
+  ctaButton:
+    icon: rocket_launch
+    btnText: "Get started"
+    url: "/docs/helm-chart/"
+  cta2Button:
+    icon: code
+    btnText: "View on GitHub"
+    url: "https://github.com/ashupednekar/litefunctions"
+
+  info: "**Open Source** Apache-2.0 Licensed."
+
+featureGrid:
+  enable: true
+  weight: 20
+  template: feature grid
+
+  title: "Why choose LiteFunctions?"
+  subtitle: "A self-hosted functions platform that keeps your control plane in your own cluster. Built for fast iteration and production operations."
+
+  items:
+    - title: "Kubernetes-native"
+      icon: hub
+      description: "Control plane and runtimes live inside your cluster with predictable ops."
+
+    - title: "Sync + async"
+      icon: sync_alt
+      description: "Serve low-latency HTTP and event-driven workflows from the same platform."
+
+    - title: "Multi-runtime"
+      icon: terminal
+      description: "Go, Rust, Python, TypeScript, and Lua with a unified execution model."
+
+    - title: "Git-driven updates"
+      icon: merge
+      description: "Use repository workflows and runtime hooks to keep code current."
+
+    - title: "Secure by default"
+      icon: lock
+      description: "No vendor lock-in and no language lock-in. You own the control plane."
+
+    - title: "Production ready"
+      icon: verified
+      description: "Clear runtime boundaries, logs, and operational guardrails for teams."
+
+imageCompare:
+  enable: true
+  weight: 30
+  template: image compare
+
+  title: "See the workflow"
+  subtitle: "A quick look at the runtime console and operational flow."
+
+  items:
+    - title: "Runtime view"
+      config:
+        startingPoint: 45
+        addCircle: true
+        addCircleBlur: false
+        showLabels: true
+        labelOptions:
+          before: "Runtime"
+          after: "Ops"
+          onHover: false
+      imagePath: "images"
+      imageBefore: "lf-runtime.jpg"
+      imageAfter: "lf-ops.jpg"
+
+    - title: "Workflow view"
+      config:
+        startingPoint: 55
+        addCircle: true
+        addCircleBlur: false
+        showLabels: true
+        labelOptions:
+          before: "Console"
+          after: "CLI"
+          onHover: false
+      imagePath: "images"
+      imageBefore: "lf-workflows.jpg"
+      imageAfter: "lf-cli.jpg"

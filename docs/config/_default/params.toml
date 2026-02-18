@@ -1,112 +1,38 @@
-# Hugo
 title = "LiteFunctions"
 description = "Kubernetes-native functions platform with no vendor lock-in and no language lock-in."
 images = ["cover.png"]
-
-# mainSections
 mainSections = ["docs"]
 
-[social]
-  twitter = ""
+[params]
+  google_fonts = [
+    ["Manrope", "300,400,500,600,700"],
+    ["Newsreader", "400,600,700"],
+    ["Fira Code", "400,500,600"]
+  ]
+  sans_serif_font = "Manrope"
+  secondary_font = "Newsreader"
+  mono_font = "Fira Code"
+  logo = "favicon.svg"
+  logo_dark = "favicon.svg"
+  logo_light = "favicon.svg"
 
-# Doks (@thulite/doks-core)
-[doks]
-  colorMode = "auto"
-  colorModeToggler = true
+  [params.social]
+    github = "https://github.com/ashupednekar/litefunctions"
 
-  navbarSticky = true
-  containerBreakpoint = "lg"
+  [params.docs]
+    title = "LiteFunctions"
+    pathName = "docs"
+    themeColor = "blue"
+    darkMode = true
+    prism = true
+    prismTheme = "dracula"
+    repo = "https://github.com/ashupednekar/litefunctions"
+    repoBranch = "main"
+    editPage = false
+    lastMod = false
+    sidebarIcons = true
+    breadcrumbs = true
+    toc = true
 
-  navBarButton = true
-  navBarButtonUrl = "/docs/helm-chart/"
-  navBarButtonText = "Install"
-
-  flexSearch = true
-  searchExclKinds = []
-  searchExclTypes = []
-  showSearch = []
-  indexSummary = false
-
-  showDate = false
-  showSummary = true
-  searchLimit = 99
-
-  alert = false
-  alertDismissable = true
-
-  bootstrapJavascript = false
-
-  sectionNav = ["docs"]
-  toTopButton = false
-  breadcrumbTrail = false
-  headlineHash = true
-  scrollSpy = true
-
-  multilingualMode = false
-  showMissingLanguages = true
-
-  docsVersioning = false
-  docsVersion = "1.0"
-
-  headerBar = false
-  backgroundDots = true
-
-  sectionFooter = true
-
-  relatedPosts = false
-  imageList = true
-  imageSingle = true
-
-  editPage = false
-  lastMod = false
-  repoHost = "GitHub"
-  docsRepo = "https://github.com/ashupednekar/litefunctions"
-  docsRepoBranch = "main"
-  docsRepoSubPath = "docs"
-
-  krokiURL = "https://kroki.io"
-
-# Debug
-[render_hooks.image]
-  errorLevel = 'ignore'
-
-[render_hooks.link]
-  errorLevel = 'ignore'
-  highlightBroken = false
-
-# Images (@thulite/images)
-[thulite_images]
-  [thulite_images.defaults]
-    decoding = "async"
-    fetchpriority = "auto"
-    loading = "lazy"
-    widths = [480, 576, 768, 1025, 1200, 1440]
-    sizes = "auto"
-    process = ""
-    lqip = "16x webp q20"
-
-# Inline SVG (@thulite/inline-svg)
-[inline_svg]
-  iconSetDir = "tabler-icons"
-
-# SEO (@thulite/seo)
-[seo]
-  [seo.title]
-    separator = " | "
-    suffix = ""
-  [seo.favicons]
-    sizes = []
-    icon = "favicon.png"
-    svgIcon = "favicon.svg"
-    maskIcon = "mask-icon.svg"
-    maskIconColor = "white"
-  [seo.schemas]
-    type = "Organization"
-    logo = "favicon-512x512.png"
-    name = "LiteFunctions"
-    sameAs = ["https://github.com/ashupednekar/litefunctions"]
-    images = ["cover.png"]
-    article = []
-    newsArticle = []
-    blogPosting = ["blog"]
-    product = []
+  [params.footer]
+    copyright = "Copyright (c) 2024-2026 LiteFunctions"
