@@ -1,5 +1,18 @@
 Welcome to litefunctions :)
 
+Usage:
+
+1. Install:
+   `helm install litefunctions oci://ghcr.io/ashupednekar/charts/litefunctions`
+
+2. Check status:
+   `helm status litefunctions`
+   `kubectl get pods -n {{ .Release.Namespace }}`
+
+3. Docs:
+   - Chart usage docs: https://github.com/ashupednekar/litefunctions/blob/main/chart/README.md
+   - Full platform docs: https://ashupednekar.github.io/litefunctions/docs/
+
 If using Istio local gateway with mkcert:
 
 1. Ensure hostnames resolve to your Istio LB IP:

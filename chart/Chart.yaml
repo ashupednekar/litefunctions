@@ -4,6 +4,17 @@ description: A Helm chart for Kubernetes
 type: application
 version: 0.1.6
 appVersion: "1.16.0"
+home: https://ashupednekar.github.io/litefunctions/docs/
+sources:
+  - https://github.com/ashupednekar/litefunctions
+annotations:
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://ashupednekar.github.io/litefunctions/docs/
+    - name: Helm Chart Guide
+      url: https://ashupednekar.github.io/litefunctions/docs/helm-chart/
+    - name: Source
+      url: https://github.com/ashupednekar/litefunctions
 
 dependencies:
 - name: nats
@@ -34,4 +45,3 @@ dependencies:
   repository: http://zotregistry.dev/helm-charts
   version: 0.1.97
   condition: gitea.enabled
-

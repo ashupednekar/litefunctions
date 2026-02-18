@@ -1,0 +1,70 @@
+name: Chart Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "chart/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  bump-package-push:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Bump chart patch version
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_file="chart/Chart.yaml"
+          current="$(awk '/^version:/ {print $2; exit}' "$chart_file")"
+          IFS='.' read -r major minor patch <<< "$current"
+          next="${major}.${minor}.$((patch + 1))"
+          sed -i "s/^version: .*/version: ${next}/" "$chart_file"
+          echo "current=${current}" >> "$GITHUB_OUTPUT"
+          echo "next=${next}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit bumped chart version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add chart/Chart.yaml
+          git commit -m "chore(chart): bump version to ${{ steps.bump.outputs.next }}"
+          git push origin HEAD:main
+
+      - name: Package chart
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .chart-dist
+          helm dependency update chart
+          helm package chart --destination .chart-dist
+
+      - name: Login to GHCR
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push chart to GHCR OCI
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_pkg="$(ls .chart-dist/litefunctions-*.tgz | head -n1)"
+          helm push "${chart_pkg}" oci://ghcr.io/ashupednekar/charts
