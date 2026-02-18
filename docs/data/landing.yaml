@@ -30,7 +30,7 @@ hero:
   ctaButton:
     icon: rocket_launch
     btnText: "Get started"
-    url: "/docs/helm-chart/"
+    url: "docs/helm-chart/"
   cta2Button:
     icon: code
     btnText: "View on GitHub"
