@@ -1,0 +1,81 @@
+/* Template Name: LotusLabs Docs
+   Author: Colin Wilson
+   File Description: Main CSS file of the Landing Page template (overridden for LiteFunctions)
+*/
+
+$font-family-secondary:  {{ .Site.Params.secondary_font | default "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Ubuntu'" }};
+$font-family-sans-serif: {{ .Site.Params.sans_serif_font | default "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Ubuntu'" }};
+$font-family-monospace:  {{ .Site.Params.mono_font | default "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace" }};
+
+@import "bootstrap/functions";
+@import "bootstrap/variables";
+@import "variables";
+@import "bootstrap/mixins";
+@import "bootstrap/bootstrap";
+
+@import "custom/plugins/icons/google-material";
+
+@import "custom/structure/general";
+@import "custom/structure/topbar";
+@import "custom/structure/footer";
+
+@import "custom/components/buttons";
+@import "custom/components/badge";
+@import "custom/components/backgrounds";
+
+@import "custom/pages/features";
+@import "custom/pages/helper";
+@import "custom/pages/hero";
+{{ if ($.Scratch.Get "image_compare_enabled") }}@import "custom/pages/image-compare-viewer";{{ end }}
+
+html[data-dark-mode] body {
+  background-color: #0b0f16;
+  color: #e5e7eb;
+}
+
+html[data-dark-mode] .hero {
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.2), transparent 50%),
+    radial-gradient(circle at 85% 20%, rgba(94, 234, 212, 0.12), transparent 45%);
+}
+
+html[data-dark-mode] .text-muted {
+  color: #9aa4b2 !important;
+}
+
+html[data-dark-mode] .title,
+html[data-dark-mode] h1,
+html[data-dark-mode] h2,
+html[data-dark-mode] h3,
+html[data-dark-mode] h4,
+html[data-dark-mode] h5,
+html[data-dark-mode] h6 {
+  color: #f8fafc;
+}
+
+html[data-dark-mode] .features {
+  background: #111827;
+  border: 1px solid #1f2937;
+}
+
+html[data-dark-mode] .bg-light,
+html[data-dark-mode] .bg-white,
+html[data-dark-mode] .section {
+  background-color: #0f1624 !important;
+}
+
+html[data-dark-mode] .navbar {
+  background-color: rgba(11, 15, 22, 0.85) !important;
+  border-bottom: 1px solid #1f2937;
+}
+
+html[data-dark-mode] .btn-outline-primary {
+  color: #93c5fd;
+  border-color: #60a5fa;
+}
+
+html[data-dark-mode] .btn-outline-primary:hover {
+  color: #0b0f16;
+  background-color: #93c5fd;
+  border-color: #93c5fd;
+}

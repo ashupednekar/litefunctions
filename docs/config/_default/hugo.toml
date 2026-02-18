@@ -1,43 +1,26 @@
-title = "Litefunctions"
-baseurl = "http://localhost/"
+title = "LiteFunctions"
+baseURL = "http://localhost/"
 disableAliases = true
 disableHugoGeneratorInject = true
-# disableKinds = ["taxonomy", "term"]
 enableEmoji = true
 enableGitInfo = false
 enableRobotsTXT = true
 languageCode = "en-US"
 rssLimit = 10
-summarylength = 20 # 70 (default)
+summarylength = 20
 
-# Multilingual
-defaultContentLanguage = "en"
-disableLanguages = ["de", "nl"]
-defaultContentLanguageInSubdir = false
-
-copyRight = "Copyright (c) 2020-2024 Thulite"
+[module]
+  [[module.imports]]
+    path = "github.com/colinwilson/lotusdocs"
+  [[module.imports]]
+    path = "github.com/gohugoio/hugo-mod-bootstrap-scss/v5"
 
 [build.buildStats]
   enable = true
 
 [outputs]
-  home = ["HTML", "RSS", "searchIndex"]
+  home = ["HTML", "RSS"]
   section = ["HTML", "RSS", "SITEMAP"]
-
-[outputFormats.searchIndex]
-  mediaType = "application/json"
-  baseName = "search-index"
-  isPlainText = true
-  notAlternative = true
-
-# Add output format for section sitemap.xml
-[outputFormats.SITEMAP]
-  mediaType = "application/xml"
-  baseName = "sitemap"
-  isHTML = false
-  isPlainText = true
-  noUgly = true
-  rel  = "sitemap"
 
 [sitemap]
   changefreq = "monthly"
@@ -47,37 +30,21 @@ copyRight = "Copyright (c) 2020-2024 Thulite"
 [caches]
   [caches.getjson]
     dir = ":cacheDir/:project"
-    maxAge = -1 # "30m"
+    maxAge = -1
 
 [taxonomies]
-  contributor = "contributors"
   category = "categories"
   tag = "tags"
 
 [permalinks]
   blog = "/blog/:slug/"
   docs = "/docs/:sections[1:]/:slug/"
-# docs = "/docs/1.0/:sections[1:]/:slug/"
 
 [minify.tdewolff.html]
   keepWhitespace = false
 
 [pagination]
   pagerSize = 10
-
-[related]
-  threshold = 80
-  includeNewer = true
-  toLower = false
-    [[related.indices]]
-      name = "categories"
-      weight = 100
-    [[related.indices]]
-      name = "tags"
-      weight = 80
-    [[related.indices]]
-      name = "date"
-      weight = 10
 
 [imaging]
   anchor = "Center"

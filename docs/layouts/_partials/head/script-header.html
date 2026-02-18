@@ -1,1 +1,9 @@
 <!-- Insert scripts NOT needed by stylesheets here -->
+<script>
+  (function () {
+    try {
+      localStorage.setItem('theme', 'dark');
+    } catch (e) {}
+    document.documentElement.setAttribute('data-dark-mode', '');
+  })();
+</script>
