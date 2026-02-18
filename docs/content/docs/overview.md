@@ -2,8 +2,8 @@
 title: "Overview"
 description: "What LiteFunctions is and how it fits into your stack."
 summary: "A high-level tour of the platform and its core building blocks."
-date: 2026-02-19T00:00:00+00:00
-lastmod: 2026-02-19T00:00:00+00:00
+date: 2026-02-18T00:00:00+00:00
+lastmod: 2026-02-18T00:00:00+00:00
 draft: false
 weight: 100
 toc: true

@@ -2,8 +2,8 @@
 title: "Quickstart"
 description: "Install LiteFunctions and verify the platform."
 summary: "Deploy LiteFunctions with Helm and validate the control plane."
-date: 2026-02-19T00:00:00+00:00
-lastmod: 2026-02-19T00:00:00+00:00
+date: 2026-02-18T00:00:00+00:00
+lastmod: 2026-02-18T00:00:00+00:00
 draft: false
 weight: 200
 toc: true

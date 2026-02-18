@@ -2,8 +2,8 @@
 title: "Architecture"
 description: "How LiteFunctions routes traffic and executes functions."
 summary: "Control plane, data plane, and runtime responsibilities."
-date: 2026-02-19T00:00:00+00:00
-lastmod: 2026-02-19T00:00:00+00:00
+date: 2026-02-18T00:00:00+00:00
+lastmod: 2026-02-18T00:00:00+00:00
 draft: false
 weight: 300
 toc: true
