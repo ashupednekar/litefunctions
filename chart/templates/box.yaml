@@ -28,4 +28,5 @@ spec:
               - add
               - curl
               - postgresql-client
+              - wget
 
