@@ -1,4 +1,4 @@
-name: Deploy Thulite site to Pages
+name: Deploy hugo site to pages
 
 on:
   push:
