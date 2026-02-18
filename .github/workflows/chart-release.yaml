@@ -1,11 +1,6 @@
 name: Chart Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "chart/**"
   workflow_dispatch:
 
 permissions:
