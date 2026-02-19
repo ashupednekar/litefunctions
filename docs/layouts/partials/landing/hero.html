@@ -99,7 +99,7 @@
                     {{ with $filename }}
                         <div class="ms-lg-4">
                             <div class="classic-hero-image">
-                                {{ $src := printf "/%s/%s" $path $filename | relURL }}
+                                {{ $src := printf "%s/%s" $path $filename | relURL }}
                                 <img src="{{ $src }}" class="{{ if $boxShadow }}shadow-lg{{ end }} mx-auto d-block {{ if $rounded }}rounded-top-4{{ end }}" alt="{{ $alt }}">
                             </div>
                         </div>
