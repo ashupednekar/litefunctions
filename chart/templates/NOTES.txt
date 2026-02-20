@@ -3,7 +3,7 @@ Welcome to litefunctions :)
 Usage:
 
 1. Install:
-   `helm install litefunctions oci://ghcr.io/ashupednekar/charts/litefunctions`
+   `helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions`
 
 2. Check status:
    `helm status litefunctions`

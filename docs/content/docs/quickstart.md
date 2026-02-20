@@ -20,7 +20,7 @@ This quickstart installs LiteFunctions into your Kubernetes cluster using Helm a
 ## Install
 
 ```bash
-helm install litefunctions oci://ghcr.io/ashupednekar/charts/litefunctions
+helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
 ```
 
 ## Verify

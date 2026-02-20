@@ -28,6 +28,12 @@ https://github.com/user-attachments/assets/20171ef9-876d-4519-9f72-5a6141682a35
 7. Dynamic language runtimes (Python/TS/Lua) refresh function code from VCS using hook events instead of per-function image builds.
 8. Portal tracks runs, status, and endpoint behavior via APIs and live updates.
 
+### Install with Helm (OCI)
+
+```bash
+helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
+```
+
 ## Who It Is For
 
 - Teams running Kubernetes who want function-style deployment without moving to a managed FaaS vendor.

@@ -29,7 +29,7 @@ The LiteFunctions Helm chart simplifies deployment of the entire platform to Kub
 
 ```bash
 # Install from OCI registry
-helm install litefunctions oci://ghcr.io/ashupednekar/charts/litefunctions
+helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
 
 # Or install from local directory
 helm install litefunctions ./chart
