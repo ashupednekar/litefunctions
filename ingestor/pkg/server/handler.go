@@ -170,6 +170,10 @@ func (h *IngestHandler) RuntimeHook(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "project is required", http.StatusBadRequest)
 		return
 	}
+	if strings.ContainsAny(project, ".*>") {
+		http.Error(w, "invalid project", http.StatusBadRequest)
+		return
+	}
 
 	subject := fmt.Sprintf("%s.hook.%s", project, language)
 	payload := []byte(time.Now().UTC().Format(time.RFC3339Nano))
