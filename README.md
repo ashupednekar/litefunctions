@@ -1,5 +1,6 @@
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/litefunctions)](https://artifacthub.io/packages/search?repo=litefunctions)
-# [LiteFunctions](https://ashupednekar.github.io/litefunctions/)  [![Build And Push Images](https://github.com/ashupednekar/litefunctions/actions/workflows/build-and-push-images.yaml/badge.svg)](https://github.com/ashupednekar/litefunctions/actions/workflows/build-and-push-images.yaml)
+[![Build And Push Images](https://github.com/ashupednekar/litefunctions/actions/workflows/build-and-push-images.yaml/badge.svg)](https://github.com/ashupednekar/litefunctions/actions/workflows/build-and-push-images.yaml)
+# [LiteFunctions](https://ashupednekar.github.io/litefunctions/)  
 
 Kubernetes-native functions platform with sync and async execution, Git-driven updates, and first-class multi-language runtimes. 
 
