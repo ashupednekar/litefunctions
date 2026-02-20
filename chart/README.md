@@ -15,68 +15,487 @@ LiteFunctions is built around first principles:
 - Keep source-of-truth in your repo.
 - Keep runtime choices open.
 
-### Install with Helm (OCI)
+## Quick Start
+
+### Prerequisites
+
+- Kubernetes cluster (v1.24+)
+- Helm CLI (v3.0+)
+- kubectl CLI
+- Cluster admin access (for CRD installation)
+
+### Installation
 
 ```bash
+# Install from OCI registry
 helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
+
+# Or install from local directory
+helm install litefunctions ./chart
 ```
 
-## Who It Is For
+### Verify Installation
 
-- Teams running Kubernetes who want function-style deployment without moving to a managed FaaS vendor.
-- Platform engineers who need predictable control over network, storage, auth, and CI/CD.
-- Product teams that want one platform for multiple languages and execution styles.
-- Self-hosters and enterprises that care about portability, sovereignty, and auditability.
+```bash
+# Wait for all pods to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=litefunctions --timeout=300s
 
-## Features
+# Check all resources
+kubectl get all,crd -l app.kubernetes.io/name=litefunctions
 
-Current platform features:
+# Get the release status
+helm status litefunctions
+```
 
-- Kubernetes-native function lifecycle via CRDs and operator reconciliation.
-- Multi-language runtimes: Go, Rust, Python, TypeScript (Bun), Lua.
-- Sync HTTP execution and async pub/sub execution.
-- Dynamic runtime refresh for Python/TS/Lua via VCS hook events.
-- Git-integrated workflow support (Gitea/GitHub workflow templates).
-- Auto endpoint provisioning and endpoint management from Portal.
-- Build/action visibility in Portal with live status updates.
-- Runtime activation + keep-warm/deprovision lifecycle management.
+## Configuration
 
-## Upcoming Features
+### Default Values
 
-Planned next:
+The chart comes with sensible defaults, but you can customize it by creating a `values.yaml` file:
 
-- Authorization policy engine for endpoints (authz policies).
-- Richer authn/authz integration across HTTP/WS/SSE surfaces.
-- More granular routing and traffic controls.
-- Enhanced observability (structured traces/metrics per function).
-- Runtime hardening and policy guardrails for multi-tenant environments.
+```yaml
+redis:
+  enabled: true
 
-## Usage
+operator:
+  registry: localhost:30050
+  vcs_user: ashudev
 
-### Basic flow
+ingestor:
+  nats_url: litefunctions-nats:4222
 
-![LiteFunctions flow](https://github.com/user-attachments/assets/c6c23289-675a-454a-bcb3-a1407086a846)
+database:
+  enabled: true
+  postgresVersion: 16
+  pgBouncerReplicas: 1
+  instanceReplicas: 2
+  instanceVolumeSize: 4Gi
+```
 
-1. Create/connect a project repository.
-2. Add function files under language directories (for example `functions/go`, `functions/python`, `functions/ts`, `functions/lua`, `functions/rust`).
-3. Push changes.
-4. Use Portal to invoke and monitor endpoints.
+### Install with Custom Values
 
+```bash
+helm install litefunctions ./chart -f values.yaml
+```
 
-## Architecture
+## Configuration Options
 
-### High-level diagram
+### Core Components
 
-![LiteFunctions architecture](https://github.com/user-attachments/assets/95c952b3-2f7b-48e9-ad92-36ba0cd1a1c6)
+#### Images
 
-1. User calls an endpoint from the Portal or an external client.
-2. Ingestor receives the request and asks Operator to ensure the function/runtime is active.
-3. Operator reconciles Function CRDs and ensures deployment/service readiness.
-4. For sync execution, Ingestor proxies HTTP to runtime services.
-5. For async execution, Ingestor publishes execution events over NATS subjects.
-6. Runtime workers consume events, execute function code, and publish responses/results.
-7. Dynamic language runtimes (Python/TS/Lua) refresh function code from VCS using hook events instead of per-function image builds.
-8. Portal tracks runs, status, and endpoint behavior via APIs and live updates.
+```yaml
+images:
+  ingestor: ashupednekar535/litefunctions-ingestor:latest
+  operator: ashupednekar535/litefunctions-operator:latest
+```
 
+#### Operator Settings
 
+```yaml
+operator:
+  registry: localhost:30050 # Container registry for function images
+  vcs_user: ashudev # VCS user for Git operations
+  # Additional settings default in operator manager
+```
+
+#### Ingestor Settings
+
+```yaml
+ingestor:
+  nats_url: litefunctions-nats:4222 # NATS connection URL
+```
+
+### Dependencies
+
+#### NATS (Message Broker)
+
+```yaml
+nats:
+  enabled: true
+  natsBox:
+    enabled: false
+  config:
+    cluster:
+      enabled: true
+      replicas: 3
+    jetstream:
+      enabled: true
+      fileStore:
+        enabled: true
+        pvc:
+          enabled: true
+          size: 4Gi
+```
+
+#### Redis/Valkey (Cache)
+
+```yaml
+redis:
+  enabled: true
+
+valkey-cluster:
+  enabled: true
+  global:
+    security:
+      allowInsecureImages: true
+  auth:
+    enabled: true
+  password: valkeyadmin
+```
+
+#### PostgreSQL (Database)
+
+```yaml
+database:
+  enabled: true
+  postgresVersion: 16
+  pgBouncerReplicas: 1
+  instanceReplicas: 2
+  instanceVolumeSize: 4Gi
+  initialSchemas:
+    - gitea
+    - lwsportal
+```
+
+#### MinIO (Object Storage)
+
+```yaml
+minio:
+  enabled: false
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    repository: bitnamilegacy/minio
+  auth:
+    rootUser: ashudev
+    rootPassword: minioadmin
+  mode: standalone
+  defaultBuckets: content
+  persistence:
+    enabled: true
+    size: 15Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: lws.ashudev.in
+    path: /content
+    pathType: Prefix
+    tls: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+```
+
+#### Gitea (Git Server)
+
+```yaml
+gitea:
+  enabled: true
+  service:
+    http:
+      type: NodePort
+      nodePort: 30080
+    ssh:
+      type: NodePort
+      nodePort: 30022
+  postgresql-ha:
+    enabled: false
+  postgresql:
+    enabled: false
+  valkey-cluster:
+    enabled: false
+  gitea:
+    admin:
+      username: ashudev
+      password: gitadmin
+      email: gitea@ashudev.in
+    config:
+      actions:
+        enabled: true
+      packages:
+        enabled: true
+      server:
+        ROOT_URL: "http://litefunctions-gitea-http.litefunctions.svc.cluster.local:3000/"
+        DOMAIN: "litefunctions-gitea-http.litefunctions.svc.cluster.local"
+      registry:
+        enabled: false
+      database:
+        DB_TYPE: postgres
+        NAME: litefunctions
+        SCHEMA: gitea
+        SSL_MODE: require
+        HOST: "litefunctions-pgbouncer.litefunctions.svc"
+    additionalConfigFromEnvs:
+      - name: GITEA__DATABASE__HOST
+        valueFrom:
+          secretKeyRef:
+            key: host
+            name: litefunctions-pguser-litefunctions
+      - name: GITEA__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            key: password
+            name: litefunctions-pguser-litefunctions
+      - name: GITEA__DATABASE__NAME
+        valueFrom:
+          secretKeyRef:
+            key: dbname
+            name: litefunctions-pguser-litefunctions
+      - name: GITEA__DATABASE__USER
+        valueFrom:
+          secretKeyRef:
+            key: user
+            name: litefunctions-pguser-litefunctions
+    ingress:
+      enabled: false
+      tls: []
+      hosts:
+        - host: git.ashudev.in
+          paths:
+            - path: /
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+```
+
+#### Actions (CI/CD)
+
+```yaml
+actions:
+  enabled: true
+  giteaRootURL: http://litefunctions-gitea-http:3000
+  existingSecret: litefunctions-registration-token
+  existingSecretKey: token
+```
+
+#### Zot (Container Registry)
+
+```yaml
+zot:
+  service:
+    nodePort: 30050
+```
+
+#### Web UI
+
+```yaml
+ui:
+  enabled: false
+  server:
+    db:
+      secret: litefunctions-pguser-litefunctions
+```
+
+## Advanced Usage
+
+### Upgrading
+
+```bash
+# Check for updates
+helm repo update
+helm search repo litefunctions
+
+# Upgrade to latest version
+helm upgrade litefunctions litefunctions/litefunctions
+
+# Upgrade with custom values
+helm upgrade litefunctions ./chart -f values.yaml
+```
+
+### Rolling Back
+
+```bash
+# View release history
+helm history litefunctions
+
+# Rollback to previous version
+helm rollback litefunctions
+
+# Rollback to specific revision
+helm rollback litefunctions <revision>
+```
+
+### Uninstalling
+
+```bash
+# Delete the release
+helm uninstall litefunctions
+
+# Delete all remaining resources
+kubectl delete namespace litefunctions
+```
+
+## Resource Management
+
+### Setting Resource Limits
+
+```yaml
+operator:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+ingestor:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+```
+
+### Node Selectors
+
+```yaml
+operator:
+  nodeSelector:
+    kubernetes.io/os: linux
+    node-type: worker
+
+ingestor:
+  nodeSelector:
+    kubernetes.io/os: linux
+```
+
+## Networking
+
+### Service Types
+
+```yaml
+operator:
+  service:
+    type: ClusterIP
+
+ingestor:
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+```
+
+### Ingress Configuration
+
+```yaml
+ui:
+  enabled: true
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: litefunctions.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: litefunctions-tls
+        hosts:
+          - litefunctions.example.com
+```
+
+## Monitoring and Logging
+
+### Enable Logging
+
+```yaml
+operator:
+  logLevel: info
+
+ingestor:
+  logLevel: debug
+```
+
+### Enable Metrics
+
+```yaml
+operator:
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8443"
+        prometheus.io/path: "/metrics"
+```
+
+## Troubleshooting
+
+### Check Pod Status
+
+```bash
+# List all pods
+kubectl get pods -n litefunctions
+
+# Get pod details
+kubectl describe pod <pod-name> -n litefunctions
+
+# View logs
+kubectl logs <pod-name> -n litefunctions
+```
+
+### Check Operator Status
+
+```bash
+# View operator logs
+kubectl logs -l app.kubernetes.io/name=operator -n litefunctions
+
+# Check operator status
+kubectl get crd
+kubectl get functions -n litefunctions
+```
+
+### Check Dependencies
+
+```bash
+# Check NATS
+kubectl get pods -l app.kubernetes.io/name=nats -n litefunctions
+
+# Check PostgreSQL
+kubectl get pods -l app.kubernetes.io/name=postgres -n litefunctions
+
+# Check Gitea
+kubectl get pods -l app.kubernetes.io/name=gitea -n litefunctions
+```
+
+### Common Issues
+
+**Pods not starting:**
+
+```bash
+# Check events
+kubectl get events -n litefunctions --sort-by='.lastTimestamp'
+
+# Check resource limits
+kubectl describe pod <pod-name> -n litefunctions | grep -A 5 "Limits"
+```
+
+**CRDs not installed:**
+
+```bash
+# Verify CRDs are installed
+kubectl get crd | grep litefunctions
+
+# Manually install CRDs
+kubectl apply -f chart/crds/
+```
+
+## Production Checklist
+
+- [ ] Configure resource limits and requests
+- [ ] Enable PodDisruptionBudgets
+- [ ] Set up backups for PostgreSQL
+- [ ] Configure ingress with TLS
+- [ ] Enable monitoring and alerting
+- [ ] Review and update security contexts
+- [ ] Configure horizontal pod autoscaling
+- [ ] Set up log aggregation
+- [ ] Configure persistent volumes appropriately
+- [ ] Review and update secrets management
+- [ ] Test disaster recovery procedures
+- [ ] Enable and configure network policies
 
