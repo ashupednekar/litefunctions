@@ -1,3 +1,4 @@
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/litefunctions)](https://artifacthub.io/packages/search?repo=litefunctions)
 # [LiteFunctions](https://ashupednekar.github.io/litefunctions/)
 
 Kubernetes-native functions platform with sync and async execution, Git-driven updates, and first-class multi-language runtimes. 
@@ -15,19 +16,10 @@ LiteFunctions is built around first principles:
 - Keep source-of-truth in your repo.
 - Keep runtime choices open.
 
-## Architecture
-
-### High-level diagram
-
-![LiteFunctions architecture](https://github.com/user-attachments/assets/95c952b3-2f7b-48e9-ad92-36ba0cd1a1c6)
-
-### Request/data flow
+### What does it do?
+https://github.com/user-attachments/assets/20171ef9-876d-4519-9f72-5a6141682a35
 
 ![LiteFunctions flow](https://github.com/user-attachments/assets/c6c23289-675a-454a-bcb3-a1407086a846)
-
-### Diagram walkthrough
-
-The diagram represents a Kubernetes-native control and data path:
 
 1. User calls an endpoint from the Portal or an external client.
 2. Ingestor receives the request and asks Operator to ensure the function/runtime is active.
@@ -68,30 +60,7 @@ Planned next:
 - Enhanced observability (structured traces/metrics per function).
 - Runtime hardening and policy guardrails for multi-tenant environments.
 
-## Usage
+## How does it work?
+![LiteFunctions architecture](https://github.com/user-attachments/assets/95c952b3-2f7b-48e9-ad92-36ba0cd1a1c6)
+Refer blog: TODO
 
-### Install with Helm (OCI)
-
-```bash
-helm install litefunctions oci://ghcr.io/ashupednekar/charts/litefunctions
-```
-
-### Basic flow
-
-1. Create/connect a project repository.
-2. Add function files under language directories (for example `functions/go`, `functions/python`, `functions/ts`, `functions/lua`, `functions/rust`).
-3. Push changes.
-4. Use Portal to invoke and monitor endpoints.
-
-## Demo
-
-Demo assets (placeholders for now):
-
-- Screenshot 1: Portal dashboard walkthrough (TBD)
-- Screenshot 2: Endpoint test + live action status (TBD)
-- Video 1: End-to-end create -> push -> invoke flow (TBD)
-- Video 2: Dynamic runtime hook refresh for Python/TS/Lua (TBD)
-
-## License
-
-MIT
