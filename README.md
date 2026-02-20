@@ -19,8 +19,6 @@ LiteFunctions is built around first principles:
 ### What does it do?
 https://github.com/user-attachments/assets/20171ef9-876d-4519-9f72-5a6141682a35
 
-![LiteFunctions flow](https://github.com/user-attachments/assets/c6c23289-675a-454a-bcb3-a1407086a846)
-
 1. User calls an endpoint from the Portal or an external client.
 2. Ingestor receives the request and asks Operator to ensure the function/runtime is active.
 3. Operator reconciles Function CRDs and ensures deployment/service readiness.
