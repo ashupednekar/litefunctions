@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/ashupednekar/litefunctions/common/proto"
+	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
