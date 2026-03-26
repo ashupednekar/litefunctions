@@ -1,6 +1,32 @@
-istio:
+gatewayApi:
   enabled: true
+  gatewayClassName: istio
+  hosts:
+    portal: []
+    gitea: []
+  http:
+    port: 8080
+  tls:
+    enabled: true
+    port: 443
+    secretName: litefunctions-gateway-tls
+    certManager:
+      enabled: true
+      duration: 2160h
+      renewBefore: 360h
+      selfSigned:
+        enabled: true
+        issuerName: litefunctions-selfsigned
+      letsencrypt:
+        enabled: false
+        issuerName: litefunctions-letsencrypt
+        email: ""
+        server: https://acme-v02.api.letsencrypt.org/directory
+        privateKeySecretName: litefunctions-letsencrypt-account-key
 
+cert-manager:
+  crds:
+    enabled: true
 ngrok:
   enabled: false
 

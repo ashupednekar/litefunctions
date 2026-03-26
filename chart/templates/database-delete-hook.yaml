@@ -1,0 +1,24 @@
+{{- if .Values.database.enabled | default false }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "litefunctions.fullname" . }}-db-delete
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: controller-manager
+      containers:
+      - name: db-delete
+        image: bitnami/kubectl:latest
+        command:
+        - sh
+        - -c
+        - |
+          kubectl delete postgrescluster litefunctions -n {{ .Release.Namespace }} --ignore-not-found=true
+          kubectl wait --for=delete postgrescluster/litefunctions -n {{ .Release.Namespace }} --timeout=10m || true
+{{- end }}

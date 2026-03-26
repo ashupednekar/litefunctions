@@ -49,3 +49,10 @@ Selector labels
 app.kubernetes.io/name: {{ include "litefunctions.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Gateway API resource name used by Istio-managed gateway deployment/service.
+*/}}
+{{- define "litefunctions.gatewayName" -}}
+litefunctions-gateway
+{{- end }}

@@ -45,3 +45,7 @@ dependencies:
   repository: http://zotregistry.dev/helm-charts
   version: 0.1.97
   condition: gitea.enabled
+- name: cert-manager
+  repository: oci://quay.io/jetstack/charts
+  version: v1.20.0
+  condition: gatewayApi.tls.certManager.enabled

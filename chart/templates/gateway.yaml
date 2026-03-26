@@ -1,9 +1,14 @@
-{{- if .Values.istio.enabled | default false }}
+{{- if (.Values.gatewayApi.enabled | default true) }}
 {{- $portalHost := .Values.ui.domain | default "litefunctions.portal" }}
-{{- $ingestorHost := .Values.ui.domain | default "litefunctions.portal" }}
 {{- $giteaHost := "gitea.local" }}
 {{- $localPortalHost := "litefunctions.portal" }}
 {{- $localGiteaHost := "litefunctions.gitea" }}
+{{- $gatewayName := include "litefunctions.gatewayName" . }}
+{{- $gatewayClassName := .Values.gatewayApi.gatewayClassName | default "istio" }}
+{{- $httpPort := .Values.gatewayApi.http.port | default 8080 }}
+{{- $tlsEnabled := .Values.gatewayApi.tls.enabled | default false }}
+{{- $tlsPort := .Values.gatewayApi.tls.port | default 443 }}
+{{- $tlsSecretName := .Values.gatewayApi.tls.secretName | default "litefunctions-gateway-tls" }}
 {{- with .Values.gitea }}
   {{- with .ingress }}
     {{- if and .hosts (gt (len .hosts) 0) }}
@@ -11,94 +16,109 @@
     {{- end }}
   {{- end }}
 {{- end }}
+{{- $portalHosts := .Values.gatewayApi.hosts.portal | default (list) }}
+{{- if eq (len $portalHosts) 0 }}
+  {{- $portalHosts = list $localPortalHost $portalHost | uniq }}
+{{- end }}
+{{- $giteaHosts := .Values.gatewayApi.hosts.gitea | default (list) }}
+{{- if eq (len $giteaHosts) 0 }}
+  {{- $giteaHosts = list $localGiteaHost $giteaHost | uniq }}
+{{- end }}
+{{- $listenerHosts := concat $portalHosts $giteaHosts | uniq }}
 ---
-apiVersion: networking.istio.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: litefunctions-gateway
+  name: {{ $gatewayName }}
   namespace: {{ .Release.Namespace }}
 spec:
-  selector:
-    istio: ingress
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - {{ $localPortalHost | quote }}
-    - {{ $localGiteaHost | quote }}
-    - {{ $portalHost | quote }}
-    - {{ $ingestorHost | quote }}
-    - {{ $giteaHost | quote }}
-  - port:
-      number: 443
-      name: https
-      protocol: HTTPS
+  gatewayClassName: {{ $gatewayClassName | quote }}
+  listeners:
+  {{- range $host := $listenerHosts }}
+  - name: {{ printf "http-%s" ($host | replace "." "-" | replace "*" "wildcard") | trunc 63 | trimSuffix "-" }}
+    protocol: HTTP
+    port: {{ $httpPort }}
+    hostname: {{ $host | quote }}
+    allowedRoutes:
+      namespaces:
+        from: Same
+  {{- end }}
+  {{- if $tlsEnabled }}
+  {{- range $host := $listenerHosts }}
+  - name: {{ printf "https-%s" ($host | replace "." "-" | replace "*" "wildcard") | trunc 63 | trimSuffix "-" }}
+    protocol: HTTPS
+    port: {{ $tlsPort }}
+    hostname: {{ $host | quote }}
     tls:
-      mode: SIMPLE
-      credentialName: litefunctions-local-tls
-    hosts:
-    - {{ $localPortalHost | quote }}
-    - {{ $localGiteaHost | quote }}
+      certificateRefs:
+      - kind: Secret
+        name: {{ $tlsSecretName }}
+    allowedRoutes:
+      namespaces:
+        from: Same
+  {{- end }}
+  {{- end }}
 ---
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: litefunctions-portal
   namespace: {{ .Release.Namespace }}
 spec:
-  hosts:
-  - {{ $localPortalHost | quote }}
-  {{- if ne $portalHost $localPortalHost }}
-  - {{ $portalHost | quote }}
+  parentRefs:
+  - name: {{ $gatewayName }}
+  hostnames:
+  {{- range $host := $portalHosts }}
+  - {{ $host | quote }}
   {{- end }}
-  gateways:
-  - litefunctions-gateway
-  http:
-  - route:
-    - destination:
-        host: litefunctions-portal
-        port:
-          number: 3000
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: litefunctions-portal
+      port: 3000
 ---
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: litefunctions-ingestor
   namespace: {{ .Release.Namespace }}
 spec:
-  hosts:
-  - {{ $ingestorHost | quote }}
-  gateways:
-  - litefunctions-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /lambda/
-    - uri:
-        exact: /lambda
-    route:
-    - destination:
-        host: litefunctions-ingestor
-        port:
-          number: 3000
+  parentRefs:
+  - name: {{ $gatewayName }}
+  hostnames:
+  {{- range $host := $portalHosts }}
+  - {{ $host | quote }}
+  {{- end }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /lambda
+    backendRefs:
+    - name: litefunctions-ingestor
+      port: 3000
 ---
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: litefunctions-gitea
   namespace: {{ .Release.Namespace }}
 spec:
-  hosts:
-  - {{ $localGiteaHost | quote }}
-  - {{ $giteaHost | quote }}
-  gateways:
-  - litefunctions-gateway
-  http:
-  - route:
-    - destination:
-        host: litefunctions-gitea-http
-        port:
-          number: 3000
+  parentRefs:
+  - name: {{ $gatewayName }}
+  hostnames:
+  {{- range $host := $giteaHosts }}
+  - {{ $host | quote }}
+  {{- end }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: litefunctions-gitea-http
+      port: 3000
 {{- end }}

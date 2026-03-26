@@ -1,33 +1,38 @@
 Welcome to litefunctions :)
 
 Usage:
+Install:
+helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
 
-1. Install:
-   `helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions`
+Check status:
+helm status litefunctions
+kubectl get pods -n {{ .Release.Namespace }}
 
-2. Check status:
-   `helm status litefunctions`
-   `kubectl get pods -n {{ .Release.Namespace }}`
+Docs:
+Chart usage docs: https://github.com/ashupednekar/litefunctions/blob/main/chart/README.md
+Full platform docs: https://ashupednekar.github.io/litefunctions/docs/
 
-3. Docs:
-   - Chart usage docs: https://github.com/ashupednekar/litefunctions/blob/main/chart/README.md
-   - Full platform docs: https://ashupednekar.github.io/litefunctions/docs/
+Gateway API is controlled by gatewayApi.enabled and gatewayApi.gatewayClassName.
 
-If using Istio local gateway with mkcert:
+TLS modes:
+tls.certManager.enabled=true with tls.certManager.selfSigned.enabled=true: cert-manager creates a self-signed certificate.
+tls.certManager.enabled=true with tls.certManager.letsencrypt.enabled=true: cert-manager creates a Let's Encrypt certificate. Set gatewayApi.tls.certManager.letsencrypt.email.
+tls.certManager.enabled=false: no certificate resources are created; provide gatewayApi.tls.secretName yourself.
 
-1. Ensure hostnames resolve to your Istio LB IP:
-   `LB_IP=$(kubectl -n istio-ingress get svc istio-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')`
-   `echo "$LB_IP litefunctions.portal litefunctions.gitea" | sudo tee -a /etc/hosts`
+Local access for clusters without a real LoadBalancer address:
 
-2. Install mkcert CA once:
-   `mkcert -install`
+kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "litefunctions.gatewayName" . }}-istio 18080:8080 18443:443
 
-3. Create local cert and key:
-   `mkcert -cert-file /tmp/litefunctions-local.pem -key-file /tmp/litefunctions-local-key.pem litefunctions.portal litefunctions.gitea`
+curl --noproxy '*' -H 'Host: litefunctions.portal' http://127.0.0.1:18080/
 
-4. Create/update Istio TLS secret in `istio-ingress` namespace:
-   `kubectl -n istio-ingress create secret tls litefunctions-local-tls --cert=/tmp/litefunctions-local.pem --key=/tmp/litefunctions-local-key.pem --dry-run=client -o yaml | kubectl apply -f -`
+curl --noproxy '*' -H 'Host: litefunctions.gitea' http://127.0.0.1:18080/
 
-5. Validate:
-   `curl -I https://litefunctions.gitea`
-   `curl -I https://litefunctions.portal`
+curl --noproxy '*' -k -H 'Host: litefunctions.gitea' https://127.0.0.1:18443/
+
+If you want locally trusted certs with mkcert while using tls.certManager.enabled=false:
+
+mkcert -install
+
+mkcert -cert-file /tmp/litefunctions-local.pem -key-file /tmp/litefunctions-local-key.pem litefunctions.portal litefunctions.gitea
+
+kubectl -n {{ .Release.Namespace }} create secret tls {{ .Values.gatewayApi.tls.secretName | default "litefunctions-gateway-tls" }} --cert=/tmp/litefunctions-local.pem --key=/tmp/litefunctions-local-key.pem --dry-run=client -o yaml | kubectl apply -f -
