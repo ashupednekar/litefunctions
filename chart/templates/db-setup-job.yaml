@@ -3,10 +3,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "litefunctions.fullname" . }}-db-setup
-  annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-weight": "1"
 spec:
+  backoffLimit: 10
   template:
     spec:
       containers:
@@ -16,6 +14,7 @@ spec:
         - sh
         - -c
         - |
+           until pg_isready -h litefunctions-primary -U litefunctions -d litefunctions; do sleep 5; done
            {{- range .Values.database.initialSchemas }} 
            psql -h litefunctions-primary -U litefunctions -d litefunctions -c "CREATE SCHEMA IF NOT EXISTS {{ . }}; ALTER SCHEMA {{ . }} OWNER TO litefunctions; GRANT USAGE ON SCHEMA {{ . }} TO litefunctions; GRANT CREATE ON SCHEMA {{ . }} TO litefunctions;"
            {{- end }}

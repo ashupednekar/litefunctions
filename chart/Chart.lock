@@ -20,5 +20,8 @@ dependencies:
 - name: zot
   repository: http://zotregistry.dev/helm-charts
   version: 0.1.97
-digest: sha256:eb86c1901fda2c3d6da72ab178b41703a8d4f5d6f48b0e6fcd738ee6a43a0a70
-generated: "2026-02-04T22:42:12.608955+05:30"
+- name: cert-manager
+  repository: oci://quay.io/jetstack/charts
+  version: v1.20.0
+digest: sha256:c2c80c6a323cb8edc01ab68955f852068d1b577eca2676fd7edb496c68607c84
+generated: "2026-03-27T01:05:15.063537+05:30"

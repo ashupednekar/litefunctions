@@ -1,0 +1,107 @@
+{{- if and (.Values.gatewayApi.enabled | default true) (.Values.gatewayApi.tls.enabled | default false) }}
+{{- $portalHost := .Values.ui.domain | default "litefunctions.portal" }}
+{{- $giteaHost := "gitea.local" }}
+{{- $localPortalHost := "litefunctions.portal" }}
+{{- $localGiteaHost := "litefunctions.gitea" }}
+{{- $selfSignedEnabled := .Values.gatewayApi.tls.certManager.selfSigned.enabled }}
+{{- $letsencryptEnabled := .Values.gatewayApi.tls.certManager.letsencrypt.enabled }}
+{{- with .Values.gitea }}
+  {{- with .ingress }}
+    {{- if and .hosts (gt (len .hosts) 0) }}
+      {{- $giteaHost = (index .hosts 0).host | default $giteaHost }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- $portalHosts := .Values.gatewayApi.hosts.portal | default (list) }}
+{{- if eq (len $portalHosts) 0 }}
+  {{- $portalHosts = list $localPortalHost $portalHost | uniq }}
+{{- end }}
+{{- $giteaHosts := .Values.gatewayApi.hosts.gitea | default (list) }}
+{{- if eq (len $giteaHosts) 0 }}
+  {{- $giteaHosts = list $localGiteaHost $giteaHost | uniq }}
+{{- end }}
+{{- $dnsNames := concat $portalHosts $giteaHosts | uniq }}
+{{- if and $selfSignedEnabled $letsencryptEnabled }}
+{{- fail "Only one of gatewayApi.tls.certManager.selfSigned.enabled or .letsencrypt.enabled can be true" }}
+{{- end }}
+{{- if and $selfSignedEnabled .Values.gatewayApi.tls.certManager.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Values.gatewayApi.tls.certManager.selfSigned.issuerName | default "litefunctions-selfsigned" }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "litefunctions.gatewayName" . }}-tls
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "11"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  secretName: {{ .Values.gatewayApi.tls.secretName | default "litefunctions-gateway-tls" }}
+  duration: {{ .Values.gatewayApi.tls.certManager.duration | default "2160h" | quote }}
+  renewBefore: {{ .Values.gatewayApi.tls.certManager.renewBefore | default "360h" | quote }}
+  issuerRef:
+    name: {{ .Values.gatewayApi.tls.certManager.selfSigned.issuerName | default "litefunctions-selfsigned" }}
+    kind: Issuer
+  dnsNames:
+  {{- range $host := $dnsNames }}
+  - {{ $host | quote }}
+  {{- end }}
+{{- end }}
+{{- if and $letsencryptEnabled .Values.gatewayApi.tls.certManager.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.gatewayApi.tls.certManager.letsencrypt.issuerName | default "litefunctions-letsencrypt" }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  acme:
+    email: {{ required "gatewayApi.tls.certManager.letsencrypt.email is required when tls.certManager.letsencrypt.enabled=true" .Values.gatewayApi.tls.certManager.letsencrypt.email | quote }}
+    server: {{ .Values.gatewayApi.tls.certManager.letsencrypt.server | default "https://acme-v02.api.letsencrypt.org/directory" | quote }}
+    privateKeySecretRef:
+      name: {{ .Values.gatewayApi.tls.certManager.letsencrypt.privateKeySecretName | default "litefunctions-letsencrypt-account-key" }}
+    solvers:
+    - http01:
+        gatewayHTTPRoute:
+          parentRefs:
+          - kind: Gateway
+            name: {{ include "litefunctions.gatewayName" . }}
+            namespace: {{ .Release.Namespace }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "litefunctions.gatewayName" . }}-tls
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "11"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  secretName: {{ .Values.gatewayApi.tls.secretName | default "litefunctions-gateway-tls" }}
+  duration: {{ .Values.gatewayApi.tls.certManager.duration | default "2160h" | quote }}
+  renewBefore: {{ .Values.gatewayApi.tls.certManager.renewBefore | default "360h" | quote }}
+  issuerRef:
+    name: {{ .Values.gatewayApi.tls.certManager.letsencrypt.issuerName | default "litefunctions-letsencrypt" }}
+    kind: ClusterIssuer
+  dnsNames:
+  {{- range $host := $dnsNames }}
+  - {{ $host | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}
