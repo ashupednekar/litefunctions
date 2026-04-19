@@ -32,6 +32,14 @@ func convertDBCredentialToWebauthn(c Credential) webauthn.Credential {
 	}
 }
 
+func (db *WebauthnStore) GetUserByName(userName string) (string, []byte, error) {
+	u, err := db.GetUser(userName)
+	if err != nil {
+		return "", nil, err
+	}
+	return u.Name, u.ID, nil
+}
+
 func (db *WebauthnStore) GetUser(userName string) (*auth.User, error) {
 	u, err := db.queries.GetUserByName(context.Background(), userName)
 	if err != nil {

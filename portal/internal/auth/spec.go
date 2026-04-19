@@ -29,6 +29,9 @@ type PasskeyStore interface {
 
 	// User authentication session methods
 	SessionStore
+
+	// GetUserByName returns the canonical name and WebAuthn user ID for API token auth.
+	GetUserByName(userName string) (name string, id []byte, err error)
 }
 
 func NewWebauthn() (*webauthn.WebAuthn, error) {

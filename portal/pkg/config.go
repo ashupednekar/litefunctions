@@ -29,6 +29,12 @@ type Settings struct {
 	VcsPublicBaseUrl        string `env:"VCS_PUBLIC_BASE_URL"`
 	OperatorUrl             string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
+
+	// API_TOKEN_ENABLED: when true, Authorization: Bearer <API_TOKEN> authenticates
+	// as user API_TOKEN_USER (must exist in DB), bypassing session cookies.
+	APITokenEnabled bool   `env:"API_TOKEN_ENABLED" default:"false"`
+	APIToken        string `env:"API_TOKEN"`
+	APITokenUser    string `env:"API_TOKEN_USER" default:"system"`
 }
 
 var (
