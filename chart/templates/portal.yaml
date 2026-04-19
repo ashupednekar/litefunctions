@@ -46,6 +46,14 @@ spec:
           value: {{ .Values.ui.vcs.baseUrl | quote }}
         - name: VCS_PUBLIC_BASE_URL
           value: {{ .Values.ui.vcs.publicBaseUrl | quote }}
+        {{- if .Values.ui.token.enabled }}
+        - name: API_TOKEN_ENABLED
+          value: "true"
+        - name: API_TOKEN_USER
+          value: {{ .Values.ui.token.user | quote }}
+        - name: API_TOKEN
+          value: {{ .Values.ui.token.value | quote }}
+        {{- end }}
         resources: {}
         lifecycle:
           postStart:

@@ -230,3 +230,9 @@ ui:
     enabled: false
     host: localhost
     issuer: letsencrypt
+  # When enabled, portal accepts Authorization: Bearer <token> as the given DB user (same as UI login).
+  # TODO: load API_TOKEN from a Kubernetes Secret instead of plain values.
+  token:
+    enabled: true
+    user: system
+    value: litefunctionsxxxtoken
