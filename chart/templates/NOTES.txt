@@ -13,6 +13,9 @@ Chart usage docs: https://github.com/ashupednekar/litefunctions/blob/main/chart/
 Full platform docs: https://ashupednekar.github.io/litefunctions/docs/
 
 Gateway API is controlled by gatewayApi.enabled and gatewayApi.gatewayClassName.
+Istio base and istiod are controlled by istio.enabled.
+The standalone Istio gateway chart is controlled by istio.includeGtw.
+When installing into a non-default namespace, set global.istioNamespace to that namespace.
 
 TLS modes:
 tls.certManager.enabled=true with tls.certManager.selfSigned.enabled=true: cert-manager creates a self-signed certificate.

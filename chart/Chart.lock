@@ -1,4 +1,13 @@
 dependencies:
+- name: base
+  repository: https://blob.istio.io/istio-release/charts
+  version: 1.31.0
+- name: istiod
+  repository: https://blob.istio.io/istio-release/charts
+  version: 1.31.0
+- name: gateway
+  repository: https://blob.istio.io/istio-release/charts
+  version: 1.31.0
 - name: nats
   repository: https://nats-io.github.io/k8s/helm/charts
   version: 2.12.3
@@ -23,5 +32,5 @@ dependencies:
 - name: cert-manager
   repository: oci://quay.io/jetstack/charts
   version: v1.20.0
-digest: sha256:c2c80c6a323cb8edc01ab68955f852068d1b577eca2676fd7edb496c68607c84
-generated: "2026-03-27T01:05:15.063537+05:30"
+digest: sha256:b269affca68d20ffea4b4349a6a7619590c029fdb19ce3fe1faf8c170bae2940
+generated: "2026-09-12T16:48:12.655664124+05:30"

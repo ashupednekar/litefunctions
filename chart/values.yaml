@@ -1,3 +1,17 @@
+global:
+  # Istio subcharts are installed in the Helm release namespace. Keep this in
+  # sync with --namespace when installing LiteFunctions outside "default".
+  istioNamespace: default
+
+istio:
+  enabled: true
+  # Install Istio's standalone ingress gateway in addition to the managed
+  # gateway created for the Gateway API Gateway resource.
+  includeGtw: true
+
+istio-gateway:
+  name: litefunctions-istio-gateway
+
 gatewayApi:
   enabled: true
   gatewayClassName: istio
@@ -27,9 +41,6 @@ gatewayApi:
 cert-manager:
   crds:
     enabled: true
-ngrok:
-  enabled: false
-
 images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
   operator: ashupednekar535/litefunctions-operator:latest
@@ -223,9 +234,6 @@ ui:
     secret: litefunctions-admin-token
     key: token
   domain: litefunctions.portal
-  ngrok:
-    secret: litefunctions-ngrok-secret
-    key: token
   ingress:
     enabled: false
     host: localhost

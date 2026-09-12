@@ -20,7 +20,7 @@ The LiteFunctions Helm chart simplifies deployment of the entire platform to Kub
 
 ### Prerequisites
 
-- Kubernetes cluster (v1.24+)
+- Kubernetes cluster (v1.32+ for the bundled Istio 1.31 control plane)
 - Helm CLI (v3.0+)
 - kubectl CLI
 - Cluster admin access (for CRD installation)
@@ -34,6 +34,21 @@ helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefuncti
 # Or install from local directory
 helm install litefunctions ./chart
 ```
+
+Istio is installed in the Helm release namespace by default. When using a
+custom namespace, pass the same namespace to Istio's shared configuration:
+
+```bash
+helm install litefunctions ./chart \
+  --namespace litefunctions \
+  --create-namespace \
+  --set global.istioNamespace=litefunctions
+```
+
+Set `istio.enabled=false` and `istio.includeGtw=false` to use an existing Istio
+installation. The standalone Istio gateway is controlled independently with
+`istio.includeGtw`; the Gateway API resource still provisions its own managed
+gateway through Istiod.
 
 ### Verify Installation
 

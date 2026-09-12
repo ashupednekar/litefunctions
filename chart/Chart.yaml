@@ -17,6 +17,20 @@ annotations:
       url: https://github.com/ashupednekar/litefunctions
 
 dependencies:
+- name: base
+  alias: istio-base
+  version: 1.31.0
+  repository: https://blob.istio.io/istio-release/charts
+  condition: istio.enabled
+- name: istiod
+  version: 1.31.0
+  repository: https://blob.istio.io/istio-release/charts
+  condition: istio.enabled
+- name: gateway
+  alias: istio-gateway
+  version: 1.31.0
+  repository: https://blob.istio.io/istio-release/charts
+  condition: istio.includeGtw
 - name: nats
   version: 2.12.3
   repository: https://nats-io.github.io/k8s/helm/charts
