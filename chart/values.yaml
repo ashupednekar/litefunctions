@@ -4,6 +4,8 @@ gatewayApi:
   hosts:
     portal: []
     gitea: []
+    rustfs: [lws.ashudev.in]
+    rustfsConsole: []
   http:
     port: 8080
   tls:
@@ -25,6 +27,8 @@ gatewayApi:
         privateKeySecretName: litefunctions-letsencrypt-account-key
 
 cert-manager:
+  config:
+    enableGatewayAPI: true
   crds:
     enabled: true
 ngrok:
@@ -97,21 +101,11 @@ rustfs:
     name: "" # use the cluster's default storage class
     dataStorageSize: 15Gi
     logStorageSize: 256Mi
+  # Routing and TLS are managed by the shared Gateway, not the subchart.
   ingress:
-    enabled: true
-    className: nginx
-    hosts:
-      - host: lws.ashudev.in # override
-        paths:
-          - path: /
-            pathType: Prefix
-            servicePort: endpoint
-    tls:
-      enabled: true
-      certManager:
-        enabled: true
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
+    enabled: false
+  gatewayApi:
+    enabled: false
 
 valkey-cluster:
   enabled: true
@@ -181,16 +175,8 @@ gitea:
         secretKeyRef:
           key: user
           name: litefunctions-pguser-litefunctions
-    ingress:
-     enabled: false
-     tls: []
-     hosts:
-     - host: git.ashudev.in
-       paths:
-       - path: /
-     className: nginx
-     annotations:
-       cert-manager.io/cluster-issuer: letsencrypt
+  ingress:
+    enabled: false
 
 actions:
   enabled: true
@@ -220,7 +206,3 @@ ui:
   ngrok:
     secret: litefunctions-ngrok-secret
     key: token
-  ingress:
-    enabled: false
-    host: localhost
-    issuer: letsencrypt

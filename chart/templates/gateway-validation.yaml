@@ -1,0 +1,17 @@
+{{- range $name := list "ui" "rustfs" "gitea" }}
+{{- $component := index $.Values $name }}
+{{- if dig "ingress" "enabled" false $component }}
+{{- fail (printf "%s.ingress is deprecated; disable it and configure gatewayApi.hosts and gatewayApi.tls instead" $name) }}
+{{- end }}
+{{- end }}
+{{- if dig "gitea" "ingress" "enabled" false .Values.gitea }}
+{{- fail "gitea.gitea.ingress is deprecated; configure gatewayApi.hosts.gitea instead" }}
+{{- end }}
+{{- if .Values.rustfs.gatewayApi.enabled }}
+{{- fail "rustfs.gatewayApi.enabled must be false; configure the shared gatewayApi.hosts.rustfs and rustfsConsole instead" }}
+{{- end }}
+{{- if and .Values.gatewayApi.enabled .Values.gatewayApi.tls.enabled .Values.gatewayApi.tls.certManager.enabled .Values.gatewayApi.tls.certManager.letsencrypt.enabled }}
+{{- if ne (int .Values.gatewayApi.http.port) 80 }}
+{{- fail "Let's Encrypt HTTP-01 requires gatewayApi.http.port=80" }}
+{{- end }}
+{{- end }}
