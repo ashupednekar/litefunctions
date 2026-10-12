@@ -158,34 +158,49 @@ database:
     - lwsportal
 ```
 
-#### MinIO (Object Storage)
+#### RustFS (Object Storage)
 
 ```yaml
-minio:
+rustfs:
   enabled: false
-  global:
-    security:
-      allowInsecureImages: true
-  image:
-    repository: bitnamilegacy/minio
-  auth:
-    rootUser: ashudev
-    rootPassword: minioadmin
-  mode: standalone
-  defaultBuckets: content
-  persistence:
-    enabled: true
-    size: 15Gi
+  replicaCount: 1
+  mode:
+    standalone:
+      enabled: true
+    distributed:
+      enabled: false
+  secret:
+    rustfs:
+      access_key: ashudev
+      secret_key: minioadmin
+  storageclass:
+    name: ""
+    dataStorageSize: 15Gi
+    logStorageSize: 256Mi
   ingress:
     enabled: true
-    ingressClassName: nginx
-    hostname: lws.ashudev.in
-    path: /content
-    pathType: Prefix
-    tls: true
+    className: nginx
+    hosts:
+      - host: lws.ashudev.in
+        paths:
+          - path: /
+            pathType: Prefix
+            servicePort: endpoint
+    tls:
+      enabled: true
+      certManager:
+        enabled: true
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt
 ```
+
+Enable object storage with `rustfs.enabled=true`. Replace previous `minio.*`
+overrides with RustFS settings; existing MinIO data is not migrated automatically.
+RustFS serves the S3 API at `/` and includes its console on service port 9001.
+To expose the console, add another ingress host with `servicePort: console`.
+Create the `content` bucket with an S3 client after installation; the RustFS chart
+does not support MinIO's `defaultBuckets` setting. TLS uses the configured
+`letsencrypt` ClusterIssuer through cert-manager's ingress integration.
 
 #### Gitea (Git Server)
 
