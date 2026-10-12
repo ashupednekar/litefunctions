@@ -2,15 +2,15 @@ dependencies:
 - name: nats
   repository: https://nats-io.github.io/k8s/helm/charts
   version: 2.12.3
-- name: valkey-cluster
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 3.0.24
+- name: valkey
+  repository: https://valkey.io/valkey-helm/
+  version: 0.12.0
 - name: pgo
   repository: oci://registry-1.docker.io/ashupednekar535
   version: 5.8.1
-- name: minio
-  repository: https://charts.bitnami.com/bitnami
-  version: 17.0.2
+- name: rustfs
+  repository: https://charts.rustfs.com/
+  version: 1.0.1
 - name: gitea
   repository: https://dl.gitea.com/charts/
   version: 12.4.0
@@ -23,5 +23,5 @@ dependencies:
 - name: cert-manager
   repository: oci://quay.io/jetstack/charts
   version: v1.20.0
-digest: sha256:c2c80c6a323cb8edc01ab68955f852068d1b577eca2676fd7edb496c68607c84
-generated: "2026-03-27T01:05:15.063537+05:30"
+digest: sha256:f643e707bced7144925d52b4e61ad9020d3b2f1505fc57535e6f027a0b817023
+generated: "2026-10-12T18:50:29.990428885+05:30"

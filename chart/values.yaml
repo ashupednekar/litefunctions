@@ -81,43 +81,37 @@ database:
     - gitea
     - litefunctions
 
-minio:
+rustfs:
   enabled: false
-  global:
-    security:
-      allowInsecureImages: true
-  image:
-    repository: bitnamilegacy/minio
-  auth:
-    rootUser: ashudev
-    rootPassword: minioadmin
-  mode: standalone
-  defaultBuckets: content
-  persistence:
-    enabled: true
-    size: 15Gi
+  replicaCount: 1
+  mode:
+    standalone:
+      enabled: true
+    distributed:
+      enabled: false
+  secret:
+    rustfs:
+      access_key: ashudev
+      secret_key: minioadmin
+  storageclass:
+    name: "" # use the cluster's default storage class
+    dataStorageSize: 15Gi
+    logStorageSize: 256Mi
   ingress:
     enabled: true
-    ingressClassName: nginx
-    hostname: lws.ashudev.in # override 
-    path: /content
-    pathType: Prefix
-    tls: true
+    className: nginx
+    hosts:
+      - host: lws.ashudev.in # override
+        paths:
+          - path: /
+            pathType: Prefix
+            servicePort: endpoint
+    tls:
+      enabled: true
+      certManager:
+        enabled: true
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt
-  console:
-    enabled: true
-    image:
-      repository: bitnamilegacy/minio-object-browser
-    ingress:
-      enabled: false
-      ingressClassName: nginx
-      hostname: s3.ashudev.in # override
-      path: /
-      pathType: Prefix
-      tls: true
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt
 
 valkey-cluster:
   enabled: true
