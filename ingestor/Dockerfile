@@ -1,4 +1,6 @@
-FROM golang:1.24-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
@@ -9,7 +11,7 @@ RUN go mod download
 
 COPY ingestor/ /app/ingestor/
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /out/ingestor ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -installsuffix cgo -o /out/ingestor ./cmd/main.go
 
 FROM alpine:3.20
 

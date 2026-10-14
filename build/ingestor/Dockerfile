@@ -1,4 +1,6 @@
-FROM golang AS builder
+FROM --platform=$BUILDPLATFORM golang AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
@@ -9,7 +11,7 @@ RUN go mod download
 
 COPY ingestor/ /app/ingestor/
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/main.go
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -installsuffix cgo -o main cmd/main.go
 
 FROM scratch
 
