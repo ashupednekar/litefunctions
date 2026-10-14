@@ -1,4 +1,7 @@
-{{- if and .Values.ngrok.enabled }}
+{{- if .Values.ngrok.enabled }}
+{{- if not .Values.gatewayApi.enabled }}
+{{- fail "ngrok.enabled requires gatewayApi.enabled=true" }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,7 +28,7 @@ spec:
         name: litefunctions-ngrok
         args:
         - http
-        - {{ include "litefunctions.gatewayName" . }}.{{ .Release.Namespace }}.svc:{{ .Values.gatewayApi.http.port | default 8080 }}
+        - {{ include "litefunctions.gatewayName" . }}-istio.{{ .Release.Namespace }}.svc:{{ .Values.gatewayApi.http.port | default 8080 }}
         - --url=https://{{ .Values.ui.domain }}
         env:
         - name: NGROK_AUTHTOKEN

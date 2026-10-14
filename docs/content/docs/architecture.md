@@ -13,7 +13,7 @@ LiteFunctions runs entirely inside your cluster. The control plane coordinates d
 
 ## High-Level Flow
 
-1. **Ingress** receives HTTP traffic and forwards it to the LiteFunctions ingestor.
+1. **Gateway API Gateway and HTTPRoute resources** receive HTTP traffic and forward it to the LiteFunctions ingestor.
 2. **Ingestor** dispatches requests or publishes events (via NATS) for async processing.
 3. **Operator** reconciles function definitions and manages runtime pods.
 4. **Runtime** executes the function, returning responses or emitting events.

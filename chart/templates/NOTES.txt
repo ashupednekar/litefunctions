@@ -12,6 +12,8 @@ Docs:
 Chart usage docs: https://github.com/ashupednekar/litefunctions/blob/main/chart/README.md
 Full platform docs: https://ashupednekar.github.io/litefunctions/docs/
 
+Ingress settings are deprecated; configure gatewayApi.hosts and gatewayApi.tls.
+Install a Gateway API controller and GatewayClass separately (default: Istio).
 Gateway API is controlled by gatewayApi.enabled and gatewayApi.gatewayClassName.
 
 TLS modes:
@@ -21,7 +23,7 @@ tls.certManager.enabled=false: no certificate resources are created; provide gat
 
 Local access for clusters without a real LoadBalancer address:
 
-kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "litefunctions.gatewayName" . }}-istio 18080:8080 18443:443
+kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "litefunctions.gatewayName" . }}-istio 18080:{{ .Values.gatewayApi.http.port }}{{ if .Values.gatewayApi.tls.enabled }} 18443:{{ .Values.gatewayApi.tls.port }}{{ end }}
 
 curl --noproxy '*' -H 'Host: litefunctions.portal' http://127.0.0.1:18080/
 

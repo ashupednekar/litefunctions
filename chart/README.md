@@ -23,6 +23,7 @@ LiteFunctions is built around first principles:
 - Helm CLI (v3.0+)
 - kubectl CLI
 - Cluster admin access (for CRD installation)
+- Gateway API controller and GatewayClass (default: Istio)
 
 ### Installation
 
@@ -178,29 +179,19 @@ rustfs:
     dataStorageSize: 15Gi
     logStorageSize: 256Mi
   ingress:
-    enabled: true
-    className: nginx
-    hosts:
-      - host: lws.ashudev.in
-        paths:
-          - path: /
-            pathType: Prefix
-            servicePort: endpoint
-    tls:
-      enabled: true
-      certManager:
-        enabled: true
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
+    enabled: false
+  gatewayApi:
+    enabled: false
 ```
 
 Enable object storage with `rustfs.enabled=true`. Replace previous `minio.*`
 overrides with RustFS settings; existing MinIO data is not migrated automatically.
 RustFS serves the S3 API at `/` and includes its console on service port 9001.
-To expose the console, add another ingress host with `servicePort: console`.
+To expose the S3 API and console, set `gatewayApi.hosts.rustfs` and
+`gatewayApi.hosts.rustfsConsole`, respectively.
 Create the `content` bucket with an S3 client after installation; the RustFS chart
-does not support MinIO's `defaultBuckets` setting. TLS uses the configured
-`letsencrypt` ClusterIssuer through cert-manager's ingress integration.
+does not support MinIO's `defaultBuckets` setting. TLS uses the shared Gateway
+certificate configured under `gatewayApi.tls`.
 
 #### Gitea (Git Server)
 
@@ -262,16 +253,8 @@ gitea:
           secretKeyRef:
             key: user
             name: litefunctions-pguser-litefunctions
-    ingress:
-      enabled: false
-      tls: []
-      hosts:
-        - host: git.ashudev.in
-          paths:
-            - path: /
-      className: nginx
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt
+  ingress:
+    enabled: false
 ```
 
 #### Actions (CI/CD)
@@ -394,24 +377,70 @@ ingestor:
       service.beta.kubernetes.io/aws-load-balancer-type: nlb
 ```
 
-### Ingress Configuration
+### Gateway API Configuration
+
+Install an implementation of Gateway API and its GatewayClass before installing
+LiteFunctions. The default class is `istio`; Istio is managed separately from this
+chart. Gateway API CRDs are bundled in `chart/crds`. No NGINX controller is required.
 
 ```yaml
-ui:
+gatewayApi:
   enabled: true
-  ingress:
+  gatewayClassName: istio
+  hosts:
+    portal: [litefunctions.example.com]
+    gitea: [git.example.com]
+    rustfs: [s3.example.com]
+    rustfsConsole: [storage.example.com]
+  http:
+    port: 80
+  tls:
     enabled: true
-    className: nginx
-    hosts:
-      - host: litefunctions.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: litefunctions-tls
-        hosts:
-          - litefunctions.example.com
+    secretName: litefunctions-gateway-tls
+    certManager:
+      enabled: true
+      selfSigned:
+        enabled: false
+      letsencrypt:
+        enabled: true
+        email: admin@example.com
 ```
+
+The shared Gateway routes `/` to the portal and `/lambda` to the ingestor.
+Gitea and RustFS routes are created only when those components are enabled.
+RustFS uses separate hostnames for its S3 API and console. All enabled route
+hostnames are included in the Gateway listeners and certificate DNS names.
+An empty portal host list defaults to `litefunctions.portal` and `ui.domain`;
+an empty Gitea host list defaults to `litefunctions.gitea` and `gitea.local`.
+An empty RustFS host list disables exposure of that endpoint.
+
+TLS defaults to a self-signed certificate. To supply an existing TLS Secret,
+set `gatewayApi.tls.certManager.enabled=false`. To use Let's Encrypt, disable
+self-signed issuance, provide public DNS names, and expose HTTP port 80.
+The bundled cert-manager has Gateway API support enabled; an externally managed
+cert-manager must enable it too. See the
+[cert-manager HTTP-01 Gateway API solver documentation](https://cert-manager.io/v1.20-docs/configuration/acme/http01/).
+
+### Migrating from Ingress
+
+`ui.ingress`, `gitea.ingress`, `gitea.gitea.ingress`, and `rustfs.ingress` are
+deprecated. Enabling them now fails with migration instructions. Move their hosts
+to `gatewayApi.hosts`, and move TLS configuration to `gatewayApi.tls`. Keep the
+subchart ingress flags disabled. Use the shared Gateway rather than enabling
+`rustfs.gatewayApi` separately. NGINX annotations and ingress class settings
+can be removed from existing values files. Helm removes previously managed
+Ingress resources on upgrade; verify Gateway routing and update DNS before
+retiring your old controller. Plan the traffic cutover to avoid downtime.
+
+Set `gatewayApi.enabled=false` to omit the Gateway, routes, and certificate
+resources. With Istio and the default listener ports, local access can use:
+
+```bash
+kubectl -n litefunctions port-forward svc/litefunctions-gateway-istio 18080:8080 18443:443
+curl -H 'Host: litefunctions.portal' http://127.0.0.1:18080/
+```
+
+For another GatewayClass, use the service created by that implementation.
 
 ## Monitoring and Logging
 
@@ -504,7 +533,7 @@ kubectl apply -f chart/crds/
 - [ ] Configure resource limits and requests
 - [ ] Enable PodDisruptionBudgets
 - [ ] Set up backups for PostgreSQL
-- [ ] Configure ingress with TLS
+- [ ] Configure Gateway API routing with TLS
 - [ ] Enable monitoring and alerting
 - [ ] Review and update security contexts
 - [ ] Configure horizontal pod autoscaling

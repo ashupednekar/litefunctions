@@ -1,26 +1,8 @@
-{{- if and (.Values.gatewayApi.enabled | default true) (.Values.gatewayApi.tls.enabled | default false) }}
-{{- $portalHost := .Values.ui.domain | default "litefunctions.portal" }}
-{{- $giteaHost := "gitea.local" }}
-{{- $localPortalHost := "litefunctions.portal" }}
-{{- $localGiteaHost := "litefunctions.gitea" }}
+{{- if and .Values.gatewayApi.enabled .Values.gatewayApi.tls.enabled }}
+{{- $hosts := include "litefunctions.gatewayHosts" . | fromYaml }}
 {{- $selfSignedEnabled := .Values.gatewayApi.tls.certManager.selfSigned.enabled }}
 {{- $letsencryptEnabled := .Values.gatewayApi.tls.certManager.letsencrypt.enabled }}
-{{- with .Values.gitea }}
-  {{- with .ingress }}
-    {{- if and .hosts (gt (len .hosts) 0) }}
-      {{- $giteaHost = (index .hosts 0).host | default $giteaHost }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-{{- $portalHosts := .Values.gatewayApi.hosts.portal | default (list) }}
-{{- if eq (len $portalHosts) 0 }}
-  {{- $portalHosts = list $localPortalHost $portalHost | uniq }}
-{{- end }}
-{{- $giteaHosts := .Values.gatewayApi.hosts.gitea | default (list) }}
-{{- if eq (len $giteaHosts) 0 }}
-  {{- $giteaHosts = list $localGiteaHost $giteaHost | uniq }}
-{{- end }}
-{{- $dnsNames := concat $portalHosts $giteaHosts | uniq }}
+{{- $dnsNames := concat $hosts.portal $hosts.gitea $hosts.rustfs $hosts.rustfsConsole | uniq }}
 {{- if and $selfSignedEnabled $letsencryptEnabled }}
 {{- fail "Only one of gatewayApi.tls.certManager.selfSigned.enabled or .letsencrypt.enabled can be true" }}
 {{- end }}
