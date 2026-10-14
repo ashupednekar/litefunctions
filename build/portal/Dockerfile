@@ -1,4 +1,6 @@
-FROM golang AS builder
+FROM --platform=$BUILDPLATFORM golang AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app/portal
 
@@ -13,7 +15,7 @@ COPY portal ./
 RUN ls migrations
 
 RUN templ generate && \
-    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build \
         -tags netgo \
         -ldflags="-s -w" \
         -o app

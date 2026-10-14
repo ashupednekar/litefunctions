@@ -57,6 +57,50 @@ Current platform features:
 - Build/action visibility in Portal with live status updates.
 - Runtime activation + keep-warm/deprovision lifecycle management.
 
+## Building container images
+
+Docker Engine with Buildx or Docker Desktop is required. Images support Linux
+on AMD64 and ARM64, including Linux containers on Intel and Apple Silicon Macs.
+
+Build and load a component image for your Docker host's architecture without
+pushing to a registry:
+
+```bash
+make -C portal docker-build
+make -C ingestor docker-build
+make -C operator docker-build
+```
+
+Publish both architectures under one tag (log in to the registry first):
+
+```bash
+make -C portal docker-buildx IMG=your-user/litefunctions-portal:dev
+make -C ingestor docker-buildx IMG=your-user/litefunctions-ingestor:dev
+make -C operator docker-buildx IMG=your-user/litefunctions-operator:dev
+make runtime-python-buildx runtime-ts-buildx runtime-lua-buildx
+```
+
+`make build-multiarch` publishes all six images and syncs the Helm artifacts.
+GitHub Actions uses the same Makefile targets. `PLATFORMS` defaults to
+`linux/amd64,linux/arm64` and can be overridden on the command line.
+The existing `make build` and `make runtime-python`, `make runtime-ts`, and
+`make runtime-lua` targets still build and publish for the Docker host only.
+
+Multi-platform targets create and reuse a `docker-container` builder named
+`litefunctions-builder`; set `BUILDER` to use another builder. These targets push
+directly to the registry and do not load the result into the local image store.
+Build errors stop Make and return a failure status.
+
+Go binaries are cross-compiled on the builder's native architecture. Building
+Python, TypeScript, and Lua for another architecture requires emulation or a
+builder with native nodes for both architectures. Docker Desktop includes
+emulation; GitHub Actions configures QEMU automatically. With standalone Docker
+on Linux, configure emulation once if it is not already available:
+
+```bash
+docker run --privileged --rm tonistiigi/binfmt --install amd64,arm64
+```
+
 ## Upcoming Features
 
 Planned next:

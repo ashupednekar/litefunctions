@@ -33,9 +33,15 @@ build: protoc
 .PHONY: docker-build
 docker-build: 
 	@echo "Building docker image..."
-	docker build -t ${IMG} -f ../build/ingestor/Dockerfile ..
+	$(CONTAINER_TOOL) build -t ${IMG} -f ../build/ingestor/Dockerfile ..
 
 .PHONY: docker-push
 docker-push: 
 	@echo "Pushing docker image"
-	docker push ${IMG}
+	$(CONTAINER_TOOL) push ${IMG}
+
+include ../build/images.mk
+
+.PHONY: docker-buildx
+docker-buildx: docker-builder
+	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t "$(IMG)" -f ../build/ingestor/Dockerfile ..

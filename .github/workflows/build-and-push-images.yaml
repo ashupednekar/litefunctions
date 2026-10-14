@@ -23,17 +23,20 @@ jobs:
         with:
           go-version-file: operator/go.mod
 
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build operator image
-        run: make -C operator docker-build
-
-      - name: Push operator image
-        run: make -C operator docker-push
+      - name: Build and push operator image
+        env:
+          BUILDER: ${{ steps.buildx.outputs.name }}
+        run: make -C operator docker-buildx
 
       - name: Sync Helm chart artifacts
         run: make -C operator helm-sync
@@ -44,17 +47,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build ingestor image
-        run: make -C ingestor docker-build
-
-      - name: Push ingestor image
-        run: make -C ingestor docker-push
+      - name: Build and push ingestor image
+        env:
+          BUILDER: ${{ steps.buildx.outputs.name }}
+        run: make -C ingestor docker-buildx
 
   portal:
     runs-on: ubuntu-latest
@@ -62,17 +68,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build portal image
-        run: make -C portal docker-build
-
-      - name: Push portal image
-        run: make -C portal docker-push
+      - name: Build and push portal image
+        env:
+          BUILDER: ${{ steps.buildx.outputs.name }}
+        run: make -C portal docker-buildx
 
   runtimes:
     runs-on: ubuntu-latest
@@ -80,12 +89,21 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - runtime-python
-          - runtime-ts
-          - runtime-lua
+          - runtime-python-buildx
+          - runtime-ts-buildx
+          - runtime-lua-buildx
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,amd64
+
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -94,4 +112,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push runtime image
+        env:
+          BUILDER: ${{ steps.buildx.outputs.name }}
         run: make ${{ matrix.target }}

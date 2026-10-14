@@ -4,8 +4,14 @@ DOCKER_CONTEXT ?= ..
 
 .PHONY: docker-build
 docker-build:
-	docker build -t $(IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
+	$(CONTAINER_TOOL) build -t $(IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
 
 .PHONY: docker-push
 docker-push:
-	docker push $(IMG)
+	$(CONTAINER_TOOL) push $(IMG)
+
+include ../build/images.mk
+
+.PHONY: docker-buildx
+docker-buildx: docker-builder
+	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t "$(IMG)" -f $(DOCKERFILE) $(DOCKER_CONTEXT)
