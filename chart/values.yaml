@@ -199,7 +199,7 @@ ui:
     key: pgbouncer-uri
   vcs:
     baseUrl: http://litefunctions-gitea-http:3000
-    publicBaseUrl: https://litefunctions.portal
+    publicBaseUrl: https://litefunctions.gitea
     secret: litefunctions-admin-token
     key: token
   domain: litefunctions.portal
