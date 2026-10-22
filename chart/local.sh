@@ -160,15 +160,20 @@ install() {
 }
 
 start() {
+  require_command sudo
+  require_command curl
   if is_running; then
-    echo "port-forward already running with pid $(cat "$PID_FILE")"
-    status
-    return 0
+    if forward_ready; then
+      echo "port-forward already running with pid $(cat "$PID_FILE")"
+      status
+      return 0
+    fi
+    echo "stale port-forward pid $(cat "$PID_FILE"); restarting"
+    sudo kill "$(cat "$PID_FILE")" 2>/dev/null || true
   fi
 
   rm -f "$PID_FILE"
 
-  require_command sudo
   sudo -v
   if [ -e "$LOG_FILE" ] && [ ! -w "$LOG_FILE" ]; then
     sudo chown "$(id -u):$(id -g)" "$LOG_FILE"
@@ -178,17 +183,28 @@ start() {
   pid=$!
   echo "$pid" >"$PID_FILE"
 
-  sleep 2
-
-  if ! ps -p "$pid" -o pid= >/dev/null 2>&1; then
-    echo "failed to start port-forward"
-    echo "log:"
-    sed -n '1,120p' "$LOG_FILE" || true
-    rm -f "$PID_FILE"
-    exit 1
-  fi
+  attempt=0
+  until forward_ready; do
+    attempt=$((attempt + 1))
+    if ! is_running || [ "$attempt" -ge 30 ]; then
+      echo "failed to reach port-forward at https://127.0.0.1:$HTTPS_PORT" >&2
+      echo "log:" >&2
+      sed -n '1,120p' "$LOG_FILE" >&2 || true
+      sudo kill "$pid" 2>/dev/null || true
+      rm -f "$PID_FILE"
+      exit 1
+    fi
+    sleep 1
+  done
 
   status
+}
+
+forward_ready() {
+  curl --noproxy '*' --insecure --silent --output /dev/null \
+    --connect-timeout 1 --max-time 2 \
+    --resolve "$PORTAL_HOST:$HTTPS_PORT:127.0.0.1" \
+    "https://$PORTAL_HOST:$HTTPS_PORT/"
 }
 
 stop() {
