@@ -4,7 +4,7 @@ ARG TARGETARCH
 
 WORKDIR /app/portal
 
-RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.977
 COPY portal/go.mod portal/go.sum ./
 COPY ingestor /app/ingestor
 COPY common /app/common
