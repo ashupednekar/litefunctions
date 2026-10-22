@@ -12,7 +12,7 @@ NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
 GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$NAMESPACE}"
-SERVICE="${SERVICE:-$RELEASE-gateway-istio}"
+SERVICE="${SERVICE:-${RELEASE}-gateway-istio}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 
@@ -47,9 +47,11 @@ ensure_cluster() {
   case "$(uname -s)" in
     Darwin)
       require_command kubectl
-      echo "No reachable Kubernetes cluster. Start your cluster and check kubectl get nodes." >&2
-      echo "For Colima: colima start --kubernetes (disable Traefik to avoid Istio port conflicts)." >&2
-      exit 1
+      require_command colima
+      colima start --memory "${COLIMA_MEMORY:-6}" --kubernetes \
+        --k3s-arg=--disable=traefik --k3s-arg=--disable=servicelb
+      kubectl get nodes
+      return 0
       ;;
     Linux)
       ;;
@@ -109,6 +111,7 @@ ensure_istio() {
   "$istioctl_bin" install --kubeconfig "$KUBECONFIG" --set profile=default \
     --set "namespace=$ISTIO_NAMESPACE" \
     --set "values.global.istioNamespace=$ISTIO_NAMESPACE" \
+    --set "values.pilot.resources.requests.memory=${ISTIOD_MEMORY_REQUEST:-256Mi}" \
     --skip-confirmation
   kubectl -n "$ISTIO_NAMESPACE" get deployment istiod
 }
