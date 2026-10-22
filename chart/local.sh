@@ -183,6 +183,7 @@ install() {
     sleep 5
   done
   echo "Portal HTTPS check passed"
+  kubectl -n "$NAMESPACE" rollout restart deployment/litefunctions-portal
 }
 
 start() {
