@@ -1,30 +1,14 @@
-{{- if (.Values.gatewayApi.enabled | default true) }}
-{{- $portalHost := .Values.ui.domain | default "litefunctions.portal" }}
-{{- $giteaHost := "gitea.local" }}
-{{- $localPortalHost := "litefunctions.portal" }}
-{{- $localGiteaHost := "litefunctions.gitea" }}
+{{- if .Values.gatewayApi.enabled }}
+{{- $hosts := include "litefunctions.gatewayHosts" . | fromYaml }}
+{{- $portalHosts := $hosts.portal }}
+{{- $giteaHosts := $hosts.gitea }}
 {{- $gatewayName := include "litefunctions.gatewayName" . }}
-{{- $gatewayClassName := .Values.gatewayApi.gatewayClassName | default "istio" }}
-{{- $httpPort := .Values.gatewayApi.http.port | default 8080 }}
-{{- $tlsEnabled := .Values.gatewayApi.tls.enabled | default false }}
-{{- $tlsPort := .Values.gatewayApi.tls.port | default 443 }}
-{{- $tlsSecretName := .Values.gatewayApi.tls.secretName | default "litefunctions-gateway-tls" }}
-{{- with .Values.gitea }}
-  {{- with .ingress }}
-    {{- if and .hosts (gt (len .hosts) 0) }}
-      {{- $giteaHost = (index .hosts 0).host | default $giteaHost }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-{{- $portalHosts := .Values.gatewayApi.hosts.portal | default (list) }}
-{{- if eq (len $portalHosts) 0 }}
-  {{- $portalHosts = list $localPortalHost $portalHost | uniq }}
-{{- end }}
-{{- $giteaHosts := .Values.gatewayApi.hosts.gitea | default (list) }}
-{{- if eq (len $giteaHosts) 0 }}
-  {{- $giteaHosts = list $localGiteaHost $giteaHost | uniq }}
-{{- end }}
-{{- $listenerHosts := concat $portalHosts $giteaHosts | uniq }}
+{{- $gatewayClassName := .Values.gatewayApi.gatewayClassName }}
+{{- $httpPort := .Values.gatewayApi.http.port }}
+{{- $tlsEnabled := .Values.gatewayApi.tls.enabled }}
+{{- $tlsPort := .Values.gatewayApi.tls.port }}
+{{- $tlsSecretName := .Values.gatewayApi.tls.secretName }}
+{{- $listenerHosts := concat $portalHosts $giteaHosts $hosts.rustfs $hosts.rustfsConsole | uniq }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -34,8 +18,8 @@ metadata:
 spec:
   gatewayClassName: {{ $gatewayClassName | quote }}
   listeners:
-  {{- range $host := $listenerHosts }}
-  - name: {{ printf "http-%s" ($host | replace "." "-" | replace "*" "wildcard") | trunc 63 | trimSuffix "-" }}
+  {{- range $index, $host := $listenerHosts }}
+  - name: {{ printf "http-%d" $index }}
     protocol: HTTP
     port: {{ $httpPort }}
     hostname: {{ $host | quote }}
@@ -44,8 +28,8 @@ spec:
         from: Same
   {{- end }}
   {{- if $tlsEnabled }}
-  {{- range $host := $listenerHosts }}
-  - name: {{ printf "https-%s" ($host | replace "." "-" | replace "*" "wildcard") | trunc 63 | trimSuffix "-" }}
+  {{- range $index, $host := $listenerHosts }}
+  - name: {{ printf "https-%d" $index }}
     protocol: HTTPS
     port: {{ $tlsPort }}
     hostname: {{ $host | quote }}
@@ -58,6 +42,7 @@ spec:
         from: Same
   {{- end }}
   {{- end }}
+{{- if .Values.ui.enabled }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -79,6 +64,7 @@ spec:
     backendRefs:
     - name: litefunctions-portal
       port: 3000
+{{- end }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -100,6 +86,7 @@ spec:
     backendRefs:
     - name: litefunctions-ingestor
       port: 3000
+{{- if .Values.gitea.enabled }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -119,6 +106,32 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: litefunctions-gitea-http
-      port: 3000
+    - name: {{ include "gitea.fullname" (index .Subcharts "gitea") }}-http
+      port: {{ .Values.gitea.service.http.port }}
+{{- end }}
+{{- if .Values.rustfs.enabled }}
+{{- range $name, $routeHosts := dict "rustfs" $hosts.rustfs "rustfsConsole" $hosts.rustfsConsole }}
+{{- if $routeHosts }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: litefunctions-{{ $name | kebabcase }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  parentRefs:
+  - name: {{ $gatewayName }}
+  hostnames:
+    {{- toYaml $routeHosts | nindent 4 }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: {{ include "rustfs.fullname" (index $.Subcharts "rustfs") }}-svc
+      port: {{ if eq $name "rustfs" }}{{ $.Values.rustfs.service.endpoint.port }}{{ else }}{{ $.Values.rustfs.service.console.port }}{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end }}

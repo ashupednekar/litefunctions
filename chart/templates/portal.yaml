@@ -75,32 +75,4 @@ spec:
   selector:
     app: litefunctions-portal
     {{- include "litefunctions.selectorLabels" . | nindent 4 }}
-{{- if .Values.ui.ingress.enabled }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: litefunctions-portal-ingress
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: {{ .Values.ui.ingress.issuer }}
-spec:
-  ingressClassName: nginx
-  tls:
-  - hosts:
-    - {{ .Values.ui.ingress.host }}
-    secretName: lws-portal-tls
-  rules:
-  - host: {{ .Values.ui.ingress.host }}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: litefunctions-portal
-            port:
-              number: 3000
-{{- end }}
 {{- end }}
