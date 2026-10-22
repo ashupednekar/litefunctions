@@ -85,6 +85,7 @@ spec:
         value: /lambda
     backendRefs:
     - name: litefunctions-ingestor
+      namespace: {{ .Release.Namespace }}
       port: 3000
 {{- if .Values.gitea.enabled }}
 ---
