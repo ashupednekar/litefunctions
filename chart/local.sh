@@ -8,7 +8,7 @@ CERT_FILE="${CERT_FILE:-/tmp/litefunctions-local.pem}"
 KEY_FILE="${KEY_FILE:-/tmp/litefunctions-local-key.pem}"
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 
-NAMESPACE="${NAMESPACE:-litefunctio}"
+NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
 GATEWAY_NAMESPACE=$ISTIO_NAMESPACE
