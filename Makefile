@@ -10,6 +10,7 @@ build:
 	$(MAKE) runtime-python
 	$(MAKE) runtime-ts
 	$(MAKE) runtime-lua
+	$(MAKE) gitea-setup
 
 .PHONY: runtime-python
 runtime-python:
@@ -23,6 +24,10 @@ runtime-ts:
 runtime-lua:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-runtime-lua -f build/runtimes/Dockerfile.lua runtimes/lua && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-runtime-lua
 
+.PHONY: gitea-setup
+gitea-setup:
+	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-gitea-setup -f chart/images/Dockerfile.gitea-setup chart && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-gitea-setup
+
 include build/images.mk
 
 .PHONY: build-multiarch
@@ -31,7 +36,11 @@ build-multiarch:
 	$(MAKE) -C operator helm-sync
 	$(MAKE) -C ingestor docker-buildx
 	$(MAKE) -C portal docker-buildx
-	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx
+	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx gitea-setup-buildx
+
+.PHONY: gitea-setup-buildx
+gitea-setup-buildx: docker-builder
+	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t ashupednekar535/litefunctions-gitea-setup -f chart/images/Dockerfile.gitea-setup chart
 
 .PHONY: runtime-python-buildx
 runtime-python-buildx: docker-builder
