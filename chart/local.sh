@@ -47,9 +47,10 @@ ensure_cluster() {
   case "$(uname -s)" in
     Darwin)
       require_command kubectl
-      echo "No reachable Kubernetes cluster. Start your cluster and check kubectl get nodes." >&2
-      echo "For Colima: colima start --kubernetes (disable Traefik to avoid Istio port conflicts)." >&2
-      exit 1
+      require_command colima
+      colima start --kubernetes --k3s-arg=--disable=traefik
+      kubectl get nodes
+      return 0
       ;;
     Linux)
       ;;

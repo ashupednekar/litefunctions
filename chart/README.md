@@ -34,9 +34,9 @@ brew install kubectl helm mkcert
 sh chart/local.sh install
 ```
 
-The helper uses your current Kubernetes context if it is reachable. On macOS,
-start your Kubernetes cluster before running it; on Linux it installs k3s if
-needed. It then installs Istio,
+The helper uses your current Kubernetes context if it is reachable. Otherwise,
+on macOS it starts Colima with Kubernetes and Traefik disabled; on Linux it
+installs k3s. It checks `kubectl get nodes`, then installs Istio,
 configures locally trusted TLS with mkcert, installs the chart, and starts an
 HTTPS port-forward. Add the printed host entries to `/etc/hosts`.
 Run the helper as your normal user; it requests sudo for certificate trust and
@@ -54,12 +54,10 @@ If you need a local cluster on macOS, Colima can run Kubernetes directly:
 
 ```sh
 brew install colima
-colima start --kubernetes
 sh chart/local.sh install
 ```
 
-Disable Colima's bundled Traefik in its Kubernetes configuration to avoid port
-conflicts with Istio.
+The helper disables Colima's bundled Traefik to avoid port conflicts with Istio.
 
 ```bash
 # Install from OCI registry
