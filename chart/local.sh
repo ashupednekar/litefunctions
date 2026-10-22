@@ -6,9 +6,13 @@ PID_FILE="$SCRIPT_DIR/.local-port-forward.pid"
 LOG_FILE="$SCRIPT_DIR/.local-port-forward.log"
 CERT_FILE="${CERT_FILE:-/tmp/litefunctions-local.pem}"
 KEY_FILE="${KEY_FILE:-/tmp/litefunctions-local-key.pem}"
+KUBECONFIG="$HOME/.kube/config"
 
-NAMESPACE="${NAMESPACE:-default}"
-SERVICE="${SERVICE:-litefunctions-gateway-istio}"
+NAMESPACE="${NAMESPACE:-litefunctions}"
+RELEASE="${RELEASE:-litefunctions}"
+ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
+GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$NAMESPACE}"
+SERVICE="${SERVICE:-$RELEASE-gateway-istio}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 
@@ -25,22 +29,100 @@ is_running() {
     return 1
   fi
 
-  kill -0 "$pid" 2>/dev/null
+  ps -p "$pid" -o pid= >/dev/null 2>&1
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "$1 not found" >&2
+    exit 1
+  }
+}
+
+ensure_k3s() {
+  if command -v kubectl >/dev/null 2>&1 && kubectl get nodes >/dev/null 2>&1; then
+    return 0
+  fi
+
+  require_command sudo
+  require_command curl
+  if [ -x /usr/local/bin/k3s-uninstall.sh ]; then
+    sudo /usr/local/bin/k3s-uninstall.sh
+  fi
+  installer=$(mktemp)
+  curl -sfL https://get.k3s.io -o "$installer"
+  sudo env INSTALL_K3S_EXEC="--disable=traefik" sh "$installer"
+  rm -f "$installer"
+
+  mkdir -p "$HOME/.kube"
+  sudo install -o "$(id -u)" -g "$(id -g)" -m 600 \
+    /etc/rancher/k3s/k3s.yaml "$KUBECONFIG"
+  attempt=0
+  until kubectl get nodes >/dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge 30 ]; then
+      echo "k3s did not become available" >&2
+      exit 1
+    fi
+    sleep 2
+  done
+  kubectl get nodes
+}
+
+ensure_istio() {
+  control_plane=$(kubectl -n "$ISTIO_NAMESPACE" get deployment istiod --ignore-not-found -o name)
+  if [ -n "$control_plane" ]; then
+    return 0
+  fi
+
+  if command -v istioctl >/dev/null 2>&1; then
+    istioctl_bin=$(command -v istioctl)
+  elif [ -x "${HOME}/.istioctl/bin/istioctl" ]; then
+    istioctl_bin="${HOME}/.istioctl/bin/istioctl"
+  else
+    require_command curl
+    echo "Downloading istioctl"
+    curl -fsSL https://istio.io/downloadIstioctl | sh -
+    istioctl_bin="${HOME}/.istioctl/bin/istioctl"
+    if [ ! -x "$istioctl_bin" ]; then
+      echo "istioctl download failed" >&2
+      exit 1
+    fi
+  fi
+
+  echo "Installing Istio in $ISTIO_NAMESPACE"
+  "$istioctl_bin" install --kubeconfig "$KUBECONFIG" --set profile=default \
+    --set "namespace=$ISTIO_NAMESPACE" \
+    --set "values.global.istioNamespace=$ISTIO_NAMESPACE" \
+    --skip-confirmation
+  kubectl -n "$ISTIO_NAMESPACE" get deployment istiod
 }
 
 mkcert_setup() {
-  command -v mkcert >/dev/null 2>&1 || {
-    echo "mkcert not found"
+  if [ "$(id -u)" -eq 0 ]; then
+    echo "Run this script as your normal user; mkcert -install will request sudo when needed" >&2
     exit 1
-  }
-
-  command -v kubectl >/dev/null 2>&1 || {
-    echo "kubectl not found"
+  fi
+  require_command mkcert
+  require_command kubectl
+  if [ ! -r "$KUBECONFIG" ]; then
+    echo "Kubernetes config not readable: $KUBECONFIG" >&2
     exit 1
-  }
+  fi
+  ensure_istio
 
-  kubectl -n "$NAMESPACE" delete certificate "$TLS_SECRET" --ignore-not-found=true
+  kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+  cert_crd=$(kubectl get crd certificates.cert-manager.io --ignore-not-found -o name)
+  if [ -n "$cert_crd" ]; then
+    kubectl -n "$NAMESPACE" delete certificate "$TLS_SECRET" --ignore-not-found=true
+  fi
   mkcert -install
+  for file in "$CERT_FILE" "$KEY_FILE"; do
+    if [ -e "$file" ] && [ ! -w "$file" ]; then
+      sudo chown "$(id -u):$(id -g)" "$file"
+    fi
+  done
   mkcert -cert-file "$CERT_FILE" -key-file "$KEY_FILE" "$PORTAL_HOST" "$GITEA_HOST"
   kubectl -n "$NAMESPACE" create secret tls "$TLS_SECRET" \
     --cert="$CERT_FILE" \
@@ -53,6 +135,30 @@ mkcert_setup() {
   echo "127.0.0.1 $GITEA_HOST"
 }
 
+install() {
+  require_command helm
+  require_command curl
+  ensure_k3s
+  helm ls -A
+  mkcert_setup
+
+  dependency_status=$(helm dependency list "$SCRIPT_DIR")
+  if printf '%s\n' "$dependency_status" | awk 'NR > 1 && NF && $NF != "ok" { needed = 1 } END { exit !needed }'; then
+    helm dependency update "$SCRIPT_DIR"
+  fi
+  helm upgrade --install "$RELEASE" "$SCRIPT_DIR" --namespace "$NAMESPACE" \
+    --create-namespace --debug \
+    --set gatewayApi.tls.certManager.enabled=false
+
+  start
+  echo "Checking https://$PORTAL_HOST:$HTTPS_PORT/"
+  curl --noproxy '*' --fail --show-error --silent --retry 12 --retry-delay 5 \
+    --retry-all-errors --cacert "$(mkcert -CAROOT)/rootCA.pem" \
+    --resolve "$PORTAL_HOST:$HTTPS_PORT:127.0.0.1" \
+    -o /dev/null "https://$PORTAL_HOST:$HTTPS_PORT/"
+  echo "Portal HTTPS check passed"
+}
+
 start() {
   if is_running; then
     echo "port-forward already running with pid $(cat "$PID_FILE")"
@@ -62,13 +168,19 @@ start() {
 
   rm -f "$PID_FILE"
 
-  nohup kubectl -n "$NAMESPACE" port-forward "svc/$SERVICE" "$HTTPS_PORT:443" >"$LOG_FILE" 2>&1 &
+  require_command sudo
+  sudo -v
+  if [ -e "$LOG_FILE" ] && [ ! -w "$LOG_FILE" ]; then
+    sudo chown "$(id -u):$(id -g)" "$LOG_FILE"
+  fi
+  nohup sudo -n kubectl --kubeconfig "$KUBECONFIG" -n "$GATEWAY_NAMESPACE" \
+    port-forward "svc/$SERVICE" "$HTTPS_PORT:443" >"$LOG_FILE" 2>&1 &
   pid=$!
   echo "$pid" >"$PID_FILE"
 
   sleep 2
 
-  if ! kill -0 "$pid" 2>/dev/null; then
+  if ! ps -p "$pid" -o pid= >/dev/null 2>&1; then
     echo "failed to start port-forward"
     echo "log:"
     sed -n '1,120p' "$LOG_FILE" || true
@@ -87,7 +199,7 @@ stop() {
   fi
 
   pid=$(cat "$PID_FILE")
-  kill "$pid"
+  sudo kill "$pid"
   rm -f "$PID_FILE"
   echo "stopped port-forward pid $pid"
 }
@@ -109,6 +221,9 @@ status() {
   echo "mkcert:"
   echo "sh local.sh mkcert"
   echo
+  echo "install:"
+  echo "sh local.sh install"
+  echo
   echo "start:"
   echo "sh local.sh start"
   echo
@@ -122,6 +237,9 @@ status() {
 }
 
 case "${1:-status}" in
+  install)
+    install
+    ;;
   mkcert)
     mkcert_setup
     ;;
@@ -139,7 +257,7 @@ case "${1:-status}" in
     status
     ;;
   *)
-    echo "usage: sh local.sh [mkcert|start|stop|restart|status]"
+    echo "usage: sh local.sh [install|mkcert|start|stop|restart|status]"
     exit 1
     ;;
 esac
