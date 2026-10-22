@@ -27,6 +27,40 @@ LiteFunctions is built around first principles:
 
 ### Installation
 
+For local development on macOS with a working Kubernetes context:
+
+```sh
+brew install kubectl helm mkcert
+sh chart/local.sh install
+```
+
+The helper uses your current Kubernetes context if it is reachable. On macOS,
+start your Kubernetes cluster before running it; on Linux it installs k3s if
+needed. It then installs Istio,
+configures locally trusted TLS with mkcert, installs the chart, and starts an
+HTTPS port-forward. Add the printed host entries to `/etc/hosts`.
+Run the helper as your normal user; it requests sudo for certificate trust and
+the default HTTPS port 443. Use `HTTPS_PORT=8443` to choose another local port.
+`KUBECONFIG` can select a different kubeconfig file.
+Use the same overrides for subsequent commands:
+
+```sh
+sh chart/local.sh status
+sh chart/local.sh stop
+sh chart/local.sh start
+```
+
+If you need a local cluster on macOS, Colima can run Kubernetes directly:
+
+```sh
+brew install colima
+colima start --kubernetes
+sh chart/local.sh install
+```
+
+Disable Colima's bundled Traefik in its Kubernetes configuration to avoid port
+conflicts with Istio.
+
 ```bash
 # Install from OCI registry
 helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
@@ -544,4 +578,3 @@ kubectl apply -f chart/crds/
 - [ ] Review and update secrets management
 - [ ] Test disaster recovery procedures
 - [ ] Enable and configure network policies
-

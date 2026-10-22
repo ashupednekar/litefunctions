@@ -6,7 +6,7 @@ PID_FILE="$SCRIPT_DIR/.local-port-forward.pid"
 LOG_FILE="$SCRIPT_DIR/.local-port-forward.log"
 CERT_FILE="${CERT_FILE:-/tmp/litefunctions-local.pem}"
 KEY_FILE="${KEY_FILE:-/tmp/litefunctions-local-key.pem}"
-KUBECONFIG="$HOME/.kube/config"
+export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 
 NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
@@ -39,10 +39,25 @@ require_command() {
   }
 }
 
-ensure_k3s() {
+ensure_cluster() {
   if command -v kubectl >/dev/null 2>&1 && kubectl get nodes >/dev/null 2>&1; then
     return 0
   fi
+
+  case "$(uname -s)" in
+    Darwin)
+      require_command kubectl
+      echo "No reachable Kubernetes cluster. Start your cluster and check kubectl get nodes." >&2
+      echo "For Colima: colima start --kubernetes (disable Traefik to avoid Istio port conflicts)." >&2
+      exit 1
+      ;;
+    Linux)
+      ;;
+    *)
+      echo "Automatic cluster setup supports Linux; configure a working kubectl context first" >&2
+      exit 1
+      ;;
+  esac
 
   require_command sudo
   require_command curl
@@ -138,7 +153,7 @@ mkcert_setup() {
 install() {
   require_command helm
   require_command curl
-  ensure_k3s
+  ensure_cluster
   helm ls -A
   mkcert_setup
 
@@ -152,16 +167,26 @@ install() {
 
   start
   echo "Checking https://$PORTAL_HOST:$HTTPS_PORT/"
-  curl --noproxy '*' --fail --show-error --silent --retry 12 --retry-delay 5 \
-    --retry-all-errors --cacert "$(mkcert -CAROOT)/rootCA.pem" \
+  attempt=0
+  until curl --noproxy '*' --fail --show-error --silent --max-time 15 \
+    --cacert "$(mkcert -CAROOT)/rootCA.pem" \
     --resolve "$PORTAL_HOST:$HTTPS_PORT:127.0.0.1" \
-    -o /dev/null "https://$PORTAL_HOST:$HTTPS_PORT/"
+    -o /dev/null "https://$PORTAL_HOST:$HTTPS_PORT/"; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge 12 ]; then
+      echo "Portal HTTPS check failed" >&2
+      exit 1
+    fi
+    sleep 5
+  done
   echo "Portal HTTPS check passed"
 }
 
 start() {
   require_command sudo
   require_command curl
+  require_command kubectl
+  kubectl_bin=$(command -v kubectl)
   if is_running; then
     if forward_ready; then
       echo "port-forward already running with pid $(cat "$PID_FILE")"
@@ -178,7 +203,7 @@ start() {
   if [ -e "$LOG_FILE" ] && [ ! -w "$LOG_FILE" ]; then
     sudo chown "$(id -u):$(id -g)" "$LOG_FILE"
   fi
-  nohup sudo -n kubectl --kubeconfig "$KUBECONFIG" -n "$GATEWAY_NAMESPACE" \
+  nohup sudo -n "$kubectl_bin" --kubeconfig "$KUBECONFIG" -n "$GATEWAY_NAMESPACE" \
     port-forward "svc/$SERVICE" "$HTTPS_PORT:443" >"$LOG_FILE" 2>&1 &
   pid=$!
   echo "$pid" >"$PID_FILE"
