@@ -88,7 +88,9 @@ helm install litefunctions ./chart -f values.yaml
 ```yaml
 images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
+  giteaSetup: ashupednekar535/litefunctions-gitea-setup:latest
   operator: ashupednekar535/litefunctions-operator:latest
+  portal: ashupednekar535/litefunctions-portal:latest
 ```
 
 #### Operator Settings

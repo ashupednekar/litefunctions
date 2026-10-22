@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.2
+FROM oven/bun:1.4.3-debian
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends git ca-certificates \
