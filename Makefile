@@ -26,7 +26,7 @@ runtime-lua:
 
 .PHONY: gitea-setup
 gitea-setup:
-	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-gitea-setup -f chart/images/Dockerfile.gitea-setup chart && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-gitea-setup
+	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-gitea-setup -f build/gitea-setup/Dockerfile build/gitea-setup && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-gitea-setup
 
 include build/images.mk
 
@@ -40,7 +40,7 @@ build-multiarch:
 
 .PHONY: gitea-setup-buildx
 gitea-setup-buildx: docker-builder
-	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t ashupednekar535/litefunctions-gitea-setup -f chart/images/Dockerfile.gitea-setup chart
+	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t ashupednekar535/litefunctions-gitea-setup -f build/gitea-setup/Dockerfile build/gitea-setup
 
 .PHONY: runtime-python-buildx
 runtime-python-buildx: docker-builder
