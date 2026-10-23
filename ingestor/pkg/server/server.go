@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/ashupednekar/litefunctions/common/proto"
+	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -52,7 +52,7 @@ func (s *Server) activateFunction(project, name string) (*proto.ActivateResponse
 
 	// TODO: remove operator activation hop once ingestor can call runtime directly.
 	req := &proto.ActivateRequest{
-		Namespace: "default",
+		Namespace: pkg.Settings.PodNamespace,
 		Name:      name,
 	}
 
