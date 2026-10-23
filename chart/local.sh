@@ -68,7 +68,7 @@ ensure_cluster() {
   fi
   installer=$(mktemp)
   curl -sfL https://get.k3s.io -o "$installer"
-  sudo env INSTALL_K3S_EXEC="--disable=traefik" sh "$installer"
+  sudo env INSTALL_K3S_EXEC="--disable=traefik --disable=servicelb" sh "$installer"
   rm -f "$installer"
 
   mkdir -p "$HOME/.kube"
