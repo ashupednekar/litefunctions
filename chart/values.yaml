@@ -46,6 +46,7 @@ operator:
   vcs_base_url: http://litefunctions-gitea-http:3000
   git_token_secret_name: litefunctions-admin-token
   git_token_secret_key: token
+  redis_url: redis://litefunctions-valkey:6379
   deprovision_duration: 2m
   keep_warm_duration: 5m
   service:
@@ -108,16 +109,13 @@ rustfs:
   gatewayApi:
     enabled: false
 
-valkey-cluster:
-  enabled: true
-  global:
-    security:
-      allowInsecureImages: true
+valkey:
   auth:
     enabled: true
-  password: valkeyadmin
-  image:
-    repository: bitnamilegacy/valkey-cluster
+    aclUsers:
+      default:
+        permissions: "~* &* +@all"
+        password: valkeyadmin
 
 gitea:
   enabled: true
