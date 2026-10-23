@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ashupednekar/litefunctions/ingestor/pkg"
 	"github.com/ashupednekar/litefunctions/ingestor/pkg/broker"
 	"github.com/gorilla/websocket"
 )
@@ -52,7 +53,7 @@ func (h *IngestHandler) Sync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if info.ServiceName != "" && info.ServicePort > 0 {
-		if err := proxyToRuntime(w, r, project, name, "default", info.ServiceName, int(info.ServicePort)); err != nil {
+		if err := proxyToRuntime(w, r, project, name, pkg.Settings.PodNamespace, info.ServiceName, int(info.ServicePort)); err != nil {
 			h.logger.Error("failed to proxy request to runtime", "error", err)
 			http.Error(w, fmt.Sprintf("%s", err), http.StatusBadGateway)
 		}

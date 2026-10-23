@@ -75,9 +75,9 @@ spec:
         - name: REDIS_URL
           value: {{ .Values.operator.redis_url | quote }}
         {{- end }}
-        {{- if (index .Values "valkey-cluster").password }}
+        {{- if .Values.valkey.auth.enabled }}
         - name: REDIS_PASSWORD
-          value: {{ (index .Values "valkey-cluster").password | quote }}
+          value: {{ .Values.valkey.auth.aclUsers.default.password | quote }}
         {{- end }}
         {{- if .Values.operator.nats_url }}
         - name: NATS_URL

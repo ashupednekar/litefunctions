@@ -12,6 +12,7 @@ type IngestorConf struct {
 	NatsUrl      string `env:"NATS_URL" default:"nats://litefunctions-nats:4222"`
 	ReplyTimeout string `env:"REPLY_TIMEOUT" default:"500ms"`
 	OperatorUrl  string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
+	PodNamespace string `env:"POD_NAMESPACE" default:"default"`
 }
 
 var (

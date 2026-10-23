@@ -48,7 +48,8 @@ ensure_cluster() {
     Darwin)
       require_command kubectl
       require_command colima
-      colima start --kubernetes --k3s-arg=--disable=traefik
+      colima start --memory "${COLIMA_MEMORY:-6}" --kubernetes \
+        --k3s-arg=--disable=traefik --k3s-arg=--disable=servicelb
       kubectl get nodes
       return 0
       ;;
@@ -67,7 +68,7 @@ ensure_cluster() {
   fi
   installer=$(mktemp)
   curl -sfL https://get.k3s.io -o "$installer"
-  sudo env INSTALL_K3S_EXEC="--disable=traefik" sh "$installer"
+  sudo env INSTALL_K3S_EXEC="--disable=traefik --disable=servicelb" sh "$installer"
   rm -f "$installer"
 
   mkdir -p "$HOME/.kube"
@@ -110,6 +111,7 @@ ensure_istio() {
   "$istioctl_bin" install --kubeconfig "$KUBECONFIG" --set profile=default \
     --set "namespace=$ISTIO_NAMESPACE" \
     --set "values.global.istioNamespace=$ISTIO_NAMESPACE" \
+    --set "values.pilot.resources.requests.memory=${ISTIOD_MEMORY_REQUEST:-256Mi}" \
     --skip-confirmation
   kubectl -n "$ISTIO_NAMESPACE" get deployment istiod
 }
@@ -181,6 +183,7 @@ install() {
     sleep 5
   done
   echo "Portal HTTPS check passed"
+  kubectl -n "$NAMESPACE" rollout restart deployment/litefunctions-portal
 }
 
 start() {
