@@ -11,8 +11,8 @@ export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
-GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$NAMESPACE}"
-SERVICE="${SERVICE:-${RELEASE}-gateway-istio}"
+GATEWAY_NAMESPACE=$ISTIO_NAMESPACE
+SERVICE="${SERVICE:-istio-ingressgateway}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 
