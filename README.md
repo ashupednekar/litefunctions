@@ -105,11 +105,47 @@ docker run --privileged --rm tonistiigi/binfmt --install amd64,arm64
 
 Planned next:
 
+- Package directories for functions, so each function can include helpers, assets,
+  tests, and its own dependency manifest. See the proposed layout below.
 - Authorization policy engine for endpoints (authz policies).
 - Richer authn/authz integration across HTTP/WS/SSE surfaces.
 - More granular routing and traffic controls.
 - Enhanced observability (structured traces/metrics per function).
 - Runtime hardening and policy guardrails for multi-tenant environments.
+
+### Proposed function package layout
+
+Today, a function is a single file such as `functions/python/orders.py`.
+The proposed model makes the function directory the unit of discovery, build,
+and deployment:
+
+```text
+functions/
+  python/
+    orders/
+      function.py          # entry point: exports handle
+      helpers.py           # imported by function.py
+      requirements.txt     # dependencies for this function
+      tests/
+        test_orders.py
+  ts/
+    notifications/
+      function.ts          # entry point: exports handle
+      formatter.ts
+      package.json         # dependencies for this function
+```
+
+The directory name is the function name; its parent selects the language.
+Each supported language would use `function.<extension>` as its entry point
+(`.py`, `.ts`, `.lua`, `.go`, or `.rs`). Files inside the directory belong to
+that function and should travel together when it is synced or built. A change
+to any file in a package should update that function. Dependency manifests
+should be resolved in the package's build or runtime context so functions can
+use different dependencies without sharing an implicit project-wide set.
+
+This is a design proposal, **not yet supported by the platform**. Existing
+single-file functions continue to use the current layout until package
+discovery, Portal editing, runtime loading, and build workflows are updated.
 
 ## How does it work?
 ![LiteFunctions architecture](https://github.com/user-attachments/assets/95c952b3-2f7b-48e9-ad92-36ba0cd1a1c6)
