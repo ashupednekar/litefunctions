@@ -15,6 +15,36 @@ GATEWAY_NAMESPACE=$ISTIO_NAMESPACE
 SERVICE="${SERVICE:-istio-ingressgateway}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
+CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
+USE_HEAD_CHART=false
+ACTION=status
+ACTION_SET=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --head)
+      USE_HEAD_CHART=true
+      ;;
+    -h|--help)
+      ACTION=help
+      ACTION_SET=true
+      ;;
+    -* )
+      echo "unknown option: $arg" >&2
+      echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]" >&2
+      exit 1
+      ;;
+    *)
+      if [ "$ACTION_SET" = true ]; then
+        echo "unexpected argument: $arg" >&2
+        echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]" >&2
+        exit 1
+      fi
+      ACTION=$arg
+      ACTION_SET=true
+      ;;
+  esac
+done
 
 PORTAL_HOST="${PORTAL_HOST:-litefunctions.portal}"
 GITEA_HOST="${GITEA_HOST:-litefunctions.gitea}"
@@ -160,11 +190,16 @@ install() {
   helm ls -A
   mkcert_setup
 
-  dependency_status=$(helm dependency list "$SCRIPT_DIR")
-  if printf '%s\n' "$dependency_status" | awk 'NR > 1 && NF && $NF != "ok" { needed = 1 } END { exit !needed }'; then
-    helm dependency update "$SCRIPT_DIR"
+  if [ "$USE_HEAD_CHART" = true ]; then
+    chart_source=$SCRIPT_DIR
+    dependency_status=$(helm dependency list "$chart_source")
+    if printf '%s\n' "$dependency_status" | awk 'NR > 1 && NF && $NF != "ok" { needed = 1 } END { exit !needed }'; then
+      helm dependency update "$chart_source"
+    fi
+  else
+    chart_source=$CHART_SOURCE
   fi
-  helm upgrade --install "$RELEASE" "$SCRIPT_DIR" --namespace "$NAMESPACE" \
+  helm upgrade --install "$RELEASE" "$chart_source" --namespace "$NAMESPACE" \
     --create-namespace --debug \
     --set gatewayApi.tls.certManager.enabled=false
 
@@ -281,7 +316,11 @@ status() {
   echo "curl --noproxy '*' -k -H 'Host: $GITEA_HOST' https://127.0.0.1:$HTTPS_PORT/"
 }
 
-case "${1:-status}" in
+case "$ACTION" in
+  help)
+    echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]"
+    echo "  --head  install the chart from this checkout; default installs the published Artifact Hub chart"
+    ;;
   install)
     install
     ;;
@@ -302,7 +341,8 @@ case "${1:-status}" in
     status
     ;;
   *)
-    echo "usage: sh local.sh [install|mkcert|start|stop|restart|status]"
+    echo "unknown command: $ACTION" >&2
+    echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]" >&2
     exit 1
     ;;
 esac
