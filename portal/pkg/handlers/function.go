@@ -152,7 +152,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	_, err = functionadaptors.CreateFunctionCRD(
 		c.Request.Context(),
 		pkg.Cfg.OperatorUrl,
-		"default",
+		pkg.Cfg.PodNamespace,
 		req.Name,
 		projectName,
 		req.Language,

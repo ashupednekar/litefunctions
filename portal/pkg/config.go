@@ -28,6 +28,7 @@ type Settings struct {
 	VcsBaseUrl              string `env:"VCS_BASE_URL"`
 	VcsPublicBaseUrl        string `env:"VCS_PUBLIC_BASE_URL"`
 	OperatorUrl             string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
+	PodNamespace            string `env:"POD_NAMESPACE" default:"default"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
 }
 
