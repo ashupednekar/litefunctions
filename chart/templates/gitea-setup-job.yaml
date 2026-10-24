@@ -19,6 +19,9 @@ spec:
         - -c
         - >
 {{`          until curl -f http://litefunctions-gitea-http:3000/api/v1/version; do sleep 20; done;
+          kubectl run gitea-runner-image-prepull --image=docker.gitea.com/runner-images:ubuntu-latest --restart=Never --command -- sh -c 'true';
+          kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/gitea-runner-image-prepull --timeout=10m;
+          kubectl delete pod gitea-runner-image-prepull --wait=false;
           TOKEN_NAME="admin-token-$(date +%s)";
           TOKEN=$(curl -s -u ashudev:gitadmin -X POST http://litefunctions-gitea-http:3000/api/v1/users/ashudev/tokens -H "Content-Type: application/json" -d '{"name": "'$TOKEN_NAME'", "scopes": ["write:repository", "read:repository", "write:user", "write:admin", "write:package", "read:package"]}' | jq -r .sha1);
           if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then exit 1; fi;
