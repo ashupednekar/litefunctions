@@ -37,7 +37,7 @@ async def consume(state: AppState, consumer: Any, handler: Callable):
             res: bytes = await handler(state, req_id)
             logger.debug("handler run complete")
             await state.nc.publish(
-                f"{settings.project}.{handler.__name__}.res.py.{req_id}", res
+                f"{settings.project}.{handler.__name__}.res.python.{req_id}", res
             )
 
 
@@ -52,7 +52,7 @@ async def start_function(state: AppState, name: str):
     setattr(handler, "__name__", name)
     if hasattr(module, "handle"):
         consumer = await state.js.pull_subscribe(
-            f"{settings.project}.{name}.exec.py.*", stream=settings.project
+            f"{settings.project}.{name}.exec.python.*", stream=settings.project
         )
         await consume(state, consumer, module.handle)
 
