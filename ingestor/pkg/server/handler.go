@@ -276,15 +276,24 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *IngestHandler) validateMethod(w http.ResponseWriter, r *http.Request, expected, project, name string) bool {
-	if expected == "" {
+	if strings.TrimSpace(expected) == "" {
 		return true
 	}
-	if strings.EqualFold(r.Method, expected) {
-		return true
+	allowedMethods := strings.Split(expected, ",")
+	allowed := make([]string, 0, len(allowedMethods))
+	for _, method := range allowedMethods {
+		method = strings.ToUpper(strings.TrimSpace(method))
+		if method == "" {
+			continue
+		}
+		allowed = append(allowed, method)
+		if strings.EqualFold(r.Method, method) {
+			return true
+		}
 	}
-	allowed := strings.ToUpper(expected)
-	w.Header().Set("Allow", allowed)
-	h.logger.Warn("method mismatch", "project", project, "name", name, "expected", allowed, "actual", r.Method)
+	allowedHeader := strings.Join(allowed, ", ")
+	w.Header().Set("Allow", allowedHeader)
+	h.logger.Warn("method mismatch", "project", project, "name", name, "expected", allowedHeader, "actual", r.Method)
 	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 	return false
 }

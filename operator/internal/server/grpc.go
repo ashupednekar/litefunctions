@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	functionproto "github.com/ashupednekar/litefunctions/common/proto"
@@ -63,7 +64,7 @@ func (s *FunctionServer) Activate(ctx context.Context, req *functionproto.Activa
 		IsAsync:  fn.Spec.IsAsync,
 		Project:  fn.Spec.Project,
 		Name:     fn.Spec.Name,
-		Method:   fn.Spec.Method,
+		Method:   strings.Join(fn.Spec.Methods, ","),
 	}
 	resp.ServiceName = client.GetServiceName(fn)
 	resp.ServicePort = 8080
