@@ -233,7 +233,7 @@ async def invoke_module(
 
 
 async def consume_function(state: AppState, name: str) -> None:
-    subject = f"{settings.project}.{name}.exec.py.*"
+    subject = f"{settings.project}.{name}.exec.python.*"
     consumer = await state.js.pull_subscribe(subject, stream=settings.project)
     logger.info("python consumer started function=%s subject=%s", name, subject)
 
@@ -244,7 +244,7 @@ async def consume_function(state: AppState, name: str) -> None:
         req_id = msg.subject.split(".")[-1]
         try:
             async for out in invoke_module(state, name, req_id, msg.data):
-                await state.nc.publish(f"{settings.project}.{name}.res.py.{req_id}", out)
+                await state.nc.publish(f"{settings.project}.{name}.res.python.{req_id}", out)
         except Exception as exc:
             logger.exception("failed to handle async event for %s: %s", name, exc)
 
