@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 concurrency:
-  group: ${{ gitea.workflow }}-${{ gitea.ref }}
+  group: ${{ gitea.workflow }}-${{ gitea.ref }}-${{ gitea.sha }}
   cancel-in-progress: false
 
 env:
