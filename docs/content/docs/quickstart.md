@@ -20,8 +20,13 @@ This quickstart installs LiteFunctions into your Kubernetes cluster using Helm a
 ## Install
 
 ```bash
-helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
+curl -fsSL https://ashupednekar.github.io/litefunctions/install.sh | sh
 ```
+
+The installer runs `chart/local.sh install`, which sets up the local Kubernetes
+environment and installs the published LiteFunctions chart. See the [Helm
+Chart]({{< relref "helm-chart" >}}) guide to install directly into an existing
+cluster.
 
 ## Verify
 
