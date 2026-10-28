@@ -6,7 +6,7 @@ use futures::StreamExt;
 
 pub async fn start_function(state: AppState) -> Result<()> {
     let settings = load_settings();
-    let subject = format!("{}.{}.exec.go.*", settings.project, settings.name);
+    let subject = format!("{}.{}.exec.rust.*", settings.project, settings.name);
     tracing::info!(subject = %subject, "starting consumer");
 
     let mut sub = state.nc.subscribe(subject).await?;
