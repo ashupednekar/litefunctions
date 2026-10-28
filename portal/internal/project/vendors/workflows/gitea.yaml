@@ -4,6 +4,10 @@ on:
   push:
     branches: [ "main" ]
 
+concurrency:
+  group: ${{ gitea.workflow }}-${{ gitea.ref }}
+  cancel-in-progress: false
+
 env:
   REGISTRY: litefunctions-zot:5000
   IMAGE_PREFIX: ashudev

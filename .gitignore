@@ -38,3 +38,5 @@ target
 __pycache__
 docs/node_modules
 charts
+chart/.local-port-forward.log
+chart/.local-port-forward.pid
