@@ -16,7 +16,7 @@ SERVICE="${SERVICE:-litefunctions-gateway-istio}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
-USE_HEAD_CHART=false
+USE_HEAD_CHART=true
 ACTION=status
 ACTION_SET=false
 
