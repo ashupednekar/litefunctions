@@ -1,7 +1,7 @@
+use crate::pkg::Result;
 use crate::pkg::conf::load_settings;
 use crate::pkg::function_async::stream_handler;
 use crate::pkg::state::AppState;
-use crate::pkg::Result;
 use futures::StreamExt;
 
 pub async fn start_function(state: AppState) -> Result<()> {
@@ -29,7 +29,7 @@ pub async fn start_function(state: AppState) -> Result<()> {
             state
                 .nc
                 .publish(
-                    format!("{}.{}.res.go.{}", settings.project, settings.name, req_id),
+                    format!("{}.{}.res.rust.{}", settings.project, settings.name, req_id),
                     res.into(),
                 )
                 .await?;
