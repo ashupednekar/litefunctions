@@ -6,14 +6,14 @@ import (
 )
 
 type FunctionSpec struct {
-	IsActive        bool   `json:"isActive"`
-	IsAsync         bool   `json:"isAsync"`
-	DeProvisionTime string `json:"deProvisionTime"`
-	Language        string `json:"language"`
-	Name            string `json:"name"`
-	Method          string `json:"method"`
-	Project         string `json:"project"`
-	GitCreds        string `json:"git_creds"`
+	IsActive        bool     `json:"isActive"`
+	IsAsync         bool     `json:"isAsync"`
+	DeProvisionTime string   `json:"deProvisionTime"`
+	Language        string   `json:"language"`
+	Name            string   `json:"name"`
+	Methods         []string `json:"methods,omitempty"`
+	Project         string   `json:"project"`
+	GitCreds        string   `json:"git_creds"`
 }
 
 type FunctionStatus struct {
@@ -50,6 +50,7 @@ func (f *Function) DeepCopyInto(out *Function) {
 	*out = *f
 	out.TypeMeta = f.TypeMeta
 	f.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	out.Spec.Methods = append([]string(nil), f.Spec.Methods...)
 }
 
 // +kubebuilder:object:root=true
