@@ -129,7 +129,8 @@ ensure_istio() {
   else
     require_command curl
     echo "Downloading istioctl"
-    curl -fsSL https://istio.io/downloadIstioctl | sh -
+    export ISTIO_VERSION=1.31.3 # TODO: find a way to fetch latest 
+    curl -fsSL https://istio.io/downloadIstioctl | sh - 
     istioctl_bin="${HOME}/.istioctl/bin/istioctl"
     if [ ! -x "$istioctl_bin" ]; then
       echo "istioctl download failed" >&2
