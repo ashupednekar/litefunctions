@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/ashupednekar/litefunctions/common/sample"
-	vcsrepo "github.com/ashupednekar/litefunctions/common/vcs/repo"
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -205,7 +205,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		return nil
 	}
 
-	pushed, err := vcsrepo.EnsureFile(function.Spec.Project, repoPath, body)
+	pushed, err := vcs.EnsureFile(Cfg.VCSConfig(), function.Spec.Project, repoPath, body)
 	if err != nil {
 		return fmt.Errorf("ensure %s in %s: %w", repoPath, function.Spec.Project, err)
 	}

@@ -7,5 +7,3 @@ var GitHubWorkflow []byte
 
 //go:embed gitea.yaml
 var GiteaWorkflow []byte
-
-

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
 )
 
 func TestGitHubClient_CreateRepo(t *testing.T) {
@@ -100,7 +102,7 @@ func TestGitHubClient_CreateRepo(t *testing.T) {
 			defer server.Close()
 
 			// Create client with mock server
-			client := NewGitHubClient("test-token")
+			client := NewGitHubClient(config.Config{Token: "test-token"})
 			client.baseURL = server.URL
 
 			// Execute test
@@ -215,7 +217,7 @@ func TestGitHubClient_AddWebhook(t *testing.T) {
 			defer server.Close()
 
 			// Create client with mock server
-			client := NewGitHubClient("test-token")
+			client := NewGitHubClient(config.Config{Token: "test-token"})
 			client.baseURL = server.URL
 
 			// Execute test
@@ -345,7 +347,7 @@ func TestGitHubClient_GetActionsProgress(t *testing.T) {
 			defer server.Close()
 
 			// Create client with mock server
-			client := NewGitHubClient("test-token")
+			client := NewGitHubClient(config.Config{Token: "test-token"})
 			client.baseURL = server.URL
 
 			// Execute test

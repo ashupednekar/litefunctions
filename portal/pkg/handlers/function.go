@@ -11,7 +11,7 @@ import (
 
 	operatorClient "github.com/ashupednekar/litefunctions/common/operatorClient"
 	"github.com/ashupednekar/litefunctions/common/sample"
-	"github.com/ashupednekar/litefunctions/common/vcs/repo"
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
@@ -49,7 +49,7 @@ type createFunctionRequest struct {
 }
 
 func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
-	r := c.MustGet("repo").(*repo.GitRepo)
+	r := c.MustGet("repo").(vcs.Repo)
 	userID := c.MustGet("userID").([]byte)
 	projectUUID := c.MustGet("projectUUID").(pgtype.UUID)
 
@@ -85,12 +85,12 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	cur := ""
 	for _, p := range dirParts[:len(dirParts)-1] {
 		cur += "/" + p
-		r.Fs.MkdirAll(cur, 0755)
+		r.Filesystem().MkdirAll(cur, 0755)
 	}
 
-	f, err := r.Fs.Create(path)
+	f, err := r.Filesystem().Create(path)
 	if err != nil {
-		slog.Error("r.Fs.Create failed", "path", path, "error", err)
+		slog.Error("r.Filesystem().Create failed", "path", path, "error", err)
 		c.JSON(500, gin.H{"error": "file create error"})
 		return
 	}
@@ -249,10 +249,10 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 		return
 	}
 
-	r := c.MustGet("repo").(*repo.GitRepo)
+	r := c.MustGet("repo").(vcs.Repo)
 
 	slog.Debug("reading file content", "path", f.Path)
-	file, err := r.Fs.Open(f.Path)
+	file, err := r.Filesystem().Open(f.Path)
 	if err != nil {
 		c.JSON(404, gin.H{
 			"msg": "function not found in repo",
@@ -296,7 +296,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
-	r := c.MustGet("repo").(*repo.GitRepo)
+	r := c.MustGet("repo").(vcs.Repo)
 
 	if c.ContentType() == "text/plain" {
 		body, err := io.ReadAll(c.Request.Body)
@@ -305,7 +305,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 			return
 		}
 
-		fh, err := r.Fs.Create(f.Path)
+		fh, err := r.Filesystem().Create(f.Path)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "write error"})
 			return
@@ -357,7 +357,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 	}
 
 	if req.Code != "" {
-		fh, err := r.Fs.Create(f.Path)
+		fh, err := r.Filesystem().Create(f.Path)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "write error"})
 			return
@@ -421,9 +421,9 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 		return
 	}
 
-	r := c.MustGet("repo").(*repo.GitRepo)
+	r := c.MustGet("repo").(vcs.Repo)
 
-	if err := r.Fs.Remove(f.Path); err != nil {
+	if err := r.Filesystem().Remove(f.Path); err != nil {
 		slog.Error("failed to remove file", "path", f.Path, "error", err)
 		_, rollbackErr := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
 			ProjectID: f.ProjectID,

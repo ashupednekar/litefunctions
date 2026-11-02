@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
@@ -122,8 +123,8 @@ func (r *GitRepo) Pull() error {
 
 // EnsureFile writes and pushes body to path when the file is not already
 // present in the project repository. It returns true when a commit was pushed.
-func EnsureFile(project, path string, body []byte) (bool, error) {
-	r, err := NewGitRepo(project, nil)
+func EnsureFile(cfg config.Config, project, path string, body []byte) (bool, error) {
+	r, err := New(cfg, project, nil)
 	if err != nil {
 		return false, err
 	}
@@ -141,12 +142,13 @@ func EnsureFile(project, path string, body []byte) (bool, error) {
 }
 
 func WriteFile(
+	cfg config.Config,
 	project string,
 	path string,
 	body []byte,
 	commitMessage string,
 ) error {
-	r, err := NewGitRepo(project, nil)
+	r, err := New(cfg, project, nil)
 	if err != nil {
 		slog.Error("error in repo new", "error", err)
 		return err

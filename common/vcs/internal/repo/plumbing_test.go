@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
 )
 
 func envOr(key, fallback string) string {
@@ -16,7 +16,7 @@ func envOr(key, fallback string) string {
 }
 
 func TestVcs(t *testing.T) {
-	cfg := vcs.Config{
+	cfg := config.Config{
 		AuthMode:        envOr("VCS_AUTH_MODE", "ssh"),
 		PrivKeyPath:     os.Getenv("VCS_PRIVATE_KEY_PATH"),
 		PrivKeyPassword: os.Getenv("VCS_PRIVATE_KEY_PASSWORD"),
@@ -28,11 +28,12 @@ func TestVcs(t *testing.T) {
 	if cfg.AuthMode == "token" && cfg.Token == "" {
 		t.Skip("VCS_TOKEN not set")
 	}
-	vcs.Configure(cfg)
-
-	r, err := NewGitRepo("projone", nil)
+	if cfg.BaseURL == "" || cfg.User == "" {
+		t.Skip("VCS_BASE_URL or VCS_USER not set")
+	}
+	r, err := New(cfg, "projone", nil)
 	if err != nil {
-		t.Errorf("error in new repo call: %s", err)
+		t.Fatalf("error in new repo call: %s", err)
 	}
 	err = r.Clone()
 	if err != nil {
@@ -62,7 +63,7 @@ func TestVcs(t *testing.T) {
 		t.Fatalf("push error: %s", err)
 	}
 	log.Println("opening existing repo")
-	rOpened, err := NewGitRepo("projone", nil)
+	rOpened, err := New(cfg, "projone", nil)
 	if err != nil {
 		t.Errorf("error in new repo call: %s", err)
 	}

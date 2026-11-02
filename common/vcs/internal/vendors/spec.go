@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
 )
 
 type VendorClient interface {
@@ -86,14 +86,13 @@ type WorkflowRun struct {
 	CurrentStep  string
 }
 
-func NewVendorClient() (VendorClient, error) {
-	cfg := vcs.Current()
+func NewClient(cfg config.Config) (VendorClient, error) {
 	switch cfg.Vendor {
 	case "github":
 		if cfg.Token == "" {
 			return nil, fmt.Errorf("token is required for GitHub")
 		}
-		return NewGitHubClient(cfg.Token), nil
+		return NewGitHubClient(cfg), nil
 	case "gitea":
 		if cfg.Token == "" {
 			return nil, fmt.Errorf("token is required for Gitea")
@@ -101,7 +100,7 @@ func NewVendorClient() (VendorClient, error) {
 		if cfg.BaseURL == "" {
 			return nil, fmt.Errorf("baseURL is required for Gitea")
 		}
-		return NewGiteaClient(cfg.BaseURL, cfg.Token), nil
+		return NewGiteaClient(cfg), nil
 
 	default:
 		return nil, fmt.Errorf("unsupported vendor type: %s (supported: github, gitea)", cfg.Vendor)

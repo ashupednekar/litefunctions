@@ -8,8 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/repo"
-	"github.com/ashupednekar/litefunctions/common/vcs/vendors"
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/gin-gonic/gin"
 )
@@ -22,16 +21,16 @@ func NewActionHandlers() *ActionHandelrs {
 }
 
 func (h *ActionHandelrs) Status(ctx *gin.Context) {
-	vcsClient, err := vendors.NewVendorClient()
+	vcsClient, err := vcs.NewVendorClient(pkg.Cfg.VCSConfig())
 	if err != nil {
 		slog.Error("VCS Init failed", "error", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})
 		return
 	}
 
-	r := ctx.MustGet("repo").(*repo.GitRepo)
+	r := ctx.MustGet("repo").(vcs.Repo)
 
-	opts := vendors.ActionsProgressOptions{
+	opts := vcs.ActionsProgressOptions{
 		Branch:     ctx.Query("branch"),
 		Status:     ctx.Query("status"),
 		Event:      ctx.Query("event"),
@@ -62,7 +61,7 @@ func (h *ActionHandelrs) Status(ctx *gin.Context) {
 		progress, err := vcsClient.GetActionsProgress(
 			ctx.Request.Context(),
 			pkg.Cfg.VcsUser,
-			r.Project,
+			r.ProjectName(),
 			opts,
 		)
 		if err != nil {
@@ -92,7 +91,7 @@ func (h *ActionHandelrs) Status(ctx *gin.Context) {
 
 var functionNameFromPath = regexp.MustCompile(`functions/(?:go|rs|rust|py|python|ts|typescript|lua)/([^.\s/]+)\.`)
 
-func enrichActionFunctions(progress *vendors.ActionsProgress) {
+func enrichActionFunctions(progress *vcs.ActionsProgress) {
 	if progress == nil || len(progress.Runs) == 0 {
 		return
 	}

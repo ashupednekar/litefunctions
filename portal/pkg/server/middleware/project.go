@@ -4,8 +4,9 @@ import (
 	"encoding/hex"
 	"log/slog"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/repo"
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	projectadaptors "github.com/ashupednekar/litefunctions/portal/internal/project/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -36,7 +37,7 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 		}
 		projectName := proj.Name
 
-		r, err := repo.NewGitRepo(projectName, nil)
+		r, err := vcs.NewRepo(pkg.Cfg.VCSConfig(), projectName, nil)
 		if err != nil {
 			slog.Error("repo.NewGitRepo failed", "project", projectName, "error", err)
 			c.JSON(500, gin.H{"error": "error instantiating repo"})

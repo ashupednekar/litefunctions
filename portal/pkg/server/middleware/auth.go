@@ -50,7 +50,7 @@ func OptionalAuthMiddleware(sessionStore auth.SessionStore) gin.HandlerFunc {
 			userName, userID, found, err := sessionStore.GetUserSession(sessionID)
 			if err == nil && found {
 				c.Set("userID", userID)
-			  c.Set("userName", userName)
+				c.Set("userName", userName)
 				c.Set("authenticated", true)
 			}
 		}

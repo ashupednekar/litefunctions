@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/vendors"
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/project/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
@@ -52,7 +52,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	}
 
 	slog.Debug("Creating project", "name", req.Name, "user", pkg.Cfg.VcsUser, "vendor", pkg.Cfg.VcsVendor)
-	vcsClient, err := vendors.NewVendorClient()
+	vcsClient, err := vcs.NewVendorClient(pkg.Cfg.VCSConfig())
 	if err != nil {
 		slog.Error("VCS Init failed", "error", err)
 		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})
@@ -90,7 +90,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	repo, err := vcsClient.CreateRepo(c.Request.Context(), vendors.CreateRepoOptions{
+	repo, err := vcsClient.CreateRepo(c.Request.Context(), vcs.CreateRepoOptions{
 		Name:        req.Name,
 		Description: "Created via LiteWebServices Portal",
 		Private:     pkg.Cfg.VcsUsePrivateRepo,
@@ -110,7 +110,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		repoName = repo.Name
 	}
 	webhookURL := fmt.Sprintf("https://%s/api/webhooks/vcs", pkg.Cfg.Fqdn)
-	_, err = vcsClient.AddWebhook(c.Request.Context(), pkg.Cfg.VcsUser, repoName, vendors.WebhookOptions{
+	_, err = vcsClient.AddWebhook(c.Request.Context(), pkg.Cfg.VcsUser, repoName, vcs.WebhookOptions{
 		URL:         webhookURL,
 		ContentType: "json",
 		Secret:      "WEBHOOK_SUPER_SECRET", //TODO: generate secret
@@ -158,7 +158,7 @@ func (h *ProjectHandlers) SyncProject(c *gin.Context) {
 		return
 	}
 
-	vcsClient, err := vendors.NewVendorClient()
+	vcsClient, err := vcs.NewVendorClient(pkg.Cfg.VCSConfig())
 	if err != nil {
 		slog.Error("VCS Init failed", "error", err)
 		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})

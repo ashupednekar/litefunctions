@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
 )
 
 func TestGiteaClient_CreateRepo(t *testing.T) {
@@ -101,7 +103,7 @@ func TestGiteaClient_CreateRepo(t *testing.T) {
 			defer server.Close()
 
 			// Create client with mock server
-			client := NewGiteaClient(server.URL, "test-token")
+			client := NewGiteaClient(config.Config{BaseURL: server.URL, Token: "test-token"})
 
 			// Execute test
 			repo, err := client.CreateRepo(context.Background(), tt.opts)
@@ -215,7 +217,7 @@ func TestGiteaClient_AddWebhook(t *testing.T) {
 			defer server.Close()
 
 			// Create client with mock server
-			client := NewGiteaClient(server.URL, "test-token")
+			client := NewGiteaClient(config.Config{BaseURL: server.URL, Token: "test-token"})
 
 			// Execute test
 			webhook, err := client.AddWebhook(context.Background(), tt.owner, tt.repo, tt.opts)
@@ -337,7 +339,7 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 			}))
 			defer server.Close()
 
-			client := NewGiteaClient(server.URL, "test-token")
+			client := NewGiteaClient(config.Config{BaseURL: server.URL, Token: "test-token"})
 
 			progress, err := client.GetActionsProgress(context.Background(), tt.owner, tt.repo, tt.opts)
 
@@ -382,7 +384,7 @@ func TestGiteaClient_GetActionsProgress_Integration(t *testing.T) {
 		repo = "one"
 	}
 
-	client := NewGiteaClient(baseURL, token)
+	client := NewGiteaClient(config.Config{BaseURL: baseURL, Token: token})
 
 	progress, err := client.GetActionsProgress(context.Background(), owner, repo, ActionsProgressOptions{
 		Limit: 10,

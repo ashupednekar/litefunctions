@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/plumbing/transport/ssh"
@@ -44,7 +43,7 @@ func (t *TokenAuth) UpdateOptions(options *git.CloneOptions) error {
 }
 
 func (r *GitRepo) SetupAuth() error {
-	cfg := vcs.Current()
+	cfg := r.cfg
 	log.Printf("setting up %s auth\n", cfg.AuthMode)
 	switch cfg.AuthMode {
 	case "ssh":

@@ -115,4 +115,3 @@ func (h *EndpointHandlers) UpdateEndpoint(c *gin.Context) {
 
 	c.JSON(200, ep)
 }
-

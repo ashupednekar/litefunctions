@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	operatorClient "github.com/ashupednekar/litefunctions/common/operatorClient"
-	"github.com/ashupednekar/litefunctions/common/vcs/repo"
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
@@ -25,7 +25,7 @@ var extLang = map[string]string{
 }
 
 func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtype.UUID, projectName string, userID []byte) error {
-	r, err := repo.NewGitRepo(projectName, nil)
+	r, err := vcs.NewRepo(pkg.Cfg.VCSConfig(), projectName, nil)
 	if err != nil {
 		return fmt.Errorf("failed to clone repo: %w", err)
 	}
@@ -131,8 +131,8 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 	return nil
 }
 
-func walkFunctions(r *repo.GitRepo, dir string, fn func(path string) error) error {
-	entries, err := r.Fs.ReadDir(dir)
+func walkFunctions(r vcs.Repo, dir string, fn func(path string) error) error {
+	entries, err := r.Filesystem().ReadDir(dir)
 	if err != nil {
 		return nil
 	}

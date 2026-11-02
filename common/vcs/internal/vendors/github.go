@@ -10,40 +10,46 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
-	"github.com/ashupednekar/litefunctions/common/vcs/repo"
-	"github.com/ashupednekar/litefunctions/common/vcs/vendors/workflows"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/repo"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal/vendors/workflows"
 )
 
-type GiteaClient struct {
+const (
+	GitHubAPIBaseURL = "https://api.github.com"
+)
+
+type GitHubClient struct {
 	token      string
 	httpClient *http.Client
 	baseURL    string
+	cfg        config.Config
 }
 
-type giteaStep struct {
+type ghStep struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`
 }
 
-type giteaJob struct {
-	Name   string      `json:"name"`
-	Status string      `json:"status"`
-	Steps  []giteaStep `json:"steps"`
+type ghJob struct {
+	Name   string   `json:"name"`
+	Status string   `json:"status"`
+	Steps  []ghStep `json:"steps"`
 }
 
-func NewGiteaClient(baseURL, token string) *GiteaClient {
-	return &GiteaClient{
-		token:   token,
-		baseURL: baseURL,
+func NewGitHubClient(cfg config.Config) *GitHubClient {
+	return &GitHubClient{
+		token:   cfg.Token,
+		baseURL: GitHubAPIBaseURL,
+		cfg:     cfg,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
 	}
 }
 
-func (c *GiteaClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*Repository, error) {
-	url := fmt.Sprintf("%s/api/v1/user/repos", c.baseURL)
+func (c *GitHubClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*Repository, error) {
+	url := fmt.Sprintf("%s/user/repos", c.baseURL)
 
 	payload := map[string]any{
 		"name":        opts.Name,
@@ -66,9 +72,10 @@ func (c *GiteaClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -85,7 +92,7 @@ func (c *GiteaClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*
 		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	var giteaRepo struct {
+	var ghRepo struct {
 		ID            int64  `json:"id"`
 		Name          string `json:"name"`
 		FullName      string `json:"full_name"`
@@ -99,29 +106,41 @@ func (c *GiteaClient) CreateRepo(ctx context.Context, opts CreateRepoOptions) (*
 		UpdatedAt     string `json:"updated_at"`
 	}
 
-	if err := json.Unmarshal(respBody, &giteaRepo); err != nil {
+	if err := json.Unmarshal(respBody, &ghRepo); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-
 	return &Repository{
-		ID:            giteaRepo.ID,
-		Name:          giteaRepo.Name,
-		FullName:      giteaRepo.FullName,
-		Description:   giteaRepo.Description,
-		Private:       giteaRepo.Private,
-		HTMLURL:       giteaRepo.HTMLURL,
-		CloneURL:      giteaRepo.CloneURL,
-		SSHURL:        giteaRepo.SSHURL,
-		DefaultBranch: giteaRepo.DefaultBranch,
-		CreatedAt:     giteaRepo.CreatedAt,
-		UpdatedAt:     giteaRepo.UpdatedAt,
+		ID:            ghRepo.ID,
+		Name:          ghRepo.Name,
+		FullName:      ghRepo.FullName,
+		Description:   ghRepo.Description,
+		Private:       ghRepo.Private,
+		HTMLURL:       ghRepo.HTMLURL,
+		CloneURL:      ghRepo.CloneURL,
+		SSHURL:        ghRepo.SSHURL,
+		DefaultBranch: ghRepo.DefaultBranch,
+		CreatedAt:     ghRepo.CreatedAt,
+		UpdatedAt:     ghRepo.UpdatedAt,
 	}, nil
 }
 
-func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts WebhookOptions) (*Webhook, error) {
-	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/hooks", c.baseURL, owner, repo)
+func (c *GitHubClient) AddWorkflow(project string) error {
+	if err := repo.WriteFile(
+		c.cfg,
+		project,
+		".github/workflows/ci.yaml",
+		workflows.GitHubWorkflow,
+		"writing workflow file",
+	); err != nil {
+		return err
+	}
+	return nil
+}
 
-	config := map[string]string{
+func (c *GitHubClient) AddWebhook(ctx context.Context, owner, repo string, opts WebhookOptions) (*Webhook, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s/hooks", c.baseURL, owner, repo)
+
+	config := map[string]any{
 		"url":          opts.URL,
 		"content_type": opts.ContentType,
 	}
@@ -130,13 +149,19 @@ func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts W
 		config["secret"] = opts.Secret
 	}
 
+	if opts.InsecureSSL {
+		config["insecure_ssl"] = "1"
+	} else {
+		config["insecure_ssl"] = "0"
+	}
+
 	events := opts.Events
 	if len(events) == 0 {
 		events = []string{"push"}
 	}
 
 	payload := map[string]any{
-		"type":   "gitea",
+		"name":   "web",
 		"active": opts.Active,
 		"events": events,
 		"config": config,
@@ -152,9 +177,10 @@ func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts W
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -171,8 +197,9 @@ func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts W
 		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	var giteaWebhook struct {
+	var ghWebhook struct {
 		ID        int64    `json:"id"`
+		URL       string   `json:"url"`
 		Events    []string `json:"events"`
 		Active    bool     `json:"active"`
 		CreatedAt string   `json:"created_at"`
@@ -182,34 +209,23 @@ func (c *GiteaClient) AddWebhook(ctx context.Context, owner, repo string, opts W
 		} `json:"config"`
 	}
 
-	if err := json.Unmarshal(respBody, &giteaWebhook); err != nil {
+	if err := json.Unmarshal(respBody, &ghWebhook); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
 	return &Webhook{
-		ID:        giteaWebhook.ID,
-		URL:       giteaWebhook.Config.URL,
-		Events:    giteaWebhook.Events,
-		Active:    giteaWebhook.Active,
-		CreatedAt: giteaWebhook.CreatedAt,
-		UpdatedAt: giteaWebhook.UpdatedAt,
+		ID:        ghWebhook.ID,
+		URL:       ghWebhook.Config.URL,
+		Events:    ghWebhook.Events,
+		Active:    ghWebhook.Active,
+		CreatedAt: ghWebhook.CreatedAt,
+		UpdatedAt: ghWebhook.UpdatedAt,
 	}, nil
 }
 
-func (c *GiteaClient) AddWorkflow(project string) error {
-	if err := repo.WriteFile(
-		project,
-		".gitea/workflows/ci.yaml",
-		workflows.GiteaWorkflow,
-		"writing workflow file",
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string, opts ActionsProgressOptions) (*ActionsProgress, error) {
-	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/actions/tasks", c.baseURL, owner, repo)
+// GetActionsProgress gets the status of GitHub Actions workflows
+func (c *GitHubClient) GetActionsProgress(ctx context.Context, owner, repo string, opts ActionsProgressOptions) (*ActionsProgress, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s/actions/runs", c.baseURL, owner, repo)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -217,15 +233,25 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	}
 
 	q := req.URL.Query()
+	if opts.Branch != "" {
+		q.Add("branch", opts.Branch)
+	}
+	if opts.Status != "" {
+		q.Add("status", opts.Status)
+	}
+	if opts.Event != "" {
+		q.Add("event", opts.Event)
+	}
 	if opts.Limit > 0 {
-		q.Add("limit", fmt.Sprintf("%d", opts.Limit))
+		q.Add("per_page", fmt.Sprintf("%d", opts.Limit))
 	} else {
-		q.Add("limit", "30")
+		q.Add("per_page", "30")
 	}
 	req.URL.RawQuery = q.Encode()
 
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -242,97 +268,51 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	var giteaActions struct {
+	var ghActions struct {
 		TotalCount   int `json:"total_count"`
 		WorkflowRuns []struct {
-			ID           int64  `json:"id"`
-			Name         string `json:"name"`
-			DisplayTitle string `json:"display_title"`
-			Status       string `json:"status"`
-			HeadBranch   string `json:"head_branch"`
-			Event        string `json:"event"`
-			CreatedAt    string `json:"created_at"`
-			UpdatedAt    string `json:"updated_at"`
-			URL          string `json:"url"`
-			WorkflowID   string `json:"workflow_id"`
+			ID         int64  `json:"id"`
+			Name       string `json:"name"`
+			Status     string `json:"status"`
+			Conclusion string `json:"conclusion"`
+			HeadBranch string `json:"head_branch"`
+			Event      string `json:"event"`
+			CreatedAt  string `json:"created_at"`
+			UpdatedAt  string `json:"updated_at"`
+			HTMLURL    string `json:"html_url"`
+			WorkflowID int64  `json:"workflow_id"`
 		} `json:"workflow_runs"`
 	}
 
-	if err := json.Unmarshal(respBody, &giteaActions); err != nil {
+	if err := json.Unmarshal(respBody, &ghActions); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	runs := make([]WorkflowRun, 0, len(giteaActions.WorkflowRuns))
-	for _, run := range giteaActions.WorkflowRuns {
-		var workflowID int64 //gitea uses int, unlike github
-		fmt.Sscanf(run.WorkflowID, "%d", &workflowID)
-		cfg := vcs.Current()
-		publicBaseURL := cfg.PublicBaseURL
-		if strings.TrimSpace(publicBaseURL) == "" {
-			publicBaseURL = cfg.FQDN
-		}
-		htmlURL := rewriteToBaseURL(run.URL, publicBaseURL)
-
+	runs := make([]WorkflowRun, 0, len(ghActions.WorkflowRuns))
+	for _, run := range ghActions.WorkflowRuns {
 		runs = append(runs, WorkflowRun{
-			ID:           run.ID,
-			Name:         run.Name,
-			DisplayTitle: run.DisplayTitle,
-			Status:       run.Status,
-			Branch:       run.HeadBranch,
-			Event:        run.Event,
-			CreatedAt:    run.CreatedAt,
-			UpdatedAt:    run.UpdatedAt,
-			HTMLURL:      htmlURL,
-			WorkflowID:   workflowID,
+			ID:         run.ID,
+			Name:       run.Name,
+			Status:     run.Status,
+			Conclusion: run.Conclusion,
+			Branch:     run.HeadBranch,
+			Event:      run.Event,
+			CreatedAt:  run.CreatedAt,
+			UpdatedAt:  run.UpdatedAt,
+			HTMLURL:    run.HTMLURL,
+			WorkflowID: run.WorkflowID,
 		})
 	}
 
 	c.populateCurrentSteps(ctx, owner, repo, runs)
 
 	return &ActionsProgress{
-		TotalCount: giteaActions.TotalCount,
+		TotalCount: ghActions.TotalCount,
 		Runs:       runs,
 	}, nil
 }
 
-func rewriteToBaseURL(raw, base string) string {
-	if raw == "" {
-		return raw
-	}
-
-	target := strings.TrimSpace(base)
-	if target == "" {
-		return raw
-	}
-
-	scheme := "https"
-	if strings.HasPrefix(target, "http://") {
-		scheme = "http"
-		target = strings.TrimPrefix(target, "http://")
-	} else if strings.HasPrefix(target, "https://") {
-		scheme = "https"
-		target = strings.TrimPrefix(target, "https://")
-	}
-	target = strings.TrimRight(target, "/")
-
-	trimmed := strings.TrimLeft(raw, "/")
-	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
-		if idx := strings.Index(trimmed, "://"); idx >= 0 {
-			if slash := strings.Index(trimmed[idx+3:], "/"); slash >= 0 {
-				trimmed = trimmed[idx+3+slash+1:]
-			} else {
-				trimmed = ""
-			}
-		}
-	}
-
-	if trimmed == "" {
-		return fmt.Sprintf("%s://%s", scheme, target)
-	}
-	return fmt.Sprintf("%s://%s/%s", scheme, target, trimmed)
-}
-
-func (c *GiteaClient) populateCurrentSteps(ctx context.Context, owner, repo string, runs []WorkflowRun) {
+func (c *GitHubClient) populateCurrentSteps(ctx context.Context, owner, repo string, runs []WorkflowRun) {
 	const maxLookups = 6
 	lookups := 0
 	for i := range runs {
@@ -352,15 +332,16 @@ func (c *GiteaClient) populateCurrentSteps(ctx context.Context, owner, repo stri
 	}
 }
 
-func (c *GiteaClient) getRunCurrentStep(ctx context.Context, owner, repo string, runID int64) (string, string, bool) {
-	url := fmt.Sprintf("%s/api/v1/repos/%s/%s/actions/runs/%d/jobs", c.baseURL, owner, repo, runID)
+func (c *GitHubClient) getRunCurrentStep(ctx context.Context, owner, repo string, runID int64) (string, string, bool) {
+	url := fmt.Sprintf("%s/repos/%s/%s/actions/runs/%d/jobs", c.baseURL, owner, repo, runID)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", "", false
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -378,25 +359,26 @@ func (c *GiteaClient) getRunCurrentStep(ctx context.Context, owner, repo string,
 	}
 
 	var payload struct {
-		Jobs []giteaJob `json:"jobs"`
+		Jobs []ghJob `json:"jobs"`
 	}
+
 	if err := json.Unmarshal(respBody, &payload); err != nil {
 		return "", "", false
 	}
 
-	jobName, stepName := pickGiteaJobStep(payload.Jobs)
+	jobName, stepName := pickJobStep(payload.Jobs)
 	if jobName == "" && stepName == "" {
 		return "", "", false
 	}
 	return jobName, stepName, true
 }
 
-func pickGiteaJobStep(jobs []giteaJob) (string, string) {
+func pickJobStep(jobs []ghJob) (string, string) {
 	if len(jobs) == 0 {
 		return "", ""
 	}
 
-	pickStep := func(steps []giteaStep) string {
+	pickStep := func(steps []ghStep) string {
 		if len(steps) == 0 {
 			return ""
 		}
@@ -427,27 +409,56 @@ func pickGiteaJobStep(jobs []giteaJob) (string, string) {
 	return jobs[0].Name, pickStep(jobs[0].Steps)
 }
 
-func (c *GiteaClient) DeleteRepo(ctx context.Context, owner, repo string) error {
-	url := fmt.Sprintf("%s/api/v1/repos/%s/%s", c.baseURL, owner, repo)
+func (c *GitHubClient) DeleteRepo(ctx context.Context, owner, repo string) error {
+	url := fmt.Sprintf("%s/repos/%s/%s", c.baseURL, owner, repo)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
-		return fmt.Errorf("gitea: failed to create delete request: %w", err)
+		return fmt.Errorf("github: failed to create delete request: %w", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", c.token))
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("gitea: failed to execute delete: %w", err)
+		return fmt.Errorf("github: failed to execute delete: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("gitea: unexpected delete status %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf("github: unexpected delete status %d: %s", resp.StatusCode, string(body))
 	}
 
 	return nil
+}
+
+func (c *GitHubClient) GetRepo(
+	ctx context.Context,
+	owner, repo string,
+) (*Repository, error) {
+	url := fmt.Sprintf("%s/repos/%s/%s", c.baseURL, owner, repo)
+
+	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.Header.Set("Accept", "application/vnd.github+json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("get repo failed: %s", b)
+	}
+	var r Repository
+	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+		return nil, err
+	}
+	r.DefaultBranch = "main"
+	return &r, nil
 }
