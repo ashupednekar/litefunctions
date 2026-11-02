@@ -4,6 +4,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"go-simpler.org/env"
 )
 
@@ -47,4 +48,16 @@ func LoadCfg() {
 	if LoadErr != nil {
 		log.Fatal(LoadErr)
 	}
+
+	vcs.Configure(vcs.Config{
+		AuthMode:        Cfg.VcsAuthMode,
+		PrivKeyPath:     Cfg.VcsPrivKeyPath,
+		PrivKeyPassword: Cfg.VcsPrivKeyPassword,
+		Token:           Cfg.VcsToken,
+		User:            Cfg.VcsUser,
+		Vendor:          Cfg.VcsVendor,
+		BaseURL:         Cfg.VcsBaseUrl,
+		PublicBaseURL:   Cfg.VcsPublicBaseUrl,
+		FQDN:            Cfg.Fqdn,
+	})
 }

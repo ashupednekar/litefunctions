@@ -13,7 +13,7 @@ type FunctionSpec struct {
 	Name            string   `json:"name"`
 	Methods         []string `json:"methods,omitempty"`
 	Project         string   `json:"project"`
-	GitCreds        string   `json:"git_creds"`
+	RepoPath        string   `json:"repo_path,omitempty"`
 }
 
 type FunctionStatus struct {

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors/workflows"
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/common/vcs"
+	"github.com/ashupednekar/litefunctions/common/vcs/repo"
+	"github.com/ashupednekar/litefunctions/common/vcs/vendors/workflows"
 )
 
 type GiteaClient struct {
@@ -266,9 +266,10 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 	for _, run := range giteaActions.WorkflowRuns {
 		var workflowID int64 //gitea uses int, unlike github
 		fmt.Sscanf(run.WorkflowID, "%d", &workflowID)
-		publicBaseURL := pkg.Cfg.VcsPublicBaseUrl
+		cfg := vcs.Current()
+		publicBaseURL := cfg.PublicBaseURL
 		if strings.TrimSpace(publicBaseURL) == "" {
-			publicBaseURL = pkg.Cfg.Fqdn
+			publicBaseURL = cfg.FQDN
 		}
 		htmlURL := rewriteToBaseURL(run.URL, publicBaseURL)
 

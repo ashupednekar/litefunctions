@@ -20,6 +20,8 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,11 +31,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/ashupednekar/litefunctions/common/sample"
+	vcsrepo "github.com/ashupednekar/litefunctions/common/vcs/repo"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 )
+
+const repoPathAnnotation = "apps.ashupednekar.github.io/repo-path"
+
+var repoPathExt = map[string]string{
+	"python": ".py",
+	"go":     ".go",
+	"rust":   ".rs",
+	"ts":     ".ts",
+	"lua":    ".lua",
+}
 
 type FunctionReconciler struct {
 	client.Client
@@ -46,6 +60,11 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	var function apiv1.Function
 	if err := r.Get(ctx, req.NamespacedName, &function); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if err := r.ensureRepoFile(ctx, &function); err != nil {
+		log.Error(err, "Failed to ensure function file in repo", "project", function.Spec.Project)
+		return ctrl.Result{}, err
 	}
 
 	deploymentName := GetDeploymentName(&function)
@@ -159,6 +178,49 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1.Function) error {
+	log := logf.FromContext(ctx)
+
+	repoPath := strings.TrimSpace(function.Spec.RepoPath)
+	if repoPath == "" {
+		ext, ok := repoPathExt[function.Spec.Language]
+		if !ok {
+			return nil
+		}
+		repoPath = fmt.Sprintf("functions/%s/%s%s", function.Spec.Language, function.Spec.Name, ext)
+	}
+
+	if function.Annotations[repoPathAnnotation] == repoPath {
+		return nil
+	}
+
+	body, err := sample.Default(function.Spec.Language)
+	if err != nil {
+		log.Info("No default sample for language; skipping repo bootstrap", "language", function.Spec.Language)
+		return nil
+	}
+
+	pushed, err := vcsrepo.EnsureFile(function.Spec.Project, repoPath, body)
+	if err != nil {
+		return fmt.Errorf("ensure %s in %s: %w", repoPath, function.Spec.Project, err)
+	}
+
+	if function.Annotations == nil {
+		function.Annotations = make(map[string]string)
+	}
+	function.Annotations[repoPathAnnotation] = repoPath
+	if function.Spec.RepoPath == "" {
+		function.Spec.RepoPath = repoPath
+	}
+
+	if err := r.Update(ctx, function); err != nil {
+		return fmt.Errorf("record repo path %s: %w", repoPath, err)
+	}
+
+	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
+	return nil
 }
 
 func (r *FunctionReconciler) hasOtherActiveFunctionUsingSharedRuntime(ctx context.Context, function *apiv1.Function) (bool, error) {

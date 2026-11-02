@@ -252,7 +252,7 @@ func TestGiteaClient_GetActionsProgress(t *testing.T) {
 			owner: "testuser",
 			repo:  "test-repo",
 			opts: ActionsProgressOptions{
-				Limit:  10,
+				Limit: 10,
 			},
 			mockResponse: map[string]any{
 				"total_count": 2,

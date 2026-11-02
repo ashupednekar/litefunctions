@@ -2,8 +2,9 @@ package repo
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/go-git/go-billy/v6"
 	"github.com/go-git/go-billy/v6/memfs"
 	"github.com/go-git/go-git/v6"
@@ -48,13 +49,14 @@ func NewGitRepo(project string, branch *string) (*GitRepo, error) {
 		fmt.Printf("[DEBUG] Pull() completed successfully for %s\n", project)
 		return repo, nil
 	} else {
+		cfg := vcs.Current()
 		r := GitRepo{
 			Project: project,
 			Branch:  b,
 			Fs:      fs,
 			Storage: memory.NewStorage(),
 			Options: &git.CloneOptions{
-				URL: fmt.Sprintf("%s/%s/%s.git", pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsUser, project),
+				URL: fmt.Sprintf("%s/%s/%s.git", strings.TrimRight(cfg.BaseURL, "/"), cfg.User, project),
 			},
 		}
 		err := r.SetupAuth()

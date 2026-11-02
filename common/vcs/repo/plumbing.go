@@ -6,7 +6,9 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"time"
+
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
@@ -31,6 +33,10 @@ func (r *GitRepo) Clone() error {
 }
 
 func (r *GitRepo) Commit(path string) error {
+	return r.CommitMessage(path, "update "+path)
+}
+
+func (r *GitRepo) CommitMessage(path, message string) error {
 	wt, err := r.Repo.Worktree()
 	if err != nil {
 		return err
@@ -49,7 +55,7 @@ func (r *GitRepo) Commit(path string) error {
 		return fmt.Errorf("stat error: %w", statErr)
 	}
 
-	_, err = wt.Commit("update "+path, &git.CommitOptions{
+	_, err = wt.Commit(message, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "LiteWebServices Portal",
 			Email: "noreply@example.com",
@@ -114,30 +120,64 @@ func (r *GitRepo) Pull() error {
 	return nil
 }
 
+// EnsureFile writes and pushes body to path when the file is not already
+// present in the project repository. It returns true when a commit was pushed.
+func EnsureFile(project, path string, body []byte) (bool, error) {
+	r, err := NewGitRepo(project, nil)
+	if err != nil {
+		return false, err
+	}
+
+	if _, err := r.Fs.Stat(path); err == nil {
+		return false, nil
+	} else if !os.IsNotExist(err) {
+		return false, err
+	}
+
+	if err := writeAndPush(r, path, body, "add "+path); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func WriteFile(
 	project string,
-	path string, 
-	body []byte, 
+	path string,
+	body []byte,
 	commitMessage string,
 ) error {
 	r, err := NewGitRepo(project, nil)
-	if err != nil{
+	if err != nil {
 		slog.Error("error in repo new", "error", err)
 		return err
 	}
-	slog.Info("writing", "file", path, "repo", r)
+	return writeAndPush(r, path, body, commitMessage)
+}
+
+func writeAndPush(r *GitRepo, path string, body []byte, commitMessage string) error {
+	if dir := filepath.Dir(path); dir != "." && dir != "/" {
+		if err := r.Fs.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("error creating directory for %s - %s", path, err)
+		}
+	}
+
+	slog.Info("writing", "file", path, "repo", r.Project)
 	fh, err := r.Fs.Create(path)
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("error getting file handle on %s - %s", path, err)
 	}
-	fh.Write(body)
+	if _, err := fh.Write(body); err != nil {
+		fh.Close()
+		return fmt.Errorf("error writing %s - %s", path, err)
+	}
 	fh.Close()
+
 	slog.Info("commiting file", "path", path)
-	err = r.Commit(path)
-	if err != nil && !errors.Is(err, git.ErrEmptyCommit) {
+	if err := r.CommitMessage(path, commitMessage); err != nil && !errors.Is(err, git.ErrEmptyCommit) {
 		slog.Error("error commiting file", "path", path, "error", err)
 		return fmt.Errorf("commit error %s", err)
 	}
+
 	slog.Info("pushing file", "path", path)
 	if err := r.Push(); err != nil {
 		return fmt.Errorf("push error %s", err)

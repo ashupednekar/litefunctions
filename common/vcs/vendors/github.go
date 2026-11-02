@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors/workflows"
+	"github.com/ashupednekar/litefunctions/common/vcs/repo"
+	"github.com/ashupednekar/litefunctions/common/vcs/vendors/workflows"
 )
 
 const (

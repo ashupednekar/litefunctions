@@ -39,8 +39,6 @@ spec:
             properties:
               deProvisionTime:
                 type: string
-              git_creds:
-                type: string
               isActive:
                 type: boolean
               isAsync:
@@ -55,9 +53,10 @@ spec:
                 type: string
               project:
                 type: string
+              repo_path:
+                type: string
             required:
             - deProvisionTime
-            - git_creds
             - isActive
             - isAsync
             - language

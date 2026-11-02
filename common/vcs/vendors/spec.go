@@ -3,7 +3,8 @@ package vendors
 import (
 	"context"
 	"fmt"
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+
+	"github.com/ashupednekar/litefunctions/common/vcs"
 )
 
 type VendorClient interface {
@@ -86,22 +87,23 @@ type WorkflowRun struct {
 }
 
 func NewVendorClient() (VendorClient, error) {
-	switch pkg.Cfg.VcsVendor {
+	cfg := vcs.Current()
+	switch cfg.Vendor {
 	case "github":
-		if pkg.Cfg.VcsToken == "" {
+		if cfg.Token == "" {
 			return nil, fmt.Errorf("token is required for GitHub")
 		}
-		return NewGitHubClient(pkg.Cfg.VcsToken), nil
+		return NewGitHubClient(cfg.Token), nil
 	case "gitea":
-		if pkg.Cfg.VcsToken == "" {
+		if cfg.Token == "" {
 			return nil, fmt.Errorf("token is required for Gitea")
 		}
-		if pkg.Cfg.VcsBaseUrl == "" {
+		if cfg.BaseURL == "" {
 			return nil, fmt.Errorf("baseURL is required for Gitea")
 		}
-		return NewGiteaClient(pkg.Cfg.VcsBaseUrl, pkg.Cfg.VcsToken), nil
+		return NewGiteaClient(cfg.BaseURL, cfg.Token), nil
 
 	default:
-		return nil, fmt.Errorf("unsupported vendor type: %s (supported: github, gitea)", pkg.Cfg.VcsVendor)
+		return nil, fmt.Errorf("unsupported vendor type: %s (supported: github, gitea)", cfg.Vendor)
 	}
 }

@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"log/slog"
 
+	"github.com/ashupednekar/litefunctions/common/vcs/repo"
 	projectadaptors "github.com/ashupednekar/litefunctions/portal/internal/project/adaptors"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
 	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"

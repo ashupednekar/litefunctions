@@ -9,5 +9,5 @@ spec:
   name: one
   project: projone
   language: rust
-  git_creds: vcs-secret
+  repo_path: functions/rust/one.rs
 

@@ -1,4 +1,4 @@
-package adaptors
+package operatorClient
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 const defaultGrpcTimeout = 5 * time.Second
 
-func CreateFunctionCR(ctx context.Context, operatorAddr, namespace, name, project, language, gitCreds string, isAsync bool) (bool, error) {
+func CreateFunctionCR(ctx context.Context, operatorAddr, namespace, name, project, language, repoPath string, isAsync bool) (bool, error) {
 	if operatorAddr == "" {
 		return false, fmt.Errorf("operator address is empty")
 	}
@@ -35,7 +35,7 @@ func CreateFunctionCR(ctx context.Context, operatorAddr, namespace, name, projec
 		Name:      name,
 		Project:   project,
 		Language:  language,
-		GitCreds:  gitCreds,
+		RepoPath:  repoPath,
 		IsAsync:   isAsync,
 	})
 	if err != nil {

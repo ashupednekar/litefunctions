@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	operatorClient "github.com/ashupednekar/litefunctions/common/operatorClient"
+	"github.com/ashupednekar/litefunctions/common/vcs/repo"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -104,14 +105,14 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 		}
 
 		if createdFn {
-			_, err = functionadaptors.CreateFunctionCR(
+			_, err = operatorClient.CreateFunctionCR(
 				c.Request.Context(),
 				pkg.Cfg.OperatorUrl,
 				pkg.Cfg.PodNamespace,
 				fnName,
 				projectName,
 				lang,
-				pkg.Cfg.VcsToken,
+				path,
 				false,
 			)
 			if err != nil {

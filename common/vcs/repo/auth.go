@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/plumbing/transport/ssh"
@@ -44,26 +44,27 @@ func (t *TokenAuth) UpdateOptions(options *git.CloneOptions) error {
 }
 
 func (r *GitRepo) SetupAuth() error {
-	log.Printf("setting up %s auth\n", pkg.Cfg.VcsAuthMode)
-	switch pkg.Cfg.VcsAuthMode {
+	cfg := vcs.Current()
+	log.Printf("setting up %s auth\n", cfg.AuthMode)
+	switch cfg.AuthMode {
 	case "ssh":
-		vendor := strings.TrimPrefix(strings.TrimPrefix(pkg.Cfg.VcsBaseUrl, "https://"), "http://")
+		vendor := strings.TrimPrefix(strings.TrimPrefix(cfg.BaseURL, "https://"), "http://")
 		r.Options.URL = fmt.Sprintf(
 			"git@%s:%s/%s.git",
 			vendor,
-			pkg.Cfg.VcsUser,
+			cfg.User,
 			r.Project,
 		)
 		auth := &SshAuth{
-			privKey:  pkg.Cfg.VcsPrivKeyPath,
-			password: pkg.Cfg.VcsPrivKeyPassword,
+			privKey:  cfg.PrivKeyPath,
+			password: cfg.PrivKeyPassword,
 		}
 		auth.UpdateOptions(r.Options)
 	case "token":
-		auth := &TokenAuth{token: pkg.Cfg.VcsToken}
+		auth := &TokenAuth{token: cfg.Token}
 		auth.UpdateOptions(r.Options)
 	default:
-		return fmt.Errorf("invalid auth mode: %s", pkg.Cfg.VcsAuthMode)
+		return fmt.Errorf("invalid auth mode: %s", cfg.AuthMode)
 	}
 	return nil
 }

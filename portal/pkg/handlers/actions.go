@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors"
+	"github.com/ashupednekar/litefunctions/common/vcs/repo"
+	"github.com/ashupednekar/litefunctions/common/vcs/vendors"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/gin-gonic/gin"
 )

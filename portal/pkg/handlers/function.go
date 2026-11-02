@@ -9,9 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	operatorClient "github.com/ashupednekar/litefunctions/common/operatorClient"
+	"github.com/ashupednekar/litefunctions/common/sample"
+	"github.com/ashupednekar/litefunctions/common/vcs/repo"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/repo"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/gin-gonic/gin"
@@ -94,10 +96,13 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	}
 	codeContent := req.Code
 	if codeContent == "" {
-		codeContent = req.Path
-	}
-	if codeContent == "" {
-		codeContent = "// TODO: implement function\n"
+		defaultCode, err := sample.Default(req.Language)
+		if err != nil {
+			slog.Warn("Failed to load default sample", "language", req.Language, "error", err)
+			codeContent = "// TODO: implement function\n"
+		} else {
+			codeContent = string(defaultCode)
+		}
 	}
 	f.Write([]byte(codeContent))
 	f.Close()
@@ -149,14 +154,14 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	if err != nil {
 		slog.Warn("Failed to create automatic endpoint", "name", req.Name, "error", err)
 	}
-	_, err = functionadaptors.CreateFunctionCR(
+	_, err = operatorClient.CreateFunctionCR(
 		c.Request.Context(),
 		pkg.Cfg.OperatorUrl,
 		pkg.Cfg.PodNamespace,
 		req.Name,
 		projectName,
 		req.Language,
-		pkg.Cfg.VcsToken,
+		path,
 		req.IsAsync,
 	)
 	if err != nil {

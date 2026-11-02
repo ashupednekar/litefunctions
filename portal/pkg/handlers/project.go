@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ashupednekar/litefunctions/common/vcs/vendors"
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/project/adaptors"
-	"github.com/ashupednekar/litefunctions/portal/internal/project/vendors"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
 	"github.com/ashupednekar/litefunctions/portal/pkg/state"
 	"github.com/ashupednekar/litefunctions/portal/templates"
@@ -93,7 +93,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 	repo, err := vcsClient.CreateRepo(c.Request.Context(), vendors.CreateRepoOptions{
 		Name:        req.Name,
 		Description: "Created via LiteWebServices Portal",
-		Private:     pkg.Cfg.VcsUsePrivateRepo, 
+		Private:     pkg.Cfg.VcsUsePrivateRepo,
 		AutoInit:    true,
 	})
 	if err != nil {
@@ -114,7 +114,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		URL:         webhookURL,
 		ContentType: "json",
 		Secret:      "WEBHOOK_SUPER_SECRET", //TODO: generate secret
-		Events:      []string{"push"}, //, "pull_request"},
+		Events:      []string{"push"},       //, "pull_request"},
 		Active:      true,
 		InsecureSSL: true,
 	})
@@ -128,7 +128,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		}
 	}
 
-	if err := vcsClient.AddWorkflow(repoName); err != nil{
+	if err := vcsClient.AddWorkflow(repoName); err != nil {
 		slog.Error("Error adding workflow to newly created repo", "error", err)
 		c.JSON(500, gin.H{"error": "failed to add workflow"})
 		return
@@ -158,13 +158,13 @@ func (h *ProjectHandlers) SyncProject(c *gin.Context) {
 		return
 	}
 
-  vcsClient, err := vendors.NewVendorClient()
+	vcsClient, err := vendors.NewVendorClient()
 	if err != nil {
 		slog.Error("VCS Init failed", "error", err)
 		c.JSON(500, gin.H{"error": fmt.Sprintf("failed to init vcs client: %v", err)})
 		return
 	}
-	if err := vcsClient.AddWorkflow(projectName); err != nil{
+	if err := vcsClient.AddWorkflow(projectName); err != nil {
 		slog.Error("Error adding workflow to repo", "error", err)
 		c.JSON(500, gin.H{"error": "failed to add workflow"})
 		return
