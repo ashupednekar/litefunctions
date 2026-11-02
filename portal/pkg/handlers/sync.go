@@ -104,7 +104,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 		}
 
 		if createdFn {
-			_, err = functionadaptors.CreateFunctionCRD(
+			_, err = functionadaptors.CreateFunctionCR(
 				c.Request.Context(),
 				pkg.Cfg.OperatorUrl,
 				pkg.Cfg.PodNamespace,

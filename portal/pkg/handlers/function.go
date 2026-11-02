@@ -149,7 +149,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	if err != nil {
 		slog.Warn("Failed to create automatic endpoint", "name", req.Name, "error", err)
 	}
-	_, err = functionadaptors.CreateFunctionCRD(
+	_, err = functionadaptors.CreateFunctionCR(
 		c.Request.Context(),
 		pkg.Cfg.OperatorUrl,
 		pkg.Cfg.PodNamespace,
