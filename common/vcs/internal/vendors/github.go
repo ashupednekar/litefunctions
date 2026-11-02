@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/repo"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/vendors/workflows"
 )
@@ -23,7 +23,7 @@ type GitHubClient struct {
 	token      string
 	httpClient *http.Client
 	baseURL    string
-	cfg        config.Config
+	cfg        vcs.Config
 }
 
 type ghStep struct {
@@ -37,7 +37,7 @@ type ghJob struct {
 	Steps  []ghStep `json:"steps"`
 }
 
-func NewGitHubClient(cfg config.Config) *GitHubClient {
+func NewGitHubClient(cfg vcs.Config) *GitHubClient {
 	return &GitHubClient{
 		token:   cfg.Token,
 		baseURL: GitHubAPIBaseURL,

@@ -3,13 +3,13 @@ package vcs
 import (
 	"context"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	vcscfg "github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/repo"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/vendors"
 	"github.com/go-git/go-billy/v6"
 )
 
-type Config = config.Config
+type Config = vcscfg.Config
 
 type Repo interface {
 	ProjectName() string

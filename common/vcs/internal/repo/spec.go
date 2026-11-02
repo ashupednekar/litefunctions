@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/go-git/go-billy/v6"
 	"github.com/go-git/go-billy/v6/memfs"
 	"github.com/go-git/go-git/v6"
@@ -26,12 +26,12 @@ type GitRepo struct {
 	Fs       billy.Filesystem
 	Worktree *git.Worktree
 	Repo     *git.Repository
-	cfg      config.Config
+	cfg      vcs.Config
 }
 
 var repos = make(map[string]*GitRepo)
 
-func New(cfg config.Config, project string, branch *string) (*GitRepo, error) {
+func New(cfg vcs.Config, project string, branch *string) (*GitRepo, error) {
 	fs := memfs.New()
 	var b string
 	if branch != nil {

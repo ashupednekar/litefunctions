@@ -1,4 +1,4 @@
-package config
+package vcs
 
 // Config holds the VCS settings shared by the portal and the operator.
 type Config struct {

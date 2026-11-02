@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 )
 
 func envOr(key, fallback string) string {
@@ -16,7 +16,7 @@ func envOr(key, fallback string) string {
 }
 
 func TestVcs(t *testing.T) {
-	cfg := config.Config{
+	cfg := vcs.Config{
 		AuthMode:        envOr("VCS_AUTH_MODE", "ssh"),
 		PrivKeyPath:     os.Getenv("VCS_PRIVATE_KEY_PATH"),
 		PrivKeyPassword: os.Getenv("VCS_PRIVATE_KEY_PASSWORD"),

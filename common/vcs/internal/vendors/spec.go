@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 )
 
 type VendorClient interface {
@@ -86,7 +86,7 @@ type WorkflowRun struct {
 	CurrentStep  string
 }
 
-func NewClient(cfg config.Config) (VendorClient, error) {
+func NewClient(cfg vcs.Config) (VendorClient, error) {
 	switch cfg.Vendor {
 	case "github":
 		if cfg.Token == "" {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/common/vcs/internal/config"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/repo"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/vendors/workflows"
 )
@@ -19,7 +19,7 @@ type GiteaClient struct {
 	token      string
 	httpClient *http.Client
 	baseURL    string
-	cfg        config.Config
+	cfg        vcs.Config
 }
 
 type giteaStep struct {
@@ -33,7 +33,7 @@ type giteaJob struct {
 	Steps  []giteaStep `json:"steps"`
 }
 
-func NewGiteaClient(cfg config.Config) *GiteaClient {
+func NewGiteaClient(cfg vcs.Config) *GiteaClient {
 	return &GiteaClient{
 		token:   cfg.Token,
 		baseURL: cfg.BaseURL,
