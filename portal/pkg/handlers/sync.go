@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	operatorClient "github.com/ashupednekar/litefunctions/common/operatorClient"
+	common "github.com/ashupednekar/litefunctions/common"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
@@ -105,7 +105,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 		}
 
 		if createdFn {
-			_, err = operatorClient.CreateFunctionCR(
+			_, err = common.CreateFunction(
 				c.Request.Context(),
 				pkg.Cfg.OperatorUrl,
 				pkg.Cfg.PodNamespace,

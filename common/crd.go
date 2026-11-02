@@ -1,4 +1,4 @@
-package operatorClient
+package common
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 const defaultGrpcTimeout = 5 * time.Second
 
-func CreateFunctionCR(ctx context.Context, operatorAddr, namespace, name, project, language, repoPath string, isAsync bool) (bool, error) {
+func CreateFunction(ctx context.Context, operatorAddr, namespace, name, project, language, repoPath string, isAsync bool) (bool, error) {
 	if operatorAddr == "" {
 		return false, fmt.Errorf("operator address is empty")
 	}
