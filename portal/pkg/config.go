@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 
-	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
+	"github.com/ashupednekar/litefunctions/common/vcs"
 	"go-simpler.org/env"
 )
 
@@ -19,18 +19,10 @@ type Settings struct {
 	DatabaseMaxConnLifetime string `env:"DATABASE_MAX_CONN_LIFETIME" default:"1h"`
 	DatabaseMaxConnIdleTime string `env:"DATABASE_MAX_CONN_IDLETIME" default:"10m"`
 	SessionExpiry           string `env:"SESSION_EXPIRY" default:"1h"`
-	VcsUsePrivateRepo       bool   `env:"VCS_USE_PRIVATE_REPO" default:"false"`
-	VcsAuthMode             string `env:"VCS_AUTH_MODE" default:"ssh"`
-	VcsPrivKeyPath          string `env:"VCS_PRIVATE_KEY_PATH" default:"/app/.ssh/privkey.pem"`
-	VcsPrivKeyPassword      string `env:"VCS_PRIVATE_KEY_PASSWORD"`
-	VcsToken                string `env:"VCS_TOKEN"`
-	VcsUser                 string `env:"VCS_USER"`
-	VcsVendor               string `env:"VCS_VENDOR"`
-	VcsBaseUrl              string `env:"VCS_BASE_URL"`
-	VcsPublicBaseUrl        string `env:"VCS_PUBLIC_BASE_URL"`
 	OperatorUrl             string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
 	PodNamespace            string `env:"POD_NAMESPACE" default:"default"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
+	vcs                     vcs.Config
 }
 
 var (
@@ -44,22 +36,11 @@ func LoadCfg() {
 		if err := env.Load(&Cfg, nil); err != nil {
 			LoadErr = err
 		}
+		if err := env.Load(&Cfg.vcs, nil); err != nil {
+			LoadErr = err
+		}
 	})
 	if LoadErr != nil {
 		log.Fatal(LoadErr)
-	}
-}
-
-func (s Settings) VCSConfig() vcs.Config {
-	return vcs.Config{
-		AuthMode:        s.VcsAuthMode,
-		PrivKeyPath:     s.VcsPrivKeyPath,
-		PrivKeyPassword: s.VcsPrivKeyPassword,
-		Token:           s.VcsToken,
-		User:            s.VcsUser,
-		Vendor:          s.VcsVendor,
-		BaseURL:         s.VcsBaseUrl,
-		PublicBaseURL:   s.VcsPublicBaseUrl,
-		FQDN:            s.Fqdn,
 	}
 }

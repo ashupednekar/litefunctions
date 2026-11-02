@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/go-git/go-billy/v6 v6.0.0-20260114122816-19306b749ecc
 	github.com/go-git/go-git/v6 v6.0.0-20260127175347-b5117ad1603d
+	go-simpler.org/env v0.12.0
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 )
