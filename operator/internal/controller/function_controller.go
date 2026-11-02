@@ -196,7 +196,10 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		return nil
 	}
 
-	body, err := sample.Default(function.Spec.Language, function.Spec.IsAsync)
+	body, err := sample.LoadSync(function.Spec.Language)
+	if function.Spec.IsAsync {
+		body, err = sample.LoadAsync(function.Spec.Language)
+	}
 	if err != nil {
 		log.Info("No default sample for language; skipping repo bootstrap", "language", function.Spec.Language)
 		return nil

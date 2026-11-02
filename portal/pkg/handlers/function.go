@@ -96,7 +96,12 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	}
 	codeContent := req.Code
 	if codeContent == "" {
-		defaultCode, err := sample.Default(req.Language, req.IsAsync)
+		var defaultCode []byte
+		if req.IsAsync {
+			defaultCode, err = sample.LoadAsync(req.Language)
+		} else {
+			defaultCode, err = sample.LoadSync(req.Language)
+		}
 		if err != nil {
 			slog.Warn("Failed to load default sample", "language", req.Language, "error", err)
 			codeContent = "// TODO: implement function\n"

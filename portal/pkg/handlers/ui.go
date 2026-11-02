@@ -131,14 +131,16 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	}
 
 	samples := map[string]templates.CodeSample{}
-	if all, err := sample.All(); err != nil {
-		slog.Error("failed to load function samples", "error", err)
-	} else {
-		for lang, variant := range all {
-			samples[lang] = templates.CodeSample{
-				Sync:  variant.Sync,
-				Async: variant.Async,
-			}
+	for _, lang := range langs {
+		syncCode, syncErr := sample.LoadSync(lang.ID)
+		asyncCode, asyncErr := sample.LoadAsync(lang.ID)
+		if syncErr != nil || asyncErr != nil {
+			slog.Error("failed to load function samples", "language", lang.ID, "sync_error", syncErr, "async_error", asyncErr)
+			continue
+		}
+		samples[lang.ID] = templates.CodeSample{
+			Sync:  string(syncCode),
+			Async: string(asyncCode),
 		}
 	}
 
