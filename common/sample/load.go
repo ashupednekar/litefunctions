@@ -37,12 +37,10 @@ var paths = map[string]variants{
 	},
 }
 
-// LoadSync returns the default sync function source for a language.
 func LoadSync(language string) ([]byte, error) {
 	return load(language, false)
 }
 
-// LoadAsync returns the default async function source for a language.
 func LoadAsync(language string) ([]byte, error) {
 	return load(language, true)
 }
