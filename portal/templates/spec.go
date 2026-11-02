@@ -34,3 +34,8 @@ type Lang struct {
 	Icon    string
 	AceMode string
 }
+
+type CodeSample struct {
+	Sync  string `json:"sync"`
+	Async string `json:"async"`
+}

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ashupednekar/litefunctions/common/sample"
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
 	authAdaptors "github.com/ashupednekar/litefunctions/portal/internal/auth/adaptors"
 	endpointAdaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
@@ -129,8 +130,20 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 		{ID: "lua", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "lua"), Label: "Lua", AceMode: "lua"},
 	}
 
+	samples := map[string]templates.CodeSample{}
+	if all, err := sample.All(); err != nil {
+		slog.Error("failed to load function samples", "error", err)
+	} else {
+		for lang, variant := range all {
+			samples[lang] = templates.CodeSample{
+				Sync:  variant.Sync,
+				Async: variant.Async,
+			}
+		}
+	}
+
 	page := templates.BaseLayout(
-		templates.FunctionContent(functions, langs, activeProjectID, usernameStr),
+		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
