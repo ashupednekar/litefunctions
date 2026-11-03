@@ -19,7 +19,7 @@ script saveCreate(exit bool) {
 script saveEdit(exit bool) {
 }
 
-templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string) {
+templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample) {
 
 <div class="w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]">
 
@@ -353,6 +353,8 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
       </div>
   </div>
 
+	@templ.JSONScript("function-samples", samples)
+
 	<!-- ACE from CDN (fallback to local if needed) -->
 	<script>
 	(function(){
@@ -403,278 +405,6 @@ let selectedLang = "python";
 let selectedCreateMode = "sync";
 let selectedEditMode = "sync";
 
-const codeTemplates = {
-  python: {
-    sync: `from fastapi import Request
-from pydantic import BaseModel
-
-class Input(BaseModel):
-    name: str | None = None
-
-class Output(BaseModel):
-    message: str
-
-async def handle(request: Request) -> Output:
-    data = await request.json()
-    input = Input(**data)
-    name = input.name or "stranger"
-    return Output(message=f"Hello {name} from Python!")
-`,
-    async: `from fastapi import Request
-from pydantic import BaseModel
-
-class Input(BaseModel):
-    name: str | None = None
-
-class Output(BaseModel):
-    message: str
-
-async def handle(request: Request):
-    data = await request.json()
-    input = Input(**data)
-    name = input.name or "stranger"
-    yield Output(message=f"Hello {name} from Python!")
-`
-  },
-
-  go: {
-    sync: `package pkg
-
-import (
-    "encoding/json"
-    "net/http"
-)
-
-type Input struct {
-    Name *string \`json:"name"\`
-}
-
-type Output struct {
-    Message string \`json:"message"\`
-}
-
-func Handle(w http.ResponseWriter, r *http.Request) {
-    var input Input
-    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-        http.Error(w, "invalid request", http.StatusBadRequest)
-        return
-    }
-
-    name := "stranger"
-    if input.Name != nil && *input.Name != "" {
-        name = *input.Name
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(Output{
-        Message: "Hello " + name + " from Go!",
-    })
-}
-`,
-    async: `package pkg
-
-import (
-    "encoding/json"
-    "math/rand"
-)
-
-func randomWord() string {
-    words := []string{"apple", "banana", "cherry", "date", "elderberry"}
-    return words[rand.Intn(len(words))]
-}
-
-type Payload struct {
-    Word string \`json:"word"\`
-}
-
-func StreamHandler(input <-chan []byte) <-chan []byte {
-    out := make(chan []byte)
-
-    go func() {
-        defer close(out)
-
-        for range input {
-            data := Payload{
-                Word: randomWord(),
-            }
-
-            jsonBytes, err := json.Marshal(data)
-            if err != nil {
-                continue // safer than panic in a stream
-            }
-
-            out <- jsonBytes
-        }
-    }()
-
-    return out
-}
-`
-  },
-
-  rust: {
-    sync: `use axum::{Json, http::StatusCode};
-use serde::{Deserialize, Serialize};
-
-#[derive(Deserialize)]
-pub struct Input {
-    pub name: Option<String>,
-}
-
-#[derive(Serialize)]
-pub struct Output {
-    pub message: String,
-}
-
-pub async fn handle(Json(input): Json<Input>) -> (StatusCode, Json<Output>) {
-    let name = input.name.unwrap_or("stranger".into());
-    (
-        StatusCode::OK,
-        Json(Output {
-            message: format!("Hello {} from Rust!", name),
-        }),
-    )
-}
-`,
-    async: `use rand::seq::SliceRandom;
-use serde::Serialize;
-use tokio::sync::mpsc::{self, Receiver};
-
-#[derive(Serialize)]
-struct Payload {
-    word: String,
-}
-
-fn random_word() -> String {
-    let words = ["apple", "banana", "cherry", "date", "elderberry"];
-    words
-        .choose(&mut rand::thread_rng())
-        .unwrap_or(&"apple")
-        .to_string()
-}
-
-pub fn stream_handler(mut input: Receiver<Vec<u8>>) -> Receiver<Vec<u8>> {
-    let (tx, rx) = mpsc::channel(16);
-
-    tokio::spawn(async move {
-        while input.recv().await.is_some() {
-            let payload = Payload {
-                word: random_word(),
-            };
-            if let Ok(json_bytes) = serde_json::to_vec(&payload) {
-                if tx.send(json_bytes).await.is_err() {
-                    break;
-                }
-            }
-        }
-    });
-
-    rx
-}
-`
-  },
-
-  ts: {
-    sync: `export async function handle(req) {
-  class Input {
-    constructor(obj = {}) {
-      this.name = obj.name ?? null;
-    }
-  }
-
-  class Output {
-    constructor(message) {
-      this.message = message;
-    }
-  }
-
-  const body = await req.json();
-  const input = new Input(body);
-  const name = input.name || "stranger";
-
-  return Response.json(
-    new Output(\`Hello \${name} from TypeScript!\`)
-  );
-}
-`,
-    async: `export async function handle(req) {
-  class Input {
-    constructor(obj = {}) {
-      this.name = obj.name ?? null;
-    }
-  }
-
-  class Output {
-    constructor(message) {
-      this.message = message;
-    }
-  }
-
-  const body = await req.json();
-  const input = new Input(body);
-  const name = input.name || "stranger";
-
-  return Response.json(
-    new Output(\`Hello \${name} from TypeScript!\`)
-  );
-}
-`
-  },
-
-  lua: {
-    sync: `-- Input serializer
-Input = {}
-Input.__index = Input
-
-function Input:new(o)
-  o = o or {}
-  setmetatable(o, self)
-  o.name = o.name or nil
-  return o
-end
-
--- Output serializer
-Output = {}
-Output.__index = Output
-
-function Output:new(message)
-  return setmetatable({ message = message }, self)
-end
-
-function handle(req)
-  local input = Input:new(req or {})
-  local name = input.name or "stranger"
-  return Output:new(string.format("Hello %s from Lua!", name))
-end
-`
-,
-    async: `-- Input serializer
-Input = {}
-Input.__index = Input
-
-function Input:new(o)
-  o = o or {}
-  setmetatable(o, self)
-  o.name = o.name or nil
-  return o
-end
-
--- Output serializer
-Output = {}
-Output.__index = Output
-
-function Output:new(message)
-  return setmetatable({ message = message }, self)
-end
-
-function handle(req)
-  local input = Input:new(req or {})
-  local name = input.name or "stranger"
-  return Output:new(string.format("Hello %s from Lua!", name))
-end
-`
-  }
-};
 
 
 const modeMap = window.ACE_MODES;
@@ -751,7 +481,16 @@ function copyFn(id){
 }
 
 function getTemplate(lang, mode) {
-  const entry = codeTemplates[lang];
+  const el = document.getElementById("function-samples");
+  if (!el) return "";
+  let samples = {};
+  try {
+    samples = JSON.parse(el.textContent || "{}");
+  } catch (e) {
+    console.error("failed to parse function samples", e);
+    return "";
+  }
+  const entry = samples[lang];
   if (!entry) return "";
   if (typeof entry === "string") return entry;
   return entry[mode] || entry.sync || "";

@@ -14,8 +14,8 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from nats.aio.msg import Msg
 
-from pkg.conf import settings
-from pkg.state import AppState
+from internal.conf import settings
+from internal.state import AppState
 
 logger = logging.getLogger(__name__)
 log_format = "%(asctime)s [%(levelname)s] - %(message)s"
@@ -39,7 +39,7 @@ def repo_functions_path() -> str:
 
 
 def runtime_functions_path() -> str:
-    return os.path.join(os.path.dirname(__file__), "pkg", "functions")
+    return os.path.join(os.path.dirname(__file__), "internal", "functions")
 
 
 def repo_url() -> str:
@@ -63,22 +63,22 @@ def sync_runtime_functions_dir(source_root: str) -> None:
     os.makedirs(runtime_root, exist_ok=True)
 
     for entry in os.listdir(runtime_root):
-        if not entry.endswith(".py") or entry == "__init__.py":
-            continue
-        try:
-            os.remove(os.path.join(runtime_root, entry))
-        except FileNotFoundError:
-            pass
+        entry_path = os.path.join(runtime_root, entry)
+        if os.path.isdir(entry_path):
+            shutil.rmtree(entry_path, ignore_errors=True)
 
     if not os.path.isdir(source_root):
         return
 
     for entry in os.listdir(source_root):
-        if not entry.endswith(".py"):
+        source_dir = os.path.join(source_root, entry)
+        source_file = os.path.join(source_dir, "handle.py")
+        if not os.path.isdir(source_dir) or not os.path.isfile(source_file):
             continue
-        if "__" in entry[:-3]:
+        if not entry or entry.startswith(".") or "__" in entry:
             continue
-        shutil.copy2(os.path.join(source_root, entry), os.path.join(runtime_root, entry))
+        target_dir = os.path.join(runtime_root, entry)
+        shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
 
 
 def clear_module_cache() -> None:
@@ -141,12 +141,12 @@ def list_functions() -> list[str]:
         return []
     funcs: list[str] = []
     for entry in os.listdir(root):
-        if not entry.endswith(".py"):
+        file_path = os.path.join(root, entry, "handle.py")
+        if not os.path.isfile(file_path):
             continue
-        name = entry[:-3]
-        if "__" in name:
+        if not entry or entry.startswith(".") or "__" in entry:
             continue
-        funcs.append(name)
+        funcs.append(entry)
     return sorted(funcs)
 
 
@@ -156,19 +156,38 @@ async def load_module(name: str) -> ModuleType:
         if cached is not None:
             return cached
 
-        file_path = os.path.join(runtime_functions_path(), f"{name}.py")
+        file_path = os.path.join(runtime_functions_path(), name, "handle.py")
         if not os.path.exists(file_path):
             raise FileNotFoundError(file_path)
 
-        spec = importlib.util.spec_from_file_location(name, file_path)
+        function_dir = os.path.dirname(file_path)
+        package_name = f"litefunction_{name}"
+        init_path = os.path.join(function_dir, "__init__.py")
+        package_spec = None
+        if os.path.isfile(init_path):
+            package_spec = importlib.util.spec_from_file_location(
+                package_name, init_path, submodule_search_locations=[function_dir]
+            )
+        if package_spec is not None and package_spec.loader is not None:
+            package = importlib.util.module_from_spec(package_spec)
+            sys.modules[package_name] = package
+            package_spec.loader.exec_module(package)
+        else:
+            package = ModuleType(package_name)
+            package.__path__ = [function_dir]
+            package.__package__ = package_name
+            sys.modules[package_name] = package
+
+        module_name = f"{package_name}.handle"
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None or spec.loader is None:
             raise RuntimeError(f"failed to load module spec for {name}")
 
         module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
+        sys.modules[module_name] = module
         spec.loader.exec_module(module)
         MODULES[name] = module
-        MODULE_NAMES.add(name)
+        MODULE_NAMES.update({package_name, module_name})
         return module
 
 

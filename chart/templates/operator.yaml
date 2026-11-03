@@ -51,6 +51,17 @@ spec:
         - name: VCS_BASE_URL
           value: {{ .Values.operator.vcs_base_url | quote }}
         {{- end }}
+        - name: VCS_AUTH_MODE
+          value: token
+        - name: VCS_VENDOR
+          value: gitea
+        {{- if .Values.operator.git_token_secret_name }}
+        - name: VCS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.operator.git_token_secret_name | quote }}
+              key: {{ .Values.operator.git_token_secret_key | default "token" | quote }}
+        {{- end }}
         {{- if .Values.operator.pull_secret }}
         - name: PULL_SECRET
           value: {{ .Values.operator.pull_secret | quote }}

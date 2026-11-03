@@ -2,11 +2,11 @@ local socket = require("socket")
 
 package.path = package.path .. ";./?.lua;./?/init.lua"
 
-local conf = require("pkg.conf")
-local state_mod = require("pkg.state")
-local funcs = require("pkg.functions")
-local consumer = require("pkg.consumer")
-local http = require("pkg.http")
+local conf = require("internal.conf")
+local state_mod = require("internal.state")
+local funcs = require("internal.functions")
+local consumer = require("internal.consumer")
+local http = require("internal.http")
 
 local function start_event_loop(state)
   local server = assert(socket.bind("0.0.0.0", conf.settings.http_port))

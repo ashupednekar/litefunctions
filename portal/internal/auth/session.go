@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/internal/config"
 )
 
 const SessionCookieName = "lws_session"
@@ -21,7 +21,7 @@ func GenerateSessionID() (string, error) {
 
 // GetSessionExpiry returns the expiration time for a new session
 func GetSessionExpiry() (time.Time, error) {
-	duration, err := time.ParseDuration(pkg.Cfg.SessionExpiry)
+	duration, err := time.ParseDuration(config.Cfg.SessionExpiry)
 	if err != nil {
 		return time.Time{}, err
 	}

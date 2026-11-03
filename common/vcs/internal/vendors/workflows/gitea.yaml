@@ -1,0 +1,314 @@
+name: litefunctions ci
+
+on:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ gitea.workflow }}-${{ gitea.ref }}-${{ gitea.sha }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: litefunctions-zot:5000
+  IMAGE_PREFIX: ashudev
+  PORTAL_RUNTIME_ASSETS_URL: http://litefunctions-portal:3000/api/runtime-assets/runtimes.tar.gz
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+      go: ${{ steps.changes.outputs.go }}
+      python: ${{ steps.changes.outputs.python }}
+      ts: ${{ steps.changes.outputs.ts }}
+      lua: ${{ steps.changes.outputs.lua }}
+      rust-files: ${{ steps.get-changed-files.outputs.rust-files }}
+      go-files: ${{ steps.get-changed-files.outputs.go-files }}
+      repo_name: ${{ steps.set-repo-name.outputs.repo_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            rust:
+              - 'functions/rs/**'
+              - 'functions/rust/**'
+            go:
+              - 'functions/go/**'
+            python:
+              - 'functions/python/**'
+            ts:
+              - 'functions/ts/**'
+            lua:
+              - 'functions/lua/**'
+
+      - name: Get changed files
+        id: get-changed-files
+        run: |
+          BEFORE_SHA=${{ gitea.event.before || '0000000000000000000000000000000000000000' }}
+
+          RUST_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/rs/**' 'functions/rust/**' \
+            | awk -F/ '($2 == "rs" || $2 == "rust") && NF >= 4 { print $3 }' | sort -u \
+            | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "rust-files=${RUST_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
+
+          GO_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/go/**' \
+            | awk -F/ '$2 == "go" && NF >= 4 { print $3 }' | sort -u \
+            | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "go-files=${GO_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
+          echo "Detected Go files JSON: ${GO_FILES_JSON}"
+
+          # Optional: fail if multiple files (uncomment if strict)
+          # GO_COUNT=$(echo "$GO_FILES_JSON" | jq 'length')
+          # if [ "$GO_COUNT" -gt 1 ]; then
+          #   echo "Error: Multiple Go files changed (${GO_COUNT}). Only one allowed."
+          #   exit 1
+          # fi
+
+      - name: Set repo name
+        id: set-repo-name
+        run: |
+          REPO_NAME=$(basename "${{ gitea.repository }}")
+          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+
+  build-go:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.go == 'true' && needs.detect-changes.outputs.go-files != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo (this Gitea repo)
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+          
+      - name: Setup Kaniko config
+        run: |
+          mkdir -p $HOME/.docker
+          echo '{"auths":{"${{ env.REGISTRY }}":{"auth":"'$(echo -n ${{ env.IMAGE_PREFIX }}:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
+
+      - name: Verify Kaniko config (debug)
+        run: |
+          echo "HOME is: $HOME"
+          ls -la $HOME/.docker/
+          if [ -f "$HOME/.docker/config.json" ]; then
+            echo "config.json exists!"
+            cat $HOME/.docker/config.json | sed 's/"auth":"[^"]*"/"auth":"REDACTED"/'
+          else
+            echo "config.json MISSING!"
+          fi
+
+      - name: Prepare build parameters for single Go function
+        env:
+          GO_FILES_JSON: ${{ needs.detect-changes.outputs.go-files }}
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Detected Go files JSON: $GO_FILES_JSON"
+
+          # Extract single file name (first one only)
+          file=$(echo "$GO_FILES_JSON" | jq -r '.[0]')
+
+          if [ "$file" = "null" ] || [ -z "$file" ]; then
+            echo "No valid Go file detected - skipping build"
+            echo "SKIP_BUILD=true" >> $GITHUB_ENV
+            exit 0
+          fi
+          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:latest"
+          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:${{ gitea.sha }}"
+
+          echo "Building function: $file"
+          echo "Resolved LATEST tag: $LATEST_TAG"
+          echo "Resolved SHA tag: $SHA_TAG"
+
+          git clone https://github.com/ashupednekar/litefunctions
+          FUNCTION_DIR="current-repo/functions/go/$file"
+          HANDLE_FILE="$FUNCTION_DIR/handle.go"
+          TARGET_FILE="function.go"
+          if grep -Eq "func[[:space:]]+StreamHandler" "$HANDLE_FILE"; then
+            TARGET_FILE="function_async.go"
+          fi
+          RUNTIME_DIR="litefunctions/runtimes/go/internal"
+          RUNTIME_PACKAGE="runtime"
+          if [ ! -d "$RUNTIME_DIR" ]; then
+            RUNTIME_DIR="litefunctions/runtimes/go/pkg"
+            RUNTIME_PACKAGE="pkg"
+          fi
+          echo "Using runtime template: ${TARGET_FILE}"
+          cp "$HANDLE_FILE" "$RUNTIME_DIR/${TARGET_FILE}"
+          while IFS= read -r source; do
+            relative="${source#"$FUNCTION_DIR"/}"
+            [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
+            destination="$RUNTIME_DIR/$(dirname "$relative")"
+            mkdir -p "$destination"
+            cp "$source" "$destination/"
+            if [ "$(dirname "$relative")" = "." ]; then
+              sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$destination/$(basename "$source")"
+            fi
+          done < <(find "$FUNCTION_DIR" -type f -name '*.go')
+          sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$RUNTIME_DIR/${TARGET_FILE}"
+
+
+          echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
+
+     
+
+      - name: Build and Push with Kaniko
+        if: env.SKIP_BUILD != 'true'
+        uses: docker://gcr.io/kaniko-project/executor:latest
+        with:
+          args: >
+            --context=dir://litefunctions/runtimes/go
+            --dockerfile=../../build/runtimes/Dockerfile.go
+            --destination=${{ env.LATEST_TAG }}
+            --destination=${{ env.SHA_TAG }}
+            --build-arg PROJECT=${{ needs.detect-changes.outputs.repo_name }}
+            --build-arg NAME=${{ env.FUNCTION_NAME }}
+            --build-arg GIT_TOKEN=${{ secrets.GITEA_TOKEN }}
+            --cache=true
+            --cache-copy-layers=true
+            --cache-ttl=336h
+            --insecure
+            --skip-tls-verify
+            --skip-push-permission-check
+            --verbosity=info
+
+  build-rust:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.rust == 'true' && needs.detect-changes.outputs.rust-files != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo (this Gitea repo)
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Setup Kaniko config
+        run: |
+          mkdir -p $HOME/.docker
+          echo '{"auths":{"${{ env.REGISTRY }}":{"auth":"'$(echo -n ${{ env.IMAGE_PREFIX }}:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
+
+      - name: Verify Kaniko config (debug)
+        run: |
+          echo "HOME is: $HOME"
+          ls -la $HOME/.docker/
+          if [ -f "$HOME/.docker/config.json" ]; then
+            echo "config.json exists!"
+            cat $HOME/.docker/config.json | sed 's/"auth":"[^"]*"/"auth":"REDACTED"/'
+          else
+            echo "config.json MISSING!"
+          fi
+
+      - name: Prepare build parameters for single Rust function
+        env:
+          RUST_FILES_JSON: ${{ needs.detect-changes.outputs.rust-files }}
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Detected Rust files JSON: $RUST_FILES_JSON"
+
+          file=$(echo "$RUST_FILES_JSON" | jq -r '.[0]')
+
+          if [ "$file" = "null" ] || [ -z "$file" ]; then
+            echo "No valid Rust file detected - skipping build"
+            echo "SKIP_BUILD=true" >> $GITHUB_ENV
+            exit 0
+          fi
+          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-rust-$REPO_NAME-$file:latest"
+          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-rust-$REPO_NAME-$file:${{ gitea.sha }}"
+
+          echo "Building function: $file"
+          echo "Resolved LATEST tag: $LATEST_TAG"
+          echo "Resolved SHA tag: $SHA_TAG"
+
+          git clone https://github.com/ashupednekar/litefunctions
+          FUNCTION_DIR="current-repo/functions/rs/$file"
+          if [ ! -d "$FUNCTION_DIR" ]; then
+            FUNCTION_DIR="current-repo/functions/rust/$file"
+          fi
+          SOURCE_PATH="$FUNCTION_DIR/handle.rs"
+          if [ ! -f "$SOURCE_PATH" ]; then
+            echo "Source function not found: $SOURCE_PATH"
+            exit 1
+          fi
+          TARGET_FILE="function.rs"
+          if grep -Eq "stream_handler" "$SOURCE_PATH"; then
+            TARGET_FILE="function_async.rs"
+          fi
+          echo "Using runtime template: ${TARGET_FILE}"
+          RUST_RUNTIME_DIR="litefunctions/runtimes/rust/internal"
+          if [ ! -d "$RUST_RUNTIME_DIR" ]; then
+            RUST_RUNTIME_DIR="litefunctions/runtimes/rust/pkg"
+          fi
+          MODULE_DIR="$RUST_RUNTIME_DIR/function"
+          if [ "$TARGET_FILE" = "function_async.rs" ]; then
+            MODULE_DIR="$RUST_RUNTIME_DIR/function_async"
+          fi
+          mkdir -p "$MODULE_DIR"
+          cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
+          cp "$SOURCE_PATH" "$RUST_RUNTIME_DIR/${TARGET_FILE}"
+
+          echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
+
+      - name: Build and Push with Kaniko
+        if: env.SKIP_BUILD != 'true'
+        uses: docker://gcr.io/kaniko-project/executor:latest
+        with:
+          args: >
+            --context=dir://litefunctions/runtimes/rust
+            --dockerfile=../../build/runtimes/Dockerfile.rust
+            --destination=${{ env.LATEST_TAG }}
+            --destination=${{ env.SHA_TAG }}
+            --build-arg PROJECT=${{ needs.detect-changes.outputs.repo_name }}
+            --build-arg NAME=${{ env.FUNCTION_NAME }}
+            --build-arg GIT_TOKEN=${{ secrets.GITEA_TOKEN }}
+            --cache=true
+            --cache-copy-layers=true
+            --cache-ttl=336h
+            --insecure
+            --skip-tls-verify
+            --skip-push-permission-check
+            --verbosity=info
+
+  hook-python:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Python runtime hook
+        env:
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Triggering Python hook for ${REPO_NAME}"
+          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/python/${REPO_NAME}"
+
+  hook-ts:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify TypeScript runtime hook
+        env:
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Triggering TypeScript hook for ${REPO_NAME}"
+          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/ts/${REPO_NAME}"
+
+  hook-lua:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lua == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Lua runtime hook
+        env:
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          echo "Triggering Lua hook for ${REPO_NAME}"
+          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/lua/${REPO_NAME}"

@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	"github.com/go-logr/logr"
 	"go-simpler.org/env"
 )
@@ -12,6 +13,13 @@ type Settings struct {
 	Registry            string        `env:"REGISTRY" default:"ghcr.io"`
 	VcsUser             string        `env:"VCS_USER" default:"lwsrepos"`
 	VcsBaseUrl          string        `env:"VCS_BASE_URL" default:"https://github.com"`
+	VcsAuthMode         string        `env:"VCS_AUTH_MODE" default:"token"`
+	VcsPrivKeyPath      string        `env:"VCS_PRIVATE_KEY_PATH" default:"/app/.ssh/privkey.pem"`
+	VcsPrivKeyPassword  string        `env:"VCS_PRIVATE_KEY_PASSWORD"`
+	VcsToken            string        `env:"VCS_TOKEN"`
+	VcsVendor           string        `env:"VCS_VENDOR" default:"gitea"`
+	VcsPublicBaseUrl    string        `env:"VCS_PUBLIC_BASE_URL"`
+	Fqdn                string        `env:"FQDN" default:"localhost"`
 	GitTokenSecretName  string        `env:"GIT_TOKEN_SECRET_NAME" default:"litefunctions-admin-token"`
 	GitTokenSecretKey   string        `env:"GIT_TOKEN_SECRET_KEY" default:"token"`
 	PullSecret          string        `env:"PULL_SECRET" default:"ghcr-secret"`
@@ -38,5 +46,19 @@ func LoadCfg(logger logr.Logger) {
 	})
 	if LoadErr != nil {
 		logger.Error(LoadErr, "error loading settings")
+	}
+}
+
+func (s Settings) VCSConfig() vcs.Config {
+	return vcs.Config{
+		AuthMode:        s.VcsAuthMode,
+		PrivKeyPath:     s.VcsPrivKeyPath,
+		PrivKeyPassword: s.VcsPrivKeyPassword,
+		Token:           s.VcsToken,
+		User:            s.VcsUser,
+		Vendor:          s.VcsVendor,
+		BaseUrl:         s.VcsBaseUrl,
+		PublicBaseUrl:   s.VcsPublicBaseUrl,
+		FQDN:            s.Fqdn,
 	}
 }

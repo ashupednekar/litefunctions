@@ -15,7 +15,7 @@ message CreateFunctionRequest {
   string name = 2;
   string project = 3;
   string language = 4;
-  string git_creds = 5;
+  reserved 5;
   bool is_async = 6;
 }
 

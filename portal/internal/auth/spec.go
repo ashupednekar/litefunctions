@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
@@ -34,13 +34,13 @@ type PasskeyStore interface {
 func NewWebauthn() (*webauthn.WebAuthn, error) {
 	cfg := &webauthn.Config{
 		RPDisplayName: "Litefunctions",
-		RPID:          pkg.Cfg.Fqdn,
+		RPID:          config.Cfg.Fqdn,
 		RPOrigins: []string{
-			fmt.Sprintf("http://%s:%d", pkg.Cfg.Fqdn, pkg.Cfg.Port),
-			fmt.Sprintf("https://%s", pkg.Cfg.Fqdn),
+			fmt.Sprintf("http://%s:%d", config.Cfg.Fqdn, config.Cfg.Port),
+			fmt.Sprintf("https://%s", config.Cfg.Fqdn),
 		},
 	}
-	log.Printf("webauthn fqdn: %v", pkg.Cfg.Fqdn)
+	log.Printf("webauthn fqdn: %v", config.Cfg.Fqdn)
 	log.Printf("webauthn origins: %v", cfg.RPOrigins)
 	return webauthn.New(cfg)
 }

@@ -106,14 +106,14 @@ func (db WebauthnStore) GetCredentialsForUser(user auth.PasskeyUser) ([]webauthn
 
 // GetUserSession retrieves a user session by session ID
 func (db *WebauthnStore) GetUserSession(sessionID string) (string, []byte, bool, error) {
-  ctx := context.Background()
+	ctx := context.Background()
 	session, err := db.queries.GetUserSession(ctx, sessionID)
 	if err != nil {
 		log.Printf("[DEBUG] session not found: %v", err)
 		return "", nil, false, nil
 	}
 	user, err := db.queries.GetUserByID(ctx, session.UserID)
-	if err != nil{
+	if err != nil {
 		log.Printf("[DEBUG] error retrieving user by id")
 		return "", nil, false, nil
 	}
