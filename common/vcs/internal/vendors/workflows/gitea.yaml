@@ -132,19 +132,25 @@ jobs:
           if grep -Eq "func[[:space:]]+StreamHandler" "$HANDLE_FILE"; then
             TARGET_FILE="function_async.go"
           fi
+          RUNTIME_DIR="litefunctions/runtimes/go/internal"
+          RUNTIME_PACKAGE="runtime"
+          if [ ! -d "$RUNTIME_DIR" ]; then
+            RUNTIME_DIR="litefunctions/runtimes/go/pkg"
+            RUNTIME_PACKAGE="pkg"
+          fi
           echo "Using runtime template: ${TARGET_FILE}"
-          cp "$HANDLE_FILE" "litefunctions/runtimes/go/internal/${TARGET_FILE}"
+          cp "$HANDLE_FILE" "$RUNTIME_DIR/${TARGET_FILE}"
           while IFS= read -r source; do
             relative="${source#"$FUNCTION_DIR"/}"
             [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
-            destination="litefunctions/runtimes/go/internal/$(dirname "$relative")"
+            destination="$RUNTIME_DIR/$(dirname "$relative")"
             mkdir -p "$destination"
             cp "$source" "$destination/"
             if [ "$(dirname "$relative")" = "." ]; then
-              sed -i -E 's/^package[[:space:]]+.*/package runtime/' "$destination/$(basename "$source")"
+              sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$destination/$(basename "$source")"
             fi
           done < <(find "$FUNCTION_DIR" -type f -name '*.go')
-          sed -i -E 's/^package[[:space:]]+.*/package runtime/' "litefunctions/runtimes/go/internal/${TARGET_FILE}"
+          sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$RUNTIME_DIR/${TARGET_FILE}"
 
 
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
@@ -235,13 +241,17 @@ jobs:
             TARGET_FILE="function_async.rs"
           fi
           echo "Using runtime template: ${TARGET_FILE}"
-          MODULE_DIR="litefunctions/runtimes/rust/internal/function"
+          RUST_RUNTIME_DIR="litefunctions/runtimes/rust/internal"
+          if [ ! -d "$RUST_RUNTIME_DIR" ]; then
+            RUST_RUNTIME_DIR="litefunctions/runtimes/rust/pkg"
+          fi
+          MODULE_DIR="$RUST_RUNTIME_DIR/function"
           if [ "$TARGET_FILE" = "function_async.rs" ]; then
-            MODULE_DIR="litefunctions/runtimes/rust/internal/function_async"
+            MODULE_DIR="$RUST_RUNTIME_DIR/function_async"
           fi
           mkdir -p "$MODULE_DIR"
           cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
-          cp "$SOURCE_PATH" "litefunctions/runtimes/rust/internal/${TARGET_FILE}"
+          cp "$SOURCE_PATH" "$RUST_RUNTIME_DIR/${TARGET_FILE}"
 
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV

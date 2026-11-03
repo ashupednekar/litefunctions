@@ -89,7 +89,7 @@ jobs:
           if [ -n "${PORTAL_RUNTIME_ASSETS_URL}" ]; then
             mkdir -p litefunctions
             curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions
-            if [ ! -d "litefunctions/runtimes/go/internal" ]; then
+            if [ ! -d "litefunctions/runtimes/go/internal" ] && [ ! -d "litefunctions/runtimes/go/pkg" ]; then
               echo "Runtime assets missing after download, cleaning up..."
               rm -rf litefunctions
             fi
@@ -98,7 +98,7 @@ jobs:
           fi
 
       - name: Checkout litefunctions repository (fallback)
-        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/internal/function.go') == '') }}
+        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/internal/function.go') == '' && hashFiles('litefunctions/runtimes/go/pkg/function.go') == '') }}
         uses: actions/checkout@v4
         with:
           repository: ashupednekar/litefunctions
@@ -132,13 +132,17 @@ jobs:
             echo "Function source not found: $SRC"
             exit 1
           fi
-          TARGET="litefunctions/runtimes/rust/internal/function.rs"
-          if grep -Eq "stream_handler" "$SRC"; then
-            TARGET="litefunctions/runtimes/rust/internal/function_async.rs"
+          RUST_RUNTIME_DIR="litefunctions/runtimes/rust/internal"
+          if [ ! -d "$RUST_RUNTIME_DIR" ]; then
+            RUST_RUNTIME_DIR="litefunctions/runtimes/rust/pkg"
           fi
-          MODULE_DIR="litefunctions/runtimes/rust/internal/function"
-          if [ "$TARGET" = "litefunctions/runtimes/rust/internal/function_async.rs" ]; then
-            MODULE_DIR="litefunctions/runtimes/rust/internal/function_async"
+          TARGET="$RUST_RUNTIME_DIR/function.rs"
+          if grep -Eq "stream_handler" "$SRC"; then
+            TARGET="$RUST_RUNTIME_DIR/function_async.rs"
+          fi
+          MODULE_DIR="$RUST_RUNTIME_DIR/function"
+          if [ "$(basename "$TARGET")" = "function_async.rs" ]; then
+            MODULE_DIR="$RUST_RUNTIME_DIR/function_async"
           fi
           mkdir -p "$MODULE_DIR"
           cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
@@ -235,24 +239,31 @@ jobs:
           GO_FILE="${{ matrix.go-file }}"
           FUNCTION_DIR="current-repo/functions/go/${GO_FILE}"
           SRC="$FUNCTION_DIR/handle.go"
-          DST="litefunctions/runtimes/go/internal/function.go"
           if [ ! -f "$SRC" ]; then
             echo "Function source not found: $SRC"
             exit 1
           fi
+          TARGET_FILE="function.go"
           if grep -Eq "func[[:space:]]+StreamHandler" "$SRC"; then
-            DST="litefunctions/runtimes/go/internal/function_async.go"
+            TARGET_FILE="function_async.go"
           fi
+          RUNTIME_DIR="litefunctions/runtimes/go/internal"
+          RUNTIME_PACKAGE="runtime"
+          if [ ! -d "$RUNTIME_DIR" ]; then
+            RUNTIME_DIR="litefunctions/runtimes/go/pkg"
+            RUNTIME_PACKAGE="pkg"
+          fi
+          DST="$RUNTIME_DIR/$TARGET_FILE"
           cp "$SRC" "$DST"
-          sed -i -E 's/^package[[:space:]]+.*/package runtime/' "$DST"
+          sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$DST"
           while IFS= read -r source; do
             relative="${source#"$FUNCTION_DIR"/}"
             [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
-            destination="litefunctions/runtimes/go/internal/$(dirname "$relative")"
+            destination="$RUNTIME_DIR/$(dirname "$relative")"
             mkdir -p "$destination"
             cp "$source" "$destination/"
             if [ "$(dirname "$relative")" = "." ]; then
-              sed -i -E 's/^package[[:space:]]+.*/package runtime/' "$destination/$(basename "$source")"
+              sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$destination/$(basename "$source")"
             fi
           done < <(find "$FUNCTION_DIR" -type f -name '*.go')
 
