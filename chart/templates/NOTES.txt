@@ -23,7 +23,7 @@ tls.certManager.enabled=false: no certificate resources are created; provide gat
 
 Local access for clusters without a real LoadBalancer address:
 
-kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "litefunctions.gatewayName" . }}-istio 18080:{{ .Values.gatewayApi.http.port }}{{ if .Values.gatewayApi.tls.enabled }} 18443:{{ .Values.gatewayApi.tls.port }}{{ end }}
+kubectl -n {{ .Values.gatewayApi.ingressGateway.namespace }} port-forward svc/{{ .Values.gatewayApi.ingressGateway.serviceName }} 18080:{{ .Values.gatewayApi.http.port }}{{ if .Values.gatewayApi.tls.enabled }} 18443:{{ .Values.gatewayApi.tls.port }}{{ end }}
 
 curl --noproxy '*' -H 'Host: litefunctions.portal' http://127.0.0.1:18080/
 

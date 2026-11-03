@@ -11,14 +11,15 @@ export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
-GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$NAMESPACE}"
-SERVICE="${SERVICE:-litefunctions-gateway-istio}"
+GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$ISTIO_NAMESPACE}"
+INGRESS_SERVICE="${INGRESS_SERVICE:-istio-ingressgateway}"
+SERVICE="${SERVICE:-$INGRESS_SERVICE}"
+INGRESS_DEPLOYMENT="${INGRESS_DEPLOYMENT:-$INGRESS_SERVICE}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
-ARGO_HTTPS_NODE_PORT="${ARGO_HTTPS_NODE_PORT:-30443}"
-ARGO_HTTP_NODE_PORT="${ARGO_HTTP_NODE_PORT:-30080}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
-ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.1.1}"
+ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.1.4}"
+ARGOCD_HELM_VERSION="${ARGOCD_HELM_VERSION:-10.10.5}"
 USE_HEAD_CHART=true
 ACTION=default
 ACTION_SET=false
@@ -115,6 +116,25 @@ ensure_cluster() {
       return 0
       ;;
     Linux)
+      if [ -x /usr/local/bin/k3s-uninstall.sh ]; then
+        require_command sudo
+        if command -v systemctl >/dev/null 2>&1; then
+          sudo systemctl start k3s || true
+        elif command -v service >/dev/null 2>&1; then
+          sudo service k3s start || true
+        fi
+        attempt=0
+        until kubectl get nodes >/dev/null 2>&1; do
+          attempt=$((attempt + 1))
+          if [ "$attempt" -ge 30 ]; then
+            echo "Existing k3s cluster is unavailable; tried to start it and will not reinstall it automatically" >&2
+            exit 1
+          fi
+          sleep 2
+        done
+        kubectl get nodes
+        return 0
+      fi
       ;;
     *)
       echo "Automatic cluster setup supports Linux; configure a working kubectl context first" >&2
@@ -124,9 +144,6 @@ ensure_cluster() {
 
   require_command sudo
   require_command curl
-  if [ -x /usr/local/bin/k3s-uninstall.sh ]; then
-    sudo /usr/local/bin/k3s-uninstall.sh
-  fi
   installer=$(mktemp)
   curl -sfL https://get.k3s.io -o "$installer"
   sudo env INSTALL_K3S_EXEC="--disable=traefik --disable=servicelb" sh "$installer"
@@ -219,30 +236,37 @@ mkcert_setup() {
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
   if [ "$INSTALL_ARGO" = true ]; then
-    node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-    echo "$node_ip $ARGO_HOST"
-    echo "Argo CD: https://$ARGO_HOST:$ARGO_HTTPS_NODE_PORT"
+    echo "127.0.0.1 $ARGO_HOST"
+    echo "Argo CD: https://$ARGO_HOST"
   fi
 }
 
 install() {
   require_command curl
   ensure_cluster
-  if [ "$INSTALL_ARGO" = true ]; then
-    require_command kubectl
-  else
-    require_command helm
-  fi
+  require_command kubectl
+  require_command helm
   mkcert_setup
 
   if [ "$INSTALL_ARGO" = true ]; then
+    kubectl apply --server-side --force-conflicts \
+      -f "$SCRIPT_DIR/crds/gateway-api-standard-install-v1.4.0.yaml"
+    kubectl wait --for=condition=Established --timeout=2m \
+      crd/gatewayclasses.gateway.networking.k8s.io \
+      crd/gateways.gateway.networking.k8s.io \
+      crd/httproutes.gateway.networking.k8s.io
     kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-    kubectl apply -n argocd --server-side --force-conflicts \
-      -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-    kubectl -n argocd create secret tls argocd-server-tls \
-      --cert="$CERT_FILE" --key="$KEY_FILE" --dry-run=client -o yaml | kubectl apply -f -
-    kubectl patch service argocd-server -n argocd --type=json \
-      -p="[{\"op\":\"replace\",\"path\":\"/spec/type\",\"value\":\"NodePort\"},{\"op\":\"add\",\"path\":\"/spec/ports/0/nodePort\",\"value\":$ARGO_HTTP_NODE_PORT},{\"op\":\"add\",\"path\":\"/spec/ports/1/nodePort\",\"value\":$ARGO_HTTPS_NODE_PORT}]"
+    helm repo add argo https://argoproj.github.io/argo-helm --force-update
+    helm repo update argo
+    helm upgrade --install argocd argo/argo-cd \
+      --version "$ARGOCD_HELM_VERSION" \
+      --namespace argocd --create-namespace --take-ownership --wait --timeout 10m \
+      --set global.domain="$ARGO_HOST" \
+      --set configs.params.server.insecure=true \
+      --set server.httproute.enabled=true \
+      --set "server.httproute.hostnames[0]=$ARGO_HOST" \
+      --set "server.httproute.parentRefs[0].name=litefunctions-gateway" \
+      --set "server.httproute.parentRefs[0].namespace=$NAMESPACE"
     register_helm_repo() {
       repo_name=$1
       repo_url=$2
@@ -264,7 +288,6 @@ install() {
     register_helm_repo gitea https://dl.gitea.com/charts/
     register_helm_repo zot http://zotregistry.dev/helm-charts
     register_helm_repo cert-manager quay.io/jetstack/charts true
-    kubectl rollout restart deployment/argocd-server -n argocd
     kubectl rollout status deployment/argocd-server -n argocd --timeout=5m
     kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=5m
     kubectl apply -f - <<EOF
@@ -285,6 +308,10 @@ spec:
           value: "false"
         - name: gatewayApi.hosts.argo[0]
           value: ${ARGO_HOST}
+        - name: gatewayApi.ingressGateway.serviceName
+          value: ${INGRESS_SERVICE}
+        - name: gatewayApi.ingressGateway.namespace
+          value: ${ISTIO_NAMESPACE}
   destination:
     server: https://kubernetes.default.svc
     namespace: ${NAMESPACE}
@@ -339,6 +366,13 @@ start() {
   require_command sudo
   require_command curl
   require_command kubectl
+  ensure_cluster
+  if ! kubectl -n "$GATEWAY_NAMESPACE" get service "$SERVICE" >/dev/null 2>&1; then
+    echo "Istio ingress service $GATEWAY_NAMESPACE/$SERVICE is missing; install the LiteFunctions stack first" >&2
+    exit 1
+  fi
+  kubectl -n "$ISTIO_NAMESPACE" wait --for=condition=Available \
+    "deployment/$INGRESS_DEPLOYMENT" --timeout=5m
   kubectl_bin=$(command -v kubectl)
   if is_running; then
     if forward_ready; then
@@ -411,14 +445,8 @@ status() {
   echo "hosts:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
-  argo_node_port=$(kubectl -n argocd get service argocd-server -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}' 2>/dev/null || true)
-  if [ -n "$argo_node_port" ]; then
-    node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-    echo "$node_ip $ARGO_HOST"
-    echo "Argo CD: https://$ARGO_HOST:$argo_node_port"
-  else
-    echo "127.0.0.1 $ARGO_HOST"
-  fi
+  echo "127.0.0.1 $ARGO_HOST"
+  echo "Argo CD: https://$ARGO_HOST"
   echo
   echo "mkcert:"
   echo "sh install.sh mkcert"
@@ -432,18 +460,12 @@ status() {
   echo "browser:"
   echo "https://$PORTAL_HOST"
   echo "https://$GITEA_HOST"
-  if [ -n "$argo_node_port" ]; then
-    echo "https://$ARGO_HOST:$argo_node_port"
-  else
-    echo "https://$ARGO_HOST"
-  fi
+  echo "https://$ARGO_HOST"
   echo
   echo "https test:"
   echo "curl --noproxy '*' -k -H 'Host: $PORTAL_HOST' https://127.0.0.1:$HTTPS_PORT/"
   echo "curl --noproxy '*' -k -H 'Host: $GITEA_HOST' https://127.0.0.1:$HTTPS_PORT/"
-  if [ -n "$argo_node_port" ]; then
-    echo "curl --noproxy '*' --resolve $ARGO_HOST:$argo_node_port:$node_ip https://$ARGO_HOST:$argo_node_port/"
-  fi
+  echo "curl --noproxy '*' --resolve $ARGO_HOST:$HTTPS_PORT:127.0.0.1 https://$ARGO_HOST:$HTTPS_PORT/"
 }
 
 case "$ACTION" in

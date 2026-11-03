@@ -17,6 +17,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   gatewayClassName: {{ $gatewayClassName | quote }}
+  addresses:
+  - type: Hostname
+    value: {{ printf "%s.%s.svc.cluster.local" .Values.gatewayApi.ingressGateway.serviceName .Values.gatewayApi.ingressGateway.namespace | quote }}
   listeners:
   {{- range $index, $host := $listenerHosts }}
   - name: {{ printf "http-%d" $index }}
@@ -25,7 +28,14 @@ spec:
     hostname: {{ $host | quote }}
     allowedRoutes:
       namespaces:
+        {{- if has $host $hosts.argo }}
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: argocd
+        {{- else }}
         from: Same
+        {{- end }}
   {{- end }}
   {{- if $tlsEnabled }}
   {{- range $index, $host := $listenerHosts }}
@@ -39,7 +49,14 @@ spec:
         name: {{ $tlsSecretName }}
     allowedRoutes:
       namespaces:
+        {{- if has $host $hosts.argo }}
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: argocd
+        {{- else }}
         from: Same
+        {{- end }}
   {{- end }}
   {{- end }}
 {{- if .Values.ui.enabled }}
@@ -109,43 +126,6 @@ spec:
     backendRefs:
     - name: {{ include "gitea.fullname" (index .Subcharts "gitea") }}-http
       port: {{ .Values.gitea.service.http.port }}
-{{- end }}
-{{- if $hosts.argo }}
----
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: litefunctions-argo
-  namespace: argocd
-spec:
-  from:
-  - group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    namespace: {{ .Release.Namespace }}
-  to:
-  - group: ""
-    kind: Service
-    name: argocd-server
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: litefunctions-argo
-  namespace: {{ .Release.Namespace }}
-spec:
-  parentRefs:
-  - name: {{ $gatewayName }}
-  hostnames:
-    {{- toYaml $hosts.argo | nindent 4 }}
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /
-    backendRefs:
-    - name: argocd-server
-      namespace: argocd
-      port: 80
 {{- end }}
 {{- if .Values.rustfs.enabled }}
 {{- range $name, $routeHosts := dict "rustfs" $hosts.rustfs "rustfsConsole" $hosts.rustfsConsole }}

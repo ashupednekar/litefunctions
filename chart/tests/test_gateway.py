@@ -94,5 +94,5 @@ class GatewayTests(unittest.TestCase):
     def test_ngrok(self):
         docs = render("ngrok.enabled=true")
         deployment = resources(docs, "Deployment")["litefunctions-ngrok"]
-        self.assertIn("litefunctions-gateway-istio.litefunctions.svc:8080", deployment["spec"]["template"]["spec"]["containers"][0]["args"])
+        self.assertIn("istio-ingressgateway.istio-system.svc:80", deployment["spec"]["template"]["spec"]["containers"]["args"])
         self.assertIn("requires gatewayApi.enabled", render("ngrok.enabled=true", "gatewayApi.enabled=false", success=False))

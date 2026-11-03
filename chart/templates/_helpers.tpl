@@ -51,7 +51,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Gateway API resource name used by Istio-managed gateway deployment/service.
+ Gateway API resource name for the shared Istio ingress gateway.
 */}}
 {{- define "litefunctions.gatewayName" -}}
 litefunctions-gateway

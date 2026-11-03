@@ -1,6 +1,9 @@
 gatewayApi:
   enabled: true
   gatewayClassName: istio
+  ingressGateway:
+    serviceName: istio-ingressgateway
+    namespace: istio-system
   hosts:
     portal: []
     gitea: []
@@ -8,7 +11,7 @@ gatewayApi:
     rustfs: [lws.ashudev.in]
     rustfsConsole: []
   http:
-    port: 8080
+    port: 80
   tls:
     enabled: true
     port: 443

@@ -28,7 +28,7 @@ spec:
         name: litefunctions-ngrok
         args:
         - http
-        - {{ include "litefunctions.gatewayName" . }}-istio.{{ .Release.Namespace }}.svc:{{ .Values.gatewayApi.http.port | default 8080 }}
+        - {{ .Values.gatewayApi.ingressGateway.serviceName }}.{{ .Values.gatewayApi.ingressGateway.namespace }}.svc:{{ .Values.gatewayApi.http.port | default 80 }}
         - --url=https://{{ .Values.ui.domain }}
         env:
         - name: NGROK_AUTHTOKEN
