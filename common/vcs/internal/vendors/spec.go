@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal"
 )
 
 type VendorClient interface {
@@ -86,7 +86,7 @@ type WorkflowRun struct {
 	CurrentStep  string
 }
 
-func NewClient(cfg vcs.Config) (VendorClient, error) {
+func NewClient(cfg *internal.Config) (VendorClient, error) {
 	switch cfg.Vendor {
 	case "github":
 		if cfg.Token == "" {
@@ -97,7 +97,7 @@ func NewClient(cfg vcs.Config) (VendorClient, error) {
 		if cfg.Token == "" {
 			return nil, fmt.Errorf("token is required for Gitea")
 		}
-		if cfg.BaseURL == "" {
+		if cfg.BaseUrl == "" {
 			return nil, fmt.Errorf("baseURL is required for Gitea")
 		}
 		return NewGiteaClient(cfg), nil

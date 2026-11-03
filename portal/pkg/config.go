@@ -36,11 +36,9 @@ func LoadCfg() {
 		if err := env.Load(&Cfg, nil); err != nil {
 			LoadErr = err
 		}
-		if err := env.Load(&Cfg.vcs, nil); err != nil {
-			LoadErr = err
-		}
 	})
 	if LoadErr != nil {
 		log.Fatal(LoadErr)
 	}
+	Cfg.vcs = vcs.C
 }

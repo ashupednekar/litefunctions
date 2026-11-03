@@ -9,9 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	operatorClient "github.com/ashupednekar/litefunctions/common/operatorClient"
+	"github.com/ashupednekar/litefunctions/common"
 	"github.com/ashupednekar/litefunctions/common/sample"
-	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/pkg"
@@ -159,7 +158,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	if err != nil {
 		slog.Warn("Failed to create automatic endpoint", "name", req.Name, "error", err)
 	}
-	_, err = operatorClient.CreateFunctionCR(
+	_, err = common.CreateFunction(
 		c.Request.Context(),
 		pkg.Cfg.OperatorUrl,
 		pkg.Cfg.PodNamespace,

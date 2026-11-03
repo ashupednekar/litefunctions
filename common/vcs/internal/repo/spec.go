@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal"
 	"github.com/go-git/go-billy/v6"
 	"github.com/go-git/go-billy/v6/memfs"
 	"github.com/go-git/go-git/v6"
@@ -26,12 +26,12 @@ type GitRepo struct {
 	Fs       billy.Filesystem
 	Worktree *git.Worktree
 	Repo     *git.Repository
-	cfg      vcs.Config
+	cfg      *internal.Config
 }
 
 var repos = make(map[string]*GitRepo)
 
-func New(cfg vcs.Config, project string, branch *string) (*GitRepo, error) {
+func New(cfg *internal.Config, project string, branch *string) (*GitRepo, error) {
 	fs := memfs.New()
 	var b string
 	if branch != nil {
@@ -57,7 +57,7 @@ func New(cfg vcs.Config, project string, branch *string) (*GitRepo, error) {
 			Storage: memory.NewStorage(),
 			cfg:     cfg,
 			Options: &git.CloneOptions{
-				URL: fmt.Sprintf("%s/%s/%s.git", strings.TrimRight(cfg.BaseURL, "/"), cfg.User, project),
+				URL: fmt.Sprintf("%s/%s/%s.git", strings.TrimRight(cfg.BaseUrl, "/"), cfg.User, project),
 			},
 		}
 		err := r.SetupAuth()

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/common/vcs"
+	"github.com/ashupednekar/litefunctions/common/vcs/internal"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/repo"
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/vendors/workflows"
 )
@@ -19,7 +19,7 @@ type GiteaClient struct {
 	token      string
 	httpClient *http.Client
 	baseURL    string
-	cfg        vcs.Config
+	cfg        *internal.Config
 }
 
 type giteaStep struct {
@@ -33,10 +33,10 @@ type giteaJob struct {
 	Steps  []giteaStep `json:"steps"`
 }
 
-func NewGiteaClient(cfg vcs.Config) *GiteaClient {
+func NewGiteaClient(cfg *internal.Config) *GiteaClient {
 	return &GiteaClient{
 		token:   cfg.Token,
-		baseURL: cfg.BaseURL,
+		baseURL: cfg.BaseUrl,
 		cfg:     cfg,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -270,11 +270,11 @@ func (c *GiteaClient) GetActionsProgress(ctx context.Context, owner, repo string
 		var workflowID int64 //gitea uses int, unlike github
 		fmt.Sscanf(run.WorkflowID, "%d", &workflowID)
 		cfg := c.cfg
-		publicBaseURL := cfg.PublicBaseURL
-		if strings.TrimSpace(publicBaseURL) == "" {
-			publicBaseURL = cfg.FQDN
+		publicBaseUrl := cfg.PublicBaseUrl
+		if strings.TrimSpace(publicBaseUrl) == "" {
+			publicBaseUrl = cfg.FQDN
 		}
-		htmlURL := rewriteToBaseURL(run.URL, publicBaseURL)
+		htmlURL := rewriteToBaseURL(run.URL, publicBaseUrl)
 
 		runs = append(runs, WorkflowRun{
 			ID:           run.ID,

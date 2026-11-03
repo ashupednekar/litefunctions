@@ -47,7 +47,7 @@ func (r *GitRepo) SetupAuth() error {
 	log.Printf("setting up %s auth\n", cfg.AuthMode)
 	switch cfg.AuthMode {
 	case "ssh":
-		vendor := strings.TrimPrefix(strings.TrimPrefix(cfg.BaseURL, "https://"), "http://")
+		vendor := strings.TrimPrefix(strings.TrimPrefix(cfg.BaseUrl, "https://"), "http://")
 		r.Options.URL = fmt.Sprintf(
 			"git@%s:%s/%s.git",
 			vendor,
