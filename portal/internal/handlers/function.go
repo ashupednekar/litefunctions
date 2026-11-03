@@ -79,7 +79,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		}
 	}
 
-	path := fmt.Sprintf("functions/%s/%s%s", req.Language, req.Name, ext)
+	path := fmt.Sprintf("functions/%s/%s/handle%s", req.Language, req.Name, ext)
 
 	dirParts := strings.Split(path, "/")
 	cur := ""
@@ -166,7 +166,6 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		req.Name,
 		projectName,
 		req.Language,
-		path,
 		req.IsAsync,
 	)
 	if err != nil {

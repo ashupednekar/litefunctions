@@ -43,7 +43,7 @@ async def consume(state: AppState, consumer: Any, handler: Callable):
 
 async def start_function(state: AppState, name: str):
     spec = importlib.util.spec_from_file_location(
-        name, f"/tmp/{settings.project}/functions/py/{name}.py"
+        name, f"/tmp/{settings.project}/functions/python/{name}/handle.py"
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module

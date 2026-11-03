@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -90,14 +90,8 @@ async function syncRepo(): Promise<void> {
   await run(["git", "clone", repoURL(), localPath]);
 }
 
-function isFunctionFile(name: string): boolean {
-  if (!/^[A-Za-z0-9_-]+\.ts$/.test(name)) {
-    return false;
-  }
-  if (name.endsWith(".d.ts")) {
-    return false;
-  }
-  return true;
+function isFunctionName(name: string): boolean {
+	return /^[A-Za-z0-9_-]+$/.test(name);
 }
 
 export async function ensureRuntimeDir(): Promise<void> {
@@ -113,20 +107,25 @@ async function syncRuntimeFunctionsDir(sourceRoot: string): Promise<void> {
   const runtimeRoot = runtimeFunctionsPath();
   await mkdir(runtimeRoot, { recursive: true });
 
-  for (const entry of await readdir(runtimeRoot)) {
-    if (!isFunctionFile(entry)) {
+  for (const entry of await readdir(runtimeRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
       continue;
     }
-    await rm(path.join(runtimeRoot, entry), { force: true });
+    await rm(path.join(runtimeRoot, entry.name), { recursive: true, force: true });
   }
 
   let copied = 0;
   if (await fileExists(sourceRoot)) {
-    for (const entry of await readdir(sourceRoot)) {
-      if (!isFunctionFile(entry)) {
+    for (const entry of await readdir(sourceRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !isFunctionName(entry.name)) {
         continue;
       }
-      await writeFile(path.join(runtimeRoot, entry), await readFile(path.join(sourceRoot, entry)));
+      const sourceFile = path.join(sourceRoot, entry.name, "handle.ts");
+      if (!(await fileExists(sourceFile))) {
+        continue;
+      }
+      const targetDir = path.join(runtimeRoot, entry.name);
+      await cp(path.join(sourceRoot, entry.name), targetDir, { recursive: true, force: true });
       copied += 1;
     }
   }
@@ -157,17 +156,19 @@ export async function listFunctions(): Promise<string[]> {
   }
 
   const names = new Set<string>();
-  for (const entry of await readdir(root)) {
-    if (!isFunctionFile(entry)) {
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !isFunctionName(entry.name)) {
       continue;
     }
-    names.add(path.basename(entry, ".ts"));
+    if (await fileExists(path.join(root, entry.name, "handle.ts"))) {
+      names.add(entry.name);
+    }
   }
   return Array.from(names).sort();
 }
 
 async function resolveFunctionFile(name: string): Promise<string> {
-  const p = path.join(runtimeFunctionsPath(), `${name}.ts`);
+  const p = path.join(runtimeFunctionsPath(), name, "handle.ts");
   if (await fileExists(p)) {
     return p;
   }

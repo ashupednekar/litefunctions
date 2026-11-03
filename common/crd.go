@@ -12,7 +12,7 @@ import (
 
 const defaultGrpcTimeout = 5 * time.Second
 
-func CreateFunction(ctx context.Context, operatorAddr, namespace, name, project, language, repoPath string, isAsync bool) (bool, error) {
+func CreateFunction(ctx context.Context, operatorAddr, namespace, name, project, language string, isAsync bool) (bool, error) {
 	if operatorAddr == "" {
 		return false, fmt.Errorf("operator address is empty")
 	}
@@ -35,7 +35,6 @@ func CreateFunction(ctx context.Context, operatorAddr, namespace, name, project,
 		Name:      name,
 		Project:   project,
 		Language:  language,
-		RepoPath:  repoPath,
 		IsAsync:   isAsync,
 	})
 	if err != nil {

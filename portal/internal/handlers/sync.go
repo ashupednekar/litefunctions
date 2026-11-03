@@ -59,13 +59,17 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 	err = walkFunctions(r, "/functions", func(path string) error {
 		ext := filepath.Ext(path)
 		lang, ok := extLang[ext]
-		if !ok {
+		if !ok || filepath.Base(path) != "handle"+ext {
 			slog.Debug("Skipping unknown extension", "path", path)
 			return nil
 		}
 
 		var fnID pgtype.UUID
-		fnName := strings.TrimSuffix(filepath.Base(path), ext)
+		fnName := filepath.Base(filepath.Dir(path))
+		if filepath.Base(filepath.Dir(filepath.Dir(path))) != lang {
+			slog.Debug("Skipping function outside language directory", "path", path)
+			return nil
+		}
 
 		createdFn := false
 		if id, exists := existingPaths[path]; exists {
@@ -112,7 +116,6 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 				fnName,
 				projectName,
 				lang,
-				path,
 				false,
 			)
 			if err != nil {

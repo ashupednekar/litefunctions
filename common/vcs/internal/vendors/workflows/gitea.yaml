@@ -53,13 +53,13 @@ jobs:
         run: |
           BEFORE_SHA=${{ gitea.event.before || '0000000000000000000000000000000000000000' }}
 
-          RUST_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/rs/*.rs' 'functions/rust/*.rs' \
-            | sed 's|functions/rs/||; s|functions/rust/||' | sed 's|\.rs$||' \
+          RUST_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/rs/**' 'functions/rust/**' \
+            | awk -F/ '($2 == "rs" || $2 == "rust") && NF >= 4 { print $3 }' | sort -u \
             | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "rust-files=${RUST_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
 
-          GO_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/go/*.go' \
-            | sed 's|functions/go/||' | sed 's|\.go$||' \
+          GO_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/go/**' \
+            | awk -F/ '$2 == "go" && NF >= 4 { print $3 }' | sort -u \
             | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "go-files=${GO_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
           echo "Detected Go files JSON: ${GO_FILES_JSON}"
@@ -126,13 +126,25 @@ jobs:
           echo "Resolved SHA tag: $SHA_TAG"
 
           git clone https://github.com/ashupednekar/litefunctions
+          FUNCTION_DIR="current-repo/functions/go/$file"
+          HANDLE_FILE="$FUNCTION_DIR/handle.go"
           TARGET_FILE="function.go"
-          if grep -Eq "func[[:space:]]+StreamHandler" "current-repo/functions/go/$file.go"; then
+          if grep -Eq "func[[:space:]]+StreamHandler" "$HANDLE_FILE"; then
             TARGET_FILE="function_async.go"
           fi
           echo "Using runtime template: ${TARGET_FILE}"
-          cp "current-repo/functions/go/$file.go" \
-             "litefunctions/runtimes/go/pkg/${TARGET_FILE}"
+          cp "$HANDLE_FILE" "litefunctions/runtimes/go/internal/${TARGET_FILE}"
+          while IFS= read -r source; do
+            relative="${source#"$FUNCTION_DIR"/}"
+            [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
+            destination="litefunctions/runtimes/go/internal/$(dirname "$relative")"
+            mkdir -p "$destination"
+            cp "$source" "$destination/"
+            if [ "$(dirname "$relative")" = "." ]; then
+              sed -i -E 's/^package[[:space:]]+.*/package runtime/' "$destination/$(basename "$source")"
+            fi
+          done < <(find "$FUNCTION_DIR" -type f -name '*.go')
+          sed -i -E 's/^package[[:space:]]+.*/package runtime/' "litefunctions/runtimes/go/internal/${TARGET_FILE}"
 
 
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
@@ -209,10 +221,11 @@ jobs:
           echo "Resolved SHA tag: $SHA_TAG"
 
           git clone https://github.com/ashupednekar/litefunctions
-          SOURCE_PATH="current-repo/functions/rs/$file.rs"
-          if [ ! -f "$SOURCE_PATH" ] && [ -f "current-repo/functions/rust/$file.rs" ]; then
-            SOURCE_PATH="current-repo/functions/rust/$file.rs"
+          FUNCTION_DIR="current-repo/functions/rs/$file"
+          if [ ! -d "$FUNCTION_DIR" ]; then
+            FUNCTION_DIR="current-repo/functions/rust/$file"
           fi
+          SOURCE_PATH="$FUNCTION_DIR/handle.rs"
           if [ ! -f "$SOURCE_PATH" ]; then
             echo "Source function not found: $SOURCE_PATH"
             exit 1
@@ -222,8 +235,13 @@ jobs:
             TARGET_FILE="function_async.rs"
           fi
           echo "Using runtime template: ${TARGET_FILE}"
-          cp "$SOURCE_PATH" \
-             "litefunctions/runtimes/rust/pkg/${TARGET_FILE}"
+          MODULE_DIR="litefunctions/runtimes/rust/internal/function"
+          if [ "$TARGET_FILE" = "function_async.rs" ]; then
+            MODULE_DIR="litefunctions/runtimes/rust/internal/function_async"
+          fi
+          mkdir -p "$MODULE_DIR"
+          cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
+          cp "$SOURCE_PATH" "litefunctions/runtimes/rust/internal/${TARGET_FILE}"
 
           echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV

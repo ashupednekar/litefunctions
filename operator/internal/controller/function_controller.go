@@ -21,7 +21,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -183,14 +182,11 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1.Function) error {
 	log := logf.FromContext(ctx)
 
-	repoPath := strings.TrimSpace(function.Spec.RepoPath)
-	if repoPath == "" {
-		ext, ok := repoPathExt[function.Spec.Language]
-		if !ok {
-			return nil
-		}
-		repoPath = fmt.Sprintf("functions/%s/%s%s", function.Spec.Language, function.Spec.Name, ext)
+	ext, ok := repoPathExt[function.Spec.Language]
+	if !ok {
+		return nil
 	}
+	repoPath := fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Spec.Name, ext)
 
 	if function.Annotations[repoPathAnnotation] == repoPath {
 		return nil
@@ -216,12 +212,9 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		function.Annotations = make(map[string]string)
 	}
 	function.Annotations[repoPathAnnotation] = repoPath
-	if function.Spec.RepoPath == "" {
-		function.Spec.RepoPath = repoPath
-	}
 
 	if err := r.Update(ctx, function); err != nil {
-		return fmt.Errorf("record repo path %s: %w", repoPath, err)
+		return fmt.Errorf("record repo bootstrap annotation for %s: %w", repoPath, err)
 	}
 
 	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)

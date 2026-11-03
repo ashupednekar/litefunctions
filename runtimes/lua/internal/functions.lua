@@ -3,6 +3,7 @@ local cjson = require("cjson.safe")
 local conf = require("internal.conf")
 
 local M = {}
+local base_package_path = package.path
 
 local function repo_path()
   return "/tmp/" .. conf.settings.project
@@ -39,19 +40,20 @@ end
 
 local function clear_runtime_functions_dir(root)
   sh(string.format("mkdir -p %q", root))
-  sh(string.format("find %q -maxdepth 1 -type f -name '*.lua' -delete >/dev/null 2>&1", root))
+  sh(string.format("find %q -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} + >/dev/null 2>&1", root))
 end
 
 local function copy_runtime_function_files(source_root, runtime_root)
   local copied = 0
   if sh(string.format("test -d %q", source_root)) then
-    local p = io.popen(string.format("find %q -maxdepth 1 -type f -name '*.lua' 2>/dev/null", source_root))
+    local p = io.popen(string.format("find %q -mindepth 2 -maxdepth 2 -type f -name 'handle.lua' 2>/dev/null", source_root))
     if p then
       for src in p:lines() do
-        local file = src:match("([^/]+)$")
-        if file then
-          local dst = runtime_root .. "/" .. file
-          if sh(string.format("cp %q %q >/dev/null 2>&1", src, dst)) then
+        local name = src:match("/([^/]+)/handle%.lua$")
+        if name and name ~= "" then
+          local dst = runtime_root .. "/" .. name
+          local source_dir = src:match("^(.*)/handle%.lua$")
+          if source_dir and sh(string.format("mkdir -p %q && cp -R %q/. %q/ >/dev/null 2>&1", dst, source_dir, dst)) then
             copied = copied + 1
           end
         end
@@ -102,12 +104,12 @@ end
 
 function M.list_functions()
   local out = {}
-  local p = io.popen(string.format("find %q -maxdepth 1 -type f -name '*.lua' 2>/dev/null", runtime_functions_path()))
+  local p = io.popen(string.format("find %q -mindepth 2 -maxdepth 2 -type f -name 'handle.lua' 2>/dev/null", runtime_functions_path()))
   if not p then
     return out
   end
   for file in p:lines() do
-    local name = file:match("([^/]+)%.lua$")
+    local name = file:match("/([^/]+)/handle%.lua$")
     if name and name ~= "" then
       out[#out + 1] = name
     end
@@ -143,11 +145,13 @@ local function encode_output(ret)
 end
 
 function M.invoke_lua(name, payload)
-  local script = string.format("%s/%s.lua", runtime_functions_path(), name)
+  local script = string.format("%s/%s/handle.lua", runtime_functions_path(), name)
   if not sh(string.format("test -f %q", script)) then
     return nil, string.format("function '%s' not found", name)
   end
 
+  local module_dir = script:match("^(.*)/handle%.lua$")
+  package.path = module_dir .. "/?.lua;" .. module_dir .. "/?/init.lua;" .. base_package_path
   _G.handle = nil
   local ok, load_err = pcall(dofile, script)
   if not ok then

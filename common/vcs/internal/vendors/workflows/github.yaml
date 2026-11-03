@@ -38,6 +38,7 @@ jobs:
           filters: |
             rust:
               - 'functions/rs/**'
+              - 'functions/rust/**'
             go:
               - 'functions/go/**'
             zig:
@@ -53,11 +54,11 @@ jobs:
         id: get-changed-files
         run: |
           # Get changed Rust files as JSON array
-          RUST_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/rs/*.rs' | sed 's|functions/rs/||' | sed 's|\.rs$||' | jq -R -s -c 'split("\n")[:-1]')
+          RUST_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/rs/**' 'functions/rust/**' | awk -F/ '($2 == "rs" || $2 == "rust") && NF >= 4 { print $3 }' | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "rust-files=${RUST_FILES_JSON}" >> $GITHUB_OUTPUT
           
           # Get changed Go files as JSON array
-          GO_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/go/*.go' | sed 's|functions/go/||' | sed 's|\.go$||' | jq -R -s -c 'split("\n")[:-1]')
+          GO_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/go/**' | awk -F/ '$2 == "go" && NF >= 4 { print $3 }' | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "go-files=${GO_FILES_JSON}" >> $GITHUB_OUTPUT
 
       - name: Set repo name
@@ -88,7 +89,7 @@ jobs:
           if [ -n "${PORTAL_RUNTIME_ASSETS_URL}" ]; then
             mkdir -p litefunctions
             curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions
-            if [ ! -d "litefunctions/runtimes/go/pkg" ]; then
+            if [ ! -d "litefunctions/runtimes/go/internal" ]; then
               echo "Runtime assets missing after download, cleaning up..."
               rm -rf litefunctions
             fi
@@ -97,7 +98,7 @@ jobs:
           fi
 
       - name: Checkout litefunctions repository (fallback)
-        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/pkg/function.go') == '') }}
+        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/internal/function.go') == '') }}
         uses: actions/checkout@v4
         with:
           repository: ashupednekar/litefunctions
@@ -118,6 +119,30 @@ jobs:
       - name: Pull latest base image
         run: |
           docker pull ashupednekar535/litefunctions-runtime-rs:base
+
+      - name: Inject Rust function package into runtime
+        run: |
+          RUST_FILE="${{ matrix.rust-file }}"
+          FUNCTION_DIR="current-repo/functions/rs/$RUST_FILE"
+          if [ ! -d "$FUNCTION_DIR" ]; then
+            FUNCTION_DIR="current-repo/functions/rust/$RUST_FILE"
+          fi
+          SRC="$FUNCTION_DIR/handle.rs"
+          if [ ! -f "$SRC" ]; then
+            echo "Function source not found: $SRC"
+            exit 1
+          fi
+          TARGET="litefunctions/runtimes/rust/internal/function.rs"
+          if grep -Eq "stream_handler" "$SRC"; then
+            TARGET="litefunctions/runtimes/rust/internal/function_async.rs"
+          fi
+          MODULE_DIR="litefunctions/runtimes/rust/internal/function"
+          if [ "$TARGET" = "litefunctions/runtimes/rust/internal/function_async.rs" ]; then
+            MODULE_DIR="litefunctions/runtimes/rust/internal/function_async"
+          fi
+          mkdir -p "$MODULE_DIR"
+          cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
+          cp "$SRC" "$TARGET"
 
       - name: Build and push Rust Docker image
         run: |
@@ -179,7 +204,7 @@ jobs:
           if [ -n "${PORTAL_RUNTIME_ASSETS_URL}" ]; then
             mkdir -p litefunctions
             curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions
-            if [ ! -d "litefunctions/runtimes/go/pkg" ]; then
+            if [ ! -d "litefunctions/runtimes/go/internal" ]; then
               echo "Runtime assets missing after download, cleaning up..."
               rm -rf litefunctions
             fi
@@ -188,7 +213,7 @@ jobs:
           fi
 
       - name: Checkout litefunctions repository (fallback)
-        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/pkg/function.go') == '') }}
+        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/go/internal/function.go') == '') }}
         uses: actions/checkout@v4
         with:
           repository: ashupednekar/litefunctions
@@ -208,14 +233,28 @@ jobs:
       - name: Inject Go function into runtime
         run: |
           GO_FILE="${{ matrix.go-file }}"
-          SRC="current-repo/functions/go/${GO_FILE}.go"
-          DST="litefunctions/runtimes/go/pkg/function.go"
+          FUNCTION_DIR="current-repo/functions/go/${GO_FILE}"
+          SRC="$FUNCTION_DIR/handle.go"
+          DST="litefunctions/runtimes/go/internal/function.go"
           if [ ! -f "$SRC" ]; then
             echo "Function source not found: $SRC"
             exit 1
           fi
+          if grep -Eq "func[[:space:]]+StreamHandler" "$SRC"; then
+            DST="litefunctions/runtimes/go/internal/function_async.go"
+          fi
           cp "$SRC" "$DST"
-          sed -i -E 's/^package[[:space:]]+main$/package pkg/' "$DST"
+          sed -i -E 's/^package[[:space:]]+.*/package runtime/' "$DST"
+          while IFS= read -r source; do
+            relative="${source#"$FUNCTION_DIR"/}"
+            [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
+            destination="litefunctions/runtimes/go/internal/$(dirname "$relative")"
+            mkdir -p "$destination"
+            cp "$source" "$destination/"
+            if [ "$(dirname "$relative")" = "." ]; then
+              sed -i -E 's/^package[[:space:]]+.*/package runtime/' "$destination/$(basename "$source")"
+            fi
+          done < <(find "$FUNCTION_DIR" -type f -name '*.go')
 
       - name: Build and push Go Docker image
         run: |
