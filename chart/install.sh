@@ -11,11 +11,14 @@ export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
-GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$ISTIO_NAMESPACE}"
-SERVICE="${SERVICE:-istio-ingressgateway}"
+GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$NAMESPACE}"
+SERVICE="${SERVICE:-litefunctions-gateway-istio}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
+ARGO_HTTPS_NODE_PORT="${ARGO_HTTPS_NODE_PORT:-30443}"
+ARGO_HTTP_NODE_PORT="${ARGO_HTTP_NODE_PORT:-30080}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
+ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.1.1}"
 USE_HEAD_CHART=true
 ACTION=default
 ACTION_SET=false
@@ -216,7 +219,9 @@ mkcert_setup() {
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
   if [ "$INSTALL_ARGO" = true ]; then
-    echo "127.0.0.1 $ARGO_HOST"
+    node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    echo "$node_ip $ARGO_HOST"
+    echo "Argo CD: https://$ARGO_HOST:$ARGO_HTTPS_NODE_PORT"
   fi
 }
 
@@ -234,8 +239,31 @@ install() {
     kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
     kubectl apply -n argocd --server-side --force-conflicts \
       -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-    kubectl patch configmap argocd-cm -n argocd --type merge \
-      -p '{"data":{"server.insecure":"true"}}'
+    kubectl -n argocd create secret tls argocd-server-tls \
+      --cert="$CERT_FILE" --key="$KEY_FILE" --dry-run=client -o yaml | kubectl apply -f -
+    kubectl patch service argocd-server -n argocd --type=json \
+      -p="[{\"op\":\"replace\",\"path\":\"/spec/type\",\"value\":\"NodePort\"},{\"op\":\"add\",\"path\":\"/spec/ports/0/nodePort\",\"value\":$ARGO_HTTP_NODE_PORT},{\"op\":\"add\",\"path\":\"/spec/ports/1/nodePort\",\"value\":$ARGO_HTTPS_NODE_PORT}]"
+    register_helm_repo() {
+      repo_name=$1
+      repo_url=$2
+      oci=${3:-false}
+      kubectl -n argocd create secret generic "helm-repo-$repo_name" \
+        --from-literal=type=helm \
+        --from-literal=name="$repo_name" \
+        --from-literal=url="$repo_url" \
+        --from-literal=enableOCI="$oci" \
+        --dry-run=client -o yaml | kubectl apply -f -
+      kubectl -n argocd label secret "helm-repo-$repo_name" \
+        argocd.argoproj.io/secret-type=repository --overwrite
+    }
+    register_helm_repo nats https://nats-io.github.io/k8s/helm/charts
+    register_helm_repo valkey https://valkey.io/valkey-helm/
+    register_helm_repo pgo registry-1.docker.io/ashupednekar535 true
+    register_helm_repo litefunctions registry-1.docker.io/ashupednekar535 true
+    register_helm_repo rustfs https://charts.rustfs.com/
+    register_helm_repo gitea https://dl.gitea.com/charts/
+    register_helm_repo zot http://zotregistry.dev/helm-charts
+    register_helm_repo cert-manager quay.io/jetstack/charts true
     kubectl rollout restart deployment/argocd-server -n argocd
     kubectl rollout status deployment/argocd-server -n argocd --timeout=5m
     kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=5m
@@ -248,9 +276,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/ashupednekar/litefunctions.git
-    targetRevision: ${ARGOCD_REVISION:-main}
-    path: chart
+    repoURL: registry-1.docker.io/ashupednekar535
+    chart: litefunctions
+    targetRevision: ${ARGOCD_CHART_VERSION}
     helm:
       parameters:
         - name: gatewayApi.tls.certManager.enabled
@@ -383,7 +411,14 @@ status() {
   echo "hosts:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
-  echo "127.0.0.1 $ARGO_HOST"
+  argo_node_port=$(kubectl -n argocd get service argocd-server -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}' 2>/dev/null || true)
+  if [ -n "$argo_node_port" ]; then
+    node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    echo "$node_ip $ARGO_HOST"
+    echo "Argo CD: https://$ARGO_HOST:$argo_node_port"
+  else
+    echo "127.0.0.1 $ARGO_HOST"
+  fi
   echo
   echo "mkcert:"
   echo "sh install.sh mkcert"
@@ -397,11 +432,18 @@ status() {
   echo "browser:"
   echo "https://$PORTAL_HOST"
   echo "https://$GITEA_HOST"
-  echo "https://$ARGO_HOST"
+  if [ -n "$argo_node_port" ]; then
+    echo "https://$ARGO_HOST:$argo_node_port"
+  else
+    echo "https://$ARGO_HOST"
+  fi
   echo
   echo "https test:"
   echo "curl --noproxy '*' -k -H 'Host: $PORTAL_HOST' https://127.0.0.1:$HTTPS_PORT/"
   echo "curl --noproxy '*' -k -H 'Host: $GITEA_HOST' https://127.0.0.1:$HTTPS_PORT/"
+  if [ -n "$argo_node_port" ]; then
+    echo "curl --noproxy '*' --resolve $ARGO_HOST:$argo_node_port:$node_ip https://$ARGO_HOST:$argo_node_port/"
+  fi
 }
 
 case "$ACTION" in

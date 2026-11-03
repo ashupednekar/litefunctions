@@ -59,10 +59,12 @@ sh chart/install.sh --fresh-cluster
 
 The helper disables Colima's bundled Traefik to avoid port conflicts with Istio.
 Pass `--argo` to install Argo CD and apply a `litefunctions` Application that
-tracks the chart in the configured Git revision (`ARGOCD_REVISION`, default
-`main`). That Application then manages the LiteFunctions release and routes
-Argo CD at `https://litefunctions.argo` through the Istio Gateway. Point the
-`litefunctions.argo` DNS record at the gateway address.
+tracks the published Artifact Hub OCI chart (`ARGOCD_CHART_VERSION`, default
+`0.1.1`). The regular install path continues to install the local `chart/`
+directory by default; `--head` selects that local chart explicitly. Argo CD is
+exposed directly on NodePort `30443` over HTTPS; open
+`https://litefunctions.argo:30443`. The helper prints the node IP and host
+entry to add. Override the port with `ARGO_HTTPS_NODE_PORT` if needed.
 
 ```bash
 # Install from OCI registry
