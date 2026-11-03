@@ -1,7 +1,7 @@
-import { watchTSHook, reconcileConsumers } from "./pkg/consumer";
-import { settings } from "./pkg/conf";
-import { ensureRuntimeDir, invokeModule, syncRepoAndReload } from "./pkg/functions";
-import { AppState } from "./pkg/state";
+import { watchTSHook, reconcileConsumers } from "./internal/consumer";
+import { settings } from "./internal/conf";
+import { ensureRuntimeDir, invokeModule, syncRepoAndReload } from "./internal/functions";
+import { AppState } from "./internal/state";
 
 async function handleSyncRequest(state: AppState, req: Request): Promise<Response> {
   const name = req.headers.get("X-Litefunction-Name") || settings.name;

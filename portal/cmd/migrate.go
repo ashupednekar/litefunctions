@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/ashupednekar/litefunctions/portal/internal/config"
+	"github.com/ashupednekar/litefunctions/portal/internal/state/connections"
 	"github.com/ashupednekar/litefunctions/portal/migrations"
-	"github.com/ashupednekar/litefunctions/portal/pkg"
-	"github.com/ashupednekar/litefunctions/portal/pkg/state/connections"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/lib/pq"
 	"github.com/pressly/goose/v3"
@@ -51,7 +51,7 @@ func runMigrations(direction string) error {
 		return fmt.Errorf("failed to connect to database")
 	}
 
-	db, err := sql.Open("pgx", pkg.Cfg.DatabaseUrl)
+	db, err := sql.Open("pgx", config.Cfg.DatabaseUrl)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
@@ -66,13 +66,13 @@ func runMigrations(direction string) error {
 		return fmt.Errorf("failed to set dialect: %w", err)
 	}
 
-	_, err = db.Exec("create schema if not exists " + pq.QuoteIdentifier(pkg.Cfg.DatabaseSchema))
+	_, err = db.Exec("create schema if not exists " + pq.QuoteIdentifier(config.Cfg.DatabaseSchema))
 	if err != nil {
 		return fmt.Errorf("failed to create schema: %w", err)
 	}
 
 	// Set search_path for THIS connection (goose uses the same connection)
-	_, err = db.Exec("set search_path to " + pq.QuoteIdentifier(pkg.Cfg.DatabaseSchema))
+	_, err = db.Exec("set search_path to " + pq.QuoteIdentifier(config.Cfg.DatabaseSchema))
 	if err != nil {
 		return fmt.Errorf("failed to set search_path: %w", err)
 	}

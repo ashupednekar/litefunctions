@@ -5,6 +5,14 @@ import (
 	"github.com/ashupednekar/litefunctions/common/vcs/internal/vendors"
 )
 
+type CreateRepoOptions = vendors.CreateRepoOptions
+type Repository = vendors.Repository
+type WebhookOptions = vendors.WebhookOptions
+type Webhook = vendors.Webhook
+type ActionsProgressOptions = vendors.ActionsProgressOptions
+type ActionsProgress = vendors.ActionsProgress
+type WorkflowRun = vendors.WorkflowRun
+
 type VendorClient interface {
 	CreateRepo(ctx context.Context, opts vendors.CreateRepoOptions) (*vendors.Repository, error)
 	DeleteRepo(ctx context.Context, owner, repo string) error

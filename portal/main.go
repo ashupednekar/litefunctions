@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/ashupednekar/litefunctions/portal/cmd"
-	"github.com/ashupednekar/litefunctions/portal/pkg"
+	"github.com/ashupednekar/litefunctions/portal/internal/config"
 )
 
 func main() {
-	pkg.LoadCfg()
+	config.LoadCfg()
 	cmd.Execute()
 }

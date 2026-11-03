@@ -14,8 +14,8 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from nats.aio.msg import Msg
 
-from pkg.conf import settings
-from pkg.state import AppState
+from internal.conf import settings
+from internal.state import AppState
 
 logger = logging.getLogger(__name__)
 log_format = "%(asctime)s [%(levelname)s] - %(message)s"
@@ -39,7 +39,7 @@ def repo_functions_path() -> str:
 
 
 def runtime_functions_path() -> str:
-    return os.path.join(os.path.dirname(__file__), "pkg", "functions")
+    return os.path.join(os.path.dirname(__file__), "internal", "functions")
 
 
 def repo_url() -> str:

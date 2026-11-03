@@ -1,9 +1,9 @@
-#[path = "../pkg/mod.rs"]
-mod pkg;
+#[path = "../internal/mod.rs"]
+mod internal;
 
-use pkg::conf::load_settings;
-use pkg::consumer::start_function;
-use pkg::state::new_app_state;
+use internal::conf::load_settings;
+use internal::consumer::start_function;
+use internal::state::new_app_state;
 use std::net::SocketAddr;
 use tracing::{error, info};
 
@@ -35,7 +35,7 @@ async fn main() {
     }
 }
 
-async fn start_http_server(_state: pkg::state::AppState, settings: &pkg::conf::Settings) {
+async fn start_http_server(_state: internal::state::AppState, settings: &internal::conf::Settings) {
     let port = if settings.http_port.is_empty() {
         "8080".to_string()
     } else {
@@ -50,7 +50,7 @@ async fn start_http_server(_state: pkg::state::AppState, settings: &pkg::conf::S
         }
     };
 
-    let app = axum::Router::new().route("/", axum::routing::any(pkg::function::handle));
+    let app = axum::Router::new().route("/", axum::routing::any(internal::function::handle));
 
     info!(addr = %addr, "starting http server");
     let listener = match tokio::net::TcpListener::bind(addr).await {

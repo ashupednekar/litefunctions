@@ -2,21 +2,21 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"log/slog"
+	"net/http"
 	"time"
 
-	"github.com/ashupednekar/litefunctions/runtimes/go/pkg"
+	runtime "github.com/ashupednekar/litefunctions/runtimes/go/internal"
 )
 
 func main() {
-	settings := pkg.LoadSettings()
+	settings := runtime.LoadSettings()
 	logger := slog.Default().With(
 		"project", settings.Project,
 		"function", settings.Name,
 	)
 	ctx := context.Background()
-	state, err := pkg.NewAppState(ctx)
+	state, err := runtime.NewAppState(ctx)
 	if err != nil {
 		logger.Error("failed to initialize runtime state", "error", err)
 		return
@@ -24,18 +24,18 @@ func main() {
 
 	go startHTTPServer(state, settings, logger)
 
-	if err := pkg.StartFunction(ctx, state); err != nil {
+	if err := runtime.StartFunction(ctx, state); err != nil {
 		logger.Error("function consumer exited", "error", err)
 	}
 }
 
-func startHTTPServer(state *pkg.AppState, settings *pkg.Settings, logger *slog.Logger) {
+func startHTTPServer(state *runtime.AppState, settings *runtime.Settings, logger *slog.Logger) {
 	port := settings.HttpPort
 	if port == "" {
 		port = "8080"
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", pkg.Handle)
+	mux.HandleFunc("/", runtime.Handle)
 
 	server := &http.Server{
 		Addr:              ":" + port,
