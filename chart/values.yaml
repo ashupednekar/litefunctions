@@ -4,6 +4,7 @@ gatewayApi:
   hosts:
     portal: []
     gitea: []
+    argo: []
     rustfs: [lws.ashudev.in]
     rustfsConsole: []
   http:

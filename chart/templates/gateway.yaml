@@ -8,7 +8,7 @@
 {{- $tlsEnabled := .Values.gatewayApi.tls.enabled }}
 {{- $tlsPort := .Values.gatewayApi.tls.port }}
 {{- $tlsSecretName := .Values.gatewayApi.tls.secretName }}
-{{- $listenerHosts := concat $portalHosts $giteaHosts $hosts.rustfs $hosts.rustfsConsole | uniq }}
+{{- $listenerHosts := concat $portalHosts $giteaHosts $hosts.argo $hosts.rustfs $hosts.rustfsConsole | uniq }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -109,6 +109,43 @@ spec:
     backendRefs:
     - name: {{ include "gitea.fullname" (index .Subcharts "gitea") }}-http
       port: {{ .Values.gitea.service.http.port }}
+{{- end }}
+{{- if $hosts.argo }}
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: litefunctions-argo
+  namespace: argocd
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: {{ .Release.Namespace }}
+  to:
+  - group: ""
+    kind: Service
+    name: argocd-server
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: litefunctions-argo
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+  - name: {{ $gatewayName }}
+  hostnames:
+    {{- toYaml $hosts.argo | nindent 4 }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: argocd-server
+      namespace: argocd
+      port: 80
 {{- end }}
 {{- if .Values.rustfs.enabled }}
 {{- range $name, $routeHosts := dict "rustfs" $hosts.rustfs "rustfsConsole" $hosts.rustfsConsole }}

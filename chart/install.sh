@@ -17,13 +17,21 @@ TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
 USE_HEAD_CHART=true
-ACTION=status
+ACTION=default
 ACTION_SET=false
+INSTALL_ARGO=false
+FRESH_CLUSTER=false
 
 for arg in "$@"; do
   case "$arg" in
     --head)
       USE_HEAD_CHART=true
+      ;;
+    --argo)
+      INSTALL_ARGO=true
+      ;;
+    --fresh-cluster)
+      FRESH_CLUSTER=true
       ;;
     -h|--help)
       ACTION=help
@@ -31,13 +39,13 @@ for arg in "$@"; do
       ;;
     -* )
       echo "unknown option: $arg" >&2
-      echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]" >&2
+      echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
       exit 1
       ;;
     *)
       if [ "$ACTION_SET" = true ]; then
         echo "unexpected argument: $arg" >&2
-        echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]" >&2
+        echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
         exit 1
       fi
       ACTION=$arg
@@ -48,6 +56,7 @@ done
 
 PORTAL_HOST="${PORTAL_HOST:-litefunctions.portal}"
 GITEA_HOST="${GITEA_HOST:-litefunctions.gitea}"
+ARGO_HOST="${ARGO_HOST:-litefunctions.argo}"
 
 is_running() {
   if [ ! -f "$PID_FILE" ]; then
@@ -70,6 +79,25 @@ require_command() {
 }
 
 ensure_cluster() {
+  if [ "$FRESH_CLUSTER" = true ]; then
+    case "$(uname -s)" in
+      Darwin)
+        require_command colima
+        colima delete --force
+        ;;
+      Linux)
+        require_command sudo
+        if [ -x /usr/local/bin/k3s-uninstall.sh ]; then
+          sudo /usr/local/bin/k3s-uninstall.sh
+        fi
+        ;;
+      *)
+        echo "Fresh cluster setup supports macOS and Linux" >&2
+        exit 1
+        ;;
+    esac
+  fi
+
   if command -v kubectl >/dev/null 2>&1 && kubectl get nodes >/dev/null 2>&1; then
     return 0
   fi
@@ -172,7 +200,12 @@ mkcert_setup() {
       sudo chown "$(id -u):$(id -g)" "$file"
     fi
   done
-  mkcert -cert-file "$CERT_FILE" -key-file "$KEY_FILE" "$PORTAL_HOST" "$GITEA_HOST"
+  cert_hosts="$PORTAL_HOST $GITEA_HOST"
+  if [ "$INSTALL_ARGO" = true ]; then
+    cert_hosts="$cert_hosts $ARGO_HOST"
+  fi
+  # Intentional word splitting: mkcert accepts each hostname as a separate argument.
+  mkcert -cert-file "$CERT_FILE" -key-file "$KEY_FILE" $cert_hosts
   kubectl -n "$NAMESPACE" create secret tls "$TLS_SECRET" \
     --cert="$CERT_FILE" \
     --key="$KEY_FILE" \
@@ -182,27 +215,79 @@ mkcert_setup() {
   echo "add these to /etc/hosts if not already present:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
+  if [ "$INSTALL_ARGO" = true ]; then
+    echo "127.0.0.1 $ARGO_HOST"
+  fi
 }
 
 install() {
-  require_command helm
   require_command curl
   ensure_cluster
-  helm ls -A
+  if [ "$INSTALL_ARGO" = true ]; then
+    require_command kubectl
+  else
+    require_command helm
+  fi
   mkcert_setup
 
-  if [ "$USE_HEAD_CHART" = true ]; then
-    chart_source=$SCRIPT_DIR
-    dependency_status=$(helm dependency list "$chart_source")
-    if printf '%s\n' "$dependency_status" | awk 'NR > 1 && NF && $NF != "ok" { needed = 1 } END { exit !needed }'; then
-      helm dependency update "$chart_source"
-    fi
+  if [ "$INSTALL_ARGO" = true ]; then
+    kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -n argocd --server-side --force-conflicts \
+      -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    kubectl patch configmap argocd-cm -n argocd --type merge \
+      -p '{"data":{"server.insecure":"true"}}'
+    kubectl rollout restart deployment/argocd-server -n argocd
+    kubectl rollout status deployment/argocd-server -n argocd --timeout=5m
+    kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=5m
+    kubectl apply -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: litefunctions
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ashupednekar/litefunctions.git
+    targetRevision: ${ARGOCD_REVISION:-main}
+    path: chart
+    helm:
+      parameters:
+        - name: gatewayApi.tls.certManager.enabled
+          value: "false"
+        - name: gatewayApi.hosts.argo[0]
+          value: ${ARGO_HOST}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ${NAMESPACE}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+EOF
+    kubectl wait --for=jsonpath='{.status.sync.status}'=Synced \
+      application/litefunctions -n argocd --timeout=10m
+    kubectl wait --for=jsonpath='{.status.health.status}'=Healthy \
+      application/litefunctions -n argocd --timeout=10m
   else
-    chart_source=$CHART_SOURCE
+    if [ "$USE_HEAD_CHART" = true ]; then
+      chart_source=$SCRIPT_DIR
+      dependency_status=$(helm dependency list "$chart_source")
+      if printf '%s\n' "$dependency_status" | awk 'NR > 1 && NF && $NF != "ok" { needed = 1 } END { exit !needed }'; then
+        helm dependency update "$chart_source"
+      fi
+    else
+      chart_source=$CHART_SOURCE
+    fi
+    helm upgrade --install "$RELEASE" "$chart_source" --namespace "$NAMESPACE" \
+      --create-namespace --debug \
+      --set gatewayApi.tls.certManager.enabled=false
   fi
-  helm upgrade --install "$RELEASE" "$chart_source" --namespace "$NAMESPACE" \
-    --create-namespace --debug \
-    --set gatewayApi.tls.certManager.enabled=false
+  if [ "$INSTALL_ARGO" != true ]; then
+    helm ls -A
+  fi
 
   start
   echo "Checking https://$PORTAL_HOST:$HTTPS_PORT/"
@@ -298,19 +383,21 @@ status() {
   echo "hosts:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
+  echo "127.0.0.1 $ARGO_HOST"
   echo
   echo "mkcert:"
-  echo "sh local.sh mkcert"
+  echo "sh install.sh mkcert"
   echo
   echo "install:"
-  echo "sh local.sh install"
+  echo "sh install.sh"
   echo
   echo "start:"
-  echo "sh local.sh start"
+  echo "sh install.sh start"
   echo
   echo "browser:"
   echo "https://$PORTAL_HOST"
   echo "https://$GITEA_HOST"
+  echo "https://$ARGO_HOST"
   echo
   echo "https test:"
   echo "curl --noproxy '*' -k -H 'Host: $PORTAL_HOST' https://127.0.0.1:$HTTPS_PORT/"
@@ -319,10 +406,12 @@ status() {
 
 case "$ACTION" in
   help)
-    echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]"
+    echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]"
     echo "  --head  install the chart from this checkout; default installs the published Artifact Hub chart"
+    echo "  --argo  install Argo CD in the cluster"
+    echo "  --fresh-cluster  recreate the local Colima or k3s cluster before installing"
     ;;
-  install)
+  default)
     install
     ;;
   mkcert)
@@ -343,7 +432,7 @@ case "$ACTION" in
     ;;
   *)
     echo "unknown command: $ACTION" >&2
-    echo "usage: sh local.sh [--head] [install|mkcert|start|stop|restart|status]" >&2
+    echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
     exit 1
     ;;
 esac

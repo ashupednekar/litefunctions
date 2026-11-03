@@ -31,7 +31,7 @@ For local development on macOS with a working Kubernetes context:
 
 ```sh
 brew install kubectl helm mkcert
-sh chart/local.sh install
+sh chart/install.sh
 ```
 
 The helper uses your current Kubernetes context if it is reachable. Otherwise,
@@ -45,19 +45,24 @@ the default HTTPS port 443. Use `HTTPS_PORT=8443` to choose another local port.
 Use the same overrides for subsequent commands:
 
 ```sh
-sh chart/local.sh status
-sh chart/local.sh stop
-sh chart/local.sh start
+sh chart/install.sh status
+sh chart/install.sh stop
+sh chart/install.sh start
 ```
 
 If you need a local cluster on macOS, Colima can run Kubernetes directly:
 
 ```sh
 brew install colima
-sh chart/local.sh install
+sh chart/install.sh --fresh-cluster
 ```
 
 The helper disables Colima's bundled Traefik to avoid port conflicts with Istio.
+Pass `--argo` to install Argo CD and apply a `litefunctions` Application that
+tracks the chart in the configured Git revision (`ARGOCD_REVISION`, default
+`main`). That Application then manages the LiteFunctions release and routes
+Argo CD at `https://litefunctions.argo` through the Istio Gateway. Point the
+`litefunctions.argo` DNS record at the gateway address.
 
 ```bash
 # Install from OCI registry
