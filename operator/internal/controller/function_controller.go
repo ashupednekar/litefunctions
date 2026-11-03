@@ -207,7 +207,9 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 
 	pushed, err := vcs.EnsureFile(Cfg.VCSConfig(), function.Spec.Project, repoPath, body)
 	if err != nil {
-		return fmt.Errorf("ensure %s in %s: %w", repoPath, function.Spec.Project, err)
+		log.Error(err, "Failed to bootstrap function file in repo; continuing reconciliation",
+			"repoPath", repoPath, "project", function.Spec.Project)
+		return nil
 	}
 
 	if function.Annotations == nil {
