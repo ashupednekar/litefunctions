@@ -57,8 +57,8 @@ func (s Settings) VCSConfig() vcs.Config {
 		Token:           s.VcsToken,
 		User:            s.VcsUser,
 		Vendor:          s.VcsVendor,
-		BaseURL:         s.VcsBaseUrl,
-		PublicBaseURL:   s.VcsPublicBaseUrl,
+		BaseUrl:         s.VcsBaseUrl,
+		PublicBaseUrl:   s.VcsPublicBaseUrl,
 		FQDN:            s.Fqdn,
 	}
 }
