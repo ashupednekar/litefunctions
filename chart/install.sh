@@ -256,6 +256,7 @@ install() {
     helm upgrade --install argocd argo/argo-cd \
       --version "$ARGOCD_HELM_VERSION" \
       --namespace argocd --create-namespace --take-ownership --wait --timeout 10m \
+      --hide-notes \
       --set configs.params.server.insecure=true \
       --set server.service.type=NodePort \
       --set "server.service.nodePortHttp=$ARGO_NODE_PORT"
@@ -282,6 +283,15 @@ install() {
     register_helm_repo cert-manager quay.io/jetstack/charts true
     kubectl rollout status deployment/argocd-server -n argocd --timeout=5m
     kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=5m
+    admin_password=$(kubectl -n argocd get secret argocd-initial-admin-secret \
+      -o jsonpath='{.data.password}' | base64 --decode)
+    if [ -z "$admin_password" ]; then
+      echo "Argo CD initial admin password is missing from argocd-initial-admin-secret" >&2
+      exit 1
+    fi
+    echo "Argo CD: http://localhost:$ARGO_NODE_PORT"
+    echo "Argo CD username: admin"
+    echo "Argo CD password: $admin_password"
     kubectl apply -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -308,11 +318,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
 EOF
+    echo "Waiting for LiteFunctions Application to sync in Argo CD..."
     kubectl wait --for=jsonpath='{.status.sync.status}'=Synced \
       application/litefunctions -n argocd --timeout=10m
-    kubectl wait --for=jsonpath='{.status.health.status}'=Healthy \
-      application/litefunctions -n argocd --timeout=10m
-    echo "Argo CD: http://127.0.0.1:$ARGO_NODE_PORT"
+    echo "LiteFunctions Application synced."
+    echo "Run ./chart/install.sh start after the LiteFunctions Application is Healthy to start the LiteFunctions port-forward."
+    exit 0
   else
     if [ "$USE_HEAD_CHART" = true ]; then
       chart_source=$SCRIPT_DIR
@@ -486,7 +497,7 @@ open_argo() {
     echo "Argo CD is not installed; run ./chart/install.sh --argo first" >&2
     exit 1
   fi
-  argo_url="http://127.0.0.1:$ARGO_NODE_PORT"
+  argo_url="http://localhost:$ARGO_NODE_PORT"
   case "$(uname -s)" in
     Darwin) open "$argo_url" ;;
     Linux) xdg-open "$argo_url" ;;
