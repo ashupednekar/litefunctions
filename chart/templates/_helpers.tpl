@@ -61,12 +61,11 @@ litefunctions-gateway
 {{- define "litefunctions.gatewayHosts" -}}
 {{- $portal := .Values.gatewayApi.hosts.portal | default (list "litefunctions.portal" (.Values.ui.domain | default "litefunctions.portal") | uniq) -}}
 {{- $gitea := .Values.gatewayApi.hosts.gitea | default (list "litefunctions.gitea" "gitea.local") -}}
-{{- $hosts := dict "portal" (list) "gitea" (list) "argo" (list) "rustfs" (list) "rustfsConsole" (list) -}}
+{{- $hosts := dict "portal" (list) "gitea" (list) "rustfs" (list) "rustfsConsole" (list) -}}
 {{- $_ := set $hosts "portal" $portal -}}
 {{- if .Values.gitea.enabled -}}
 {{- $_ := set $hosts "gitea" $gitea -}}
 {{- end -}}
-{{- $_ := set $hosts "argo" (.Values.gatewayApi.hosts.argo | default (list)) -}}
 {{- if .Values.rustfs.enabled -}}
 {{- $_ := set $hosts "rustfs" (.Values.gatewayApi.hosts.rustfs | default (list)) -}}
 {{- $_ := set $hosts "rustfsConsole" (.Values.gatewayApi.hosts.rustfsConsole | default (list)) -}}

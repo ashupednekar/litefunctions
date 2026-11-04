@@ -11,10 +11,9 @@ export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
-TLS_SECRET="${TLS_SECRET:-litefunctions-tls}"
-GATEWAY_NAME="${GATEWAY_NAME:-}"
-GATEWAY_CLASS="${GATEWAY_CLASS:-}"
-GATEWAY_SERVICE="${GATEWAY_SERVICE:-}"
+TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
+GATEWAY_API_CRD_FILE="$SCRIPT_DIR/crds/gateway-api-standard-install.yaml"
+GATEWAY_API_CRD_URL="https://github.com/kubernetes-sigs/gateway-api/releases/latest/download/standard-install.yaml"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
 ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.1.4}"
@@ -59,7 +58,7 @@ done
 
 PORTAL_HOST="${PORTAL_HOST:-litefunctions.portal}"
 GITEA_HOST="${GITEA_HOST:-litefunctions.gitea}"
-ARGO_HOST="${ARGO_HOST:-litefunctions.argo}"
+ARGO_NODE_PORT="${ARGO_NODE_PORT:-30080}"
 
 is_running() {
   if [ ! -f "$PID_FILE" ]; then
@@ -220,9 +219,6 @@ mkcert_setup() {
     fi
   done
   cert_hosts="$PORTAL_HOST $GITEA_HOST"
-  if [ "$INSTALL_ARGO" = true ]; then
-    cert_hosts="$cert_hosts $ARGO_HOST"
-  fi
   # Intentional word splitting: mkcert accepts each hostname as a separate argument.
   mkcert -cert-file "$CERT_FILE" -key-file "$KEY_FILE" $cert_hosts
   kubectl -n "$NAMESPACE" create secret tls "$TLS_SECRET" \
@@ -234,10 +230,6 @@ mkcert_setup() {
   echo "add these to /etc/hosts if not already present:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
-  if [ "$INSTALL_ARGO" = true ]; then
-    echo "127.0.0.1 $ARGO_HOST"
-    echo "Argo CD: https://$ARGO_HOST"
-  fi
 }
 
 install() {
@@ -247,9 +239,13 @@ install() {
   require_command helm
   mkcert_setup
 
+  gateway_api_crd_tmp="$GATEWAY_API_CRD_FILE.tmp"
+  curl --fail --location "$GATEWAY_API_CRD_URL" --output "$gateway_api_crd_tmp"
+  mv "$gateway_api_crd_tmp" "$GATEWAY_API_CRD_FILE"
+
   if [ "$INSTALL_ARGO" = true ]; then
     kubectl apply --server-side --force-conflicts \
-      -f "$SCRIPT_DIR/crds/gateway-api-standard-install-v1.4.0.yaml"
+      -f "$GATEWAY_API_CRD_FILE"
     kubectl wait --for=condition=Established --timeout=2m \
       crd/gatewayclasses.gateway.networking.k8s.io \
       crd/gateways.gateway.networking.k8s.io \
@@ -260,12 +256,9 @@ install() {
     helm upgrade --install argocd argo/argo-cd \
       --version "$ARGOCD_HELM_VERSION" \
       --namespace argocd --create-namespace --take-ownership --wait --timeout 10m \
-      --set global.domain="$ARGO_HOST" \
       --set configs.params.server.insecure=true \
-      --set server.httproute.enabled=true \
-      --set "server.httproute.hostnames[0]=$ARGO_HOST" \
-      --set "server.httproute.parentRefs[0].name=${GATEWAY_NAME:-istio}" \
-      --set "server.httproute.parentRefs[0].namespace=$NAMESPACE"
+      --set server.service.type=NodePort \
+      --set "server.service.nodePortHttp=$ARGO_NODE_PORT"
     register_helm_repo() {
       repo_name=$1
       repo_url=$2
@@ -305,8 +298,6 @@ spec:
       parameters:
         - name: gatewayApi.tls.certManager.enabled
           value: "false"
-        - name: gatewayApi.hosts.argo[0]
-          value: ${ARGO_HOST}
   destination:
     server: https://kubernetes.default.svc
     namespace: ${NAMESPACE}
@@ -321,6 +312,7 @@ EOF
       application/litefunctions -n argocd --timeout=10m
     kubectl wait --for=jsonpath='{.status.health.status}'=Healthy \
       application/litefunctions -n argocd --timeout=10m
+    echo "Argo CD: http://127.0.0.1:$ARGO_NODE_PORT"
   else
     if [ "$USE_HEAD_CHART" = true ]; then
       chart_source=$SCRIPT_DIR
@@ -361,24 +353,24 @@ start() {
   require_command curl
   require_command kubectl
   ensure_cluster
-  if [ -z "$GATEWAY_SERVICE" ]; then
-    gateway_info=$(kubectl -n "$NAMESPACE" get gateways.gateway.networking.k8s.io \
-      -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.gatewayClassName}{"\n"}{end}')
-    if [ -z "$gateway_info" ]; then
-      echo "No Gateway found in namespace $NAMESPACE; install the LiteFunctions chart first" >&2
-      exit 1
-    fi
-    # The chart creates one Gateway. Read its deployed name and class so this
-    # also works before and after changing their Helm values.
-    set -- $gateway_info
-    GATEWAY_NAME="${GATEWAY_NAME:-$1}"
-    GATEWAY_CLASS="${GATEWAY_CLASS:-$2}"
-    GATEWAY_SERVICE="$GATEWAY_NAME-$GATEWAY_CLASS"
-  fi
-  if ! kubectl -n "$NAMESPACE" get service "$GATEWAY_SERVICE" >/dev/null 2>&1; then
-    echo "Gateway service $NAMESPACE/$GATEWAY_SERVICE is missing; install the LiteFunctions chart first" >&2
+  gateway_info=$(kubectl -n "$NAMESPACE" get gateways.gateway.networking.k8s.io \
+    -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.gatewayClassName}{"\n"}{end}')
+  if [ -z "$gateway_info" ]; then
+    echo "No Gateway found in namespace $NAMESPACE; install the LiteFunctions chart first" >&2
     exit 1
   fi
+  set -- $gateway_info
+  GATEWAY_SERVICE="$1-$2"
+  attempt=0
+  until kubectl -n "$NAMESPACE" get service "$GATEWAY_SERVICE" >/dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge 60 ]; then
+      echo "Istio has not created service $NAMESPACE/$GATEWAY_SERVICE for the Gateway" >&2
+      kubectl -n "$NAMESPACE" get gateway "$1" -o yaml >&2 || true
+      exit 1
+    fi
+    sleep 2
+  done
   kubectl -n "$NAMESPACE" wait --for=condition=Available \
     "deployment/$GATEWAY_SERVICE" --timeout=5m
   kubectl_bin=$(command -v kubectl)
@@ -438,10 +430,6 @@ start() {
     -o jsonpath='{range .items[*]}{.spec.hostnames[*]}{"\n"}{end}' | grep -F -q "$GITEA_HOST"; then
     check_https "$GITEA_HOST"
   fi
-  if kubectl -n argocd get httproute argocd-server >/dev/null 2>&1; then
-    check_https "$ARGO_HOST"
-  fi
-
   status
 }
 
@@ -478,8 +466,6 @@ status() {
   echo "hosts:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
-  echo "127.0.0.1 $ARGO_HOST"
-  echo "Argo CD: https://$ARGO_HOST"
   echo
   echo "mkcert:"
   echo "sh install.sh mkcert"
@@ -493,12 +479,24 @@ status() {
   echo "browser:"
   echo "https://$PORTAL_HOST"
   echo "https://$GITEA_HOST"
-  echo "https://$ARGO_HOST"
+}
+
+open_argo() {
+  if ! kubectl -n argocd get service argocd-server >/dev/null 2>&1; then
+    echo "Argo CD is not installed; run ./chart/install.sh --argo first" >&2
+    exit 1
+  fi
+  argo_url="http://127.0.0.1:$ARGO_NODE_PORT"
+  case "$(uname -s)" in
+    Darwin) open "$argo_url" ;;
+    Linux) xdg-open "$argo_url" ;;
+    *) echo "$argo_url" ;;
+  esac
 }
 
 case "$ACTION" in
   help)
-    echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]"
+    echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status|argo]"
     echo "  --head  install the chart from this checkout; default installs the published Artifact Hub chart"
     echo "  --argo  install Argo CD in the cluster"
     echo "  --fresh-cluster  recreate the local Colima or k3s cluster before installing"
@@ -521,6 +519,9 @@ case "$ACTION" in
     ;;
   status)
     status
+    ;;
+  argo)
+    open_argo
     ;;
   *)
     echo "unknown command: $ACTION" >&2

@@ -59,14 +59,16 @@ sh chart/install.sh --fresh-cluster
 ```
 
 The helper disables Colima's bundled Traefik to avoid port conflicts with Istio.
+Each install refreshes the Gateway API Standard CRD bundle from the latest
+upstream release into `chart/crds` before installing the chart.
 Pass `--argo` to install Argo CD and apply a `litefunctions` Application that
 tracks the published Artifact Hub OCI chart (`ARGOCD_CHART_VERSION`, default
 `0.1.4`). Argo CD itself is installed from the official `argo/argo-cd` Helm
-chart (`ARGOCD_HELM_VERSION`, default `10.10.5`). Its Gateway API route attaches
-to the LiteFunctions HTTPS Gateway, which terminates TLS at Istio's ingress
-gateway. Open `https://litefunctions.argo`. The regular install path continues
-to install the local `chart/` directory by default. `--head` also selects the
-local chart explicitly.
+chart (`ARGOCD_HELM_VERSION`, default `10.10.5`) with its server exposed on
+NodePort 30080. Run `./chart/install.sh argo` to open
+`http://127.0.0.1:30080`. The regular install path continues to install the
+local `chart/` directory by default. `--head` also selects the local chart
+explicitly.
 
 ```bash
 # Install from OCI registry
