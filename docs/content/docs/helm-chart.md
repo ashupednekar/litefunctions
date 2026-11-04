@@ -397,7 +397,7 @@ gatewayApi:
     port: 80
   tls:
     enabled: true
-    secretName: litefunctions-gateway-tls
+    secretName: litefunctions-tls
     certManager:
       enabled: true
       selfSigned:
@@ -437,7 +437,7 @@ Set `gatewayApi.enabled=false` to omit the Gateway, routes, and certificate
 resources. With Istio and the default listener ports, local access can use:
 
 ```bash
-kubectl -n litefunctions port-forward svc/litefunctions-gateway-istio 18080:8080 18443:443
+kubectl -n istio-system port-forward svc/istio-ingressgateway 18080:80 18443:443
 curl -H 'Host: litefunctions.portal' http://127.0.0.1:18080/
 ```
 

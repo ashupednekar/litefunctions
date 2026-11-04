@@ -11,11 +11,10 @@ export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
-GATEWAY_NAMESPACE="${GATEWAY_NAMESPACE:-$ISTIO_NAMESPACE}"
-INGRESS_SERVICE="${INGRESS_SERVICE:-istio-ingressgateway}"
-SERVICE="${SERVICE:-$INGRESS_SERVICE}"
-INGRESS_DEPLOYMENT="${INGRESS_DEPLOYMENT:-$INGRESS_SERVICE}"
-TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
+TLS_SECRET="${TLS_SECRET:-litefunctions-tls}"
+GATEWAY_NAME="${GATEWAY_NAME:-}"
+GATEWAY_CLASS="${GATEWAY_CLASS:-}"
+GATEWAY_SERVICE="${GATEWAY_SERVICE:-}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
 ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.1.4}"
@@ -265,7 +264,7 @@ install() {
       --set configs.params.server.insecure=true \
       --set server.httproute.enabled=true \
       --set "server.httproute.hostnames[0]=$ARGO_HOST" \
-      --set "server.httproute.parentRefs[0].name=litefunctions-gateway" \
+      --set "server.httproute.parentRefs[0].name=${GATEWAY_NAME:-istio}" \
       --set "server.httproute.parentRefs[0].namespace=$NAMESPACE"
     register_helm_repo() {
       repo_name=$1
@@ -308,10 +307,6 @@ spec:
           value: "false"
         - name: gatewayApi.hosts.argo[0]
           value: ${ARGO_HOST}
-        - name: gatewayApi.ingressGateway.serviceName
-          value: ${INGRESS_SERVICE}
-        - name: gatewayApi.ingressGateway.namespace
-          value: ${ISTIO_NAMESPACE}
   destination:
     server: https://kubernetes.default.svc
     namespace: ${NAMESPACE}
@@ -363,35 +358,51 @@ EOF
 }
 
 start() {
-  require_command sudo
   require_command curl
   require_command kubectl
   ensure_cluster
-  if ! kubectl -n "$GATEWAY_NAMESPACE" get service "$SERVICE" >/dev/null 2>&1; then
-    echo "Istio ingress service $GATEWAY_NAMESPACE/$SERVICE is missing; install the LiteFunctions stack first" >&2
+  if [ -z "$GATEWAY_SERVICE" ]; then
+    gateway_info=$(kubectl -n "$NAMESPACE" get gateways.gateway.networking.k8s.io \
+      -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.gatewayClassName}{"\n"}{end}')
+    if [ -z "$gateway_info" ]; then
+      echo "No Gateway found in namespace $NAMESPACE; install the LiteFunctions chart first" >&2
+      exit 1
+    fi
+    # The chart creates one Gateway. Read its deployed name and class so this
+    # also works before and after changing their Helm values.
+    set -- $gateway_info
+    GATEWAY_NAME="${GATEWAY_NAME:-$1}"
+    GATEWAY_CLASS="${GATEWAY_CLASS:-$2}"
+    GATEWAY_SERVICE="$GATEWAY_NAME-$GATEWAY_CLASS"
+  fi
+  if ! kubectl -n "$NAMESPACE" get service "$GATEWAY_SERVICE" >/dev/null 2>&1; then
+    echo "Gateway service $NAMESPACE/$GATEWAY_SERVICE is missing; install the LiteFunctions chart first" >&2
     exit 1
   fi
-  kubectl -n "$ISTIO_NAMESPACE" wait --for=condition=Available \
-    "deployment/$INGRESS_DEPLOYMENT" --timeout=5m
+  kubectl -n "$NAMESPACE" wait --for=condition=Available \
+    "deployment/$GATEWAY_SERVICE" --timeout=5m
   kubectl_bin=$(command -v kubectl)
   if is_running; then
-    if forward_ready; then
-      echo "port-forward already running with pid $(cat "$PID_FILE")"
-      status
-      return 0
-    fi
-    echo "stale port-forward pid $(cat "$PID_FILE"); restarting"
-    sudo kill "$(cat "$PID_FILE")" 2>/dev/null || true
+    echo "stopping existing port-forward pid $(cat "$PID_FILE") before restart"
+    stop
   fi
 
   rm -f "$PID_FILE"
 
-  sudo -v
+  if [ "$HTTPS_PORT" -lt 1024 ]; then
+    require_command sudo
+    sudo -v
+  fi
   if [ -e "$LOG_FILE" ] && [ ! -w "$LOG_FILE" ]; then
     sudo chown "$(id -u):$(id -g)" "$LOG_FILE"
   fi
-  nohup sudo -n "$kubectl_bin" --kubeconfig "$KUBECONFIG" -n "$GATEWAY_NAMESPACE" \
-    port-forward "svc/$SERVICE" "$HTTPS_PORT:443" >"$LOG_FILE" 2>&1 &
+  if [ "$HTTPS_PORT" -lt 1024 ]; then
+    nohup sudo -n "$kubectl_bin" --kubeconfig "$KUBECONFIG" -n "$NAMESPACE" \
+      port-forward "svc/$GATEWAY_SERVICE" "$HTTPS_PORT:443" >"$LOG_FILE" 2>&1 &
+  else
+    nohup "$kubectl_bin" --kubeconfig "$KUBECONFIG" -n "$NAMESPACE" \
+      port-forward "svc/$GATEWAY_SERVICE" "$HTTPS_PORT:443" >"$LOG_FILE" 2>&1 &
+  fi
   pid=$!
   echo "$pid" >"$PID_FILE"
 
@@ -402,12 +413,34 @@ start() {
       echo "failed to reach port-forward at https://127.0.0.1:$HTTPS_PORT" >&2
       echo "log:" >&2
       sed -n '1,120p' "$LOG_FILE" >&2 || true
-      sudo kill "$pid" 2>/dev/null || true
+      kill "$pid" 2>/dev/null || sudo kill "$pid" 2>/dev/null || true
       rm -f "$PID_FILE"
       exit 1
     fi
     sleep 1
   done
+
+  check_https() {
+    host=$1
+    if curl --noproxy '*' --insecure --silent --show-error --fail --output /dev/null \
+      --connect-timeout 2 --max-time 10 \
+      --resolve "$host:$HTTPS_PORT:127.0.0.1" \
+      "https://$host:$HTTPS_PORT/"; then
+      echo "HTTPS check passed: $host"
+    else
+      echo "HTTPS check failed: $host" >&2
+      return 1
+    fi
+  }
+
+  check_https "$PORTAL_HOST"
+  if kubectl -n "$NAMESPACE" get httproutes.gateway.networking.k8s.io \
+    -o jsonpath='{range .items[*]}{.spec.hostnames[*]}{"\n"}{end}' | grep -F -q "$GITEA_HOST"; then
+    check_https "$GITEA_HOST"
+  fi
+  if kubectl -n argocd get httproute argocd-server >/dev/null 2>&1; then
+    check_https "$ARGO_HOST"
+  fi
 
   status
 }
@@ -427,7 +460,7 @@ stop() {
   fi
 
   pid=$(cat "$PID_FILE")
-  sudo kill "$pid"
+  kill "$pid" 2>/dev/null || sudo kill "$pid"
   rm -f "$PID_FILE"
   echo "stopped port-forward pid $pid"
 }
@@ -461,11 +494,6 @@ status() {
   echo "https://$PORTAL_HOST"
   echo "https://$GITEA_HOST"
   echo "https://$ARGO_HOST"
-  echo
-  echo "https test:"
-  echo "curl --noproxy '*' -k -H 'Host: $PORTAL_HOST' https://127.0.0.1:$HTTPS_PORT/"
-  echo "curl --noproxy '*' -k -H 'Host: $GITEA_HOST' https://127.0.0.1:$HTTPS_PORT/"
-  echo "curl --noproxy '*' --resolve $ARGO_HOST:$HTTPS_PORT:127.0.0.1 https://$ARGO_HOST:$HTTPS_PORT/"
 }
 
 case "$ACTION" in

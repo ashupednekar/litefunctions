@@ -40,7 +40,8 @@ installs k3s. It checks `kubectl get nodes`, then installs Istio,
 configures locally trusted TLS with mkcert, installs the chart, and starts an
 HTTPS port-forward. Add the printed host entries to `/etc/hosts`.
 Run the helper as your normal user; it requests sudo for certificate trust and
-the default HTTPS port 443. Use `HTTPS_PORT=8443` to choose another local port.
+the default HTTPS port 443. Use `HTTPS_PORT=8443` to choose another local port
+without requiring sudo for the port-forward.
 `KUBECONFIG` can select a different kubeconfig file.
 Use the same overrides for subsequent commands:
 
@@ -438,7 +439,7 @@ gatewayApi:
     port: 80
   tls:
     enabled: true
-    secretName: litefunctions-gateway-tls
+    secretName: litefunctions-tls
     certManager:
       enabled: true
       selfSigned:
