@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"log/slog"
+	"os"
 	"strings"
 	"time"
 
@@ -24,8 +24,7 @@ type FunctionServer struct {
 
 func NewFunctionServer(k8sClient *client.Client, log logr.Logger, keepWarmDuration time.Duration) *FunctionServer {
 	var nc *nats.Conn
-	natsUrl := ""
-	nc, err := nats.Connect(natsUrl)
+	nc, err := nats.Connect(os.Getenv("NATS_URL"))
 	if err != nil{
 		log.Info("nats server unavailable: %v", err)
 	}
