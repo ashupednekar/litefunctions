@@ -29,6 +29,7 @@ func NewServer() (*Server, error) {
 		Port:   config.Cfg.Port,
 		router: gin.Default(),
 		state:  state,
+		nc:     nc,
 	}
 	s.BuildRoutes()
 	return s, nil

@@ -19,7 +19,7 @@ type FunctionServer struct {
 	KeepWarmDuration time.Duration
 }
 
-func NewFunctionServer(k8sClient *client.Client, log logr.Logger, keepWarmDuration time.Duration) *FunctionServer {	
+func NewFunctionServer(k8sClient *client.Client, log logr.Logger, keepWarmDuration time.Duration) *FunctionServer {
 	return &FunctionServer{
 		Client:           k8sClient,
 		Log:              log,
