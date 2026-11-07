@@ -219,11 +219,13 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		return fmt.Errorf("record repo bootstrap annotation for %s: %w", repoPath, err)
 	}
 
-	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s.%s", function.Spec.Project, function.Spec.Name), []byte{}); err != nil{
-		log.Info("Couldn't submit bootstrap event", "error", err)
-	}else{
-		log.Info("Submitted bootstrap event for", "function", function.Spec.Name)
+	if r.Broker == nil {
+		log.Info("Broker unavailable, skipping bootstrap event")
 	}
+	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s.%s", function.Spec.Project, function.Spec.Name), []byte{}); err != nil {
+		return err
+	}
+	log.Info("Submitted bootstrap event for", "function", function.Spec.Name)
 
 	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
 

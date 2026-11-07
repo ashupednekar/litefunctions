@@ -6,16 +6,22 @@ import (
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/ashupednekar/litefunctions/portal/internal/state"
 	"github.com/gin-gonic/gin"
+	"github.com/nats-io/nats.go"
 )
 
 type Server struct {
 	Port   int
 	router *gin.Engine
 	state  *state.AppState
+	nc     *nats.Conn
 }
 
 func NewServer() (*Server, error) {
 	state, err := state.NewState()
+	if err != nil {
+		return nil, err
+	}
+	nc, err := nats.Connect(config.Cfg.NatsUrl)
 	if err != nil {
 		return nil, err
 	}
