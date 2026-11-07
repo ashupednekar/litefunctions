@@ -3,7 +3,6 @@ package function
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 
 	"github.com/ashupednekar/litefunctions/common"
@@ -43,7 +42,7 @@ func Consume(s *state.AppState) error {
 			ProjectID: project.ID,
 			Name:      event.Name,
 			Language:  event.Language,
-			Path:      fmt.Sprintf("functions/%s/%s/handle%s", event.Language, event.Name, ext),
+			Path:      event.Path,
 		})
 		if err != nil {
 			slog.Error("failed to create function")
@@ -60,7 +59,6 @@ func Consume(s *state.AppState) error {
 			slog.Error("failed to create endpoint")
 			return
 		}
-
 	})
 	if err != nil {
 		return err

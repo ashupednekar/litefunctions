@@ -33,7 +33,7 @@ import (
 
 	common "github.com/ashupednekar/litefunctions/common"
 	events "github.com/ashupednekar/litefunctions/common/events"
-	samplesample  "github.com/ashupednekar/litefunctions/common/sample"
+	sample "github.com/ashupednekar/litefunctions/common/sample"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/nats-io/nats.go"
@@ -43,7 +43,6 @@ import (
 )
 
 const repoPathAnnotation = "apps.ashupednekar.github.io/repo-path"
-
 
 type FunctionReconciler struct {
 	client.Client
@@ -219,14 +218,18 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	if r.Broker == nil {
 		log.Info("Broker unavailable, skipping bootstrap event")
 	}
+  ext = common.LangExt[function.Spec.Language]
+	if ext == "" {
+		return fmt.Errorf("invalid language")
+	}
 	bootstrapEvent := events.FunctionBootstrap{
-		Name: function.Name,
+		Name:     function.Name,
 		Language: function.Spec.Language,
-		Project: function.Spec.Project,
-		Path: repoPath
+		Project:  function.Spec.Project,
+		Path:      fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Name, ext),
 	}
 	data, err := json.Marshal(bootstrapEvent)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s", function.Spec.Project), data); err != nil {
