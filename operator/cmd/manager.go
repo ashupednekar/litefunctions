@@ -153,7 +153,7 @@ func runManager(cmd *cobra.Command) error {
   var nc *nats.Conn
 	nc, err = nats.Connect(os.Getenv("NATS_URL"))
 	if err != nil{
-		setupLog.Info("nats server unavailable: %v", err)
+		setupLog.Info("nats server unavailable", "error", err)
 	}
 
 	if err := (&controller.FunctionReconciler{
