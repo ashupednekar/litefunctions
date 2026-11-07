@@ -20,6 +20,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	events "github.com/ashupednekar/litefunctions/common/events"
 	"github.com/ashupednekar/litefunctions/common/sample"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
@@ -209,6 +211,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 			"repoPath", repoPath, "project", function.Spec.Project)
 		return nil
 	}
+	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
 
 	if function.Annotations == nil {
 		function.Annotations = make(map[string]string)
@@ -222,12 +225,19 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	if r.Broker == nil {
 		log.Info("Broker unavailable, skipping bootstrap event")
 	}
-	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s.%s", function.Spec.Project, function.Spec.Name), []byte{}); err != nil {
+	bootstrapEvent := events.FunctionBootstrap{
+		Name: function.Name,
+		Language: function.Spec.Language,
+		Project: function.Spec.Project,
+	}
+	data, err := json.Marshal(bootstrapEvent)
+	if err != nil{
 		return err
 	}
-	log.Info("Submitted bootstrap event for", "function", function.Spec.Name)
-
-	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
+	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s", function.Spec.Project), data); err != nil {
+		return err
+	}
+	log.Info("Submitted portal bootstrap event for", "function", function.Spec.Name)
 
 	return nil
 }
