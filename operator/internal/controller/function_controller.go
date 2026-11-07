@@ -31,8 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	common "github.com/ashupednekar/litefunctions/common"
 	events "github.com/ashupednekar/litefunctions/common/events"
-	"github.com/ashupednekar/litefunctions/common/sample"
+	samplesample  "github.com/ashupednekar/litefunctions/common/sample"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
 	"github.com/nats-io/nats.go"
@@ -43,13 +44,6 @@ import (
 
 const repoPathAnnotation = "apps.ashupednekar.github.io/repo-path"
 
-var repoPathExt = map[string]string{
-	"python": ".py",
-	"go":     ".go",
-	"rust":   ".rs",
-	"ts":     ".ts",
-	"lua":    ".lua",
-}
 
 type FunctionReconciler struct {
 	client.Client
@@ -186,7 +180,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1.Function) error {
 	log := logf.FromContext(ctx)
 
-	ext, ok := repoPathExt[function.Spec.Language]
+	ext, ok := common.LangExt[function.Spec.Language]
 	if !ok {
 		return nil
 	}
@@ -229,6 +223,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		Name: function.Name,
 		Language: function.Spec.Language,
 		Project: function.Spec.Project,
+		Path: repoPath
 	}
 	data, err := json.Marshal(bootstrapEvent)
 	if err != nil{

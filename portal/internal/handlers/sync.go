@@ -109,7 +109,7 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 		}
 
 		if createdFn {
-			_, err = common.CreateFunction(
+			_, err = common.CreateFunctionResource(
 				c.Request.Context(),
 				config.Cfg.OperatorUrl,
 				config.Cfg.PodNamespace,
