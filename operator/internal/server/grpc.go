@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 	"time"
 
 	functionproto "github.com/ashupednekar/litefunctions/common/proto"
 	"github.com/ashupednekar/litefunctions/operator/internal/client"
 	"github.com/go-logr/logr"
+	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -17,13 +19,21 @@ type FunctionServer struct {
 	Client           *client.Client
 	Log              logr.Logger
 	KeepWarmDuration time.Duration
+	Broker           *nats.Conn
 }
 
 func NewFunctionServer(k8sClient *client.Client, log logr.Logger, keepWarmDuration time.Duration) *FunctionServer {
+	var nc *nats.Conn
+	natsUrl := ""
+	nc, err := nats.Connect(natsUrl)
+	if err != nil{
+		log.Info("nats server unavailable: %v", err)
+	}
 	return &FunctionServer{
 		Client:           k8sClient,
 		Log:              log,
 		KeepWarmDuration: keepWarmDuration,
+		Broker: nc,
 	}
 }
 
