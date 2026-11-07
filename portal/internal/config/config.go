@@ -11,6 +11,7 @@ import (
 type Settings struct {
 	Port                    int    `env:"LISTEN_PORT" default:"3000"`
 	Fqdn                    string `env:"FQDN" default:"localhost"`
+	NatsUrl                 string `env:"NATS_URL" default:"litefunctions-nats:4222"`
 	DatabaseUrl             string `env:"DATABASE_URL,required"`
 	DatabaseSchema          string `env:"DATABASE_SCHEMA" default:"litefunctions"`
 	DatabaseConnTimeout     string `env:"DATABASE_CONN_TIMEOUT" default:"10s"`
