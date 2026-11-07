@@ -32,14 +32,6 @@ func NewFunctionHandlers(s *state.AppState) *FunctionHandlers {
 	return &FunctionHandlers{state: s}
 }
 
-var langExt = map[string]string{
-	"python": ".py",
-	"go":     ".go",
-	"rust":   ".rs",
-	"ts":     ".ts",
-	"lua":    ".lua",
-}
-
 type createFunctionRequest struct {
 	Name     string `json:"name"`
 	Language string `json:"language"`
@@ -59,7 +51,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		return
 	}
 
-	ext := langExt[req.Language]
+	ext := common.LangExt[req.Language]
 	if ext == "" {
 		c.JSON(400, gin.H{"error": "invalid language"})
 		return
@@ -147,7 +139,6 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		return
 	}
 
-	// Automatically create endpoint: /project/name
 	epPath := fmt.Sprintf("/%s/%s", projectName, req.Name)
 	_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
 		ProjectID:  projectUUID,
@@ -157,9 +148,9 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		FunctionID: fn.ID,
 	})
 	if err != nil {
-		slog.Warn("Failed to create automatic endpoint", "name", req.Name, "error", err)
+		slog.Warn("Failed to create endpoint", "name", req.Name, "error", err)
 	}
-	_, err = common.CreateFunction(
+	_, err = common.CreateFunctionResource(
 		c.Request.Context(),
 		config.Cfg.OperatorUrl,
 		config.Cfg.PodNamespace,

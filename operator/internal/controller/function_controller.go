@@ -20,6 +20,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -30,9 +31,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/ashupednekar/litefunctions/common/sample"
+	common "github.com/ashupednekar/litefunctions/common"
+	events "github.com/ashupednekar/litefunctions/common/events"
+	sample "github.com/ashupednekar/litefunctions/common/sample"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
+	"github.com/nats-io/nats.go"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -40,17 +44,10 @@ import (
 
 const repoPathAnnotation = "apps.ashupednekar.github.io/repo-path"
 
-var repoPathExt = map[string]string{
-	"python": ".py",
-	"go":     ".go",
-	"rust":   ".rs",
-	"ts":     ".ts",
-	"lua":    ".lua",
-}
-
 type FunctionReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	Broker *nats.Conn
 }
 
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -182,7 +179,7 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1.Function) error {
 	log := logf.FromContext(ctx)
 
-	ext, ok := repoPathExt[function.Spec.Language]
+	ext, ok := common.LangExt[function.Spec.Language]
 	if !ok {
 		return nil
 	}
@@ -207,6 +204,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 			"repoPath", repoPath, "project", function.Spec.Project)
 		return nil
 	}
+	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
 
 	if function.Annotations == nil {
 		function.Annotations = make(map[string]string)
@@ -217,7 +215,28 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		return fmt.Errorf("record repo bootstrap annotation for %s: %w", repoPath, err)
 	}
 
-	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
+	if r.Broker == nil {
+		log.Info("Broker unavailable, skipping bootstrap event")
+	}
+  ext = common.LangExt[function.Spec.Language]
+	if ext == "" {
+		return fmt.Errorf("invalid language")
+	}
+	bootstrapEvent := events.FunctionBootstrap{
+		Name:     function.Name,
+		Language: function.Spec.Language,
+		Project:  function.Spec.Project,
+		Path:      fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Name, ext),
+	}
+	data, err := json.Marshal(bootstrapEvent)
+	if err != nil {
+		return err
+	}
+	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s", function.Spec.Project), data); err != nil {
+		return err
+	}
+	log.Info("Submitted portal bootstrap event for", "function", function.Spec.Name)
+
 	return nil
 }
 
