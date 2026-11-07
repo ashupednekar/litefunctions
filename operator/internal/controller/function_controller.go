@@ -33,6 +33,7 @@ import (
 	"github.com/ashupednekar/litefunctions/common/sample"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	apiv1 "github.com/ashupednekar/litefunctions/operator/api/v1"
+	"github.com/nats-io/nats.go"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -51,6 +52,7 @@ var repoPathExt = map[string]string{
 type FunctionReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	Broker *nats.Conn
 }
 
 func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -218,6 +220,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	}
 
 	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
+
 	return nil
 }
 

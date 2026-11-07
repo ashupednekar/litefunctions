@@ -22,6 +22,7 @@ import (
 	"github.com/ashupednekar/litefunctions/operator/internal/client"
 	"github.com/ashupednekar/litefunctions/operator/internal/controller"
 	functionserver "github.com/ashupednekar/litefunctions/operator/internal/server"
+	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 )
@@ -149,9 +150,16 @@ func runManager(cmd *cobra.Command) error {
 		return err
 	}
 
+  var nc *nats.Conn
+	nc, err = nats.Connect(os.Getenv("NATS_URL"))
+	if err != nil{
+		setupLog.Info("nats server unavailable: %v", err)
+	}
+
 	if err := (&controller.FunctionReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Broker: nc,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Unable to create controller", "controller", "Function")
 		return err
@@ -187,7 +195,8 @@ func runManager(cmd *cobra.Command) error {
 	}
 
 	grpcServer := grpc.NewServer()
-	functionproto.RegisterFunctionServiceServer(grpcServer, functionserver.NewFunctionServer(k8sClient, setupLog, controller.Cfg.KeepWarmDuration))
+	functionServer := functionserver.NewFunctionServer(k8sClient, setupLog, controller.Cfg.KeepWarmDuration)
+	functionproto.RegisterFunctionServiceServer(grpcServer, functionServer)
 
 	go func() {
 		setupLog.Info("Starting gRPC server", "address", grpcAddr)
