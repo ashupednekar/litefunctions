@@ -59,8 +59,8 @@ sh chart/install.sh --fresh-cluster
 ```
 
 The helper disables Colima's bundled Traefik to avoid port conflicts with Istio.
-Each install refreshes the Gateway API Standard CRD bundle from the latest
-upstream release into `chart/crds` before installing the chart.
+Each install fetches and applies the latest Gateway API Standard CRDs before
+installing the chart.
 Pass `--argo` to install Argo CD and apply a `litefunctions` Application that
 tracks the published Artifact Hub OCI chart (`ARGOCD_CHART_VERSION`, default
 `0.1.4`). Argo CD itself is installed from the official `argo/argo-cd` Helm
@@ -426,7 +426,8 @@ ingestor:
 
 Install an implementation of Gateway API and its GatewayClass before installing
 LiteFunctions. The default class is `istio`; Istio is managed separately from this
-chart. Gateway API CRDs are bundled in `chart/crds`. No NGINX controller is required.
+chart. `chart/install.sh` fetches and applies the latest Gateway API Standard CRDs.
+No NGINX controller is required.
 
 ```yaml
 gatewayApi:

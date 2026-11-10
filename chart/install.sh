@@ -12,7 +12,7 @@ NAMESPACE="${NAMESPACE:-litefunctions}"
 RELEASE="${RELEASE:-litefunctions}"
 ISTIO_NAMESPACE="${ISTIO_NAMESPACE:-istio-system}"
 TLS_SECRET="${TLS_SECRET:-litefunctions-gateway-tls}"
-GATEWAY_API_CRD_FILE="$SCRIPT_DIR/crds/gateway-api-standard-install.yaml"
+GATEWAY_API_CRD_FILE="${TMPDIR:-/tmp}/litefunctions-gateway-api-standard-install.yaml"
 GATEWAY_API_CRD_URL="https://github.com/kubernetes-sigs/gateway-api/releases/latest/download/standard-install.yaml"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
@@ -242,14 +242,14 @@ install() {
   gateway_api_crd_tmp="$GATEWAY_API_CRD_FILE.tmp"
   curl --fail --location "$GATEWAY_API_CRD_URL" --output "$gateway_api_crd_tmp"
   mv "$gateway_api_crd_tmp" "$GATEWAY_API_CRD_FILE"
+  kubectl apply --server-side --force-conflicts \
+    -f "$GATEWAY_API_CRD_FILE"
+  kubectl wait --for=condition=Established --timeout=2m \
+    crd/gatewayclasses.gateway.networking.k8s.io \
+    crd/gateways.gateway.networking.k8s.io \
+    crd/httproutes.gateway.networking.k8s.io
 
   if [ "$INSTALL_ARGO" = true ]; then
-    kubectl apply --server-side --force-conflicts \
-      -f "$GATEWAY_API_CRD_FILE"
-    kubectl wait --for=condition=Established --timeout=2m \
-      crd/gatewayclasses.gateway.networking.k8s.io \
-      crd/gateways.gateway.networking.k8s.io \
-      crd/httproutes.gateway.networking.k8s.io
     kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
     helm repo add argo https://argoproj.github.io/argo-helm --force-update
     helm repo update argo
