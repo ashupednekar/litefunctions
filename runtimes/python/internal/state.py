@@ -25,7 +25,7 @@ class AppState:
         redis = await get_redis_pool()
         return cls(nc, js, engine, redis)
 
-    #def __del__(self) -> None:
+    # def __del__(self) -> None:
     #    loop = asyncio.get_event_loop()
     #    if loop.is_running:
     #        loop.create_task(self.js._nc.close())
@@ -103,7 +103,9 @@ def validate_settings() -> None:
     if not settings.nats_url:
         raise ValueError("ERR-SETTINGS: NATS_URL is required (set env NATS_URL)")
     if not settings.database_url:
-        raise ValueError("ERR-SETTINGS: DATABASE_URL is required (set env DATABASE_URL)")
+        raise ValueError(
+            "ERR-SETTINGS: DATABASE_URL is required (set env DATABASE_URL)"
+        )
     if not settings.redis_url:
         raise ValueError("ERR-SETTINGS: REDIS_URL is required (set env REDIS_URL)")
 

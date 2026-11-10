@@ -22,7 +22,7 @@ func main() {
 		slog.Error("error creating server", "error", err)
 		return
 	}
-	slog.Info("ingestor starting", "settings", settings.Settings)
+	slog.Info("ingestor starting")
 
 	if err := s.Start(); err != nil {
 		slog.Error("error starting server", "error", err)

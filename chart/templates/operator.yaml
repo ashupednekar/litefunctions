@@ -36,6 +36,10 @@ spec:
         env:
         - name: GRPC_PORT
           value: "50051"
+        {{- if .Values.operator.nats_user }}
+        - name: NATS_URL 
+          value: {{ .Values.operator.nats_url | quote }}
+        {{- end }}
         {{- if .Values.operator.registry }}
         - name: REGISTRY
           value: {{ .Values.operator.registry | quote }}

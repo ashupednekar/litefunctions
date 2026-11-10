@@ -1,0 +1,12 @@
+apiVersion: apps.ashupednekar.github.io/v1
+kind: Function
+metadata:
+  name: py2
+  namespace: litefunctions
+spec:
+  deProvisionTime: ""
+  isActive: false
+  isAsync: false
+  language: python
+  name: py2
+  project: a

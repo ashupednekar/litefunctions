@@ -109,7 +109,9 @@ def _sync_repo() -> None:
                 continue
 
         if target_ref is None:
-            raise RuntimeError("unable to find origin/main or origin/master after fetch")
+            raise RuntimeError(
+                "unable to find origin/main or origin/master after fetch"
+            )
 
         repo.set_head(target_ref.name)
         repo.checkout_head(strategy=pygit2.GIT_CHECKOUT_FORCE)
@@ -219,7 +221,11 @@ def encode_payload(value: Any) -> bytes:
 
 
 async def invoke_module(
-    state: AppState, name: str, req_id: str, payload: bytes, request: Request | None = None
+    state: AppState,
+    name: str,
+    req_id: str,
+    payload: bytes,
+    request: Request | None = None,
 ) -> AsyncGenerator[bytes, None]:
     module = await load_module(name)
     handler = getattr(module, "handle", None)
@@ -263,7 +269,9 @@ async def consume_function(state: AppState, name: str) -> None:
         req_id = msg.subject.split(".")[-1]
         try:
             async for out in invoke_module(state, name, req_id, msg.data):
-                await state.nc.publish(f"{settings.project}.{name}.res.python.{req_id}", out)
+                await state.nc.publish(
+                    f"{settings.project}.{name}.res.python.{req_id}", out
+                )
         except Exception as exc:
             logger.exception("failed to handle async event for %s: %s", name, exc)
 
@@ -284,7 +292,11 @@ async def reconcile_consumers(state: AppState) -> None:
 
 async def watch_python_hook(state: AppState) -> None:
     subjects = [f"{settings.project}.hook.py", f"{settings.project}.hook.python"]
-    logger.info("python hook listener started project=%s subjects=%s", settings.project, ",".join(subjects))
+    logger.info(
+        "python hook listener started project=%s subjects=%s",
+        settings.project,
+        ",".join(subjects),
+    )
 
     async def _watch(subject: str) -> None:
         consumer = await state.js.pull_subscribe(subject, stream=settings.project)
@@ -301,14 +313,18 @@ async def watch_python_hook(state: AppState) -> None:
                 )
                 await sync_repo_and_reload()
                 await reconcile_consumers(state)
-                logger.info("runtime code refreshed via hook project=%s", settings.project)
+                logger.info(
+                    "runtime code refreshed via hook project=%s", settings.project
+                )
             except Exception as exc:
                 logger.exception("failed to refresh runtime code: %s", exc)
 
     await asyncio.gather(*[_watch(s) for s in subjects])
 
 
-@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
+@app.api_route(
+    "/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
+)
 async def handle_request(path: str, request: Request):
     state: AppState = app.state.state
     name = request.headers.get("X-Litefunction-Name") or getattr(settings, "name", "")
@@ -321,7 +337,9 @@ async def handle_request(path: str, request: Request):
         async for out in invoke_module(state, name, "", body, request=request):
             first = out
             break
-        return Response(content=first or b"", media_type="application/json", status_code=200)
+        return Response(
+            content=first or b"", media_type="application/json", status_code=200
+        )
     except FileNotFoundError:
         return Response(content=f"function '{name}' not found", status_code=404)
     except Exception as exc:
