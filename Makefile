@@ -12,6 +12,23 @@ build:
 	$(MAKE) runtime-lua
 	$(MAKE) gitea-setup
 
+.PHONY: local-push
+local-push:
+	$(MAKE) -C operator local-build-push
+	$(MAKE) -C ingestor local-build-push
+	$(MAKE) -C portal local-build-push
+	$(MAKE) -C operator helm-sync
+	helm upgrade --install litefunctions ./chart --namespace litefunctions --create-namespace \
+		--set-string images.operator=$(LOCAL_REGISTRY)/litefunctions-operator:latest \
+		--set-string images.ingestor=$(LOCAL_REGISTRY)/litefunctions-ingestor:latest \
+		--set-string images.portal=$(LOCAL_REGISTRY)/litefunctions-portal:latest
+	kubectl -n litefunctions rollout restart deployment/litefunctions-operator
+	kubectl -n litefunctions rollout restart deployment/litefunctions-ingestor
+	kubectl -n litefunctions rollout restart deployment/litefunctions-portal
+	kubectl -n litefunctions rollout status deployment/litefunctions-operator
+	kubectl -n litefunctions rollout status deployment/litefunctions-ingestor
+	kubectl -n litefunctions rollout status deployment/litefunctions-portal
+
 .PHONY: runtime-python
 runtime-python:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-runtime-py -f build/runtimes/Dockerfile.python runtimes/python && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-runtime-py
@@ -29,6 +46,7 @@ gitea-setup:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-gitea-setup -f build/gitea-setup/Dockerfile build/gitea-setup && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-gitea-setup
 
 include build/images.mk
+LOCAL_REGISTRY ?= localhost:30050
 
 .PHONY: build-multiarch
 build-multiarch:

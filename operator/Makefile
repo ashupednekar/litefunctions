@@ -183,7 +183,20 @@ docker-build-ingestor: ## Build docker image for the ingestor.
 docker-push: ## Push docker image with the manager.
 	$(CONTAINER_TOOL) push ${IMG}
 
+.PHONY: local-build-push
+local-build-push:
+	@local_img="$(LOCAL_REGISTRY)/$$(basename "${IMG}")"; \
+	$(CONTAINER_TOOL) build -t "$$local_img" -f Dockerfile ..; \
+	$(CONTAINER_TOOL) push "$$local_img"
+
+.PHONY: local-push
+local-push: local-build-push ## Build and push to the local registry, then restart the operator deployment.
+	@local_img="$(LOCAL_REGISTRY)/$$(basename "${IMG}")"; \
+	kubectl -n litefunctions set image deployment/litefunctions-operator litefunctions-manager="$$local_img"; \
+	kubectl -n litefunctions rollout restart deployment/litefunctions-operator
+
 include ../build/images.mk
+LOCAL_REGISTRY ?= localhost:30050
 
 .PHONY: docker-buildx
 docker-buildx: docker-builder ## Build and push the manager image for all configured platforms.
