@@ -218,7 +218,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	if r.Broker == nil {
 		log.Info("Broker unavailable, skipping bootstrap event")
 	}
-  ext = common.LangExt[function.Spec.Language]
+	ext = common.LangExt[function.Spec.Language]
 	if ext == "" {
 		return fmt.Errorf("invalid language")
 	}
@@ -226,7 +226,7 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 		Name:     function.Name,
 		Language: function.Spec.Language,
 		Project:  function.Spec.Project,
-		Path:      fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Name, ext),
+		Path:     fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Name, ext),
 	}
 	data, err := json.Marshal(bootstrapEvent)
 	if err != nil {

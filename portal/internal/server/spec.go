@@ -21,7 +21,7 @@ func NewServer() (*Server, error) {
 	state, err := state.NewState()
 	if err != nil {
 		return nil, err
-	}	
+	}
 	s := &Server{
 		Port:   config.Cfg.Port,
 		router: gin.Default(),

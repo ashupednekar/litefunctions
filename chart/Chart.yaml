@@ -1,6 +1,7 @@
 apiVersion: v2
 name: litefunctions 
 description: A Helm chart for Kubernetes
+icon: https://github.com/user-attachments/assets/8451ab69-19dd-4c83-893c-1e98593d3f4e
 type: application
 version: 0.1.4
 appVersion: "1.16.0"
