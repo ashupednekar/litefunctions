@@ -3,18 +3,12 @@ package pkg
 import (
 	"encoding/json"
 	"net/http"
+
+	"runtimes/go/functions/{{name}}/internal/types"
 )
 
-type Input struct {
-	Name *string `json:"name"`
-}
-
-type Output struct {
-	Message string `json:"message"`
-}
-
 func Handle(w http.ResponseWriter, r *http.Request) {
-	var input Input
+	var input types.Input
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
@@ -26,7 +20,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(Output{
+	json.NewEncoder(w).Encode(types.Output{
 		Message: "Hello " + name + " from Go!",
 	})
 }

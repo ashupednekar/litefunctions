@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"path"
 	"strconv"
 	"strings"
 
@@ -71,42 +72,74 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		}
 	}
 
-	path := fmt.Sprintf("functions/%s/%s/handle%s", req.Language, req.Name, ext)
+	functionDir := fmt.Sprintf("functions/%s/%s", req.Language, req.Name)
 
-	dirParts := strings.Split(path, "/")
-	cur := ""
-	for _, p := range dirParts[:len(dirParts)-1] {
-		cur += "/" + p
-		r.Filesystem().MkdirAll(cur, 0755)
+	pkg, err := sample.LoadPackage(req.Language, req.Name, req.IsAsync)
+	if err != nil {
+		slog.Warn("Failed to load default sample", "language", req.Language, "error", err)
+		entrypoint := "handle" + ext
+		pkg = sample.Package{
+			Entrypoint: entrypoint,
+			Files:      []sample.File{{Path: entrypoint, Content: []byte("// TODO: implement function\n")}},
+		}
 	}
 
-	f, err := r.Filesystem().Create(path)
-	if err != nil {
-		slog.Error("r.Filesystem().Create failed", "path", path, "error", err)
-		c.JSON(500, gin.H{"error": "file create error"})
+	entrypointContent := req.Code
+	if entrypointContent != "" {
+		entrypointContent = strings.ReplaceAll(entrypointContent, "{{name}}", req.Name)
+	} else {
+		for _, file := range pkg.Files {
+			if file.Path == pkg.Entrypoint {
+				entrypointContent = string(file.Content)
+				break
+			}
+		}
+	}
+	if entrypointContent == "" {
+		entrypointContent = "// TODO: implement function\n"
+	}
+
+	if err := r.Filesystem().MkdirAll(functionDir, 0755); err != nil {
+		slog.Error("r.Filesystem().MkdirAll failed", "path", functionDir, "error", err)
+		c.JSON(500, gin.H{"error": "directory create error"})
 		return
 	}
-	codeContent := req.Code
-	if codeContent == "" {
-		var defaultCode []byte
-		if req.IsAsync {
-			defaultCode, err = sample.LoadAsync(req.Language)
-		} else {
-			defaultCode, err = sample.LoadSync(req.Language)
-		}
-		if err != nil {
-			slog.Warn("Failed to load default sample", "language", req.Language, "error", err)
-			codeContent = "// TODO: implement function\n"
-		} else {
-			codeContent = string(defaultCode)
-		}
-	}
-	f.Write([]byte(codeContent))
-	f.Close()
 
-	if err := r.Commit(path); err != nil {
+	for _, file := range pkg.Files {
+		content := file.Content
+		if file.Path == pkg.Entrypoint {
+			content = []byte(entrypointContent)
+		}
+
+		filePath := functionDir + "/" + file.Path
+		if dir := path.Dir(filePath); dir != functionDir {
+			if err := r.Filesystem().MkdirAll(dir, 0755); err != nil {
+				slog.Error("r.Filesystem().MkdirAll failed", "path", dir, "error", err)
+				c.JSON(500, gin.H{"error": "directory create error"})
+				return
+			}
+		}
+
+		f, err := r.Filesystem().Create(filePath)
+		if err != nil {
+			slog.Error("r.Filesystem().Create failed", "path", filePath, "error", err)
+			c.JSON(500, gin.H{"error": "file create error"})
+			return
+		}
+		if _, err := f.Write(content); err != nil {
+			f.Close()
+			slog.Error("file write failed", "path", filePath, "error", err)
+			c.JSON(500, gin.H{"error": "file write error"})
+			return
+		}
+		f.Close()
+	}
+
+	repoPath := functionDir + "/" + pkg.Entrypoint
+
+	if err := r.Commit(functionDir); err != nil {
 		if !strings.Contains(err.Error(), "clean working tree") {
-			slog.Error("r.Commit failed", "path", path, "error", err)
+			slog.Error("r.Commit failed", "path", functionDir, "error", err)
 			c.JSON(500, gin.H{"error": "commit error"})
 			return
 		}
@@ -128,7 +161,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 			ProjectID: projectUUID,
 			Name:      req.Name,
 			Language:  req.Language,
-			Path:      path,
+			Path:      repoPath,
 			IsAsync:   req.IsAsync,
 			CreatedBy: userID,
 		},

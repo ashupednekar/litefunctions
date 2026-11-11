@@ -31,7 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	common "github.com/ashupednekar/litefunctions/common"
 	events "github.com/ashupednekar/litefunctions/common/events"
 	sample "github.com/ashupednekar/litefunctions/common/sample"
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
@@ -179,32 +178,34 @@ func (r *FunctionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1.Function) error {
 	log := logf.FromContext(ctx)
 
-	ext, ok := common.LangExt[function.Spec.Language]
-	if !ok {
-		return nil
-	}
-	repoPath := fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Spec.Name, ext)
-
-	if function.Annotations[repoPathAnnotation] == repoPath {
-		return nil
-	}
-
-	body, err := sample.LoadSync(function.Spec.Language)
-	if function.Spec.IsAsync {
-		body, err = sample.LoadAsync(function.Spec.Language)
-	}
+	pkg, err := sample.LoadPackage(function.Spec.Language, function.Spec.Name, function.Spec.IsAsync)
 	if err != nil {
 		log.Info("No default sample for language; skipping repo bootstrap", "language", function.Spec.Language)
 		return nil
 	}
 
-	pushed, err := vcs.EnsureFile(Cfg.VCSConfig(), function.Spec.Project, repoPath, body)
-	if err != nil {
-		log.Error(err, "Failed to bootstrap function file in repo; continuing reconciliation",
-			"repoPath", repoPath, "project", function.Spec.Project)
+	repoDir := fmt.Sprintf("functions/%s/%s", function.Spec.Language, function.Spec.Name)
+	repoPath := repoDir + "/" + pkg.Entrypoint
+
+	if function.Annotations[repoPathAnnotation] == repoPath {
 		return nil
 	}
-	log.Info("Bootstrapped function file in repo", "repoPath", repoPath, "pushed", pushed)
+
+	repoFiles := make([]vcs.File, 0, len(pkg.Files))
+	for _, file := range pkg.Files {
+		repoFiles = append(repoFiles, vcs.File{
+			Path: repoDir + "/" + file.Path,
+			Body: file.Content,
+		})
+	}
+
+	pushed, err := vcs.EnsureFiles(Cfg.VCSConfig(), function.Spec.Project, repoFiles)
+	if err != nil {
+		log.Error(err, "Failed to bootstrap function package in repo; continuing reconciliation",
+			"repoDir", repoDir, "project", function.Spec.Project)
+		return nil
+	}
+	log.Info("Bootstrapped function package in repo", "repoDir", repoDir, "pushed", pushed)
 
 	if function.Annotations == nil {
 		function.Annotations = make(map[string]string)
@@ -218,15 +219,11 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	if r.Broker == nil {
 		log.Info("Broker unavailable, skipping bootstrap event")
 	}
-	ext = common.LangExt[function.Spec.Language]
-	if ext == "" {
-		return fmt.Errorf("invalid language")
-	}
 	bootstrapEvent := events.FunctionBootstrap{
 		Name:     function.Name,
 		Language: function.Spec.Language,
 		Project:  function.Spec.Project,
-		Path:     fmt.Sprintf("functions/%s/%s/handle%s", function.Spec.Language, function.Name, ext),
+		Path:     repoPath,
 	}
 	data, err := json.Marshal(bootstrapEvent)
 	if err != nil {

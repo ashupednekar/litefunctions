@@ -141,6 +141,48 @@ func EnsureFile(cfg *internal.Config, project, path string, body []byte) (bool, 
 	return true, nil
 }
 
+// File is a path/content pair relative to a project repository.
+type File struct {
+	Path string
+	Body []byte
+}
+
+// EnsureFiles writes a whole function package in one commit. It is a no-op when
+// any of the files already exist, so it never overwrites user edits.
+func EnsureFiles(cfg *internal.Config, project string, files []File) (bool, error) {
+	if len(files) == 0 {
+		return false, nil
+	}
+
+	r, err := New(cfg, project, nil)
+	if err != nil {
+		return false, err
+	}
+
+	for _, file := range files {
+		if _, err := r.Fs.Stat(file.Path); err == nil {
+			return false, nil
+		} else if !os.IsNotExist(err) {
+			return false, err
+		}
+	}
+
+	for _, file := range files {
+		if err := writeFile(r, file.Path, file.Body); err != nil {
+			return false, err
+		}
+	}
+
+	dir := filepath.Dir(files[0].Path)
+	if err := r.CommitMessage(dir, "add "+dir); err != nil && !errors.Is(err, git.ErrEmptyCommit) {
+		return false, fmt.Errorf("commit error %s", err)
+	}
+	if err := r.Push(); err != nil {
+		return false, fmt.Errorf("push error %s", err)
+	}
+	return true, nil
+}
+
 func WriteFile(
 	cfg *internal.Config,
 	project string,
@@ -157,6 +199,24 @@ func WriteFile(
 }
 
 func writeAndPush(r *GitRepo, path string, body []byte, commitMessage string) error {
+	if err := writeFile(r, path, body); err != nil {
+		return err
+	}
+
+	slog.Info("commiting file", "path", path)
+	if err := r.CommitMessage(path, commitMessage); err != nil && !errors.Is(err, git.ErrEmptyCommit) {
+		slog.Error("error commiting file", "path", path, "error", err)
+		return fmt.Errorf("commit error %s", err)
+	}
+
+	slog.Info("pushing file", "path", path)
+	if err := r.Push(); err != nil {
+		return fmt.Errorf("push error %s", err)
+	}
+	return nil
+}
+
+func writeFile(r *GitRepo, path string, body []byte) error {
 	if dir := filepath.Dir(path); dir != "." && dir != "/" {
 		if err := r.Fs.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("error creating directory for %s - %s", path, err)
@@ -173,16 +233,5 @@ func writeAndPush(r *GitRepo, path string, body []byte, commitMessage string) er
 		return fmt.Errorf("error writing %s - %s", path, err)
 	}
 	fh.Close()
-
-	slog.Info("commiting file", "path", path)
-	if err := r.CommitMessage(path, commitMessage); err != nil && !errors.Is(err, git.ErrEmptyCommit) {
-		slog.Error("error commiting file", "path", path, "error", err)
-		return fmt.Errorf("commit error %s", err)
-	}
-
-	slog.Info("pushing file", "path", path)
-	if err := r.Push(); err != nil {
-		return fmt.Errorf("push error %s", err)
-	}
 	return nil
 }

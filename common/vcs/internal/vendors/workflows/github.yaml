@@ -146,7 +146,8 @@ jobs:
           fi
           mkdir -p "$MODULE_DIR"
           cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
-          cp "$SRC" "$TARGET"
+          rm -f "$MODULE_DIR/Cargo.toml" "$MODULE_DIR/Cargo.lock"
+          mv "$MODULE_DIR/handle.rs" "$TARGET"
 
       - name: Build and push Rust Docker image
         run: |
@@ -238,34 +239,68 @@ jobs:
         run: |
           GO_FILE="${{ matrix.go-file }}"
           FUNCTION_DIR="current-repo/functions/go/${GO_FILE}"
-          SRC="$FUNCTION_DIR/handle.go"
-          if [ ! -f "$SRC" ]; then
-            echo "Function source not found: $SRC"
+          ENTRYPOINT="handle.go"
+          if [ ! -f "$FUNCTION_DIR/handle.go" ] && [ -f "$FUNCTION_DIR/cmd/handle.go" ]; then
+            ENTRYPOINT="cmd/handle.go"
+          fi
+          if [ ! -f "$FUNCTION_DIR/$ENTRYPOINT" ]; then
+            echo "Function entrypoint not found: $FUNCTION_DIR/$ENTRYPOINT"
             exit 1
           fi
+
           TARGET_FILE="function.go"
-          if grep -Eq "func[[:space:]]+StreamHandler" "$SRC"; then
+          if grep -Eq "func[[:space:]]+StreamHandler" "$FUNCTION_DIR/$ENTRYPOINT"; then
             TARGET_FILE="function_async.go"
           fi
+
           RUNTIME_DIR="litefunctions/runtimes/go/internal"
-          RUNTIME_PACKAGE="runtime"
           if [ ! -d "$RUNTIME_DIR" ]; then
             RUNTIME_DIR="litefunctions/runtimes/go/pkg"
-            RUNTIME_PACKAGE="pkg"
           fi
-          DST="$RUNTIME_DIR/$TARGET_FILE"
-          cp "$SRC" "$DST"
-          sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$DST"
-          while IFS= read -r source; do
-            relative="${source#"$FUNCTION_DIR"/}"
-            [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
-            destination="$RUNTIME_DIR/$(dirname "$relative")"
-            mkdir -p "$destination"
-            cp "$source" "$destination/"
-            if [ "$(dirname "$relative")" = "." ]; then
-              sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$destination/$(basename "$source")"
+          RUNTIME_PACKAGE=$(awk '/^package[[:space:]]+/{print $2; exit}' "$RUNTIME_DIR"/*.go 2>/dev/null || true)
+          [ -n "$RUNTIME_PACKAGE" ] || RUNTIME_PACKAGE=runtime
+
+          MODULE=$(awk '/^module[[:space:]]+/{print $2; exit}' litefunctions/runtimes/go/go.mod)
+          PACKAGE_ROOT="litefunctions/runtimes/go/functions"
+          PACKAGE_NAME=$(basename "$FUNCTION_DIR" | tr -c '[:alnum:]_' '-' | sed 's/^-*//; s/-*$//')
+          FUNCTION_PACKAGE_DIR="$PACKAGE_ROOT/$PACKAGE_NAME"
+          mkdir -p "$FUNCTION_PACKAGE_DIR"
+          cp -R "$FUNCTION_DIR"/. "$FUNCTION_PACKAGE_DIR"/
+          rm -f "$FUNCTION_PACKAGE_DIR/go.mod" "$FUNCTION_PACKAGE_DIR/go.sum"
+
+          if [ "$ENTRYPOINT" != "handle.go" ]; then
+            ENTRYPOINT_FILE="$FUNCTION_PACKAGE_DIR/$ENTRYPOINT"
+            if [ "$(awk '/^package[[:space:]]+/{print $2; exit}' "$ENTRYPOINT_FILE")" = "main" ]; then
+              sed -i -E "s/^package[[:space:]]+.*/package $PACKAGE_NAME/" "$ENTRYPOINT_FILE"
             fi
-          done < <(find "$FUNCTION_DIR" -type f -name '*.go')
+            mv "$ENTRYPOINT_FILE" "$FUNCTION_PACKAGE_DIR/handle.go"
+          fi
+
+          if [ "$TARGET_FILE" = "function_async.go" ]; then
+            cat > "$RUNTIME_DIR/$TARGET_FILE" <<EOF
+          package $RUNTIME_PACKAGE
+
+          import fn "$MODULE/functions/$PACKAGE_NAME"
+
+          func StreamHandler(input <-chan []byte) <-chan []byte {
+          	return fn.StreamHandler(input)
+          }
+          EOF
+          else
+            cat > "$RUNTIME_DIR/$TARGET_FILE" <<EOF
+          package $RUNTIME_PACKAGE
+
+          import (
+          	"net/http"
+
+          	fn "$MODULE/functions/$PACKAGE_NAME"
+          )
+
+          func Handle(w http.ResponseWriter, r *http.Request) {
+          	fn.Handle(w, r)
+          }
+          EOF
+          fi
 
       - name: Build and push Go Docker image
         run: |

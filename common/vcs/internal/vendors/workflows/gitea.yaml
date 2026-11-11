@@ -12,260 +12,357 @@ env:
   REGISTRY: litefunctions-zot:5000
   IMAGE_PREFIX: ashudev
   PORTAL_RUNTIME_ASSETS_URL: http://litefunctions-portal:3000/api/runtime-assets/runtimes.tar.gz
+  RUNTIME_REPO_URL: https://github.com/ashupednekar/litefunctions
+  INGESTOR_HOOK_BASE_URL: http://litefunctions-ingestor:3000
+
+  # Languages are described by exception. Defaults:
+  #   type=dynamic, ext=<language>, aliases=[<ext>], mode=module
+  # Static languages are compiled into images; dynamic languages are reloaded
+  # by their warm runtime after the ingestor is notified.
+  #
+  # Paths follow the same convention for every language:
+  #   context      runtimes/<language>
+  #   dockerfile   build/runtimes/Dockerfile.<language>
+  #   runtime dir  runtimes/<language>/internal (fallback: pkg)
+  #   entrypoint   handle.<ext> (root or cmd/)
+  # Add a static language here and to build-static.matrix below.
+  LANGUAGES: |
+    {
+      "go":     {"type": "static", "mode": "package"},
+      "rust":   {"type": "static", "ext": "rs"},
+      "python": {"ext": "py"},
+      "ts":     {"aliases": ["typescript"]},
+      "lua":    {}
+    }
 
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      rust: ${{ steps.changes.outputs.rust }}
-      go: ${{ steps.changes.outputs.go }}
-      python: ${{ steps.changes.outputs.python }}
-      ts: ${{ steps.changes.outputs.ts }}
-      lua: ${{ steps.changes.outputs.lua }}
-      rust-files: ${{ steps.get-changed-files.outputs.rust-files }}
-      go-files: ${{ steps.get-changed-files.outputs.go-files }}
-      repo_name: ${{ steps.set-repo-name.outputs.repo_name }}
+      static-functions: ${{ steps.changed.outputs.static-functions }}
+      dynamic-languages: ${{ steps.changed.outputs.dynamic-languages }}
+      repo_name: ${{ steps.repo.outputs.repo_name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Detect changes
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            rust:
-              - 'functions/rs/**'
-              - 'functions/rust/**'
-            go:
-              - 'functions/go/**'
-            python:
-              - 'functions/python/**'
-            ts:
-              - 'functions/ts/**'
-            lua:
-              - 'functions/lua/**'
-
-      - name: Get changed files
-        id: get-changed-files
+      - name: Detect changed functions
+        id: changed
         run: |
-          BEFORE_SHA=${{ gitea.event.before || '0000000000000000000000000000000000000000' }}
+          set -euo pipefail
 
-          RUST_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/rs/**' 'functions/rust/**' \
-            | awk -F/ '($2 == "rs" || $2 == "rust") && NF >= 4 { print $3 }' | sort -u \
-            | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "rust-files=${RUST_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
+          before='${{ gitea.event.before }}'
+          after='${{ gitea.sha }}'
 
-          GO_FILES_JSON=$(git diff --name-only ${BEFORE_SHA}..${{ gitea.sha }} -- 'functions/go/**' \
-            | awk -F/ '$2 == "go" && NF >= 4 { print $3 }' | sort -u \
-            | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "go-files=${GO_FILES_JSON:-[]}" >> $GITHUB_OUTPUT
-          echo "Detected Go files JSON: ${GO_FILES_JSON}"
-
-          # Optional: fail if multiple files (uncomment if strict)
-          # GO_COUNT=$(echo "$GO_FILES_JSON" | jq 'length')
-          # if [ "$GO_COUNT" -gt 1 ]; then
-          #   echo "Error: Multiple Go files changed (${GO_COUNT}). Only one allowed."
-          #   exit 1
-          # fi
-
-      - name: Set repo name
-        id: set-repo-name
-        run: |
-          REPO_NAME=$(basename "${{ gitea.repository }}")
-          echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-
-  build-go:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.go == 'true' && needs.detect-changes.outputs.go-files != '[]'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout current repo (this Gitea repo)
-        uses: actions/checkout@v4
-        with:
-          path: current-repo
-          
-      - name: Setup Kaniko config
-        run: |
-          mkdir -p $HOME/.docker
-          echo '{"auths":{"${{ env.REGISTRY }}":{"auth":"'$(echo -n ${{ env.IMAGE_PREFIX }}:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
-
-      - name: Verify Kaniko config (debug)
-        run: |
-          echo "HOME is: $HOME"
-          ls -la $HOME/.docker/
-          if [ -f "$HOME/.docker/config.json" ]; then
-            echo "config.json exists!"
-            cat $HOME/.docker/config.json | sed 's/"auth":"[^"]*"/"auth":"REDACTED"/'
+          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+            changed=$(git diff-tree --root --no-commit-id --name-only -r "$after" -- 'functions/**' || true)
           else
-            echo "config.json MISSING!"
+            changed=$(git diff --name-only "$before..$after" -- 'functions/**' || true)
           fi
 
-      - name: Prepare build parameters for single Go function
-        env:
-          GO_FILES_JSON: ${{ needs.detect-changes.outputs.go-files }}
-          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
-        run: |
-          echo "Detected Go files JSON: $GO_FILES_JSON"
+          # Fill in defaults once so every step sees the same shape.
+          normalized=$(echo "$LANGUAGES" | jq -c '
+            to_entries
+            | map(
+                .key as $name
+                | (.value // {}) as $v
+                | ($v.ext // $name) as $ext
+                | {
+                    name: $name,
+                    type: ($v.type // "dynamic"),
+                    ext: $ext,
+                    aliases: (([$ext] + ($v.aliases // [])) | unique | map(select(. != $name))),
+                    mode: ($v.mode // "module")
+                  }
+              )
+          ')
 
-          # Extract single file name (first one only)
-          file=$(echo "$GO_FILES_JSON" | jq -r '.[0]')
-
-          if [ "$file" = "null" ] || [ -z "$file" ]; then
-            echo "No valid Go file detected - skipping build"
-            echo "SKIP_BUILD=true" >> $GITHUB_ENV
-            exit 0
-          fi
-          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:latest"
-          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-go-$REPO_NAME-$file:${{ gitea.sha }}"
-
-          echo "Building function: $file"
-          echo "Resolved LATEST tag: $LATEST_TAG"
-          echo "Resolved SHA tag: $SHA_TAG"
-
-          git clone https://github.com/ashupednekar/litefunctions
-          FUNCTION_DIR="current-repo/functions/go/$file"
-          HANDLE_FILE="$FUNCTION_DIR/handle.go"
-          TARGET_FILE="function.go"
-          if grep -Eq "func[[:space:]]+StreamHandler" "$HANDLE_FILE"; then
-            TARGET_FILE="function_async.go"
-          fi
-          RUNTIME_DIR="litefunctions/runtimes/go/internal"
-          RUNTIME_PACKAGE="runtime"
-          if [ ! -d "$RUNTIME_DIR" ]; then
-            RUNTIME_DIR="litefunctions/runtimes/go/pkg"
-            RUNTIME_PACKAGE="pkg"
-          fi
-          echo "Using runtime template: ${TARGET_FILE}"
-          cp "$HANDLE_FILE" "$RUNTIME_DIR/${TARGET_FILE}"
-          while IFS= read -r source; do
-            relative="${source#"$FUNCTION_DIR"/}"
-            [[ "$relative" == "handle.go" || "$relative" == *_test.go ]] && continue
-            destination="$RUNTIME_DIR/$(dirname "$relative")"
-            mkdir -p "$destination"
-            cp "$source" "$destination/"
-            if [ "$(dirname "$relative")" = "." ]; then
-              sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$destination/$(basename "$source")"
-            fi
-          done < <(find "$FUNCTION_DIR" -type f -name '*.go')
-          sed -i -E "s/^package[[:space:]]+.*/package $RUNTIME_PACKAGE/" "$RUNTIME_DIR/${TARGET_FILE}"
-
-
-          echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
-
-     
-
-      - name: Build and Push with Kaniko
-        if: env.SKIP_BUILD != 'true'
-        uses: docker://gcr.io/kaniko-project/executor:latest
-        with:
-          args: >
-            --context=dir://litefunctions/runtimes/go
-            --dockerfile=../../build/runtimes/Dockerfile.go
-            --destination=${{ env.LATEST_TAG }}
-            --destination=${{ env.SHA_TAG }}
-            --build-arg PROJECT=${{ needs.detect-changes.outputs.repo_name }}
-            --build-arg NAME=${{ env.FUNCTION_NAME }}
-            --build-arg GIT_TOKEN=${{ secrets.GITEA_TOKEN }}
-            --cache=true
-            --cache-copy-layers=true
-            --cache-ttl=336h
-            --insecure
-            --skip-tls-verify
-            --skip-push-permission-check
-            --verbosity=info
-
-  build-rust:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.rust == 'true' && needs.detect-changes.outputs.rust-files != '[]'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout current repo (this Gitea repo)
-        uses: actions/checkout@v4
-        with:
-          path: current-repo
-
-      - name: Setup Kaniko config
-        run: |
-          mkdir -p $HOME/.docker
-          echo '{"auths":{"${{ env.REGISTRY }}":{"auth":"'$(echo -n ${{ env.IMAGE_PREFIX }}:${{ secrets.GITEA_TOKEN }} | base64)'"}}}' > $HOME/.docker/config.json
-
-      - name: Verify Kaniko config (debug)
-        run: |
-          echo "HOME is: $HOME"
-          ls -la $HOME/.docker/
-          if [ -f "$HOME/.docker/config.json" ]; then
-            echo "config.json exists!"
-            cat $HOME/.docker/config.json | sed 's/"auth":"[^"]*"/"auth":"REDACTED"/'
-          else
-            echo "config.json MISSING!"
-          fi
-
-      - name: Prepare build parameters for single Rust function
-        env:
-          RUST_FILES_JSON: ${{ needs.detect-changes.outputs.rust-files }}
-          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
-        run: |
-          echo "Detected Rust files JSON: $RUST_FILES_JSON"
-
-          file=$(echo "$RUST_FILES_JSON" | jq -r '.[0]')
-
-          if [ "$file" = "null" ] || [ -z "$file" ]; then
-            echo "No valid Rust file detected - skipping build"
-            echo "SKIP_BUILD=true" >> $GITHUB_ENV
-            exit 0
-          fi
-          LATEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-rust-$REPO_NAME-$file:latest"
-          SHA_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/runtime-rust-$REPO_NAME-$file:${{ gitea.sha }}"
-
-          echo "Building function: $file"
-          echo "Resolved LATEST tag: $LATEST_TAG"
-          echo "Resolved SHA tag: $SHA_TAG"
-
-          git clone https://github.com/ashupednekar/litefunctions
-          FUNCTION_DIR="current-repo/functions/rs/$file"
-          if [ ! -d "$FUNCTION_DIR" ]; then
-            FUNCTION_DIR="current-repo/functions/rust/$file"
-          fi
-          SOURCE_PATH="$FUNCTION_DIR/handle.rs"
-          if [ ! -f "$SOURCE_PATH" ]; then
-            echo "Source function not found: $SOURCE_PATH"
+          # The static matrix cannot be generated on this Gitea version, so keep
+          # its literal list honest.
+          static_languages=$(echo "$normalized" | jq -r '[.[] | select(.type == "static") | .name] | sort | join(" ")')
+          if [ "$static_languages" != "go rust" ]; then
+            echo "build-static.matrix is out of sync with LANGUAGES (static: $static_languages)" >&2
             exit 1
           fi
-          TARGET_FILE="function.rs"
-          if grep -Eq "stream_handler" "$SOURCE_PATH"; then
-            TARGET_FILE="function_async.rs"
-          fi
-          echo "Using runtime template: ${TARGET_FILE}"
-          RUST_RUNTIME_DIR="litefunctions/runtimes/rust/internal"
-          if [ ! -d "$RUST_RUNTIME_DIR" ]; then
-            RUST_RUNTIME_DIR="litefunctions/runtimes/rust/pkg"
-          fi
-          MODULE_DIR="$RUST_RUNTIME_DIR/function"
-          if [ "$TARGET_FILE" = "function_async.rs" ]; then
-            MODULE_DIR="$RUST_RUNTIME_DIR/function_async"
-          fi
-          mkdir -p "$MODULE_DIR"
-          cp -R "$FUNCTION_DIR"/. "$MODULE_DIR/"
-          cp "$SOURCE_PATH" "$RUST_RUNTIME_DIR/${TARGET_FILE}"
 
-          echo "FUNCTION_NAME=$file" >> $GITHUB_ENV
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-          echo "SHA_TAG=$SHA_TAG" >> $GITHUB_ENV
+          # directory name -> canonical language name
+          declare -A CANONICAL=()
+          while IFS='=' read -r alias name; do
+            [ -n "$alias" ] && CANONICAL["$alias"]="$name"
+          done < <(
+            echo "$normalized" | jq -r '.[] | .name as $n | ([$n] + .aliases)[] | "\(.)=\($n)"'
+          )
+
+          static_tmp=$(mktemp)
+          dynamic_tmp=$(mktemp)
+
+          if [ -n "$changed" ]; then
+            while IFS= read -r path; do
+              [ -n "$path" ] || continue
+
+              dir_lang=$(echo "$path" | cut -d/ -f2)
+              name=$(echo "$path" | cut -d/ -f3)
+              lang="${CANONICAL[$dir_lang]:-}"
+              [ -n "$name" ] && [ -n "$lang" ] || continue
+
+              type=$(echo "$normalized" | jq -r --arg l "$lang" '.[] | select(.name == $l) | .type')
+              case "$type" in
+                static)
+                  # Skip deleted functions; there is nothing left to build.
+                  exists=false
+                  while IFS= read -r candidate; do
+                    [ -d "functions/$candidate/$name" ] && exists=true && break
+                  done < <(echo "$normalized" | jq -r --arg l "$lang" '.[] | select(.name == $l) | ([.name, .ext] + .aliases) | unique | .[]')
+                  if [ "$exists" = "true" ]; then
+                    echo "$lang:$name" >> "$static_tmp"
+                  fi
+                  ;;
+                dynamic)
+                  echo "$lang" >> "$dynamic_tmp"
+                  ;;
+                *)
+                  echo "Unknown language type '$type' for $lang" >&2
+                  exit 1
+                  ;;
+              esac
+            done <<< "$changed"
+          fi
+
+          static_functions=$(sort -u "$static_tmp" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          dynamic_languages=$(sort -u "$dynamic_tmp" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          rm -f "$static_tmp" "$dynamic_tmp"
+
+          echo "static functions: $static_functions"
+          echo "dynamic languages: $dynamic_languages"
+          echo "static-functions=${static_functions:-[]}" >> "$GITHUB_OUTPUT"
+          echo "dynamic-languages=${dynamic_languages:-[]}" >> "$GITHUB_OUTPUT"
+
+      - name: Set repo name
+        id: repo
+        run: |
+          echo "repo_name=$(basename '${{ gitea.repository }}')" >> "$GITHUB_OUTPUT"
+
+  # Static path: compile the function package into a dedicated image.
+  # Keep this list in sync with LANGUAGES; detect-changes validates it.
+  build-static:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.static-functions != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [go, rust]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Select changed function
+        id: select
+        env:
+          LANGUAGE: ${{ matrix.language }}
+          STATIC_FUNCTIONS: ${{ needs.detect-changes.outputs.static-functions }}
+        run: |
+          name=$(echo "$STATIC_FUNCTIONS" | jq -r --arg p "${LANGUAGE}:" \
+            'map(select(startswith($p)) | sub($p; "")) | first // ""')
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch runtime sources
+        if: steps.select.outputs.name != ''
+        run: |
+          set -euo pipefail
+          mkdir -p litefunctions
+
+          downloaded=false
+          if [ -n "${PORTAL_RUNTIME_ASSETS_URL:-}" ]; then
+            if curl -fsSL "$PORTAL_RUNTIME_ASSETS_URL" | tar -xz -C litefunctions; then
+              downloaded=true
+            else
+              echo "Portal runtime assets unavailable, falling back to git clone"
+              rm -rf litefunctions
+              mkdir -p litefunctions
+            fi
+          fi
+
+          if [ "$downloaded" != "true" ] || [ ! -d "litefunctions/build/runtimes" ]; then
+            rm -rf litefunctions
+            git clone --depth 1 "$RUNTIME_REPO_URL" litefunctions
+          fi
+
+      - name: Setup Kaniko config
+        if: steps.select.outputs.name != ''
+        run: |
+          mkdir -p "$HOME/.docker"
+          auth=$(printf '%s:%s' '${{ env.IMAGE_PREFIX }}' '${{ secrets.GITEA_TOKEN }}' | base64 | tr -d '\n')
+          printf '{"auths":{"%s":{"auth":"%s"}}}\n' '${{ env.REGISTRY }}' "$auth" > "$HOME/.docker/config.json"
+
+      - name: Inject function into runtime
+        if: steps.select.outputs.name != ''
+        env:
+          LANG: ${{ matrix.language }}
+          NAME: ${{ steps.select.outputs.name }}
+          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
+        run: |
+          set -euo pipefail
+
+          echo "Injecting $LANG/$NAME"
+
+          CFG=$(echo "$LANGUAGES" | jq -c --arg l "$LANG" '
+            to_entries
+            | map(
+                .key as $name
+                | (.value // {}) as $v
+                | ($v.ext // $name) as $ext
+                | {
+                    name: $name,
+                    type: ($v.type // "dynamic"),
+                    ext: $ext,
+                    aliases: (([$ext] + ($v.aliases // [])) | unique | map(select(. != $name))),
+                    mode: ($v.mode // "module")
+                  }
+              )
+            | .[] | select(.name == $l)
+          ')
+          if [ -z "$CFG" ]; then
+            echo "No configuration for language: $LANG" >&2
+            exit 1
+          fi
+
+          EXT=$(echo "$CFG" | jq -r '.ext')
+          MODE=$(echo "$CFG" | jq -r '.mode')
+          CONTEXT="runtimes/$LANG"
+          DOCKERFILE="build/runtimes/Dockerfile.$LANG"
+
+          FUNCTION_DIR=""
+          for candidate in $(echo "$CFG" | jq -r '([.name, .ext] + .aliases) | unique | .[]'); do
+            if [ -d "current-repo/functions/$candidate/$NAME" ]; then
+              FUNCTION_DIR="current-repo/functions/$candidate/$NAME"
+              break
+            fi
+          done
+          if [ -z "$FUNCTION_DIR" ]; then
+            echo "Function directory not found for $LANG/$NAME" >&2
+            exit 1
+          fi
+
+          RUNTIME_DIR="litefunctions/$CONTEXT/internal"
+          if [ ! -d "$RUNTIME_DIR" ]; then
+            RUNTIME_DIR="litefunctions/$CONTEXT/pkg"
+          fi
+          if [ ! -d "$RUNTIME_DIR" ]; then
+            echo "No runtime directory for $LANG" >&2
+            exit 1
+          fi
+
+          ENTRYPOINT="handle.$EXT"
+          if [ ! -f "$FUNCTION_DIR/$ENTRYPOINT" ] && [ -f "$FUNCTION_DIR/cmd/$ENTRYPOINT" ]; then
+            ENTRYPOINT="cmd/$ENTRYPOINT"
+          fi
+          if [ ! -f "$FUNCTION_DIR/$ENTRYPOINT" ]; then
+            echo "Entrypoint not found: $FUNCTION_DIR/$ENTRYPOINT (root or cmd/)" >&2
+            exit 1
+          fi
+
+          if [ "$MODE" = "package" ]; then
+            ASYNC_PATTERN='func[[:space:]]+StreamHandler'
+          else
+            ASYNC_PATTERN='stream_handler'
+          fi
+          TARGET_FILE="function.$EXT"
+          if grep -Eq "$ASYNC_PATTERN" "$FUNCTION_DIR/$ENTRYPOINT"; then
+            TARGET_FILE="function_async.$EXT"
+          fi
+
+          case "$MODE" in
+            package)
+              # Keep the whole function package together (internal/, assets,
+              # etc.) and generate a thin runtime entrypoint. The runtime module
+              # owns dependencies, so drop the function-level module files.
+              PACKAGE_ROOT="litefunctions/$CONTEXT/functions"
+              PACKAGE_NAME=$(basename "$FUNCTION_DIR" | tr -c '[:alnum:]_' '-' | sed 's/^-*//; s/-*$//')
+              FUNCTION_PACKAGE_DIR="$PACKAGE_ROOT/$PACKAGE_NAME"
+              mkdir -p "$FUNCTION_PACKAGE_DIR"
+              cp -R "$FUNCTION_DIR"/. "$FUNCTION_PACKAGE_DIR"/
+              rm -f "$FUNCTION_PACKAGE_DIR/go.mod" "$FUNCTION_PACKAGE_DIR/go.sum"
+
+              # cmd/ is optional; move the entrypoint to the package root so it
+              # can be imported even when authored under cmd/.
+              if [ "$ENTRYPOINT" != "handle.$EXT" ]; then
+                ENTRYPOINT_FILE="$FUNCTION_PACKAGE_DIR/$ENTRYPOINT"
+                if [ "$(awk '/^package[[:space:]]+/{print $2; exit}' "$ENTRYPOINT_FILE")" = "main" ]; then
+                  sed -i -E "s/^package[[:space:]]+.*/package $PACKAGE_NAME/" "$ENTRYPOINT_FILE"
+                fi
+                mv "$ENTRYPOINT_FILE" "$FUNCTION_PACKAGE_DIR/handle.$EXT"
+              fi
+
+              MODULE=$(awk '/^module[[:space:]]+/{print $2; exit}' "litefunctions/$CONTEXT/go.mod")
+              PACKAGE_IMPORT="$MODULE/functions"
+              RUNTIME_PACKAGE=$(awk '/^package[[:space:]]+/{print $2; exit}' "$RUNTIME_DIR"/*.go 2>/dev/null || true)
+              [ -n "$RUNTIME_PACKAGE" ] || RUNTIME_PACKAGE=runtime
+
+              if [ "$TARGET_FILE" = "function_async.$EXT" ]; then
+                cat > "$RUNTIME_DIR/$TARGET_FILE" <<EOF
+          package $RUNTIME_PACKAGE
+
+          import fn "$PACKAGE_IMPORT/$PACKAGE_NAME"
+
+          func StreamHandler(input <-chan []byte) <-chan []byte {
+          	return fn.StreamHandler(input)
+          }
+          EOF
+              else
+                cat > "$RUNTIME_DIR/$TARGET_FILE" <<EOF
+          package $RUNTIME_PACKAGE
+
+          import (
+          	"net/http"
+
+          	fn "$PACKAGE_IMPORT/$PACKAGE_NAME"
+          )
+
+          func Handle(w http.ResponseWriter, r *http.Request) {
+          	fn.Handle(w, r)
+          }
+          EOF
+              fi
+              ;;
+
+            module)
+              # Copy the whole function package into its module directory and
+              # expose the entrypoint where the runtime declares it. The runtime
+              # manifest owns dependencies, so drop function-level manifests.
+              MODULE_DIR="$RUNTIME_DIR/$(basename "$TARGET_FILE" ".$EXT")"
+              mkdir -p "$MODULE_DIR"
+              cp -R "$FUNCTION_DIR"/. "$MODULE_DIR"/
+              rm -f "$MODULE_DIR/Cargo.toml" "$MODULE_DIR/Cargo.lock" \
+                    "$MODULE_DIR/go.mod" "$MODULE_DIR/go.sum"
+              mv "$MODULE_DIR/$ENTRYPOINT" "$RUNTIME_DIR/$TARGET_FILE"
+              ;;
+
+            *)
+              echo "Unknown inject mode for $LANG: $MODE" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "FUNCTION_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "RUNTIME_LANG=$LANG" >> "$GITHUB_ENV"
+          echo "RUNTIME_CONTEXT=$CONTEXT" >> "$GITHUB_ENV"
+          echo "RUNTIME_DOCKERFILE=$DOCKERFILE" >> "$GITHUB_ENV"
+          echo "IMAGE=${REGISTRY}/${IMAGE_PREFIX}/runtime-${LANG}-${REPO_NAME}-${NAME}" >> "$GITHUB_ENV"
 
       - name: Build and Push with Kaniko
-        if: env.SKIP_BUILD != 'true'
+        if: steps.select.outputs.name != ''
         uses: docker://gcr.io/kaniko-project/executor:latest
         with:
           args: >
-            --context=dir://litefunctions/runtimes/rust
-            --dockerfile=../../build/runtimes/Dockerfile.rust
-            --destination=${{ env.LATEST_TAG }}
-            --destination=${{ env.SHA_TAG }}
+            --context=dir://litefunctions/${{ env.RUNTIME_CONTEXT }}
+            --dockerfile=../../${{ env.RUNTIME_DOCKERFILE }}
+            --destination=${{ env.IMAGE }}:latest
+            --destination=${{ env.IMAGE }}:${{ gitea.sha }}
             --build-arg PROJECT=${{ needs.detect-changes.outputs.repo_name }}
             --build-arg NAME=${{ env.FUNCTION_NAME }}
             --build-arg GIT_TOKEN=${{ secrets.GITEA_TOKEN }}
@@ -277,38 +374,19 @@ jobs:
             --skip-push-permission-check
             --verbosity=info
 
-  hook-python:
+  # Dynamic path: no image build, the warm runtime reloads from git.
+  notify-dynamic:
     needs: detect-changes
-    if: needs.detect-changes.outputs.python == 'true'
+    if: needs.detect-changes.outputs.dynamic-languages != '[]'
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Python runtime hook
+      - name: Notify runtime hooks
         env:
+          DYNAMIC_LANGUAGES: ${{ needs.detect-changes.outputs.dynamic-languages }}
           REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
         run: |
-          echo "Triggering Python hook for ${REPO_NAME}"
-          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/python/${REPO_NAME}"
-
-  hook-ts:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.ts == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Notify TypeScript runtime hook
-        env:
-          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
-        run: |
-          echo "Triggering TypeScript hook for ${REPO_NAME}"
-          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/ts/${REPO_NAME}"
-
-  hook-lua:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.lua == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Notify Lua runtime hook
-        env:
-          REPO_NAME: ${{ needs.detect-changes.outputs.repo_name }}
-        run: |
-          echo "Triggering Lua hook for ${REPO_NAME}"
-          curl -fsS -X POST "http://litefunctions-ingestor:3000/hook/lua/${REPO_NAME}"
+          set -euo pipefail
+          echo "$DYNAMIC_LANGUAGES" | jq -r '.[]' | while IFS= read -r language; do
+            echo "Triggering $language runtime hook for $REPO_NAME"
+            curl -fsS -X POST "${INGESTOR_HOOK_BASE_URL}/hook/${language}/${REPO_NAME}"
+          done

@@ -18,7 +18,7 @@ LiteFunctions is a Kubernetes-native functions platform designed to run entirely
 - **Multi-language runtimes**: Go, Rust, Python, TypeScript, and Lua share the same execution model.
 - **Git-driven operations**: Functions can be updated via repository workflows and runtime hooks.
 
-Each function lives in its own directory under `functions/<language>/<name>/`. The runtime entry point is `handle.<extension>`; additional files in that directory are available to the function as package helpers. The portal editor reads and writes only the `handle.<extension>` file.
+Each function lives in its own directory under `functions/<language>/<name>/`. The runtime entry point is `handle.<extension>`; additional files in that directory are available to the function as package helpers. New functions are created as starter packages: the entrypoint, an `internal/` helper package, and a language manifest where applicable (`go.mod`, `Cargo.toml`, `pyproject.toml`, `package.json`). The portal editor reads and writes only the `handle.<extension>` file.
 
 ## Core Components
 
