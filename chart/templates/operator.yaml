@@ -44,40 +44,29 @@ spec:
         - name: REGISTRY
           value: {{ .Values.operator.registry | quote }}
         {{- end }}
-        {{- if .Values.operator.registry_user }}
         - name: VCS_USER
-          value: {{ .Values.operator.registry_user | quote }}
-        {{- else if .Values.operator.vcs_user }}
-        - name: VCS_USER
-          value: {{ .Values.operator.vcs_user | quote }}
-        {{- end }}
-        {{- if .Values.operator.vcs_base_url }}
+          value: {{ .Values.vcs.user | quote }}
         - name: VCS_BASE_URL
-          value: {{ .Values.operator.vcs_base_url | quote }}
-        {{- end }}
+          value: {{ .Values.vcs.baseUrl | quote }}
+        - name: VCS_PUBLIC_BASE_URL
+          value: {{ .Values.vcs.publicBaseUrl | quote }}
         - name: VCS_AUTH_MODE
-          value: token
+          value: {{ .Values.vcs.authMode | quote }}
         - name: VCS_VENDOR
-          value: gitea
-        {{- if .Values.operator.git_token_secret_name }}
+          value: {{ .Values.vcs.vendor | quote }}
         - name: VCS_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.operator.git_token_secret_name | quote }}
-              key: {{ .Values.operator.git_token_secret_key | default "token" | quote }}
-        {{- end }}
+              name: {{ .Values.vcs.secret | quote }}
+              key: {{ .Values.vcs.key | quote }}
         {{- if .Values.operator.pull_secret }}
         - name: PULL_SECRET
           value: {{ .Values.operator.pull_secret | quote }}
         {{- end }}
-        {{- if .Values.operator.git_token_secret_name }}
         - name: GIT_TOKEN_SECRET_NAME
-          value: {{ .Values.operator.git_token_secret_name | quote }}
-        {{- end }}
-        {{- if .Values.operator.git_token_secret_key }}
+          value: {{ .Values.vcs.secret | quote }}
         - name: GIT_TOKEN_SECRET_KEY
-          value: {{ .Values.operator.git_token_secret_key | quote }}
-        {{- end }}
+          value: {{ .Values.vcs.key | quote }}
         {{- if .Values.operator.db_secret_name }}
         - name: DB_SECRET_NAME
           value: {{ .Values.operator.db_secret_name | quote }}
