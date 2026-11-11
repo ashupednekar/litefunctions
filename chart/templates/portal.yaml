@@ -31,8 +31,8 @@ spec:
         - name: VCS_TOKEN
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.ui.vcs.secret }}
-              key: {{ .Values.ui.vcs.key }}
+              name: {{ .Values.vcs.secret }}
+              key: {{ .Values.vcs.key }}
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
@@ -41,15 +41,15 @@ spec:
         - name: FQDN
           value: {{ .Values.ui.domain | quote }}
         - name: VCS_AUTH_MODE
-          value: token
+          value: {{ .Values.vcs.authMode | quote }}
         - name: VCS_USER
-          value: {{ .Values.gitea.gitea.admin.username | quote }}
+          value: {{ .Values.vcs.user | quote }}
         - name: VCS_VENDOR
-          value: gitea
+          value: {{ .Values.vcs.vendor | quote }}
         - name: VCS_BASE_URL
-          value: {{ .Values.ui.vcs.baseUrl | quote }}
+          value: {{ .Values.vcs.baseUrl | quote }}
         - name: VCS_PUBLIC_BASE_URL
-          value: {{ .Values.ui.vcs.publicBaseUrl | quote }}
+          value: {{ .Values.vcs.publicBaseUrl | quote }}
         resources: {}
         lifecycle:
           postStart:

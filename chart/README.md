@@ -103,7 +103,16 @@ redis:
 
 operator:
   registry: localhost:30050
-  vcs_user: ashudev
+  registry_user: ashudev
+
+vcs:
+  user: ashudev
+  vendor: gitea
+  authMode: token
+  baseUrl: http://litefunctions-gitea-http:3000
+  publicBaseUrl: https://litefunctions.gitea
+  secret: litefunctions-admin-token
+  key: token
 
 ingestor:
   nats_url: litefunctions-nats:4222
@@ -141,8 +150,23 @@ images:
 ```yaml
 operator:
   registry: localhost:30050 # Container registry for function images
-  vcs_user: ashudev # VCS user for Git operations
+  registry_user: ashudev # Container registry user
   # Additional settings default in operator manager
+```
+
+#### VCS Settings
+
+The portal and operator share the VCS settings and token Secret:
+
+```yaml
+vcs:
+  user: ashudev
+  vendor: gitea
+  authMode: token
+  baseUrl: http://litefunctions-gitea-http:3000
+  publicBaseUrl: https://litefunctions.gitea
+  secret: litefunctions-admin-token
+  key: token
 ```
 
 #### Ingestor Settings
