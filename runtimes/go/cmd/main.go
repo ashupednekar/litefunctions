@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	runtime "github.com/ashupednekar/litefunctions/runtimes/go/internal"
+	runtime "runtimes/go/internal"
 )
 
 func main() {

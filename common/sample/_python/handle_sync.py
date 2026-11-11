@@ -1,13 +1,6 @@
 from fastapi import Request
-from pydantic import BaseModel
 
-
-class Input(BaseModel):
-    name: str | None = None
-
-
-class Output(BaseModel):
-    message: str
+from .internal.types import Input, Output
 
 
 async def handle(request: Request) -> Output:
