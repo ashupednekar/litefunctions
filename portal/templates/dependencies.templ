@@ -2,11 +2,10 @@ package templates
 
 templ DependenciesContent() {
 	@PageHead("Dependencies", "Manifests, lockfiles and supply-chain posture for every runtime in this project.", "Build", templ.Raw(`
-		<button class="z-btn" onclick="scanDependencies()">`+svgRefresh()+` Scan for updates</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('dep-modal')">`+svgPlus()+` Add dependency</button>
 	`))
 
-	<div class="z-grid z-grid-2" style="margin-bottom:14px">
+	<div class="z-grid z-grid-3" style="margin-bottom:14px">
 		<div class="z-stat">
 			<div class="z-stat-label">@Icon("layers", "") Packages</div>
 			<div class="z-stat-value">35</div>
@@ -16,6 +15,14 @@ templ DependenciesContent() {
 			<div class="z-stat-label">@Icon("refresh", "") Updates available</div>
 			<div class="z-stat-value">4</div>
 			<div class="z-stat-delta"><span style="color:var(--amber)">2 minor</span> <span class="z-faint">·</span> 2 patch</div>
+		</div>
+		<div class="z-stat">
+			<div class="z-stat-label">@Icon("shield", "") Vulnerabilities</div>
+			<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+				<div class="z-stat-value" style="color:var(--green)">0</div>
+				<button class="z-btn z-btn-sm" onclick="scanDependencies()">@Icon("refresh", "") Scan</button>
+			</div>
+			<div class="z-stat-delta">last scan 6m ago <span class="z-faint">·</span> advisory db current</div>
 		</div>
 	</div>
 
@@ -55,7 +62,7 @@ templ DependenciesContent() {
 			</div>
 		</div>
 
-		<div class="z-split">
+		<div>
 			<div>
 				for i, m := range dependencyManifests() {
 					<div data-tab-panel={ m.ID } style={ tabStyle(i == 0) }>
@@ -126,51 +133,6 @@ templ DependenciesContent() {
 				}
 			</div>
 
-			<aside>
-				<div class="z-panel">
-					<div class="z-panel-header">
-						<span class="z-panel-title">Supply chain</span>
-						<span class="z-badge z-badge-green" style="margin-left:auto">secure</span>
-					</div>
-					<div class="z-panel-body">
-						<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-							<div style="width:42px;height:42px;border-radius:50%;border:3px solid rgba(126,231,135,.5);display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;color:var(--green)">100</div>
-							<div style="flex:1;min-width:0">
-								<div style="font-size:11.5px;color:var(--text)">Supply-chain score</div>
-								<div class="z-help">Across 35 packages · 5 manifests</div>
-							</div>
-							<span class="z-badge z-badge-green">0 vulns</span>
-						</div>
-						<div class="z-divider"></div>
-						<dl class="z-kv">
-							<dt>Vulnerabilities</dt><dd>0 known advisories</dd>
-							<dt>Last scan</dt><dd>6 minutes ago</dd>
-							<dt>Advisory DB</dt><dd>2026.11.12</dd>
-							<dt>Licenses</dt><dd>MIT · Apache-2.0</dd>
-							<dt>SBOM</dt><dd>available</dd>
-						</dl>
-						<button class="z-btn" style="width:100%;margin-top:12px" onclick="scanDependencies()">@Icon("shield", "") Re-scan now</button>
-					</div>
-				</div>
-
-				<div class="z-panel" style="margin-top:14px">
-					<div class="z-panel-header"><span class="z-panel-title">Update policy</span></div>
-					<div class="z-panel-body">
-						<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-							<span style="font-size:11px;color:var(--text-2)">Auto-patch on sync</span>
-							<span class="z-toggle on"></span>
-						</div>
-						<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-							<span style="font-size:11px;color:var(--text-2)">Require review</span>
-							<span class="z-toggle on"></span>
-						</div>
-						<div style="display:flex;align-items:center;justify-content:space-between">
-							<span style="font-size:11px;color:var(--text-2)">Allow pre-release</span>
-							<span class="z-toggle"></span>
-						</div>
-					</div>
-				</div>
-			</aside>
 		</div>
 	</div>
 
