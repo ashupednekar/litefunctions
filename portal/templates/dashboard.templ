@@ -1,7 +1,7 @@
 package templates
 
 templ DashboardContent(data DashboardData) {
-	@PageHead("Overview", "Your project workspace, platform health and the paths you take most often.", "Workspace", templ.Raw(`
+	@PageHead("Overview", "Your project workspace, recent activity and request history.", "Workspace", templ.Raw(`
 		<a href="/functions/" class="z-btn z-btn-primary">`+svgPlus()+` New function</a>
 		<button class="z-btn" onclick="syncProject()">`+svgRefresh()+` Sync project</button>
 	`))
@@ -29,7 +29,7 @@ templ DashboardContent(data DashboardData) {
 		</div>
 	</div>
 
-	<div class="z-split">
+	<div>
 		<div>
 			<div class="z-panel">
 				<div class="z-panel-header">
@@ -132,12 +132,14 @@ templ DashboardContent(data DashboardData) {
 				</div>
 
 				<div class="z-panel" style="margin-top:14px">
-					<div class="z-panel-header">
-						<span class="z-panel-title">Recent activity</span>
-						<span class="z-panel-sub">auto-refreshed</span>
-						<div class="z-panel-actions"><a href="/audit/" class="z-btn z-btn-sm z-btn-ghost">@Icon("clock", "") View audit log</a></div>
+					<div class="z-tabs" data-tab-group style="padding:0 13px;margin:0">
+						<button class="z-tab active" data-tab="activity">Activity</button>
+						<button class="z-tab" data-tab="requests">Request log</button>
+						<div class="z-panel-actions" style="margin-left:auto;padding:5px 0">
+							<a href="/audit/" class="z-btn z-btn-sm z-btn-ghost">@Icon("clock", "") Audit log</a>
+						</div>
 					</div>
-					<div class="z-panel-body tight">
+					<div data-tab-panel="activity">
 						<div class="z-list">
 							@activityItem("Deployed", "hello-world", "Go · function deployed to production", "2m ago", "green")
 							@activityItem("Endpoint updated", "POST /lambda/orders", "Rate limit changed to 120 req/min", "18m ago", "blue")
@@ -145,55 +147,24 @@ templ DashboardContent(data DashboardData) {
 							@activityItem("Secret rotated", "STRIPE_SECRET_KEY", "Rotated by ashu", "3h ago", "amber")
 						</div>
 					</div>
-				</div>
-			}
-		</div>
-
-		<div>
-			<div class="z-panel">
-				<div class="z-panel-header">
-					<span class="z-panel-title">Platform health</span>
-					<span class="z-badge z-badge-green" style="margin-left:auto"><span class="z-dot z-dot-green"></span> operational</span>
-				</div>
-				<div class="z-panel-body tight">
-					<div class="z-list">
-						@healthRow("Portal", "API + SSR", "healthy")
-						@healthRow("Ingestor", "HTTP gateway", "healthy")
-						@healthRow("NATS JetStream", "3 nodes · clustered", "healthy")
-						@healthRow("Operator", "Reconcile loop", "healthy")
-						@healthRow("Compute", "containerd pool", "idle")
+					<div data-tab-panel="requests" style="display:none">
+						<div class="z-table-wrap">
+							<table class="z-table">
+								<thead><tr><th>Time</th><th>Method</th><th>Path</th><th>Status</th><th>Latency</th><th>Key</th></tr></thead>
+								<tbody>
+									@requestLogRow("12:44:12", "POST", "/lambda/create-order", 201, "42ms", "key_…9f2a")
+									@requestLogRow("12:44:09", "GET", "/lambda/list-orders", 200, "18ms", "key_…9f2a")
+									@requestLogRow("12:43:58", "POST", "/lambda/pay-order", 200, "112ms", "key_…11bc")
+									@requestLogRow("12:43:51", "GET", "/lambda/orders/8891", 200, "38ms", "key_…9f2a")
+									@requestLogRow("12:43:40", "POST", "/lambda/stripe-webhook", 200, "188ms", "signature")
+									@requestLogRow("12:43:37", "GET", "/lambda/orders/9999", 404, "9ms", "key_…9f2a")
+									@requestLogRow("12:43:31", "POST", "/lambda/create-order", 429, "2ms", "key_…11bc")
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
-				<div class="z-panel-foot">
-					<span class="z-mono" style="font-size:9.5px;color:var(--text-4)">last check 12s ago</span>
-					<a href="/observability/" class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto">Open observability</a>
-				</div>
-			</div>
-
-			<div class="z-panel" style="margin-top:14px">
-				<div class="z-panel-header">
-					<span class="z-panel-title">Plan usage</span>
-					<span class="z-badge z-badge-muted">self-hosted</span>
-				</div>
-				<div class="z-panel-body">
-					@usageBar("Functions", "4 of 50", 8, "")
-					@usageBar("Endpoints", "4 of 50", 8, "")
-					@usageBar("Requests / month", "38.4k of 1M", 4, "")
-					@usageBar("Queue storage", "220 MB of 4 GB", 6, "")
-				</div>
-			</div>
-
-			<div class="z-panel" style="margin-top:14px">
-				<div class="z-panel-header">
-					<span class="z-panel-title">Keyboard shortcuts</span>
-				</div>
-				<div class="z-panel-body" style="display:flex;flex-direction:column;gap:8px">
-					@shortcutRow("Command palette", "⌘ K")
-					@shortcutRow("Search functions", "⌘ F")
-					@shortcutRow("New function", "N")
-					@shortcutRow("Toggle sidebar", "[")
-				</div>
-			</div>
+			}
 		</div>
 	</div>
 
@@ -380,6 +351,17 @@ templ activityItem(title string, subject string, detail string, when string, ton
 	</div>
 }
 
+templ requestLogRow(when string, method string, path string, status int, latency string, key string) {
+	<tr>
+		<td class="z-cell-mono">{ when }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", method == "POST"), templ.KV("z-badge-blue", method == "GET"), templ.KV("z-badge-red", method == "DELETE") }>{ method }</span></td>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ path }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", status < 300), templ.KV("z-badge-amber", status == 404), templ.KV("z-badge-red", status == 429 || status >= 500) }>{ itoa(status) }</span></td>
+		<td class="z-cell-mono">{ latency }</td>
+		<td class="z-cell-mono">{ key }</td>
+	</tr>
+}
+
 templ healthRow(name string, detail string, status string) {
 	<div class="z-list-item">
 		<span class={ "z-dot", templ.KV("z-dot-green", status == "healthy"), templ.KV("z-dot-blue", status == "idle") }></span>
@@ -388,24 +370,5 @@ templ healthRow(name string, detail string, status string) {
 			<div class="z-list-sub">{ detail }</div>
 		</div>
 		<span class="z-badge z-badge-muted">{ status }</span>
-	</div>
-}
-
-templ usageBar(label string, value string, pct int, tone string) {
-	<div style="margin-bottom:11px">
-		<div style="display:flex;justify-content:space-between;margin-bottom:5px">
-			<span style="font-size:10.5px;color:var(--text-3)">{ label }</span>
-			<span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ value }</span>
-		</div>
-		<div class={ "z-progress", templ.KV("green", tone == "green"), templ.KV("amber", tone == "amber") }>
-			<span style={ "width: " + itoa(pct) + "%" }></span>
-		</div>
-	</div>
-}
-
-templ shortcutRow(label string, keys string) {
-	<div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--text-3)">
-		<span>{ label }</span>
-		<span class="z-kbd">{ keys }</span>
 	</div>
 }

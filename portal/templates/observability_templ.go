@@ -29,7 +29,7 @@ func ObservabilityContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Observability", "Metrics, logs and traces for every function and endpoint. Olly embeds server-rendered panels backed by Grafana.", "Operate", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Observability", "Metrics, logs and traces for every function and endpoint, with SLOs and trace waterfalls.", "Operate", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('slo-modal')">`+svgPlus()+` New SLO</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)
@@ -144,7 +144,7 @@ func ObservabilityContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = healthRow("olly", "grafana proxy", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = healthRow("grafana", "datasource · prometheus", "healthy").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -101,10 +101,6 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = NavItem("/endpoints/", "Endpoints", "route", data.Active == "endpoints", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div class=\"z-nav-section\"><div class=\"z-nav-label\">Build</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -146,10 +142,6 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = NavItem("/observability/", "Observability", "activity", data.Active == "observability", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = NavItem("/deployments/", "Deployments", "rocket", data.Active == "deployments", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -208,7 +200,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(data.Section)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 91, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 89, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -221,13 +213,23 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(data.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 93, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 91, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></div><div class=\"z-titlebar-spacer\"></div><button class=\"z-cmd-trigger\" onclick=\"openSpotlight()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if data.Dummy {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span class=\"z-badge z-badge-amber\" title=\"Fixture data — actions on this page are placeholders\">dummy data</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"z-titlebar-spacer\"></div><button class=\"z-cmd-trigger\" onclick=\"openSpotlight()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -235,33 +237,33 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span>Search workspace…</span> <span class=\"z-kbd\">⌘</span><span class=\"z-kbd\">K</span></button> <span class=\"z-badge z-badge-green\" title=\"Platform healthy\" style=\"height:24px\"><span class=\"z-dot z-dot-green\"></span> Live</span><div style=\"position:relative\"><button class=\"z-user-chip\" data-user-menu-btn><span class=\"z-user-avatar\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span>Search workspace…</span> <span class=\"z-kbd\">⌘</span><span class=\"z-kbd\">K</span></button> <span class=\"z-badge z-badge-green\" title=\"Platform healthy\" style=\"height:24px\"><span class=\"z-dot z-dot-green\"></span> Live</span><div style=\"position:relative\"><button class=\"z-user-chip\" data-user-menu-btn><span class=\"z-user-avatar\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(userInitial(data.Username))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 106, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 107, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> <span class=\"z-user-name\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> <span class=\"z-user-name\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 107, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 108, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -269,46 +271,46 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</button><div id=\"user-menu\" class=\"z-user-menu\"><div class=\"z-user-menu-head\"><div class=\"z-user-avatar\" style=\"width:28px;height:28px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</button><div id=\"user-menu\" class=\"z-user-menu\"><div class=\"z-user-menu-head\"><div class=\"z-user-avatar\" style=\"width:28px;height:28px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(userInitial(data.Username))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 112, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 113, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div><div><div style=\"font-size:11.5px;color:var(--text)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><div><div style=\"font-size:11.5px;color:var(--text)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 114, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 115, Col: 73}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div style=\"font-size:10px;color:var(--text-3)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div><div style=\"font-size:10px;color:var(--text-3)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(data.Role)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 115, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 116, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div></div><a href=\"/dashboard/\" class=\"z-user-menu-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div></div></div><a href=\"/dashboard/\" class=\"z-user-menu-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -316,7 +318,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "Workspace overview</a> <a href=\"/configuration/\" class=\"z-user-menu-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Workspace overview</a> <a href=\"/configuration/\" class=\"z-user-menu-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -324,7 +326,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Project settings</a><div class=\"z-user-menu-sep\"></div><a href=\"/logout/\" class=\"z-user-menu-item danger\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "Project settings</a><div class=\"z-user-menu-sep\"></div><a href=\"/logout/\" class=\"z-user-menu-item danger\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -332,7 +334,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Sign out</a></div></div></header><main class=\"z-content\"><div class=\"z-content-inner\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "Sign out</a></div></div></header><main class=\"z-content\"><div class=\"z-content-inner\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -340,7 +342,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div></main><footer class=\"z-statusbar\"><span class=\"z-status-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div></main><footer class=\"z-statusbar\"><span class=\"z-status-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -348,7 +350,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "ui_overhaul</span> <span class=\"z-status-item z-status-hide-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "ui_overhaul</span> <span class=\"z-status-item z-status-hide-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -364,7 +366,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "projectLabel(data.ProjectName) ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "projectLabel(data.ProjectName) ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -374,7 +376,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</span> <span class=\"z-status-item z-status-hide-sm\"><span class=\"z-status-dot\"></span> NATS connected</span> <span class=\"z-status-item z-status-hide-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span> <span class=\"z-status-item z-status-hide-sm\"><span class=\"z-status-dot\"></span> NATS connected</span> <span class=\"z-status-item z-status-hide-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -382,7 +384,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "local-cluster</span> <span class=\"z-status-spacer\"></span> <span class=\"z-status-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "local-cluster</span> <span class=\"z-status-spacer\"></span> <span class=\"z-status-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -390,7 +392,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "Go 1.26</span> <span class=\"z-status-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "Go 1.26</span> <span class=\"z-status-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -398,7 +400,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "12ms</span> <span class=\"z-status-item\" onclick=\"openSpotlight()\" style=\"cursor:pointer\">⌘K commands</span></footer></div></div><div id=\"toast-container\"></div><div id=\"spotlight-modal\" class=\"z-spotlight\" onclick=\"closeSpotlight()\"><div class=\"z-spotlight-box\" onclick=\"event.stopPropagation()\"><div class=\"z-spotlight-input-row\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "12ms</span> <span class=\"z-status-item\" onclick=\"openSpotlight()\" style=\"cursor:pointer\">⌘K commands</span></footer></div></div><div id=\"toast-container\"></div><div id=\"spotlight-modal\" class=\"z-spotlight\" onclick=\"closeSpotlight()\"><div class=\"z-spotlight-box\" onclick=\"event.stopPropagation()\"><div class=\"z-spotlight-input-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -406,7 +408,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<input id=\"spotlight-input\" class=\"z-spotlight-input\" type=\"text\" placeholder=\"Jump to a page, function, or endpoint…\" autocomplete=\"off\"> <span class=\"z-kbd\">esc</span></div><div id=\"spotlight-results\" class=\"z-spotlight-results\"></div><div class=\"z-spotlight-foot\"><span><span class=\"z-kbd\">↑</span><span class=\"z-kbd\">↓</span> navigate</span> <span><span class=\"z-kbd\">↵</span> open</span> <span style=\"margin-left:auto\">Litefunctions command palette</span></div></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<input id=\"spotlight-input\" class=\"z-spotlight-input\" type=\"text\" placeholder=\"Jump to a page, function, or endpoint…\" autocomplete=\"off\"> <span class=\"z-kbd\">esc</span></div><div id=\"spotlight-results\" class=\"z-spotlight-results\"></div><div class=\"z-spotlight-foot\"><span><span class=\"z-kbd\">↑</span><span class=\"z-kbd\">↓</span> navigate</span> <span><span class=\"z-kbd\">↵</span> open</span> <span style=\"margin-left:auto\">Litefunctions command palette</span></div></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -435,7 +437,7 @@ func AuthLayout(content templ.Component) templ.Component {
 			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Litefunctions · Self-hosted functions</title><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/js/portal.js\" defer></script></head><body><div class=\"z-auth\"><nav class=\"z-auth-nav\"><a href=\"/\" class=\"z-brand\" style=\"border:0;padding:0;height:auto\"><span class=\"z-brand-mark\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"></path></svg></span> <span class=\"z-brand-name\">litefunctions</span></a> <span class=\"z-badge\" style=\"margin-left:8px\">self-hosted</span><div style=\"margin-left:auto;display:flex;gap:8px;align-items:center\"><a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-ghost z-btn-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Litefunctions · Self-hosted functions</title><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/js/portal.js\" defer></script></head><body><div class=\"z-auth\"><nav class=\"z-auth-nav\"><a href=\"/\" class=\"z-brand\" style=\"border:0;padding:0;height:auto\"><span class=\"z-brand-mark\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"></path></svg></span> <span class=\"z-brand-name\">litefunctions</span></a> <span class=\"z-badge\" style=\"margin-left:8px\">self-hosted</span><div style=\"margin-left:auto;display:flex;gap:8px;align-items:center\"><a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-ghost z-btn-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -443,7 +445,7 @@ func AuthLayout(content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "Docs</a> <a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "Docs</a> <a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -451,7 +453,7 @@ func AuthLayout(content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "GitHub</a></div></nav><div class=\"z-auth-body\"><div class=\"z-auth-grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "GitHub</a></div></nav><div class=\"z-auth-body\"><div class=\"z-auth-grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -459,7 +461,7 @@ func AuthLayout(content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div></div></div><div id=\"toast-container\"></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div></div></div><div id=\"toast-container\"></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -40,7 +40,6 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							<div class="z-nav-label">Workspace</div>
 							@NavItem("/dashboard/", "Overview", "grid", data.Active == "overview", "")
 							@NavItem("/functions/", "Functions", "code", data.Active == "functions", "")
-							@NavItem("/endpoints/", "Endpoints", "route", data.Active == "endpoints", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Build</div>
@@ -58,7 +57,6 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							@NavItem("/traffic/", "Traffic · Gateway", "shield", data.Active == "traffic", "")
 							@NavItem("/compute/", "Compute · Isolation", "cpu", data.Active == "compute", "FUTURE")
 							@NavItem("/observability/", "Observability", "activity", data.Active == "observability", "")
-							@NavItem("/deployments/", "Deployments", "rocket", data.Active == "deployments", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Project settings</div>
@@ -92,6 +90,9 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							<span class="z-crumb-sep">/</span>
 							<span class="z-crumb-current">{ data.Title }</span>
 						</div>
+						if data.Dummy {
+							<span class="z-badge z-badge-amber" title="Fixture data — actions on this page are placeholders">dummy data</span>
+						}
 						<div class="z-titlebar-spacer"></div>
 						<button class="z-cmd-trigger" onclick="openSpotlight()">
 							@Icon("search", "")

@@ -1,7 +1,7 @@
 package templates
 
 templ ObservabilityContent() {
-	@PageHead("Observability", "Metrics, logs and traces for every function and endpoint. Olly embeds server-rendered panels backed by Grafana.", "Operate", templ.Raw(`
+	@PageHead("Observability", "Metrics, logs and traces for every function and endpoint, with SLOs and trace waterfalls.", "Operate", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('slo-modal')">`+svgPlus()+` New SLO</button>
 	`))
@@ -77,7 +77,7 @@ templ ObservabilityContent() {
 					@healthRow("portal", "api + ssr · 2 replicas", "healthy")
 					@healthRow("NATS JetStream", "3 nodes · quorum", "healthy")
 					@healthRow("orders-db", "postgres 16 · pool 8/20", "healthy")
-					@healthRow("olly", "grafana proxy", "healthy")
+					@healthRow("grafana", "datasource · prometheus", "healthy")
 				</div>
 			</div>
 		</div>

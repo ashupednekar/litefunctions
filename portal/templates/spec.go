@@ -71,6 +71,20 @@ type ShellData struct {
 	Role        string
 	ProjectID   string
 	ProjectName string
+	// Dummy is true when the page renders fixture data instead of live data.
+	// The shell shows a "dummy data" badge so it is never mistaken for real state.
+	Dummy bool
+}
+
+// PageUsesDummyData lists the UI-only surfaces that currently render fixtures.
+func PageUsesDummyData(active string) bool {
+	switch active {
+	case "overview", "dependencies", "data-model", "agent", "data",
+		"pubsub", "traffic", "compute", "observability", "configuration",
+		"access", "audit":
+		return true
+	}
+	return false
 }
 
 func projectLabel(name string) string {

@@ -52,6 +52,7 @@ func shellData(ctx *gin.Context, title string, section string, active string) te
 		Role:        "owner",
 		ProjectID:   projectID,
 		ProjectName: projectName,
+		Dummy:       templates.PageUsesDummyData(active),
 	}
 }
 
@@ -138,6 +139,7 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 		Role:        data.ActiveRole,
 		ProjectID:   activeProjectID,
 		ProjectName: data.ActiveProject,
+		Dummy:       true,
 	}
 	if shell.Role == "" {
 		shell.Role = "owner"
@@ -239,7 +241,7 @@ func (h *UIHandlers) Data(ctx *gin.Context) {
 	}
 }
 
-func (h *UIHandlers) Endpoints(ctx *gin.Context) {
+func (h *UIHandlers) loadEndpoints(ctx *gin.Context) []templates.Endpoint {
 	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
 	q := endpointAdaptors.New(h.state.DBPool)
 
@@ -262,15 +264,16 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 	} else {
 		slog.Error("failed to list endpoints", "project", projUUID, "error", err)
 	}
+	return endpoints
+}
 
-	page := templates.BaseLayout(
-		shellData(ctx, "Endpoints", "Workspace", "endpoints"),
-		templates.EndpointsContent(endpoints),
-	)
-
-	if err := page.Render(ctx, ctx.Writer); err != nil {
-		slog.Error("page render failed", "error", err)
+func (h *UIHandlers) Endpoints(ctx *gin.Context) {
+	// Endpoints now live inside Traffic · Gateway. Keep the old path as an alias.
+	target := "/traffic/"
+	if q := ctx.Request.URL.RawQuery; q != "" {
+		target += "?" + q
 	}
+	ctx.Redirect(http.StatusFound, target)
 }
 
 func (h *UIHandlers) Configuration(ctx *gin.Context) {
@@ -327,7 +330,7 @@ func (h *UIHandlers) PubSub(ctx *gin.Context) {
 func (h *UIHandlers) Traffic(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Traffic · Gateway", "Operate", "traffic"),
-		templates.TrafficContent(),
+		templates.TrafficContent(h.loadEndpoints(ctx)),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		slog.Error("page render failed", "error", err)
@@ -348,16 +351,6 @@ func (h *UIHandlers) Observability(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Observability", "Operate", "observability"),
 		templates.ObservabilityContent(),
-	)
-	if err := page.Render(ctx, ctx.Writer); err != nil {
-		slog.Error("page render failed", "error", err)
-	}
-}
-
-func (h *UIHandlers) Deployments(ctx *gin.Context) {
-	page := templates.BaseLayout(
-		shellData(ctx, "Deployments", "Operate", "deployments"),
-		templates.DeploymentsContent(),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		slog.Error("page render failed", "error", err)

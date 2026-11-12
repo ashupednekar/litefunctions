@@ -84,7 +84,7 @@ func DataContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">PAYMENTS</div><div class=\"z-list-sub\">384k messages · 96 MB</div></div><span class=\"z-badge z-badge-green\">healthy</span></div></div></div><div class=\"z-panel-foot\"><span class=\"z-help\">Open Pub/Sub · Olly</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">PAYMENTS</div><div class=\"z-list-sub\">384k messages · 96 MB</div></div><span class=\"z-badge z-badge-green\">healthy</span></div></div></div><div class=\"z-panel-foot\"><span class=\"z-help\">Open Pub/Sub</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

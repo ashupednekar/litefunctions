@@ -5,7 +5,7 @@
   const navItems = [
     { group: "Navigate", label: "Overview", href: "/dashboard/", icon: "grid", keys: "g o" },
     { group: "Navigate", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
-    { group: "Navigate", label: "Endpoints", href: "/endpoints/", icon: "route", keys: "g e" },
+    { group: "Navigate", label: "Endpoints & routes", href: "/traffic/", icon: "route", keys: "g e" },
     { group: "Build", label: "Dependencies", href: "/dependencies/", icon: "package" },
     { group: "Build", label: "Data Model", href: "/data-model/", icon: "database" },
     { group: "Build", label: "Agentic Planner", href: "/agent/", icon: "sparkles" },
@@ -14,7 +14,6 @@
     { group: "Operate", label: "Traffic · Gateway", href: "/traffic/", icon: "shield" },
     { group: "Operate", label: "Compute · Isolation", href: "/compute/", icon: "cpu" },
     { group: "Operate", label: "Observability", href: "/observability/", icon: "activity" },
-    { group: "Operate", label: "Deployments", href: "/deployments/", icon: "rocket" },
     { group: "Settings", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
     { group: "Settings", label: "Team & Access", href: "/access/", icon: "users" },
     { group: "Settings", label: "Audit Log", href: "/audit/", icon: "clock" }
@@ -111,7 +110,8 @@
     group.querySelectorAll("[data-tab]").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     const target = tab.getAttribute("data-tab");
-    group.querySelectorAll("[data-tab-panel]").forEach(p => {
+    const scope = group.parentElement || group;
+    scope.querySelectorAll("[data-tab-panel]").forEach(p => {
       p.style.display = p.getAttribute("data-tab-panel") === target ? "" : "none";
     });
   });
@@ -218,12 +218,12 @@
 
   window.selectEndpointFromSpotlight = function (epId) {
     closeSpotlight();
-    if (window.location.pathname === "/endpoints/") {
+    if (window.location.pathname === "/traffic/") {
       if (typeof expandEndpointById === "function") expandEndpointById(epId);
       const target = document.getElementById("endpoint-" + epId);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
-      window.location.href = "/endpoints/?expand=" + encodeURIComponent(epId);
+      window.location.href = "/traffic/?expand=" + encodeURIComponent(epId);
     }
   };
 

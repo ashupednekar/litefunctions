@@ -1,26 +1,40 @@
 package templates
 
-templ TrafficContent() {
-	@PageHead("Traffic · Gateway", "Routes, rate limits, auth and resilience policies at the edge. Own the API gateway without editing YAML by hand.", "Operate", templ.Raw(`
+templ TrafficContent(endpoints []Endpoint) {
+	@PageHead("Traffic · Gateway", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Operate", templ.Raw(`
 		<button class="z-btn" onclick="toast('Policy templates are a placeholder','info')">`+svgShield()+` Policy templates</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('route-modal')">`+svgPlus()+` New route</button>
 	`))
 
 	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("route", "") Endpoints</div><div class="z-stat-value">{ itoa(len(endpoints)) }</div><div class="z-stat-delta">auto-generated <span class="z-faint">·</span> HTTP + WS</div></div>
 		<div class="z-stat"><div class="z-stat-label">@Icon("activity", "") Requests · 24h</div><div class="z-stat-value">284<small>k</small></div><div class="z-stat-delta"><span class="z-delta-up">▲ 9.2%</span> vs yesterday</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("alert", "") Error rate</div><div class="z-stat-value" style="color:var(--green)">0.04<small>%</small></div><div class="z-stat-delta">112 responses <span class="z-faint">·</span> mostly 404</div></div>
 		<div class="z-stat"><div class="z-stat-label">@Icon("shield", "") Rate limited</div><div class="z-stat-value">1,842</div><div class="z-stat-delta">0.65% of traffic <span class="z-faint">·</span> 12 keys</div></div>
 		<div class="z-stat"><div class="z-stat-label">@Icon("gauge", "") P95 latency</div><div class="z-stat-value">48<small>ms</small></div><div class="z-stat-delta">edge + function <span class="z-faint">·</span> SLO 120ms</div></div>
 	</div>
 
 	<div class="z-tabs" data-tab-group>
-		<button class="z-tab active" data-tab="routes">Routes <span class="z-badge z-badge-muted">6</span></button>
+		<button class="z-tab active" data-tab="endpoints">Endpoints <span class="z-badge z-badge-muted">{ itoa(len(endpoints)) }</span></button>
+		<button class="z-tab" data-tab="routes">Gateway routes <span class="z-badge z-badge-muted">6</span></button>
 		<button class="z-tab" data-tab="limits">Rate limits</button>
 		<button class="z-tab" data-tab="policies">Policies</button>
 		<button class="z-tab" data-tab="analytics">Analytics</button>
 	</div>
 
-	<div data-tab-panel="routes">
+	<div data-tab-panel="endpoints">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Endpoints</span>
+				<span class="z-panel-sub">auto-mapped from deployed functions</span>
+				<div class="z-panel-actions">
+					<a class="z-btn z-btn-sm" href="/functions/">@Icon("plus", "") New from function</a>
+				</div>
+			</div>
+			@EndpointsContent(endpoints, false)
+		</div>
+	</div>
+
+	<div data-tab-panel="routes" style="display:none">
 		<div class="z-panel">
 			<div class="z-panel-header">
 				<span class="z-panel-title">Gateway routes</span>
@@ -47,55 +61,6 @@ templ TrafficContent() {
 				<span class="z-help">Routes are generated from function endpoints. Edits here become gateway policy overrides.</span>
 				<span class="z-badge z-badge-green" style="margin-left:auto"><span class="z-dot z-dot-green"></span> synced</span>
 			</div>
-		</div>
-
-		<div class="z-split" style="margin-top:14px">
-			<div class="z-panel">
-				<div class="z-panel-header"><span class="z-panel-title">Request path</span><span class="z-panel-sub">edge → function</span></div>
-				<div class="z-panel-body">
-					<div class="z-flow">
-						<div class="z-flow-node"><span class="z-list-icon">@Icon("globe", "")</span><div><div class="z-list-title">Client</div><div class="z-list-sub">HTTPS · TLS 1.3</div></div></div>
-						<span class="z-flow-arrow">@Icon("arrow-right", "")</span>
-						<div class="z-flow-node accent"><span class="z-list-icon">@Icon("shield", "")</span><div><div class="z-list-title">Gateway</div><div class="z-list-sub">istio · WAF</div></div></div>
-						<span class="z-flow-arrow">@Icon("arrow-right", "")</span>
-						<div class="z-flow-node"><span class="z-list-icon">@Icon("lock", "")</span><div><div class="z-list-title">Auth</div><div class="z-list-sub">key / jwt</div></div></div>
-						<span class="z-flow-arrow">@Icon("arrow-right", "")</span>
-						<div class="z-flow-node"><span class="z-list-icon">@Icon("gauge", "")</span><div><div class="z-list-title">Limiter</div><div class="z-list-sub">redis token bucket</div></div></div>
-						<span class="z-flow-arrow">@Icon("arrow-right", "")</span>
-						<div class="z-flow-node"><span class="z-list-icon">@Icon("code", "")</span><div><div class="z-list-title">Function</div><div class="z-list-sub">go · 42ms p95</div></div></div>
-					</div>
-					<div class="z-divider"></div>
-					<div class="z-grid z-grid-3">
-						<div><div class="z-stat-label">TLS handshake</div><div style="font-size:15px;margin-top:4px">4<small class="z-muted">ms</small></div></div>
-						<div><div class="z-stat-label">Gateway overhead</div><div style="font-size:15px;margin-top:4px">2<small class="z-muted">ms</small></div></div>
-						<div><div class="z-stat-label">Function p95</div><div style="font-size:15px;margin-top:4px">42<small class="z-muted">ms</small></div></div>
-					</div>
-				</div>
-			</div>
-			<aside>
-				<div class="z-panel">
-					<div class="z-panel-header"><span class="z-panel-title">Edge health</span><span class="z-badge z-badge-green" style="margin-left:auto">healthy</span></div>
-					<div class="z-panel-body">
-						<dl class="z-kv">
-							<dt>Gateway class</dt><dd>istio</dd>
-							<dt>Listeners</dt><dd>80, 443</dd>
-							<dt>TLS secret</dt><dd>gateway-tls</dd>
-							<dt>Upstreams</dt><dd>1 ingestor</dd>
-							<dt>WAF</dt><dd>not configured</dd>
-						</dl>
-					</div>
-				</div>
-				<div class="z-panel" style="margin-top:14px">
-					<div class="z-panel-header"><span class="z-panel-title">Top offenders</span></div>
-					<div class="z-panel-body tight">
-						<div class="z-list">
-							<div class="z-list-item"><span class="z-list-icon">@Icon("key", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10px">key_…9f2a</div><div class="z-list-sub">841 limited requests</div></div><span class="z-badge z-badge-red">429</span></div>
-							<div class="z-list-item"><span class="z-list-icon">@Icon("key", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10px">key_…11bc</div><div class="z-list-sub">512 limited requests</div></div><span class="z-badge z-badge-amber">429</span></div>
-							<div class="z-list-item"><span class="z-list-icon">@Icon("globe", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10px">203.0.113.42</div><div class="z-list-sub">384 limited requests</div></div><span class="z-badge z-badge-amber">429</span></div>
-						</div>
-					</div>
-				</div>
-			</aside>
 		</div>
 	</div>
 

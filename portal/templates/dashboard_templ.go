@@ -29,7 +29,7 @@ func DashboardContent(data DashboardData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Overview", "Your project workspace, platform health and the paths you take most often.", "Workspace", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Overview", "Your project workspace, recent activity and request history.", "Workspace", templ.Raw(`
 		<a href="/functions/" class="z-btn z-btn-primary">`+svgPlus()+` New function</a>
 		<button class="z-btn" onclick="syncProject()">`+svgRefresh()+` Sync project</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)
@@ -94,7 +94,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "P95 latency</div><div class=\"z-stat-value\">42<small>ms</small></div><div class=\"z-stat-delta\"><span class=\"z-delta-up\">▼ 9ms</span> <span class=\"z-faint\">·</span> 0 errors</div></div></div><div class=\"z-split\"><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Your projects</span> <span class=\"z-badge z-badge-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "P95 latency</div><div class=\"z-stat-value\">42<small>ms</small></div><div class=\"z-stat-delta\"><span class=\"z-delta-up\">▼ 9ms</span> <span class=\"z-faint\">·</span> 0 errors</div></div></div><div><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Your projects</span> <span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -446,7 +446,7 @@ func DashboardContent(data DashboardData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</a></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Recent activity</span> <span class=\"z-panel-sub\">auto-refreshed</span><div class=\"z-panel-actions\"><a href=\"/audit/\" class=\"z-btn z-btn-sm z-btn-ghost\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</a></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-tabs\" data-tab-group style=\"padding:0 13px;margin:0\"><button class=\"z-tab active\" data-tab=\"activity\">Activity</button> <button class=\"z-tab\" data-tab=\"requests\">Request log</button><div class=\"z-panel-actions\" style=\"margin-left:auto;padding:5px 0\"><a href=\"/audit/\" class=\"z-btn z-btn-sm z-btn-ghost\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -454,7 +454,7 @@ func DashboardContent(data DashboardData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "View audit log</a></div></div><div class=\"z-panel-body tight\"><div class=\"z-list\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "Audit log</a></div></div><div data-tab-panel=\"activity\"><div class=\"z-list\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -474,76 +474,44 @@ func DashboardContent(data DashboardData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div></div><div data-tab-panel=\"requests\" style=\"display:none\"><div class=\"z-table-wrap\"><table class=\"z-table\"><thead><tr><th>Time</th><th>Method</th><th>Path</th><th>Status</th><th>Latency</th><th>Key</th></tr></thead> <tbody>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:44:12", "POST", "/lambda/create-order", 201, "42ms", "key_…9f2a").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:44:09", "GET", "/lambda/list-orders", 200, "18ms", "key_…9f2a").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:43:58", "POST", "/lambda/pay-order", 200, "112ms", "key_…11bc").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:43:51", "GET", "/lambda/orders/8891", 200, "38ms", "key_…9f2a").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:43:40", "POST", "/lambda/stripe-webhook", 200, "188ms", "signature").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:43:37", "GET", "/lambda/orders/9999", 404, "9ms", "key_…9f2a").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = requestLogRow("12:43:31", "POST", "/lambda/create-order", 429, "2ms", "key_…11bc").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</tbody></table></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Platform health</span> <span class=\"z-badge z-badge-green\" style=\"margin-left:auto\"><span class=\"z-dot z-dot-green\"></span> operational</span></div><div class=\"z-panel-body tight\"><div class=\"z-list\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = healthRow("Portal", "API + SSR", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = healthRow("Ingestor", "HTTP gateway", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = healthRow("NATS JetStream", "3 nodes · clustered", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = healthRow("Operator", "Reconcile loop", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = healthRow("Compute", "containerd pool", "idle").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-4)\">last check 12s ago</span> <a href=\"/observability/\" class=\"z-btn z-btn-sm z-btn-ghost\" style=\"margin-left:auto\">Open observability</a></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Plan usage</span> <span class=\"z-badge z-badge-muted\">self-hosted</span></div><div class=\"z-panel-body\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = usageBar("Functions", "4 of 50", 8, "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = usageBar("Endpoints", "4 of 50", 8, "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = usageBar("Requests / month", "38.4k of 1M", 4, "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = usageBar("Queue storage", "220 MB of 4 GB", 6, "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Keyboard shortcuts</span></div><div class=\"z-panel-body\" style=\"display:flex;flex-direction:column;gap:8px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = shortcutRow("Command palette", "⌘ K").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = shortcutRow("Search functions", "⌘ F").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = shortcutRow("New function", "N").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = shortcutRow("Toggle sidebar", "[").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div></div></div></div><!-- ACCESS MODAL --><div id=\"access-modal\" class=\"z-modal-backdrop\" onclick=\"closeAccessModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div></div><!-- ACCESS MODAL --><div id=\"access-modal\" class=\"z-modal-backdrop\" onclick=\"closeAccessModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -551,7 +519,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<span class=\"z-modal-title\">Project access</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<span class=\"z-modal-title\">Project access</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -559,7 +527,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</button></div><div class=\"z-modal-body\"><div id=\"access-list\" class=\"z-list\" style=\"border:1px solid var(--border);border-radius:6px;overflow:hidden\"></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Close</button></div></div></div><!-- INVITE MODAL --><div id=\"invite-modal\" class=\"z-modal-backdrop\" onclick=\"closeInviteModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</button></div><div class=\"z-modal-body\"><div id=\"access-list\" class=\"z-list\" style=\"border:1px solid var(--border);border-radius:6px;overflow:hidden\"></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Close</button></div></div></div><!-- INVITE MODAL --><div id=\"invite-modal\" class=\"z-modal-backdrop\" onclick=\"closeInviteModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -567,7 +535,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"z-modal-title\">Invite teammate</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<span class=\"z-modal-title\">Invite teammate</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -575,7 +543,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin-top:0\">Generate a one-time invite code. Codes expire in 24 hours.</p><div class=\"z-input-group\" style=\"margin-top:12px\"><input id=\"invite-code-input\" readonly class=\"z-input z-mono\" style=\"text-align:center;font-size:14px;letter-spacing:.2em\" value=\"…\"> <button onclick=\"copyInviteCode()\" class=\"z-btn z-btn-primary\">Copy</button></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Dismiss</button></div></div></div><!-- JOIN MODAL --><div id=\"join-modal\" class=\"z-modal-backdrop\" onclick=\"closeJoinModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin-top:0\">Generate a one-time invite code. Codes expire in 24 hours.</p><div class=\"z-input-group\" style=\"margin-top:12px\"><input id=\"invite-code-input\" readonly class=\"z-input z-mono\" style=\"text-align:center;font-size:14px;letter-spacing:.2em\" value=\"…\"> <button onclick=\"copyInviteCode()\" class=\"z-btn z-btn-primary\">Copy</button></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Dismiss</button></div></div></div><!-- JOIN MODAL --><div id=\"join-modal\" class=\"z-modal-backdrop\" onclick=\"closeJoinModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -583,7 +551,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"z-modal-title\">Join a project</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"z-modal-title\">Join a project</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -591,7 +559,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin-top:0\">Enter the 8-character code shared by the project owner.</p><input id=\"join-code-input\" class=\"z-input z-mono\" style=\"margin-top:12px;text-align:center;letter-spacing:.3em;font-size:15px\" placeholder=\"ABCDEFGH\"></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"submitJoinInvite()\">Verify & join</button></div></div></div><!-- NEW PROJECT MODAL --><div id=\"project-modal\" class=\"z-modal-backdrop\" onclick=\"closeProjectModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin-top:0\">Enter the 8-character code shared by the project owner.</p><input id=\"join-code-input\" class=\"z-input z-mono\" style=\"margin-top:12px;text-align:center;letter-spacing:.3em;font-size:15px\" placeholder=\"ABCDEFGH\"></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"submitJoinInvite()\">Verify & join</button></div></div></div><!-- NEW PROJECT MODAL --><div id=\"project-modal\" class=\"z-modal-backdrop\" onclick=\"closeProjectModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -599,7 +567,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<span class=\"z-modal-title\">Create project</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"z-modal-title\">Create project</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -607,7 +575,7 @@ func DashboardContent(data DashboardData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\" for=\"new-project-name\">Project name</label> <input id=\"new-project-name\" class=\"z-input\" placeholder=\"My workspace\"> <span class=\"z-help\">A Git repository and namespace will be provisioned for this project.</span></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"submitNewProject()\">Initialize project</button></div></div></div><script>\n\t\tfunction selectProject(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tlocation.reload();\n\t\t}\n\t\tfunction openProjectModal() { zOpenModal(\"project-modal\"); }\n\t\tfunction closeProjectModal() { zCloseModal(\"project-modal\"); }\n\t\tfunction openJoinModal() { zOpenModal(\"join-modal\"); }\n\t\tfunction closeJoinModal() { zCloseModal(\"join-modal\"); }\n\t\tfunction openAccessModal(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tzOpenModal(\"access-modal\");\n\t\t\tloadProjectAccess();\n\t\t}\n\t\tfunction closeAccessModal() { zCloseModal(\"access-modal\"); }\n\t\tfunction openInviteModal(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tzOpenModal(\"invite-modal\");\n\t\t\tfetch(\"/api/projects/invites/\", {method: \"POST\"})\n\t\t\t\t.then(r => r.json())\n\t\t\t\t.then(data => { document.getElementById(\"invite-code-input\").value = data.code || \"--------\"; })\n\t\t\t\t.catch(() => { document.getElementById(\"invite-code-input\").value = \"--------\"; });\n\t\t}\n\t\tfunction closeInviteModal() { zCloseModal(\"invite-modal\"); }\n\t\tfunction copyInviteCode() {\n\t\t\tconst input = document.getElementById(\"invite-code-input\");\n\t\t\tinput.select();\n\t\t\tnavigator.clipboard.writeText(input.value).then(() => toast(\"Invite code copied\", \"success\"));\n\t\t}\n\t\tasync function submitNewProject() {\n\t\t\tconst name = document.getElementById(\"new-project-name\").value.trim();\n\t\t\tif (!name) return;\n\t\t\ttry {\n\t\t\t\tawait fetch(\"/api/projects/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\"},\n\t\t\t\t\tbody: JSON.stringify({name})\n\t\t\t\t});\n\t\t\t\tcloseProjectModal();\n\t\t\t\tlocation.reload();\n\t\t\t} catch (e) { toast(\"Could not create project\", \"error\"); }\n\t\t}\n\t\tasync function submitJoinInvite() {\n\t\t\tconst code = document.getElementById(\"join-code-input\").value.trim();\n\t\t\tif (!code) return;\n\t\t\tconst res = await fetch(\"/api/projects/join/?code=\" + encodeURIComponent(code), {method: \"POST\"});\n\t\t\tif (res.ok) {\n\t\t\t\tconst data = await res.json();\n\t\t\t\tdocument.cookie = \"lws_project=\" + data.project_id + \"; path=/; SameSite=Lax\";\n\t\t\t\tlocation.reload();\n\t\t\t} else {\n\t\t\t\tconst data = await res.json().catch(() => ({}));\n\t\t\t\ttoast(data.error || \"Failed to join project\", \"error\");\n\t\t\t}\n\t\t}\n\t\tasync function syncProject() {\n\t\t\ttry {\n\t\t\t\tawait fetch(\"/api/projects/sync/\", {method: \"POST\"});\n\t\t\t\ttoast(\"Project sync started\", \"success\");\n\t\t\t\tsetTimeout(() => location.reload(), 600);\n\t\t\t} catch (e) { toast(\"Sync failed\", \"error\"); }\n\t\t}\n\t\tasync function loadProjectAccess() {\n\t\t\tconst list = document.getElementById(\"access-list\");\n\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">Loading members…</div></div>';\n\t\t\ttry {\n\t\t\t\tconst res = await fetch(\"/api/projects/access/\");\n\t\t\t\tconst users = await res.json();\n\t\t\t\tif (!Array.isArray(users) || users.length === 0) {\n\t\t\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">No members</div></div>';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tlist.innerHTML = users.map(u => {\n\t\t\t\t\tconst initial = String(u.name || \"?\").substring(0, 2).toUpperCase();\n\t\t\t\t\tconst action = u.role !== \"owner\"\n\t\t\t\t\t\t? '<button class=\"z-btn z-btn-sm z-btn-danger\" onclick=\"revokeAccess(\\'' + u.id + '\\')\">Revoke</button>'\n\t\t\t\t\t\t: '<span class=\"z-badge z-badge-muted\">owner</span>';\n\t\t\t\t\treturn '<div class=\"z-list-item\"><span class=\"z-user-avatar\">' + initial + '</span><div class=\"z-list-main\"><div class=\"z-list-title\">' + escapeHtml(u.name) + '</div><div class=\"z-list-sub\">' + escapeHtml(u.role) + '</div></div>' + action + '</div>';\n\t\t\t\t}).join(\"\");\n\t\t\t} catch (e) {\n\t\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">Could not load access</div></div>';\n\t\t\t}\n\t\t}\n\t\tasync function revokeAccess(id) {\n\t\t\tif (!confirm(\"Revoke access for this member?\")) return;\n\t\t\tawait fetch(\"/api/projects/access/\" + id + \"/\", {method: \"DELETE\"});\n\t\t\tloadProjectAccess();\n\t\t}\n\t\tfunction escapeHtml(s) { return String(s == null ? \"\" : s).replace(/[&<>\"']/g, c => ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\",\"'\":\"&#39;\"}[c])); }\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\" for=\"new-project-name\">Project name</label> <input id=\"new-project-name\" class=\"z-input\" placeholder=\"My workspace\"> <span class=\"z-help\">A Git repository and namespace will be provisioned for this project.</span></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"submitNewProject()\">Initialize project</button></div></div></div><script>\n\t\tfunction selectProject(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tlocation.reload();\n\t\t}\n\t\tfunction openProjectModal() { zOpenModal(\"project-modal\"); }\n\t\tfunction closeProjectModal() { zCloseModal(\"project-modal\"); }\n\t\tfunction openJoinModal() { zOpenModal(\"join-modal\"); }\n\t\tfunction closeJoinModal() { zCloseModal(\"join-modal\"); }\n\t\tfunction openAccessModal(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tzOpenModal(\"access-modal\");\n\t\t\tloadProjectAccess();\n\t\t}\n\t\tfunction closeAccessModal() { zCloseModal(\"access-modal\"); }\n\t\tfunction openInviteModal(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tzOpenModal(\"invite-modal\");\n\t\t\tfetch(\"/api/projects/invites/\", {method: \"POST\"})\n\t\t\t\t.then(r => r.json())\n\t\t\t\t.then(data => { document.getElementById(\"invite-code-input\").value = data.code || \"--------\"; })\n\t\t\t\t.catch(() => { document.getElementById(\"invite-code-input\").value = \"--------\"; });\n\t\t}\n\t\tfunction closeInviteModal() { zCloseModal(\"invite-modal\"); }\n\t\tfunction copyInviteCode() {\n\t\t\tconst input = document.getElementById(\"invite-code-input\");\n\t\t\tinput.select();\n\t\t\tnavigator.clipboard.writeText(input.value).then(() => toast(\"Invite code copied\", \"success\"));\n\t\t}\n\t\tasync function submitNewProject() {\n\t\t\tconst name = document.getElementById(\"new-project-name\").value.trim();\n\t\t\tif (!name) return;\n\t\t\ttry {\n\t\t\t\tawait fetch(\"/api/projects/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\"},\n\t\t\t\t\tbody: JSON.stringify({name})\n\t\t\t\t});\n\t\t\t\tcloseProjectModal();\n\t\t\t\tlocation.reload();\n\t\t\t} catch (e) { toast(\"Could not create project\", \"error\"); }\n\t\t}\n\t\tasync function submitJoinInvite() {\n\t\t\tconst code = document.getElementById(\"join-code-input\").value.trim();\n\t\t\tif (!code) return;\n\t\t\tconst res = await fetch(\"/api/projects/join/?code=\" + encodeURIComponent(code), {method: \"POST\"});\n\t\t\tif (res.ok) {\n\t\t\t\tconst data = await res.json();\n\t\t\t\tdocument.cookie = \"lws_project=\" + data.project_id + \"; path=/; SameSite=Lax\";\n\t\t\t\tlocation.reload();\n\t\t\t} else {\n\t\t\t\tconst data = await res.json().catch(() => ({}));\n\t\t\t\ttoast(data.error || \"Failed to join project\", \"error\");\n\t\t\t}\n\t\t}\n\t\tasync function syncProject() {\n\t\t\ttry {\n\t\t\t\tawait fetch(\"/api/projects/sync/\", {method: \"POST\"});\n\t\t\t\ttoast(\"Project sync started\", \"success\");\n\t\t\t\tsetTimeout(() => location.reload(), 600);\n\t\t\t} catch (e) { toast(\"Sync failed\", \"error\"); }\n\t\t}\n\t\tasync function loadProjectAccess() {\n\t\t\tconst list = document.getElementById(\"access-list\");\n\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">Loading members…</div></div>';\n\t\t\ttry {\n\t\t\t\tconst res = await fetch(\"/api/projects/access/\");\n\t\t\t\tconst users = await res.json();\n\t\t\t\tif (!Array.isArray(users) || users.length === 0) {\n\t\t\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">No members</div></div>';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tlist.innerHTML = users.map(u => {\n\t\t\t\t\tconst initial = String(u.name || \"?\").substring(0, 2).toUpperCase();\n\t\t\t\t\tconst action = u.role !== \"owner\"\n\t\t\t\t\t\t? '<button class=\"z-btn z-btn-sm z-btn-danger\" onclick=\"revokeAccess(\\'' + u.id + '\\')\">Revoke</button>'\n\t\t\t\t\t\t: '<span class=\"z-badge z-badge-muted\">owner</span>';\n\t\t\t\t\treturn '<div class=\"z-list-item\"><span class=\"z-user-avatar\">' + initial + '</span><div class=\"z-list-main\"><div class=\"z-list-title\">' + escapeHtml(u.name) + '</div><div class=\"z-list-sub\">' + escapeHtml(u.role) + '</div></div>' + action + '</div>';\n\t\t\t\t}).join(\"\");\n\t\t\t} catch (e) {\n\t\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">Could not load access</div></div>';\n\t\t\t}\n\t\t}\n\t\tasync function revokeAccess(id) {\n\t\t\tif (!confirm(\"Revoke access for this member?\")) return;\n\t\t\tawait fetch(\"/api/projects/access/\" + id + \"/\", {method: \"DELETE\"});\n\t\t\tloadProjectAccess();\n\t\t}\n\t\tfunction escapeHtml(s) { return String(s == null ? \"\" : s).replace(/[&<>\"']/g, c => ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\",\"'\":\"&#39;\"}[c])); }\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -636,7 +604,7 @@ func activityItem(title string, subject string, detail string, when string, tone
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<div class=\"z-list-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div class=\"z-list-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -645,7 +613,7 @@ func activityItem(title string, subject string, detail string, when string, tone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<span class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<span class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -658,7 +626,7 @@ func activityItem(title string, subject string, detail string, when string, tone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -666,59 +634,210 @@ func activityItem(title string, subject string, detail string, when string, tone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</span><div class=\"z-list-main\"><div style=\"display:flex;align-items:center;gap:6px\"><span class=\"z-list-title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</span><div class=\"z-list-main\"><div style=\"display:flex;align-items:center;gap:6px\"><span class=\"z-list-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 374, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 345, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</span> <span class=\"z-mono\" style=\"font-size:10px;color:var(--text-3)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</span> <span class=\"z-mono\" style=\"font-size:10px;color:var(--text-3)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(subject)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 375, Col: 77}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 346, Col: 77}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</span></div><div class=\"z-list-sub\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</span></div><div class=\"z-list-sub\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 377, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 348, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</div></div><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-4);white-space:nowrap\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</div></div><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-4);white-space:nowrap\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(when)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 379, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 350, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</span></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func requestLogRow(when string, method string, path string, status int, latency string, key string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var23 == nil {
+			templ_7745c5c3_Var23 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<tr><td class=\"z-cell-mono\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var24 string
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(when)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 356, Col: 32}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</td><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var25 = []any{"z-badge", templ.KV("z-badge-green", method == "POST"), templ.KV("z-badge-blue", method == "GET"), templ.KV("z-badge-red", method == "DELETE")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var25...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<span class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var26 string
+		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var25).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var27 string
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(method)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 357, Col: 173}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "</span></td><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var28 string
+		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(path)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 358, Col: 64}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</td><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var29 = []any{"z-badge", templ.KV("z-badge-green", status < 300), templ.KV("z-badge-amber", status == 404), templ.KV("z-badge-red", status == 429 || status >= 500)}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var29...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<span class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var30 string
+		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var29).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var31 string
+		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(status))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 359, Col: 186}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "</span></td><td class=\"z-cell-mono\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var32 string
+		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(latency)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 360, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</td><td class=\"z-cell-mono\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var33 string
+		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(key)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 361, Col: 31}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "</td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -742,214 +861,69 @@ func healthRow(name string, detail string, status string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var23 == nil {
-			templ_7745c5c3_Var23 = templ.NopComponent
+		templ_7745c5c3_Var34 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var34 == nil {
+			templ_7745c5c3_Var34 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<div class=\"z-list-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "<div class=\"z-list-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var24 = []any{"z-dot", templ.KV("z-dot-green", status == "healthy"), templ.KV("z-dot-blue", status == "idle")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
+		var templ_7745c5c3_Var35 = []any{"z-dot", templ.KV("z-dot-green", status == "healthy"), templ.KV("z-dot-blue", status == "idle")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var35...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<span class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var25 string
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var24).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var26 string
-		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(name)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 387, Col: 35}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</div><div class=\"z-list-sub\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 388, Col: 35}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "</div></div><span class=\"z-badge z-badge-muted\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var28 string
-		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(status)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 390, Col: 46}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</span></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func usageBar(label string, value string, pct int, tone string) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var29 == nil {
-			templ_7745c5c3_Var29 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div style=\"margin-bottom:11px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:5px\"><span style=\"font-size:10.5px;color:var(--text-3)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var30 string
-		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(label)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 397, Col: 61}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</span> <span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var31 string
-		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(value)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 398, Col: 75}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "</span></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var32 = []any{"z-progress", templ.KV("green", tone == "green"), templ.KV("amber", tone == "amber")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var32...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "<div class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var33 string
-		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var32).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\"><span style=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var34 string
-		templ_7745c5c3_Var34, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("width: " + itoa(pct) + "%")
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 401, Col: 44}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\"></span></div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func shortcutRow(label string, keys string) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var35 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var35 == nil {
-			templ_7745c5c3_Var35 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "<div style=\"display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--text-3)\"><span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "<span class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var36 string
-		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var35).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 408, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</span> <span class=\"z-kbd\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var37 string
-		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(keys)
+		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 409, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 369, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "</div><div class=\"z-list-sub\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var38 string
+		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 370, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</div></div><span class=\"z-badge z-badge-muted\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var39 string
+		templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(status)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 372, Col: 46}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
