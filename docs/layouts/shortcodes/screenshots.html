@@ -1,0 +1,13 @@
+<div class="z-docs-gallery">
+  {{ range .Site.Data.screenshots }}
+  <figure class="z-docs-shot">
+    <a href="{{ printf "screenshots/%s" .file | relURL }}" target="_blank" rel="noopener">
+      <img src="{{ printf "screenshots/%s" .file | relURL }}" alt="{{ .title }} screenshot" loading="lazy"/>
+    </a>
+    <figcaption>
+      <span>{{ .title }}</span>
+      <span class="z-mono">{{ .group }}</span>
+    </figcaption>
+  </figure>
+  {{ end }}
+</div>

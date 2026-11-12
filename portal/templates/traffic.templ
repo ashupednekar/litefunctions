@@ -1,0 +1,163 @@
+package templates
+
+templ TrafficContent(endpoints []Endpoint) {
+	@PageHead("Traffic", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Workspace", templ.Raw(`
+		<button class="z-btn" onclick="toast('Policy templates are a placeholder','info')">`+svgShield()+` Policy templates</button>
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('route-modal')">`+svgPlus()+` New route</button>
+	`))
+
+	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("route", "") Endpoints</div><div class="z-stat-value">{ itoa(len(endpoints)) }</div><div class="z-stat-delta">auto-generated <span class="z-faint">·</span> HTTP + WS</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("activity", "") Requests · 24h</div><div class="z-stat-value">284<small>k</small></div><div class="z-stat-delta"><span class="z-delta-up">▲ 9.2%</span> vs yesterday</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("shield", "") Rate limited</div><div class="z-stat-value">1,842</div><div class="z-stat-delta">0.65% of traffic <span class="z-faint">·</span> 12 keys</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("gauge", "") P95 latency</div><div class="z-stat-value">48<small>ms</small></div><div class="z-stat-delta">edge + function <span class="z-faint">·</span> SLO 120ms</div></div>
+	</div>
+
+	<div class="z-tabs" data-tab-group>
+		<button class="z-tab active" data-tab="endpoints">Endpoints <span class="z-badge z-badge-muted">{ itoa(len(endpoints)) }</span></button>
+		<button class="z-tab" data-tab="routes">Gateway routes <span class="z-badge z-badge-muted">6</span></button>
+		<button class="z-tab" data-tab="policies">Policies</button>
+		<button class="z-tab" data-tab="analytics">Analytics</button>
+	</div>
+
+	<div data-tab-panel="endpoints">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Endpoints</span>
+				<span class="z-badge z-badge-green">live</span>
+				<span class="z-panel-sub">auto-mapped from deployed functions · writes real endpoint settings</span>
+				<div class="z-panel-actions">
+					<a class="z-btn z-btn-sm" href="/functions/">@Icon("plus", "") New from function</a>
+				</div>
+			</div>
+			@EndpointsContent(endpoints, false)
+		</div>
+	</div>
+
+	<div data-tab-panel="routes" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Gateway routes</span>
+				<span class="z-badge z-badge-amber">dummy data</span>
+				<span class="z-panel-sub">istio · litefunctions-gateway</span>
+				<div class="z-panel-actions">
+					<div class="z-search" style="width:190px"><input class="z-input" style="height:25px;font-size:10.5px" placeholder="Filter paths…"/></div>
+					<button class="z-btn z-btn-sm">@Icon("filter", "")</button>
+				</div>
+			</div>
+			<div class="z-table-wrap">
+				<table class="z-table">
+					<thead><tr><th>Method</th><th>Path</th><th>Upstream</th><th>Auth</th><th>Rate limit</th><th>Requests</th><th>Status</th><th></th></tr></thead>
+					<tbody>
+						@routeRow("POST", "/lambda/create-order", "create-order", "api key", "120 / min", "48.2k", "healthy")
+						@routeRow("GET", "/lambda/list-orders", "list-orders", "api key", "300 / min", "122k", "healthy")
+						@routeRow("GET", "/lambda/orders/:id", "get-order", "api key", "300 / min", "64k", "healthy")
+						@routeRow("POST", "/lambda/pay-order", "pay-order", "jwt", "60 / min", "18k", "healthy")
+						@routeRow("WS", "/lambda/ws/presence", "presence", "api key", "20 conn", "1.2k", "healthy")
+						@routeRow("POST", "/lambda/stripe-webhook", "stripe-webhook", "signature", "600 / min", "22k", "degraded")
+					</tbody>
+				</table>
+			</div>
+			<div class="z-panel-foot">
+				<span class="z-help">Routes are generated from function endpoints. Edits here become gateway policy overrides.</span>
+				<span class="z-badge z-badge-green" style="margin-left:auto"><span class="z-dot z-dot-green"></span> synced</span>
+			</div>
+		</div>
+	</div>
+
+	<div data-tab-panel="policies" style="display:none">
+		<div class="z-grid z-grid-2">
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Resilience</span><span class="z-badge z-badge-amber">dummy data</span><span class="z-badge z-badge-muted" style="margin-left:auto">defaults</span></div>
+				<div class="z-panel-body">
+					<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:11.5px;color:var(--text)">Retries</div><div class="z-help">2 retries on 5xx, idempotent methods only</div></div><span class="z-toggle on"></span></div>
+					<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:11.5px;color:var(--text)">Circuit breaker</div><div class="z-help">open after 20 consecutive failures · 30s cooldown</div></div><span class="z-toggle on"></span></div>
+					<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:11.5px;color:var(--text)">Timeout</div><div class="z-help">30s upstream timeout · 60s async</div></div><span class="z-mono z-muted">30s</span></div>
+					<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0"><div><div style="font-size:11.5px;color:var(--text)">Canary splitting</div><div class="z-help">route 10% of traffic to a preview function</div></div><span class="z-toggle"></span></div>
+				</div>
+			</div>
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Auth policies</span><span class="z-badge z-badge-amber">dummy data</span><span class="z-badge z-badge-muted" style="margin-left:auto">3 attached</span></div>
+				<div class="z-panel-body tight">
+					<div class="z-list">
+						<div class="z-list-item"><span class="z-list-icon">@Icon("key", "")</span><div class="z-list-main"><div class="z-list-title">API key</div><div class="z-list-sub">header <span class="z-code-inline">X-API-Key</span> · project scoped</div></div><span class="z-badge z-badge-green">active</span></div>
+						<div class="z-list-item"><span class="z-list-icon">@Icon("lock", "")</span><div class="z-list-main"><div class="z-list-title">JWT</div><div class="z-list-sub">RS256 · issuer litefunctions</div></div><span class="z-badge z-badge-green">active</span></div>
+						<div class="z-list-item"><span class="z-list-icon">@Icon("shield", "")</span><div class="z-list-main"><div class="z-list-title">Stripe signature</div><div class="z-list-sub">HMAC · 5 minute skew</div></div><span class="z-badge z-badge-green">active</span></div>
+						<div class="z-list-item"><span class="z-list-icon">@Icon("globe", "")</span><div class="z-list-main"><div class="z-list-title">IP allowlist</div><div class="z-list-sub">not configured</div></div><span class="z-badge z-badge-muted">off</span></div>
+					</div>
+				</div>
+				<div class="z-panel-foot"><button class="z-btn z-btn-sm z-btn-accent" style="margin-left:auto">@Icon("plus", "") Add policy</button></div>
+			</div>
+		</div>
+	</div>
+
+	<div data-tab-panel="analytics" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Traffic · last 24h</span><span class="z-badge z-badge-amber">dummy data</span><div class="z-panel-actions"><div class="z-pill-group"><button class="z-pill">1h</button><button class="z-pill active">24h</button><button class="z-pill">7d</button></div></div></div>
+			<div class="z-panel-body">
+				<svg class="z-chart" style="height:220px" viewBox="0 0 900 220" preserveAspectRatio="none">
+					<defs><linearGradient id="z-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8ab4ff" stop-opacity=".25"/><stop offset="100%" stop-color="#8ab4ff" stop-opacity="0"/></linearGradient></defs>
+					<g class="z-chart-grid"><line x1="0" y1="55" x2="900" y2="55"/><line x1="0" y1="110" x2="900" y2="110"/><line x1="0" y1="165" x2="900" y2="165"/></g>
+					<path class="z-chart-area" d="M0 170 C40 158 70 138 110 144 S170 112 220 120 S290 90 340 96 S410 70 460 78 S530 52 580 60 S650 40 700 48 S780 26 830 34 S870 22 900 26 L900 220 L0 220 Z"/>
+					<path class="z-chart-line" d="M0 170 C40 158 70 138 110 144 S170 112 220 120 S290 90 340 96 S410 70 460 78 S530 52 580 60 S650 40 700 48 S780 26 830 34 S870 22 900 26"/>
+					<text class="z-chart-label" x="4" y="14">16k req/h</text><text class="z-chart-label" x="4" y="212">0</text>
+				</svg>
+			</div>
+		</div>
+		<div class="z-grid z-grid-3" style="margin-top:14px">
+			<div class="z-panel"><div class="z-panel-header"><span class="z-panel-title">Status codes</span></div><div class="z-panel-body"><dl class="z-kv"><dt>2xx</dt><dd>283,402</dd><dt>3xx</dt><dd>12</dd><dt>4xx</dt><dd>472</dd><dt>5xx</dt><dd>114</dd><dt>429</dt><dd>1,842</dd></dl></div></div>
+			<div class="z-panel"><div class="z-panel-header"><span class="z-panel-title">Top routes</span></div><div class="z-panel-body" style="display:flex;flex-direction:column;gap:9px">@topRoute("list-orders", 122, 100)@topRoute("orders/:id", 64, 52)@topRoute("create-order", 48, 39)@topRoute("stripe-webhook", 22, 18)</div></div>
+			<div class="z-panel"><div class="z-panel-header"><span class="z-panel-title">SLO</span><span class="z-badge z-badge-green" style="margin-left:auto">met</span></div><div class="z-panel-body"><div style="font-size:26px;font-weight:600;letter-spacing:-.04em">99.96%</div><div class="z-help">availability · target 99.9%</div><div class="z-divider"></div><div style="font-size:18px;font-weight:600">42ms</div><div class="z-help">p95 latency · target 120ms</div></div></div>
+		</div>
+	</div>
+
+	<div id="route-modal" class="z-modal-backdrop" onclick="zCloseModal('route-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">@Icon("shield", "w-4 h-4")<span class="z-modal-title">New gateway route</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-body">
+				<div class="z-grid z-grid-2">
+					<div class="z-field"><label class="z-label">Method</label><select class="z-select"><option>POST</option><option>GET</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>WS</option></select></div>
+					<div class="z-field"><label class="z-label">Path</label><input class="z-input z-mono" placeholder="/lambda/my-function"/></div>
+				</div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Upstream function</label><select class="z-select"><option>create-order</option><option>list-orders</option><option>pay-order</option></select></div>
+				<div class="z-grid z-grid-2" style="margin-top:11px">
+					<div class="z-field"><label class="z-label">Auth</label><select class="z-select"><option>API key</option><option>JWT</option><option>Public</option></select></div>
+					<div class="z-field"><label class="z-label">Rate limit</label><input class="z-input z-mono" value="120 / min"/></div>
+				</div>
+			</div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('route-modal'); toast('Route creation is a placeholder','success')">Create route</button></div>
+		</div>
+	</div>
+}
+
+templ routeRow(method string, path string, upstream string, auth string, limit string, requests string, status string) {
+	<tr>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", method == "POST"), templ.KV("z-badge-blue", method == "GET"), templ.KV("z-badge-purple", method == "WS"), templ.KV("z-badge-amber", method == "PUT" || method == "PATCH"), templ.KV("z-badge-red", method == "DELETE") }>{ method }</span></td>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ path }</td>
+		<td class="z-cell-mono">{ upstream }</td>
+		<td><span class="z-badge z-badge-muted">{ auth }</span></td>
+		<td class="z-cell-mono">{ limit }</td>
+		<td class="z-cell-mono">{ requests }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-amber", status != "healthy") }>{ status }</span></td>
+		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("edit", "")</button></td>
+	</tr>
+}
+
+templ overrideRow(route string, policy string, limit string, burst string, key string, status string) {
+	<tr>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ route }</td>
+		<td class="z-cell-mono">{ policy }</td>
+		<td class="z-cell-mono">{ limit }</td>
+		<td class="z-cell-mono">{ burst }</td>
+		<td><span class="z-badge z-badge-muted">{ key }</span></td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "enforced"), templ.KV("z-badge-amber", status == "draft") }>{ status }</span></td>
+		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
+	</tr>
+}
+
+templ topRoute(name string, count int, pct int) {
+	<div>
+		<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ name }</span><span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ itoa(count) }k</span></div>
+		<div class="z-progress"><span style={ "width:" + itoa(pct) + "%" }></span></div>
+	</div>
+}

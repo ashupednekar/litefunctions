@@ -1,0 +1,151 @@
+package templates
+
+templ AccessContent() {
+	@PageHead("Team & Access", "Members, roles, invitations, API keys and service accounts for this project.", "Project settings", templ.Raw(`
+		<button class="z-btn" onclick="zOpenModal('invite-modal')">`+svgPlus()+` Invite member</button>
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('key-modal')">`+svgKey()+` New API key</button>
+	`))
+
+	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("users", "") Members</div><div class="z-stat-value">4</div><div class="z-stat-delta">2 owners <span class="z-faint">·</span> 2 editors</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("key", "") API keys</div><div class="z-stat-value">5</div><div class="z-stat-delta">3 active <span class="z-faint">·</span> 2 revoked</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("lock", "") Service accounts</div><div class="z-stat-value">2</div><div class="z-stat-delta">ci-runner <span class="z-faint">·</span> deploy-bot</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("clock", "") Pending invites</div><div class="z-stat-value">1</div><div class="z-stat-delta">expires in 19h</div></div>
+	</div>
+
+	<div class="z-tabs" data-tab-group>
+		<button class="z-tab active" data-tab="members">Members</button>
+		<button class="z-tab" data-tab="keys">API keys</button>
+		<button class="z-tab" data-tab="service">Service accounts</button>
+		<button class="z-tab" data-tab="invites">Invites</button>
+	</div>
+
+	<div data-tab-panel="members">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Project members</span><span class="z-badge z-badge-muted">4</span><div class="z-panel-actions"><button class="z-btn z-btn-sm" onclick="zOpenModal('invite-modal')">@Icon("plus", "") Invite</button></div></div>
+			<div class="z-panel-body tight">
+				<div class="z-list">
+					@memberRow("Ashutosh Pednekar", "ashu", "owner", "you")
+					@memberRow("Priya Nair", "priya", "owner", "active")
+					@memberRow("Marco Silva", "marco", "editor", "active")
+					@memberRow("Chen Wei", "chen", "editor", "active")
+				</div>
+			</div>
+			<div class="z-panel-foot"><span class="z-help">Owners manage access and billing. Editors ship functions but cannot change project access.</span></div>
+		</div>
+	</div>
+
+	<div data-tab-panel="keys" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">API keys</span><span class="z-panel-sub">gateway authentication</span><div class="z-panel-actions"><button class="z-btn z-btn-sm z-btn-accent" onclick="zOpenModal('key-modal')">@Icon("plus", "") New key</button></div></div>
+			<div class="z-table-wrap">
+				<table class="z-table">
+					<thead><tr><th>Name</th><th>Key</th><th>Scopes</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr></thead>
+					<tbody>
+						@keyRow("production", "lf_live_…9f2a", "invoke", "32d ago", "2m ago", "active")
+						@keyRow("staging", "lf_test_…11bc", "invoke", "12d ago", "1h ago", "active")
+						@keyRow("ci-runner", "lf_ci_…77b0", "deploy, read", "9d ago", "6m ago", "active")
+						@keyRow("legacy", "lf_live_…c401", "admin", "180d ago", "—", "revoked")
+						@keyRow("demo", "lf_live_…90bc", "invoke", "90d ago", "12d ago", "revoked")
+					</tbody>
+				</table>
+			</div>
+			<div class="z-panel-foot"><span class="z-help">Keys are shown once at creation. Store them in your secret manager.</span></div>
+		</div>
+	</div>
+
+	<div data-tab-panel="service" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Service accounts</span><span class="z-badge z-badge-muted">2</span><div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") New account</button></div></div>
+			<div class="z-panel-body tight">
+				<div class="z-list">
+					@serviceRow("ci-runner", "deploy, projects:read", "github actions", "6m ago")
+					@serviceRow("deploy-bot", "deploy", "operator hook", "18m ago")
+				</div>
+			</div>
+			<div class="z-panel-foot"><span class="z-help">Service accounts cannot log in interactively. They authenticate with API keys only.</span></div>
+		</div>
+	</div>
+
+	<div data-tab-panel="invites" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Pending invites</span></div>
+			<div class="z-panel-body tight">
+				<div class="z-list">
+					<div class="z-list-item"><span class="z-list-icon">@Icon("users", "")</span><div class="z-list-main"><div class="z-list-title">dev@example.com</div><div class="z-list-sub">editor · expires in 19h</div></div><span class="z-mono z-muted" style="font-size:10px">ABCD-EFGH</span><button class="z-btn z-btn-sm z-btn-ghost" data-copy="ABCD-EFGH">@Icon("copy", "")</button><button class="z-btn z-btn-sm z-btn-danger">Revoke</button></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="invite-modal" class="z-modal-backdrop" onclick="zCloseModal('invite-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">@Icon("users", "w-4 h-4")<span class="z-modal-title">Invite member</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-body">
+				<div class="z-field"><label class="z-label">Email</label><input class="z-input" type="email" placeholder="teammate@example.com"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Role</label><select class="z-select"><option>Editor</option><option>Owner</option><option>Viewer</option></select></div>
+				<div class="z-alert z-alert-blue" style="margin-top:12px">@Icon("clock", "") <div>Invite links expire after 24 hours. Members authenticate with a passkey.</div></div>
+			</div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('invite-modal'); toast('Invite sent (placeholder)','success')">Send invite</button></div>
+		</div>
+	</div>
+
+	<div id="key-modal" class="z-modal-backdrop" onclick="zCloseModal('key-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">@Icon("key", "w-4 h-4")<span class="z-modal-title">New API key</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-body">
+				<div class="z-field"><label class="z-label">Name</label><input class="z-input" placeholder="e.g. production"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Scopes</label><input class="z-input z-mono" value="invoke"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Expiry</label><select class="z-select"><option>90 days</option><option>1 year</option><option>Never</option></select></div>
+			</div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('key-modal'); toast('API key created (placeholder)','success')">Create key</button></div>
+		</div>
+	</div>
+}
+
+func svgKey() string {
+	return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></svg>`
+}
+
+templ memberRow(name string, handle string, role string, status string) {
+	<div class="z-list-item">
+		<span class="z-user-avatar" style="width:26px;height:26px">{ userInitial(name) }</span>
+		<div class="z-list-main">
+			<div class="z-list-title" style="font-size:11.5px">{ name }</div>
+			<div class="z-list-sub z-mono" style="font-size:9.5px">{ "@" + handle }</div>
+		</div>
+		<span class={ "z-badge", templ.KV("z-badge-purple", role == "owner"), templ.KV("z-badge-blue", role == "editor"), templ.KV("z-badge-muted", role == "viewer") }>{ role }</span>
+		<span class={ "z-badge", templ.KV("z-badge-green", status == "active" || status == "you"), templ.KV("z-badge-muted", status != "active" && status != "you") }>{ status }</span>
+		<button class="z-icon-btn" onclick="toast('Member management is a placeholder','info')">@Icon("more", "")</button>
+	</div>
+}
+
+templ keyRow(name string, key string, scopes string, created string, used string, status string) {
+	<tr>
+		<td class="z-cell-main">{ name }</td>
+		<td class="z-cell-mono">{ key }</td>
+		<td><span class="z-badge z-badge-muted">{ scopes }</span></td>
+		<td class="z-cell-mono">{ created }</td>
+		<td class="z-cell-mono">{ used }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "active"), templ.KV("z-badge-red", status == "revoked") }>{ status }</span></td>
+		<td class="z-cell-actions">
+			if status == "active" {
+				<button class="z-btn z-btn-sm z-btn-danger" onclick="toast('Revoke is a placeholder','info')">Revoke</button>
+			} else {
+				<button class="z-btn z-btn-sm z-btn-ghost" disabled>@Icon("more", "")</button>
+			}
+		</td>
+	</tr>
+}
+
+templ serviceRow(name string, scopes string, source string, lastUsed string) {
+	<div class="z-list-item">
+		<span class="z-list-icon">@Icon("terminal", "")</span>
+		<div class="z-list-main">
+			<div class="z-list-title z-mono" style="font-size:10.5px">{ name }</div>
+			<div class="z-list-sub">{ scopes } · { source }</div>
+		</div>
+		<span class="z-mono" style="font-size:9.5px;color:var(--text-4)">{ lastUsed }</span>
+		<button class="z-icon-btn">@Icon("more", "")</button>
+	</div>
+}

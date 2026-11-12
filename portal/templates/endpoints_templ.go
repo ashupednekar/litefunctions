@@ -52,39 +52,19 @@ if (target) target.classList.remove('hidden');
 
 func selectMethodForEndpoint(id string, method string) templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_selectMethodForEndpoint_244a`,
-		Function: `function __templ_selectMethodForEndpoint_244a(id, method){const methodStyles = {
-GET: ["border-blue-500", "bg-blue-500/20", "text-blue-400"],
-POST: ["border-green-500", "bg-green-500/20", "text-green-400"],
-PUT: ["border-yellow-500", "bg-yellow-500/20", "text-yellow-400"],
-PATCH: ["border-purple-500", "bg-purple-500/20", "text-purple-400"],
-DELETE: ["border-red-500", "bg-red-500/20", "text-red-400"]
-};
-const allMethodClasses = [
-"border-blue-500","bg-blue-500/20","text-blue-400",
-"border-green-500","bg-green-500/20","text-green-400",
-"border-yellow-500","bg-yellow-500/20","text-yellow-400",
-"border-purple-500","bg-purple-500/20","text-purple-400",
-"border-red-500","bg-red-500/20","text-red-400"
-];
-const neutralClasses = ["border-neutral-700", "text-neutral-400"];
-const input = document.getElementById("selected-method-" + id);
+		Name: `__templ_selectMethodForEndpoint_20ac`,
+		Function: `function __templ_selectMethodForEndpoint_20ac(id, method){const input = document.getElementById("selected-method-" + id);
 const methods = new Set((input?.value || "").split(",").filter(Boolean));
 if (methods.has(method)) methods.delete(method); else methods.add(method);
 const selectedMethods = [...methods];
 ["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
-let btn = document.getElementById("method-" + m + "-" + id);
-if(btn) {
-btn.classList.remove(...allMethodClasses);
-btn.classList.remove(...neutralClasses);
-if (methods.has(m)) btn.classList.add(...(methodStyles[m] || methodStyles.GET));
-else btn.classList.add(...neutralClasses);
-}
+const btn = document.getElementById("method-" + m + "-" + id);
+if (btn) btn.classList.toggle("selected", methods.has(m));
 });
 if (input) input.value = selectedMethods.join(",");
 }`,
-		Call:       templ.SafeScript(`__templ_selectMethodForEndpoint_244a`, id, method),
-		CallInline: templ.SafeScriptInline(`__templ_selectMethodForEndpoint_244a`, id, method),
+		Call:       templ.SafeScript(`__templ_selectMethodForEndpoint_20ac`, id, method),
+		CallInline: templ.SafeScriptInline(`__templ_selectMethodForEndpoint_20ac`, id, method),
 	}
 }
 
@@ -141,7 +121,7 @@ window.openTestModalForEndpoint(id);
 	}
 }
 
-func EndpointsContent(endpoints []Endpoint) templ.Component {
+func EndpointsContent(endpoints []Endpoint, standalone bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -162,221 +142,226 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><!-- HEADER --><div class=\"flex items-center justify-between\"><div class=\"flex items-center gap-6\"><a href=\"/dashboard/\" class=\"p-2 hover:bg-neutral-800 rounded-lg transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 19l-7-7 7-7\"></path></svg></a><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Endpoints</h1><!-- SEARCH TRIGGER --><button onclick=\"openSpotlight()\" class=\"flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path></svg> <span class=\"flex-1 text-left\">Search endpoints...</span><div class=\"flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium\"><span class=\"font-mono\">⌘</span>K</div></button></div></div><!-- WS TEST MODAL --><div id=\"ws-test-modal\" class=\"hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4\" onclick=\"closeWsTestModal()\"><div class=\"w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl\" onclick=\"event.stopPropagation()\"><!-- MODAL HEADER --><div class=\"flex items-center justify-between p-4 border-b border-neutral-800\"><div class=\"flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-cyan-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12h8m-8 4h8m-6-8h6\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z\"></path></svg> <span class=\"text-sm text-neutral-300\">WebSocket Tester</span></div><button onclick=\"closeWsTestModal()\" class=\"p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- MODAL CONTENT --><div class=\"flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden\"><!-- LEFT COLUMN: SETTINGS --><div class=\"p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50\"><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Endpoint</label> <select id=\"ws-endpoint-select\" class=\"w-full bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition\"></select></div><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">WebSocket URL</label><div class=\"flex items-center gap-2\"><input id=\"ws-url\" class=\"w-full bg-[#151516] border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition\" readonly> <button onclick=\"copyWsUrl()\" class=\"px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition\" title=\"Copy URL\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16h8M8 12h8m-6-4h6M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z\"></path></svg></button></div><p class=\"text-[11px] text-neutral-500 mt-2\">Browser WebSockets can't send custom headers. Use query params if your gateway needs auth.</p></div><div class=\"space-y-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider block\">Connection</label><div class=\"flex items-center gap-2\"><button id=\"ws-connect-btn\" onclick=\"connectWs()\" class=\"px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold transition\">Connect</button> <button id=\"ws-disconnect-btn\" onclick=\"disconnectWs()\" class=\"px-3 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-xs font-semibold transition\">Disconnect</button> <span id=\"ws-status\" class=\"text-xs font-mono text-neutral-400 bg-neutral-900 px-2 py-1 rounded\">Disconnected</span></div></div></div><!-- RIGHT COLUMN: MESSAGES --><div class=\"lg:col-span-2 flex flex-col h-full overflow-hidden\"><!-- SEND MESSAGE --><div class=\"p-4 border-b border-neutral-800 flex flex-col gap-3\"><div class=\"flex items-center justify-between\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Send Message</label> <button onclick=\"sendWsMessage()\" class=\"px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-cyan-500/10\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path d=\"M2.94 2.94a1.5 1.5 0 012.12 0l12 12a1.5 1.5 0 01-2.12 2.12l-12-12a1.5 1.5 0 010-2.12zM10.94 2.94a1.5 1.5 0 012.12 0l2.12 2.12a1.5 1.5 0 01-2.12 2.12l-2.12-2.12a1.5 1.5 0 010-2.12z\"></path></svg> Send</button></div><textarea id=\"ws-message\" class=\"w-full h-24 bg-[#0e0e0f] border border-neutral-800 text-white rounded-lg p-3 font-mono text-xs outline-none resize-none\" placeholder='{\"hello\":\"world\"}'></textarea></div><!-- MESSAGE LOG --><div class=\"flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Messages</label> <button onclick=\"clearWsLog()\" class=\"px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold\">Clear</button></div><div id=\"ws-log\" class=\"w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs overflow-y-auto\"></div></div></div></div></div></div><p class=\"text-neutral-400 text-sm md:text-base -mt-6\">View and manage your service endpoints. Routes are automatically mapped when functions are created.</p><!-- ENDPOINT LIST --><div id=\"endpoints-list\" class=\"space-y-5 mt-10\">")
+		if standalone {
+			templ_7745c5c3_Err = PageHead("Endpoints", "HTTP and WebSocket routes auto-mapped from functions. Inspect, test and manage them here.", "Operate", templ.Raw(`
+			<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
+			<a class="z-btn z-btn-primary" href="/functions/">`+svgPlus()+` New from function</a>
+		`)).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full\"><div id=\"endpoints-list\" class=\"z-endpoint-list\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		if len(endpoints) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"z-empty\" style=\"padding:44px 16px\"><div class=\"z-empty-icon\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("route", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"z-empty-title\">No endpoints yet</div><div class=\"z-empty-sub\">Endpoints are generated automatically when you deploy a function.</div><a class=\"z-btn z-btn-primary z-btn-sm\" href=\"/functions/\">Create a function</a></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
 		for _, ep := range endpoints {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4\" data-endpoint-id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"z-endpoint-row\" data-endpoint-id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 234, Col: 106}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 99, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" data-endpoint-name=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-endpoint-name=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 235, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 99, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" data-endpoint-method=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" data-endpoint-method=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 235, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 99, Col: 122}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-endpoint-function=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" data-endpoint-function=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 235, Col: 112}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 99, Col: 165}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" data-endpoint-language=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-endpoint-language=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Language)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 236, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 99, Col: 204}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" data-endpoint-async=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" data-endpoint-async=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ep.IsAsync)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 236, Col: 77}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 99, Col: 239}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><div class=\"flex justify-between items-center\"><div class=\"flex items-center gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"><div class=\"z-endpoint-main\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if ep.Method == "POST" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var8 string
-				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(
-					ep.Method)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 242, Col: 21}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else if ep.Method == "PUT" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var9 string
-				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(
-					ep.Method)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 247, Col: 21}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else if ep.Method == "DELETE" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var10 string
-				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 251, Col: 23}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 255, Col: 23}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
+			var templ_7745c5c3_Var8 = []any{"z-badge", templ.KV("z-badge-green", ep.Method == "POST"), templ.KV("z-badge-blue", ep.Method == "GET"), templ.KV("z-badge-amber", ep.Method == "PUT" || ep.Method == "PATCH"), templ.KV("z-badge-red", ep.Method == "DELETE"), templ.KV("z-badge-purple", ep.IsAsync)}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var8...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<h3 class=\"text-white text-lg font-semibold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var8).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 101, Col: 296}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span> <span class=\"z-endpoint-name\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 102, Col: 45}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span> <img class=\"z-endpoint-lang\" src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Name)
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("/static/imgs/" + ep.Language + "-svgrepo-com.svg")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 258, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 103, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</h3><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" alt=\"\" title=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/static/imgs/" + ep.Language + "-svgrepo-com.svg")
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Language)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 259, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 103, Col: 120}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"w-4 h-4 opacity-80\" title=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"> <span class=\"z-badge z-badge-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Language)
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 259, Col: 120}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 104, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"> <span class=\"text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></div><div class=\"z-endpoint-actions\"><a id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(ep.FunctionName)
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("build-status-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 262, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 107, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></div><div class=\"flex items-center gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" href=\"#\" target=\"_blank\" rel=\"noopener\" class=\"z-badge z-badge-muted hidden\">Build</a> <span id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("build-step-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 108, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"z-mono hidden\" style=\"font-size:9px;color:var(--text-4)\"></span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -384,85 +369,37 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<button id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("ws-test-btn-" + ep.ID)
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs("ws-test-btn-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 266, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 109, Col: 41}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" onclick=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var17 templ.ComponentScript = openWsTestModalForEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17.Call)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Test websocket\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12h8m-8 4h8m-6-8h6\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z\"></path></svg></button> ")
+			var templ_7745c5c3_Var18 templ.ComponentScript = openWsTestModalForEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openTestModalForEndpoint(ep.ID))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"z-btn z-btn-sm hidden\" title=\"Test websocket\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button id=\"")
+			templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 276, Col: 42}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var19 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Test endpoint\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm-1.445-10.832A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg></button> <a id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var20 string
-			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("build-status-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 285, Col: 41}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" href=\"#\" target=\"_blank\" rel=\"noopener\" class=\"hidden px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition\">Build</a> <span id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var21 string
-			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("build-step-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 289, Col: 42}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" class=\"hidden text-[10px] text-neutral-500 font-mono\"></span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "Test WS</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -470,29 +407,37 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<button id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<button id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var22 string
-			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
+			var templ_7745c5c3_Var19 string
+			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("test-btn-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 290, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 110, Col: 38}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" onclick=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var23 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23.Call)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" class=\"hidden px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide\">Test</button> ")
+			var templ_7745c5c3_Var20 templ.ComponentScript = openTestModalForEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"z-btn z-btn-sm hidden\" title=\"Test endpoint\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("play", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Test</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -500,219 +445,223 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var24 templ.ComponentScript = toggleManageEndpoint(ep.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24.Call)
+			var templ_7745c5c3_Var21 templ.ComponentScript = toggleManageEndpoint(ep.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" class=\"p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Endpoint settings\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z\"></path></svg></button></div></div><!-- MANAGE COLLAPSIBLE --><div id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" class=\"z-icon-btn\" title=\"Endpoint settings\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var25 string
-			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("endpoint-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 308, Col: 35}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+			templ_7745c5c3_Err = Icon("sliders", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" class=\"hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200\"><!-- HIDDEN INPUTS FOR FORM STATE --><input type=\"hidden\" id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</button></div></div><div id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var26 string
-			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("selected-method-" + ep.ID)
+			var templ_7745c5c3_Var22 string
+			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("endpoint-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 310, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 114, Col: 33}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" value=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var27 string
-			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 310, Col: 80}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" class=\"z-endpoint-manage hidden\"><input type=\"hidden\" id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\"><!-- METHOD SELECTOR --><div><h4 class=\"text-white font-semibold mb-2\">HTTP Method</h4>")
+			var templ_7745c5c3_Var23 string
+			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("selected-method-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 115, Col: 57}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var24 string
+			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 115, Col: 77}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\"><div class=\"z-endpoint-manage-grid\"><div><div class=\"z-label\">HTTP method</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if ep.IsAsync {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div class=\"inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-cyan-700/60 bg-cyan-700/15 text-cyan-300 text-xs font-semibold tracking-wide\">WebSocket (GET)</div><p class=\"text-neutral-500 text-xs mt-2\">Method selection is disabled for async endpoints.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div style=\"margin-top:7px\"><span class=\"z-badge z-badge-purple\">WebSocket · GET</span></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"flex gap-2 flex-wrap\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<div class=\"z-method-row\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
-					if m == ep.Method {
-						templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<button onclick=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var28 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28.Call)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" id=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var29 string
-						templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 324, Col: 98}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var30 string
-						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(
-							m)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 327, Col: 15}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</button>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else {
-						templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<button onclick=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var31 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31.Call)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\" id=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var32 string
-						templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 330, Col: 98}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" class=\"px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var33 string
-						templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(
-							m)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 333, Col: 15}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</button>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
+					var templ_7745c5c3_Var25 = []any{"z-method-btn", templ.KV("selected", m == ep.Method)}
+					templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var25...)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectMethodForEndpoint(ep.ID, m))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<button onclick=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var26 templ.ComponentScript = selectMethodForEndpoint(ep.ID, m)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26.Call)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" id=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var27 string
+					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("method-" + m + "-" + ep.ID)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 124, Col: 96}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" class=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var28 string
+					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var25).String())
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 1, Col: 0}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var29 string
+					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(m)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 124, Col: 165}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</button>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</div><!-- RATE LIMITING --><div><h4 class=\"text-white font-semibold mb-2\">Rate Limiting</h4><p class=\"text-neutral-500 text-sm mb-3\">Protect the endpoint with simple throttling.</p><div class=\"flex items-center gap-3\"><input type=\"number\" min=\"1\" id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</div><div><label class=\"z-label\" for=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var34 string
-			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs("rl-" + ep.ID)
+			var templ_7745c5c3_Var30 string
+			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs("rl-" + ep.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 345, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 130, Col: 49}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition\" placeholder=\"req/min\"> <button class=\"bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20\">Save</button></div></div><!-- AUTH CONTROLS --><div><h4 class=\"text-white font-semibold mb-2\">Authentication</h4><select id=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var35 string
-			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs("auth-" + ep.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 357, Col: 38}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\">Rate limit</label><div class=\"z-input-group\" style=\"margin-top:7px\"><input type=\"number\" min=\"1\" id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" class=\"bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none\">")
+			var templ_7745c5c3_Var31 string
+			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs("rl-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 132, Col: 55}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\" class=\"z-input z-mono\" placeholder=\"req/min\"> <button class=\"z-btn z-btn-sm\">Save</button></div></div><div><label class=\"z-label\" for=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var32 string
+			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs("auth-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 137, Col: 51}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\">Authentication</label> <select id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var33 string
+			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs("auth-" + ep.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/endpoints.templ`, Line: 138, Col: 35}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" class=\"z-select\" style=\"margin-top:7px\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if ep.Scope == "public" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<option selected>No Auth</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<option selected>No Auth</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<option>No Auth</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<option>No Auth</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if ep.Scope == "authn" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<option selected>API Key (LWS Auth)</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<option selected>API Key (LWS Auth)</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<option>API Key (LWS Auth)</option> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<option>API Key (LWS Auth)</option> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<option>JWT</option> <option>Session</option></select></div><!-- SAVE BUTTON --><div class=\"pt-4 border-t border-neutral-800/50 flex justify-end\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<option disabled>JWT (not supported)</option> <option disabled>Session (not supported)</option></select></div></div><div class=\"z-endpoint-manage-foot\"><span class=\"z-help\">Changes apply to the generated route on the next sync.</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -720,21 +669,45 @@ func EndpointsContent(endpoints []Endpoint) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<button onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var36 templ.ComponentScript = saveEndpointSettings(ep.ID, ep.Scope)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36.Call)
+			var templ_7745c5c3_Var34 templ.ComponentScript = saveEndpointSettings(ep.ID, ep.Scope)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var34.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "\" class=\"bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"></path></svg> Save Changes</button></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" class=\"z-btn z-btn-primary z-btn-sm\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("check", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "Save changes</button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</div><!-- TEST MODAL --><div id=\"test-modal\" class=\"hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4\" onclick=\"closeTestModal()\"><div class=\"w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl\" onclick=\"event.stopPropagation()\"><!-- MODAL HEADER --><div class=\"flex items-center justify-between p-4 border-b border-neutral-800\"><div class=\"flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-blue-500\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg></div><button onclick=\"closeTestModal()\" class=\"p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- MODAL CONTENT --><div class=\"flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden\"><!-- LEFT COLUMN: SETTINGS --><div class=\"p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50\"><div><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Endpoint</label> <label for=\"test-method-select\" class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Method</label></div><div class=\"flex items-center gap-2\"><div id=\"test-endpoint-name\" class=\"flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm font-mono truncate\"></div><select id=\"test-method-select\" aria-label=\"HTTP method\" class=\"bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm font-mono outline-none focus:border-blue-500\"></select></div><select id=\"test-endpoint-select\" class=\"hidden\" aria-hidden=\"true\" tabindex=\"-1\"></select></div><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Headers</label><div class=\"space-y-2\"><div class=\"grid grid-cols-2 gap-2 text-[10px] text-neutral-600 uppercase tracking-wider\"><span>Key</span> <span>Value</span></div><div id=\"test-headers-list\" class=\"space-y-2\"></div><button onclick=\"addHeaderRow('', '')\" class=\"w-full px-3 py-2 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold\">+ Add Header</button></div></div></div><!-- RIGHT COLUMN: BODY & RESPONSE --><div class=\"lg:col-span-2 flex flex-col h-full overflow-hidden\"><!-- REQUEST BODY --><div class=\"flex-1 p-4 border-b border-neutral-800 flex flex-col min-h-0\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Request Body</label><div class=\"flex items-center gap-2\"><span class=\"text-[10px] text-neutral-600 font-mono\">JSON</span> <button onclick=\"runEndpointTest()\" class=\"px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/10\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg> Send Request</button></div></div><div id=\"test-body-ace\" class=\"w-full flex-1 rounded-lg border border-neutral-800\"></div><textarea id=\"test-body\" class=\"hidden\" placeholder='{&#10;  \"key\": \"value\"&#10;}'></textarea></div><!-- RESPONSE --><div class=\"flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Response</label><div id=\"test-status\" class=\"text-xs font-mono font-bold text-neutral-400 bg-neutral-900 px-2 py-1 rounded\">Waiting...</div></div><textarea id=\"test-response\" class=\"w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs outline-none resize-none\" readonly placeholder=\"Response will appear here...\"></textarea></div></div></div></div></div><script>\n    document.addEventListener('DOMContentLoaded', function () {\n      const params = new URLSearchParams(window.location.search);\n      const expandId = params.get('expand');\n      if (expandId) {\n        document.querySelectorAll('[id^=\"endpoint-\"]').forEach(el => el.classList.add('hidden'));\n        let target = document.getElementById(\"endpoint-\" + expandId);\n        if (target) {\n          target.classList.remove('hidden');\n          setTimeout(() => target.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);\n        }\n      }\n    });\n  </script><script>\n    (function () {\n      const cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n      const loadAce = (cb) => {\n        if (window.ace) return cb();\n        const s1 = document.createElement(\"script\");\n        s1.src = cdn + \"ace.js\";\n        s1.onload = () => {\n          ace.config.set(\"basePath\", cdn);\n          ace.config.set(\"modePath\", cdn);\n          ace.config.set(\"themePath\", cdn);\n          cb();\n        };\n        document.head.appendChild(s1);\n      };\n\n      function initTestBodyEditor() {\n        if (window.__testBodyEditor || !window.ace) return;\n        const el = document.getElementById(\"test-body-ace\");\n        if (!el) return;\n        window.__testBodyEditor = ace.edit(el);\n        window.__testBodyEditor.setTheme(\"ace/theme/dracula\");\n        window.__testBodyEditor.session.setMode(\"ace/mode/json\");\n        window.__testBodyEditor.setValue('{\\n  \"key\": \"value\"\\n}', -1);\n        window.__testBodyEditor.session.setUseWorker(false);\n      }\n\n      window.__initTestBodyEditor = initTestBodyEditor;\n\n      document.addEventListener(\"DOMContentLoaded\", () => {\n        const list = document.getElementById(\"test-headers-list\");\n        if (list && list.children.length === 0) {\n          addHeaderRow(\"Content-Type\", \"application/json\");\n          addHeaderRow(\"Authorization\", \"Bearer ...\");\n        }\n        loadAce(initTestBodyEditor);\n      });\n    })();\n  </script><script>\n    window.ensureTestModalOptions = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      if (!select) return null;\n      let list = [];\n      if (window.__endpointList && window.__endpointList.length > 0) {\n        list = window.__endpointList;\n      } else {\n        list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n          id: el.dataset.endpointId,\n          name: el.dataset.endpointName,\n          method: el.dataset.endpointMethod,\n        }));\n      }\n      if (list.length > 0 && select.options.length === 0) {\n        list.forEach(ep => {\n          const opt = document.createElement(\"option\");\n          opt.value = ep.id;\n          opt.textContent = ep.name;\n          select.appendChild(opt);\n        });\n      }\n      return select;\n    };\n\n    window.openTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (!modal) return;\n      modal.classList.remove(\"hidden\");\n      const select = window.ensureTestModalOptions();\n      if (select) select.dispatchEvent(new Event(\"change\"));\n      if (window.__initTestBodyEditor) window.__initTestBodyEditor();\n      if (window.__testBodyEditor) setTimeout(() => window.__testBodyEditor.resize(), 60);\n    };\n\n    window.openTestModalForEndpoint = function (id) {\n      window.openTestModal();\n      const select = window.ensureTestModalOptions();\n      if (!select) return;\n      select.value = id;\n      select.dispatchEvent(new Event(\"change\"));\n    };\n\n    window.closeTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (modal) modal.classList.add(\"hidden\");\n    };\n\n    window.addHeaderRow = function (key, val) {\n      const list = document.getElementById(\"test-headers-list\");\n      if (!list) return;\n      const row = document.createElement(\"div\");\n      row.className = \"header-row flex items-center gap-2\";\n      row.innerHTML = `\n\t\t\t\t\t<input class=\"header-key flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Header\" value=\"${key || \"\"}\">\n\t\t\t\t\t<span class=\"text-neutral-600 text-xs\">:</span>\n\t\t\t\t\t<input class=\"header-val flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Value\" value=\"${val || \"\"}\">\n\t\t\t\t\t<button class=\"remove-header px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition\" title=\"Remove header\">\n\t\t\t\t\t\t<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n\t\t\t\t\t\t\t<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\" />\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</button>\n\t\t\t\t`;\n      row.querySelector(\".remove-header\")?.addEventListener(\"click\", () => {\n        row.remove();\n        if (list.querySelectorAll(\".header-row\").length === 0) {\n          window.addHeaderRow(\"\", \"\");\n        }\n      });\n      list.appendChild(row);\n    };\n\n    window.getHeadersFromUI = function () {\n      const headers = {};\n      document.querySelectorAll(\"#test-headers-list .header-row\").forEach(row => {\n        const key = row.querySelector(\".header-key\")?.value?.trim();\n        const val = row.querySelector(\".header-val\")?.value?.trim();\n        if (key) headers[key] = val || \"\";\n      });\n      return headers;\n    };\n\n    function setTestBodyEnabled(method) {\n      const isGetLike = method === \"GET\" || method === \"HEAD\";\n      const aceWrap = document.getElementById(\"test-body-ace\");\n      if (window.__testBodyEditor) {\n        window.__testBodyEditor.setReadOnly(isGetLike);\n      }\n      if (aceWrap) {\n        if (isGetLike) aceWrap.classList.add(\"opacity-60\");\n        else aceWrap.classList.remove(\"opacity-60\");\n      }\n    }\n\n    const allowedHttpMethods = [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\", \"HEAD\", \"OPTIONS\"];\n    function methodsForEndpoint(endpoint) {\n      const methods = String(endpoint?.method || \"GET\").split(\",\")\n        .map(method => method.trim().toUpperCase())\n        .filter(method => allowedHttpMethods.includes(method));\n      return [...new Set(methods.length ? methods : [\"GET\"])];\n    }\n    function renderEndpointMethods(endpoint) {\n      const endpointName = document.getElementById(\"test-endpoint-name\");\n      if (endpointName) endpointName.textContent = endpoint?.name || \"\";\n    }\n\n    window.runEndpointTest = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      const epId = select?.value;\n      if (!epId) return;\n      const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n        ? window.__endpointList\n        : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n          id: el.dataset.endpointId,\n          name: el.dataset.endpointName,\n          method: el.dataset.endpointMethod,\n        }));\n      const endpoint = endpointList.find(ep => ep.id === epId);\n      if (!endpoint || !endpoint.name) return;\n\n      const methodSelect = document.getElementById(\"test-method-select\");\n      const methodInput = document.getElementById(\"selected-method-\" + epId);\n      const allowedMethods = methodsForEndpoint(endpoint);\n      let method = String(methodSelect?.value || methodInput?.value || allowedMethods[0]).toUpperCase();\n      if (!allowedMethods.includes(method)) method = allowedMethods[0];\n\n      const url = `/lambda${endpoint.name}`;\n      const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById(\"test-body\")?.value || \"\");\n      const headers = window.getHeadersFromUI();\n\n      const resEl = document.getElementById(\"test-response\");\n      const statusEl = document.getElementById(\"test-status\");\n      if (resEl) resEl.value = \"Sending...\";\n      if (statusEl) statusEl.textContent = \"\";\n\n      (async () => {\n        try {\n          const request = {method, headers};\n          if (method !== \"GET\" && method !== \"HEAD\" && bodyRaw.trim() !== \"\") {\n            request.body = bodyRaw;\n          }\n          const resp = await fetch(url, request);\n          const contentType = resp.headers.get(\"Content-Type\") || \"\";\n          const textBody = await resp.text();\n          if (statusEl) statusEl.textContent = `Status: ${resp.status}`;\n\n          let bodyStr = textBody || \"\";\n          if (contentType.includes(\"application/json\")) {\n            try {\n              const jsonBody = JSON.parse(bodyStr);\n              bodyStr = JSON.stringify(jsonBody, null, 2);\n            } catch (e) { }\n          }\n\n          if (resEl) resEl.value = bodyStr;\n        } catch (e) {\n          if (statusEl) statusEl.textContent = \"Status: error\";\n          if (resEl) resEl.value = String(e);\n        }\n      })();\n    };\n\n    document.addEventListener(\"DOMContentLoaded\", () => {\n      const select = document.getElementById(\"test-endpoint-select\");\n      const methodSelect = document.getElementById(\"test-method-select\");\n      const syncMethodFromEndpoint = () => {\n        if (!select || !methodSelect) return;\n        const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n          ? window.__endpointList\n          : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        const endpoint = endpointList.find(ep => ep.id === select.value);\n        const methods = methodsForEndpoint(endpoint);\n        methodSelect.replaceChildren(...methods.map(method => {\n          const option = document.createElement(\"option\");\n          option.value = method;\n          option.textContent = method;\n          return option;\n        }));\n        methodSelect.value = methods[0];\n        renderEndpointMethods(endpoint);\n        setTestBodyEnabled(methodSelect.value);\n      };\n\n      select?.addEventListener(\"change\", syncMethodFromEndpoint);\n      methodSelect?.addEventListener(\"change\", () => setTestBodyEnabled(String(methodSelect.value || \"GET\").toUpperCase()));\n      syncMethodFromEndpoint();\n    });\n  </script><script>\n    (function () {\n      function ensureWsModalOptions() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        if (!select) return null;\n        let list = [];\n        if (window.__endpointList && window.__endpointList.length > 0) {\n          list = window.__endpointList;\n        } else {\n          list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        }\n        if (list.length > 0 && select.options.length === 0) {\n          list.forEach(ep => {\n            const opt = document.createElement(\"option\");\n            opt.value = ep.id;\n            opt.textContent = `${ep.method} ${ep.name}`;\n            select.appendChild(opt);\n          });\n        }\n        return select;\n      }\n\n      function wsBaseUrl() {\n        const proto = window.location.protocol === \"https:\" ? \"wss:\" : \"ws:\";\n        return proto + \"//\" + window.location.host;\n      }\n\n      function toWsPath(path) {\n        if (!path) return \"\";\n        if (path.startsWith(\"/lambda/ws/\")) return path;\n        if (path.startsWith(\"/lambda/\")) {\n          return \"/lambda/ws/\" + path.replace(\"/lambda/\", \"\");\n        }\n        if (path.startsWith(\"/\")) return \"/lambda/ws\" + path;\n        return \"/lambda/ws/\" + path;\n      }\n\n      function setWsUrl() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        const urlEl = document.getElementById(\"ws-url\");\n        if (!select || !urlEl) return;\n        const epId = select.value;\n        const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n          ? window.__endpointList\n          : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        const endpoint = endpointList.find(ep => ep.id === epId);\n        const path = endpoint?.name || \"\";\n        const wsUrl = wsBaseUrl() + toWsPath(path);\n        urlEl.value = wsUrl;\n      }\n\n      function setWsStatus(text, cls) {\n        const el = document.getElementById(\"ws-status\");\n        if (!el) return;\n        el.textContent = text;\n        el.className = \"text-xs font-mono bg-neutral-900 px-2 py-1 rounded \" + (cls || \"text-neutral-400\");\n      }\n\n      function logWsMessage(kind, payload) {\n        const log = document.getElementById(\"ws-log\");\n        if (!log) return;\n        const ts = new Date().toLocaleTimeString();\n        const color = kind === \"sent\" ? \"text-cyan-300\" : (kind === \"recv\" ? \"text-green-400\" : \"text-yellow-400\");\n        const line = document.createElement(\"div\");\n        line.className = \"mb-2\";\n        line.innerHTML = `<span class=\"text-neutral-500\">[${ts}]</span> <span class=\"${color}\">${kind.toUpperCase()}</span> <span class=\"text-neutral-300\">•</span> <span class=\"text-neutral-200 whitespace-pre-wrap break-words\"></span>`;\n        line.querySelector(\"span:last-child\").textContent = payload;\n        log.appendChild(line);\n        log.scrollTop = log.scrollHeight;\n      }\n\n      function closeWs() {\n        if (window.__wsConn) {\n          try {window.__wsConn.close();} catch (e) { }\n          window.__wsConn = null;\n        }\n      }\n\n      window.openWsTestModal = function () {\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (!modal) return;\n        modal.classList.remove(\"hidden\");\n        const select = ensureWsModalOptions();\n        if (select) {\n          select.removeEventListener(\"change\", setWsUrl);\n          select.addEventListener(\"change\", setWsUrl);\n          setWsUrl();\n        }\n      };\n\n      window.openWsTestModalForEndpoint = function (id) {\n        window.openWsTestModal();\n        const select = ensureWsModalOptions();\n        if (!select) return;\n        select.value = id;\n        setWsUrl();\n      };\n\n      window.closeWsTestModal = function () {\n        closeWs();\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (modal) modal.classList.add(\"hidden\");\n        setWsStatus(\"Disconnected\");\n      };\n\n      window.copyWsUrl = function () {\n        const url = document.getElementById(\"ws-url\")?.value || \"\";\n        if (!url) return;\n        navigator.clipboard.writeText(url);\n      };\n\n      window.connectWs = function () {\n        const url = document.getElementById(\"ws-url\")?.value;\n        if (!url) return;\n        closeWs();\n        setWsStatus(\"Connecting...\", \"text-cyan-300\");\n        try {\n          const ws = new WebSocket(url);\n          ws.binaryType = \"arraybuffer\";\n          ws.onopen = () => setWsStatus(\"Connected\", \"text-green-400\");\n          ws.onclose = () => setWsStatus(\"Disconnected\", \"text-neutral-400\");\n          ws.onerror = () => setWsStatus(\"Error\", \"text-red-400\");\n          ws.onmessage = (ev) => {\n            if (typeof ev.data === \"string\") {\n              logWsMessage(\"recv\", ev.data);\n            } else {\n              const view = new Uint8Array(ev.data);\n              const text = new TextDecoder().decode(view);\n              logWsMessage(\"recv\", text || \"[binary]\");\n            }\n          };\n          window.__wsConn = ws;\n        } catch (e) {\n          setWsStatus(\"Error\", \"text-red-400\");\n          logWsMessage(\"info\", String(e));\n        }\n      };\n\n      window.disconnectWs = function () {\n        closeWs();\n        setWsStatus(\"Disconnected\", \"text-neutral-400\");\n      };\n\n      window.sendWsMessage = function () {\n        const ws = window.__wsConn;\n        const msg = document.getElementById(\"ws-message\")?.value || \"\";\n        if (!ws || ws.readyState !== WebSocket.OPEN) {\n          logWsMessage(\"info\", \"Not connected.\");\n          return;\n        }\n        ws.send(msg);\n        logWsMessage(\"sent\", msg);\n      };\n\n      window.clearWsLog = function () {\n        const log = document.getElementById(\"ws-log\");\n        if (log) log.innerHTML = \"\";\n      };\n    })();\n  </script><script>\n    (function () {\n      function isInProgress(run) {\n        if (!run) return false;\n        const rawStatus = run.status || run.Status;\n        if (!rawStatus) return false;\n        const status = String(rawStatus).toLowerCase();\n        return status === \"in_progress\" || status === \"queued\" || status === \"waiting\" || status === \"running\";\n      }\n\n      function getRuns(progress) {\n        if (!progress) return [];\n        if (Array.isArray(progress.Runs)) return progress.Runs;\n        if (Array.isArray(progress.runs)) return progress.runs;\n        return [];\n      }\n\n      function pickActiveRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || null;\n      }\n\n      function pickDisplayRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || runs[0];\n      }\n\n      function normalizeName(val) {\n        return String(val || \"\").trim().toLowerCase();\n      }\n\n      function getRunName(run) {\n        return normalizeName(run?.FunctionName || run?.function_name || run?.WorkflowName || run?.workflow_name || run?.Name || run?.name || \"\");\n      }\n\n      function extractFunctionName(run) {\n        const title = String(run?.DisplayTitle || run?.display_title || \"\").toLowerCase();\n        if (!title) return \"\";\n        const m = title.match(/functions\\/(?:go|rs|rust|py|python|ts|typescript|lua)\\/([^.\\s\\/]+)\\./);\n        return m ? m[1] : \"\";\n      }\n\n      function pickRunForFunction(runs, functionName) {\n        const target = normalizeName(functionName);\n        if (!target) return null;\n        const matching = runs.filter(r => {\n          const byName = getRunName(r) === target;\n          const byDisplay = extractFunctionName(r) === target;\n          return byName || byDisplay;\n        });\n        if (!matching.length) return null;\n        return matching;\n      }\n\n      function isRunSuccess(run) {\n        const {status, conclusion} = normalizeStatus(run);\n        if (conclusion === \"success\" || status === \"success\") return true;\n        if (status === \"completed\" && !conclusion) return true;\n        return false;\n      }\n\n      function jobNameForRun(run) {\n        return normalizeName(run?.CurrentJob || run?.current_job || run?.Name || run?.name || \"\");\n      }\n\n      function isRelevantRunForLanguage(run, language) {\n        const relevant = getRelevantJobs(language);\n        if (!relevant.length) return true;\n        const job = jobNameForRun(run);\n        if (!job) return false;\n        return relevant.some(r => job.includes(r));\n      }\n\n      function pickRunForFunctionAndLanguage(runs, functionName, language) {\n        const matching = pickRunForFunction(runs, functionName);\n        if (!matching || !matching.length) return null;\n\n        const activeRelevant = matching.find(r => isInProgress(r) && isRelevantRunForLanguage(r, language));\n        if (activeRelevant) return activeRelevant;\n\n        const successRelevant = matching.find(r => isRunSuccess(r) && isRelevantRunForLanguage(r, language));\n        if (successRelevant) return successRelevant;\n\n        return matching.find(isInProgress) || matching[0];\n      }\n\n      function normalizeStatus(run) {\n        if (!run) return \"\";\n        const status = String(run.status || run.Status || \"\").toLowerCase();\n        const conclusion = String(run.conclusion || run.Conclusion || \"\").toLowerCase();\n        return {status, conclusion};\n      }\n\n      function statusClass(status, conclusion, running) {\n        if (running) {\n          return \"border-[#6b3f17] bg-[#4a2a0c]/40 text-[#e5b07b] hover:bg-[#4a2a0c]/60\";\n        }\n        if (conclusion === \"success\" || status === \"success\") {\n          return \"border-green-700/60 bg-green-700/15 text-green-300 hover:bg-green-700/30\";\n        }\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n          [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return \"border-red-700/60 bg-red-700/15 text-red-300 hover:bg-red-700/30\";\n        }\n        return \"border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:bg-neutral-800\";\n      }\n\n      function statusLabel(run, running) {\n        const name = run?.Name || run?.name || \"Build\";\n        if (running) return `Running: ${name}`;\n        const {status, conclusion} = normalizeStatus(run);\n        if (conclusion === \"success\" || status === \"success\") return `Success: ${name}`;\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n          [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return `Failed: ${name}`;\n        }\n        if (status) return `${status}: ${name}`;\n        return name;\n      }\n\n      function normalizeLanguage(val) {\n        const lang = normalizeName(val);\n        if (lang === \"rs\") return \"rust\";\n        return lang;\n      }\n\n      function getRelevantJobs(language) {\n        switch (normalizeLanguage(language)) {\n          case \"go\":\n            return [\"build-go\"];\n          case \"rust\":\n            return [\"build-rust\"];\n          case \"python\":\n            return [\"hook-python\"];\n          case \"ts\":\n            return [\"hook-ts\"];\n          case \"lua\":\n            return [\"hook-lua\"];\n          default:\n            return [];\n        }\n      }\n\n      function isRelevantCurrentJob(language, currentJob) {\n        const relevant = getRelevantJobs(language);\n        if (!relevant.length) return true;\n        const job = normalizeName(currentJob);\n        if (!job) return true;\n        return relevant.some(r => job.includes(r));\n      }\n\n      function updateBuildButtons(progress) {\n        const runs = getRuns(progress);\n        document.querySelectorAll(\"[data-endpoint-id]\").forEach(card => {\n          const endpointId = card.getAttribute(\"data-endpoint-id\");\n          const fnName = card.getAttribute(\"data-endpoint-function\");\n          const language = card.getAttribute(\"data-endpoint-language\") || \"\";\n          const isAsync = card.getAttribute(\"data-endpoint-async\") === \"true\";\n          const buildLink = document.getElementById(`build-status-${endpointId}`);\n          const stepLabel = document.getElementById(`build-step-${endpointId}`);\n          const testBtn = document.getElementById(`test-btn-${endpointId}`);\n          const wsTestBtn = document.getElementById(`ws-test-btn-${endpointId}`);\n          if (!buildLink) return;\n\n          const display = pickRunForFunctionAndLanguage(runs, fnName, language);\n          const baseRunning = display ? isInProgress(display) : false;\n          const url = (display && (display.HTMLURL || display.htmlurl)) || \"\";\n          const jobName = display?.CurrentJob || display?.current_job || \"\";\n          const stepName = display?.CurrentStep || display?.current_step || \"\";\n          const relevantRunning = baseRunning && isRelevantCurrentJob(language, jobName);\n          const effectiveStatus = (baseRunning && !relevantRunning) ? \"success\" : (display?.status || display?.Status);\n          const effectiveConclusion = (baseRunning && !relevantRunning) ? \"success\" : (display?.conclusion || display?.Conclusion);\n          const cls = statusClass(\n            effectiveStatus,\n            effectiveConclusion,\n            relevantRunning\n          );\n          const label = display\n            ? (baseRunning && !relevantRunning\n              ? `Success: ${jobName || (display?.Name || display?.name || \"Build\")}`\n              : statusLabel(display, relevantRunning))\n            : \"No Actions\";\n          const stepText = stepName ? (jobName ? `${jobName} • ${stepName}` : stepName) : jobName;\n\n          if (url) {\n            buildLink.setAttribute(\"href\", url);\n            buildLink.classList.remove(\"pointer-events-none\", \"opacity-70\");\n          } else {\n            buildLink.setAttribute(\"href\", \"#\");\n            buildLink.classList.add(\"pointer-events-none\", \"opacity-70\");\n          }\n          buildLink.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;\n          buildLink.textContent = label;\n          buildLink.classList.remove(\"hidden\");\n          if (stepLabel) {\n            if (stepText) {\n              stepLabel.textContent = `Step: ${stepText}`;\n              stepLabel.classList.remove(\"hidden\");\n            } else {\n              stepLabel.textContent = \"\";\n              stepLabel.classList.add(\"hidden\");\n            }\n          }\n\n          if (isAsync) {\n            if (wsTestBtn) wsTestBtn.classList.remove(\"hidden\");\n            if (testBtn) testBtn.classList.add(\"hidden\");\n          } else {\n            if (wsTestBtn) wsTestBtn.classList.add(\"hidden\");\n            if (testBtn) {\n              const showTest = !relevantRunning;\n              if (showTest) testBtn.classList.remove(\"hidden\");\n              else testBtn.classList.add(\"hidden\");\n            }\n          }\n        });\n      }\n\n      function startActionsSSE() {\n        if (!window.EventSource) return;\n        const es = new EventSource(\"/api/actions/status/\");\n        es.addEventListener(\"status\", (ev) => {\n          try {\n            const data = JSON.parse(ev.data || \"{}\");\n            updateBuildButtons(data);\n          } catch (e) {\n            // ignore malformed payloads\n          }\n        });\n        es.addEventListener(\"error\", () => {\n          // keep UI usable if stream drops\n          updateBuildButtons(null);\n        });\n      }\n\n      document.addEventListener(\"DOMContentLoaded\", startActionsSSE);\n    })();\n  </script><script>\n    // Provide a global method selector for DOMContentLoaded initialization.\n    // templ component scripts are scoped, so we expose a stable name here.\n    window.selectMethodForEndpoint = function (id, method) {\n      const methodStyles = {\n        GET: [\"border-blue-500\", \"bg-blue-500/20\", \"text-blue-400\"],\n        POST: [\"border-green-500\", \"bg-green-500/20\", \"text-green-400\"],\n        PUT: [\"border-yellow-500\", \"bg-yellow-500/20\", \"text-yellow-400\"],\n        PATCH: [\"border-purple-500\", \"bg-purple-500/20\", \"text-purple-400\"],\n        DELETE: [\"border-red-500\", \"bg-red-500/20\", \"text-red-400\"]\n      };\n      const allMethodClasses = [\n        \"border-blue-500\", \"bg-blue-500/20\", \"text-blue-400\",\n        \"border-green-500\", \"bg-green-500/20\", \"text-green-400\",\n        \"border-yellow-500\", \"bg-yellow-500/20\", \"text-yellow-400\",\n        \"border-purple-500\", \"bg-purple-500/20\", \"text-purple-400\",\n        \"border-red-500\", \"bg-red-500/20\", \"text-red-400\"\n      ];\n      const neutralClasses = [\"border-neutral-700\", \"text-neutral-400\"];\n      const input = document.getElementById(\"selected-method-\" + id);\n      const methods = new Set((input?.value || \"\").split(\",\").filter(Boolean));\n      if (methods.has(method)) methods.delete(method); else methods.add(method);\n      const selectedMethods = [...methods];\n      [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\"].forEach(m => {\n        const btn = document.getElementById(\"method-\" + m + \"-\" + id);\n        if (btn) {\n          btn.classList.remove(...allMethodClasses);\n          btn.classList.remove(...neutralClasses);\n          if (methods.has(m)) btn.classList.add(...(methodStyles[m] || methodStyles.GET));\n          else btn.classList.add(...neutralClasses);\n        }\n      });\n      if (input) input.value = selectedMethods.join(\",\");\n    };\n  </script><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n      document.querySelectorAll('input[id^=\"selected-method-\"]').forEach(el => {\n        const id = el.id.replace(\"selected-method-\", \"\");\n        const methods = (el.value || \"GET\").split(\",\").filter(Boolean);\n        el.value = \"\";\n        methods.forEach(method => selectMethodForEndpoint(id, method));\n      });\n    });\n  </script><style>\n    .ace_editor,\n    .ace_scroller,\n    .ace_content {\n      background: #0b0b0c !important;\n      color: #eee !important;\n    }\n  </style></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div><!-- TEST MODAL --><div id=\"test-modal\" class=\"hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4\" onclick=\"closeTestModal()\"><div class=\"w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl\" onclick=\"event.stopPropagation()\"><!-- MODAL HEADER --><div class=\"flex items-center justify-between p-4 border-b border-neutral-800\"><div class=\"flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-blue-500\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 10V3L4 14h7v7l9-11h-7z\"></path></svg></div><button onclick=\"closeTestModal()\" class=\"p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- MODAL CONTENT --><div class=\"flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden\"><!-- LEFT COLUMN: SETTINGS --><div class=\"p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50\"><div><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Endpoint</label> <label for=\"test-method-select\" class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Method</label></div><div class=\"flex items-center gap-2\"><div id=\"test-endpoint-name\" class=\"flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm font-mono truncate\"></div><select id=\"test-method-select\" aria-label=\"HTTP method\" class=\"bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm font-mono outline-none focus:border-blue-500\"></select></div><select id=\"test-endpoint-select\" class=\"hidden\" aria-hidden=\"true\" tabindex=\"-1\"></select></div><div><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block\">Headers</label><div class=\"space-y-2\"><div class=\"grid grid-cols-2 gap-2 text-[10px] text-neutral-600 uppercase tracking-wider\"><span>Key</span> <span>Value</span></div><div id=\"test-headers-list\" class=\"space-y-2\"></div><button onclick=\"addHeaderRow('', '')\" class=\"w-full px-3 py-2 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold\">+ Add Header</button></div></div></div><!-- RIGHT COLUMN: BODY & RESPONSE --><div class=\"lg:col-span-2 flex flex-col h-full overflow-hidden\"><!-- REQUEST BODY --><div class=\"flex-1 p-4 border-b border-neutral-800 flex flex-col min-h-0\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Request Body</label><div class=\"flex items-center gap-2\"><span class=\"text-[10px] text-neutral-600 font-mono\">JSON</span> <button onclick=\"runEndpointTest()\" class=\"px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/10\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"></path></svg> Send Request</button></div></div><div id=\"test-body-ace\" class=\"w-full flex-1 rounded-lg border border-neutral-800\"></div><textarea id=\"test-body\" class=\"hidden\" placeholder='{&#10;  \"key\": \"value\"&#10;}'></textarea></div><!-- RESPONSE --><div class=\"flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30\"><div class=\"flex items-center justify-between mb-2\"><label class=\"text-xs font-semibold text-neutral-500 uppercase tracking-wider\">Response</label><div id=\"test-status\" class=\"text-xs font-mono font-bold text-neutral-400 bg-neutral-900 px-2 py-1 rounded\">Waiting...</div></div><textarea id=\"test-response\" class=\"w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs outline-none resize-none\" readonly placeholder=\"Response will appear here...\"></textarea></div></div></div></div></div><div id=\"ws-test-modal\" class=\"z-modal-backdrop\" onclick=\"closeWsTestModal()\"><div class=\"z-modal wide\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<span class=\"z-modal-title\">Test WebSocket</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" onclick=\"closeWsTestModal()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</button></div><div class=\"z-modal-body\"><div class=\"z-grid z-grid-2\" style=\"gap:12px\"><div class=\"z-field\"><label class=\"z-label\" for=\"ws-endpoint-select\">Endpoint</label> <select id=\"ws-endpoint-select\" class=\"z-select\"></select></div><div class=\"z-field\"><label class=\"z-label\" for=\"ws-url\">WebSocket URL</label><div class=\"z-input-group\"><input id=\"ws-url\" class=\"z-input z-mono\" readonly> <button class=\"z-btn z-btn-sm\" onclick=\"copyWsUrl()\">Copy</button></div></div></div><div style=\"display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap\"><span id=\"ws-status\" class=\"z-badge z-badge-muted\">Disconnected</span> <button class=\"z-btn z-btn-sm z-btn-primary\" onclick=\"connectWs()\">Connect</button> <button class=\"z-btn z-btn-sm\" onclick=\"disconnectWs()\">Disconnect</button> <button class=\"z-btn z-btn-sm z-btn-ghost\" style=\"margin-left:auto\" onclick=\"clearWsLog()\">Clear log</button></div><div id=\"ws-log\" class=\"z-ws-log z-mono\" style=\"margin-top:10px\"></div><div class=\"z-input-group\" style=\"margin-top:10px\"><input id=\"ws-message\" class=\"z-input z-mono\" placeholder=\"Message to send…\"> <button class=\"z-btn z-btn-sm z-btn-primary\" onclick=\"sendWsMessage()\">Send</button></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" onclick=\"closeWsTestModal()\">Close</button></div></div></div><script>\n    document.addEventListener('DOMContentLoaded', function () {\n      const params = new URLSearchParams(window.location.search);\n      const expandId = params.get('expand');\n      if (expandId) {\n        document.querySelectorAll('[id^=\"endpoint-\"]').forEach(el => el.classList.add('hidden'));\n        let target = document.getElementById(\"endpoint-\" + expandId);\n        if (target) {\n          target.classList.remove('hidden');\n          setTimeout(() => target.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);\n        }\n      }\n    });\n  </script><script>\n    (function () {\n      const cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n      const loadAce = (cb) => {\n        if (window.ace) return cb();\n        const s1 = document.createElement(\"script\");\n        s1.src = cdn + \"ace.js\";\n        s1.onload = () => {\n          ace.config.set(\"basePath\", cdn);\n          ace.config.set(\"modePath\", cdn);\n          ace.config.set(\"themePath\", cdn);\n          cb();\n        };\n        document.head.appendChild(s1);\n      };\n\n      function initTestBodyEditor() {\n        if (window.__testBodyEditor || !window.ace) return;\n        const el = document.getElementById(\"test-body-ace\");\n        if (!el) return;\n        window.__testBodyEditor = ace.edit(el);\n        window.__testBodyEditor.setTheme(\"ace/theme/dracula\");\n        window.__testBodyEditor.session.setMode(\"ace/mode/json\");\n        window.__testBodyEditor.setValue('{\\n  \"key\": \"value\"\\n}', -1);\n        window.__testBodyEditor.session.setUseWorker(false);\n      }\n\n      window.__initTestBodyEditor = initTestBodyEditor;\n\n      document.addEventListener(\"DOMContentLoaded\", () => {\n        const list = document.getElementById(\"test-headers-list\");\n        if (list && list.children.length === 0) {\n          addHeaderRow(\"Content-Type\", \"application/json\");\n          addHeaderRow(\"Authorization\", \"Bearer ...\");\n        }\n        loadAce(initTestBodyEditor);\n      });\n    })();\n  </script><script>\n    window.ensureTestModalOptions = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      if (!select) return null;\n      let list = [];\n      if (window.__endpointList && window.__endpointList.length > 0) {\n        list = window.__endpointList;\n      } else {\n        list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n          id: el.dataset.endpointId,\n          name: el.dataset.endpointName,\n          method: el.dataset.endpointMethod,\n        }));\n      }\n      if (list.length > 0 && select.options.length === 0) {\n        list.forEach(ep => {\n          const opt = document.createElement(\"option\");\n          opt.value = ep.id;\n          opt.textContent = ep.name;\n          select.appendChild(opt);\n        });\n      }\n      return select;\n    };\n\n    window.openTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (!modal) return;\n      modal.classList.remove(\"hidden\");\n      const select = window.ensureTestModalOptions();\n      if (select) select.dispatchEvent(new Event(\"change\"));\n      if (window.__initTestBodyEditor) window.__initTestBodyEditor();\n      if (window.__testBodyEditor) setTimeout(() => window.__testBodyEditor.resize(), 60);\n    };\n\n    window.openTestModalForEndpoint = function (id) {\n      window.openTestModal();\n      const select = window.ensureTestModalOptions();\n      if (!select) return;\n      select.value = id;\n      select.dispatchEvent(new Event(\"change\"));\n    };\n\n    window.closeTestModal = function () {\n      const modal = document.getElementById(\"test-modal\");\n      if (modal) modal.classList.add(\"hidden\");\n    };\n\n    window.addHeaderRow = function (key, val) {\n      const list = document.getElementById(\"test-headers-list\");\n      if (!list) return;\n      const row = document.createElement(\"div\");\n      row.className = \"header-row flex items-center gap-2\";\n      row.innerHTML = `\n\t\t\t\t\t<input class=\"header-key flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Header\" value=\"${key || \"\"}\">\n\t\t\t\t\t<span class=\"text-neutral-600 text-xs\">:</span>\n\t\t\t\t\t<input class=\"header-val flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition\" placeholder=\"Value\" value=\"${val || \"\"}\">\n\t\t\t\t\t<button class=\"remove-header px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition\" title=\"Remove header\">\n\t\t\t\t\t\t<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n\t\t\t\t\t\t\t<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\" />\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t</button>\n\t\t\t\t`;\n      row.querySelector(\".remove-header\")?.addEventListener(\"click\", () => {\n        row.remove();\n        if (list.querySelectorAll(\".header-row\").length === 0) {\n          window.addHeaderRow(\"\", \"\");\n        }\n      });\n      list.appendChild(row);\n    };\n\n    window.getHeadersFromUI = function () {\n      const headers = {};\n      document.querySelectorAll(\"#test-headers-list .header-row\").forEach(row => {\n        const key = row.querySelector(\".header-key\")?.value?.trim();\n        const val = row.querySelector(\".header-val\")?.value?.trim();\n        if (key) headers[key] = val || \"\";\n      });\n      return headers;\n    };\n\n    function setTestBodyEnabled(method) {\n      const isGetLike = method === \"GET\" || method === \"HEAD\";\n      const aceWrap = document.getElementById(\"test-body-ace\");\n      if (window.__testBodyEditor) {\n        window.__testBodyEditor.setReadOnly(isGetLike);\n      }\n      if (aceWrap) {\n        if (isGetLike) aceWrap.classList.add(\"opacity-60\");\n        else aceWrap.classList.remove(\"opacity-60\");\n      }\n    }\n\n    const allowedHttpMethods = [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\", \"HEAD\", \"OPTIONS\"];\n    function methodsForEndpoint(endpoint) {\n      const methods = String(endpoint?.method || \"GET\").split(\",\")\n        .map(method => method.trim().toUpperCase())\n        .filter(method => allowedHttpMethods.includes(method));\n      return [...new Set(methods.length ? methods : [\"GET\"])];\n    }\n    function renderEndpointMethods(endpoint) {\n      const endpointName = document.getElementById(\"test-endpoint-name\");\n      if (endpointName) endpointName.textContent = endpoint?.name || \"\";\n    }\n\n    window.runEndpointTest = function () {\n      const select = document.getElementById(\"test-endpoint-select\");\n      const epId = select?.value;\n      if (!epId) return;\n      const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n        ? window.__endpointList\n        : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n          id: el.dataset.endpointId,\n          name: el.dataset.endpointName,\n          method: el.dataset.endpointMethod,\n        }));\n      const endpoint = endpointList.find(ep => ep.id === epId);\n      if (!endpoint || !endpoint.name) return;\n\n      const methodSelect = document.getElementById(\"test-method-select\");\n      const methodInput = document.getElementById(\"selected-method-\" + epId);\n      const allowedMethods = methodsForEndpoint(endpoint);\n      let method = String(methodSelect?.value || methodInput?.value || allowedMethods[0]).toUpperCase();\n      if (!allowedMethods.includes(method)) method = allowedMethods[0];\n\n      const url = `/lambda${endpoint.name}`;\n      const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById(\"test-body\")?.value || \"\");\n      const headers = window.getHeadersFromUI();\n\n      const resEl = document.getElementById(\"test-response\");\n      const statusEl = document.getElementById(\"test-status\");\n      if (resEl) resEl.value = \"Sending...\";\n      if (statusEl) statusEl.textContent = \"\";\n\n      (async () => {\n        try {\n          const request = {method, headers};\n          if (method !== \"GET\" && method !== \"HEAD\" && bodyRaw.trim() !== \"\") {\n            request.body = bodyRaw;\n          }\n          const resp = await fetch(url, request);\n          const contentType = resp.headers.get(\"Content-Type\") || \"\";\n          const textBody = await resp.text();\n          if (statusEl) statusEl.textContent = `Status: ${resp.status}`;\n\n          let bodyStr = textBody || \"\";\n          if (contentType.includes(\"application/json\")) {\n            try {\n              const jsonBody = JSON.parse(bodyStr);\n              bodyStr = JSON.stringify(jsonBody, null, 2);\n            } catch (e) { }\n          }\n\n          if (resEl) resEl.value = bodyStr;\n        } catch (e) {\n          if (statusEl) statusEl.textContent = \"Status: error\";\n          if (resEl) resEl.value = String(e);\n        }\n      })();\n    };\n\n    document.addEventListener(\"DOMContentLoaded\", () => {\n      const select = document.getElementById(\"test-endpoint-select\");\n      const methodSelect = document.getElementById(\"test-method-select\");\n      const syncMethodFromEndpoint = () => {\n        if (!select || !methodSelect) return;\n        const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n          ? window.__endpointList\n          : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        const endpoint = endpointList.find(ep => ep.id === select.value);\n        const methods = methodsForEndpoint(endpoint);\n        methodSelect.replaceChildren(...methods.map(method => {\n          const option = document.createElement(\"option\");\n          option.value = method;\n          option.textContent = method;\n          return option;\n        }));\n        methodSelect.value = methods[0];\n        renderEndpointMethods(endpoint);\n        setTestBodyEnabled(methodSelect.value);\n      };\n\n      select?.addEventListener(\"change\", syncMethodFromEndpoint);\n      methodSelect?.addEventListener(\"change\", () => setTestBodyEnabled(String(methodSelect.value || \"GET\").toUpperCase()));\n      syncMethodFromEndpoint();\n    });\n  </script><script>\n    (function () {\n      function ensureWsModalOptions() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        if (!select) return null;\n        let list = [];\n        if (window.__endpointList && window.__endpointList.length > 0) {\n          list = window.__endpointList;\n        } else {\n          list = Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        }\n        if (list.length > 0 && select.options.length === 0) {\n          list.forEach(ep => {\n            const opt = document.createElement(\"option\");\n            opt.value = ep.id;\n            opt.textContent = `${ep.method} ${ep.name}`;\n            select.appendChild(opt);\n          });\n        }\n        return select;\n      }\n\n      function wsBaseUrl() {\n        const proto = window.location.protocol === \"https:\" ? \"wss:\" : \"ws:\";\n        return proto + \"//\" + window.location.host;\n      }\n\n      function toWsPath(path) {\n        if (!path) return \"\";\n        if (path.startsWith(\"/lambda/ws/\")) return path;\n        if (path.startsWith(\"/lambda/\")) {\n          return \"/lambda/ws/\" + path.replace(\"/lambda/\", \"\");\n        }\n        if (path.startsWith(\"/\")) return \"/lambda/ws\" + path;\n        return \"/lambda/ws/\" + path;\n      }\n\n      function setWsUrl() {\n        const select = document.getElementById(\"ws-endpoint-select\");\n        const urlEl = document.getElementById(\"ws-url\");\n        if (!select || !urlEl) return;\n        const epId = select.value;\n        const endpointList = (window.__endpointList && window.__endpointList.length > 0)\n          ? window.__endpointList\n          : Array.from(document.querySelectorAll(\"[data-endpoint-id]\")).map(el => ({\n            id: el.dataset.endpointId,\n            name: el.dataset.endpointName,\n            method: el.dataset.endpointMethod,\n          }));\n        const endpoint = endpointList.find(ep => ep.id === epId);\n        const path = endpoint?.name || \"\";\n        const wsUrl = wsBaseUrl() + toWsPath(path);\n        urlEl.value = wsUrl;\n      }\n\n      function setWsStatus(text, cls) {\n        const el = document.getElementById(\"ws-status\");\n        if (!el) return;\n        el.textContent = text;\n        el.className = \"text-xs font-mono bg-neutral-900 px-2 py-1 rounded \" + (cls || \"text-neutral-400\");\n      }\n\n      function logWsMessage(kind, payload) {\n        const log = document.getElementById(\"ws-log\");\n        if (!log) return;\n        const ts = new Date().toLocaleTimeString();\n        const color = kind === \"sent\" ? \"text-cyan-300\" : (kind === \"recv\" ? \"text-green-400\" : \"text-yellow-400\");\n        const line = document.createElement(\"div\");\n        line.className = \"mb-2\";\n        line.innerHTML = `<span class=\"text-neutral-500\">[${ts}]</span> <span class=\"${color}\">${kind.toUpperCase()}</span> <span class=\"text-neutral-300\">•</span> <span class=\"text-neutral-200 whitespace-pre-wrap break-words\"></span>`;\n        line.querySelector(\"span:last-child\").textContent = payload;\n        log.appendChild(line);\n        log.scrollTop = log.scrollHeight;\n      }\n\n      function closeWs() {\n        if (window.__wsConn) {\n          try {window.__wsConn.close();} catch (e) { }\n          window.__wsConn = null;\n        }\n      }\n\n      window.openWsTestModal = function () {\n        const modal = document.getElementById(\"ws-test-modal\");\n        if (!modal) return;\n        if (window.zOpenModal) window.zOpenModal(\"ws-test-modal\");\n        else modal.classList.add(\"open\");\n        const select = ensureWsModalOptions();\n        if (select) {\n          select.removeEventListener(\"change\", setWsUrl);\n          select.addEventListener(\"change\", setWsUrl);\n          setWsUrl();\n        }\n      };\n\n      window.openWsTestModalForEndpoint = function (id) {\n        window.openWsTestModal();\n        const select = ensureWsModalOptions();\n        if (!select) return;\n        select.value = id;\n        setWsUrl();\n      };\n\n      window.closeWsTestModal = function () {\n        closeWs();\n        if (window.zCloseModal) window.zCloseModal(\"ws-test-modal\");\n        else document.getElementById(\"ws-test-modal\")?.classList.remove(\"open\");\n        setWsStatus(\"Disconnected\");\n      };\n\n      window.copyWsUrl = function () {\n        const url = document.getElementById(\"ws-url\")?.value || \"\";\n        if (!url) return;\n        navigator.clipboard.writeText(url);\n      };\n\n      window.connectWs = function () {\n        const url = document.getElementById(\"ws-url\")?.value;\n        if (!url) return;\n        closeWs();\n        setWsStatus(\"Connecting...\", \"text-cyan-300\");\n        try {\n          const ws = new WebSocket(url);\n          ws.binaryType = \"arraybuffer\";\n          ws.onopen = () => setWsStatus(\"Connected\", \"text-green-400\");\n          ws.onclose = () => setWsStatus(\"Disconnected\", \"text-neutral-400\");\n          ws.onerror = () => setWsStatus(\"Error\", \"text-red-400\");\n          ws.onmessage = (ev) => {\n            if (typeof ev.data === \"string\") {\n              logWsMessage(\"recv\", ev.data);\n            } else {\n              const view = new Uint8Array(ev.data);\n              const text = new TextDecoder().decode(view);\n              logWsMessage(\"recv\", text || \"[binary]\");\n            }\n          };\n          window.__wsConn = ws;\n        } catch (e) {\n          setWsStatus(\"Error\", \"text-red-400\");\n          logWsMessage(\"info\", String(e));\n        }\n      };\n\n      window.disconnectWs = function () {\n        closeWs();\n        setWsStatus(\"Disconnected\", \"text-neutral-400\");\n      };\n\n      window.sendWsMessage = function () {\n        const ws = window.__wsConn;\n        const msg = document.getElementById(\"ws-message\")?.value || \"\";\n        if (!ws || ws.readyState !== WebSocket.OPEN) {\n          logWsMessage(\"info\", \"Not connected.\");\n          return;\n        }\n        ws.send(msg);\n        logWsMessage(\"sent\", msg);\n      };\n\n      window.clearWsLog = function () {\n        const log = document.getElementById(\"ws-log\");\n        if (log) log.innerHTML = \"\";\n      };\n    })();\n  </script><script>\n    (function () {\n      function isInProgress(run) {\n        if (!run) return false;\n        const rawStatus = run.status || run.Status;\n        if (!rawStatus) return false;\n        const status = String(rawStatus).toLowerCase();\n        return status === \"in_progress\" || status === \"queued\" || status === \"waiting\" || status === \"running\";\n      }\n\n      function getRuns(progress) {\n        if (!progress) return [];\n        if (Array.isArray(progress.Runs)) return progress.Runs;\n        if (Array.isArray(progress.runs)) return progress.runs;\n        return [];\n      }\n\n      function pickActiveRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || null;\n      }\n\n      function pickDisplayRun(progress) {\n        const runs = getRuns(progress);\n        if (!runs.length) return null;\n        return runs.find(isInProgress) || runs[0];\n      }\n\n      function normalizeName(val) {\n        return String(val || \"\").trim().toLowerCase();\n      }\n\n      function getRunName(run) {\n        return normalizeName(run?.FunctionName || run?.function_name || run?.WorkflowName || run?.workflow_name || run?.Name || run?.name || \"\");\n      }\n\n      function extractFunctionName(run) {\n        const title = String(run?.DisplayTitle || run?.display_title || \"\").toLowerCase();\n        if (!title) return \"\";\n        const m = title.match(/functions\\/(?:go|rs|rust|py|python|ts|typescript|lua)\\/([^.\\s\\/]+)\\./);\n        return m ? m[1] : \"\";\n      }\n\n      function pickRunForFunction(runs, functionName) {\n        const target = normalizeName(functionName);\n        if (!target) return null;\n        const matching = runs.filter(r => {\n          const byName = getRunName(r) === target;\n          const byDisplay = extractFunctionName(r) === target;\n          return byName || byDisplay;\n        });\n        if (!matching.length) return null;\n        return matching;\n      }\n\n      function isRunSuccess(run) {\n        const {status, conclusion} = normalizeStatus(run);\n        if (conclusion === \"success\" || status === \"success\") return true;\n        if (status === \"completed\" && !conclusion) return true;\n        return false;\n      }\n\n      function jobNameForRun(run) {\n        return normalizeName(run?.CurrentJob || run?.current_job || run?.Name || run?.name || \"\");\n      }\n\n      function isRelevantRunForLanguage(run, language) {\n        const relevant = getRelevantJobs(language);\n        if (!relevant.length) return true;\n        const job = jobNameForRun(run);\n        if (!job) return false;\n        return relevant.some(r => job.includes(r));\n      }\n\n      function pickRunForFunctionAndLanguage(runs, functionName, language) {\n        const matching = pickRunForFunction(runs, functionName);\n        if (!matching || !matching.length) return null;\n\n        const activeRelevant = matching.find(r => isInProgress(r) && isRelevantRunForLanguage(r, language));\n        if (activeRelevant) return activeRelevant;\n\n        const successRelevant = matching.find(r => isRunSuccess(r) && isRelevantRunForLanguage(r, language));\n        if (successRelevant) return successRelevant;\n\n        return matching.find(isInProgress) || matching[0];\n      }\n\n      function normalizeStatus(run) {\n        if (!run) return \"\";\n        const status = String(run.status || run.Status || \"\").toLowerCase();\n        const conclusion = String(run.conclusion || run.Conclusion || \"\").toLowerCase();\n        return {status, conclusion};\n      }\n\n      function statusClass(status, conclusion, running) {\n        if (running) {\n          return \"z-badge-amber\";\n        }\n        if (conclusion === \"success\" || status === \"success\") {\n          return \"z-badge-green\";\n        }\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n          [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return \"z-badge-red\";\n        }\n        return \"z-badge-muted\";\n      }\n\n      function statusLabel(run, running) {\n        const name = run?.Name || run?.name || \"Build\";\n        if (running) return `Running: ${name}`;\n        const {status, conclusion} = normalizeStatus(run);\n        if (conclusion === \"success\" || status === \"success\") return `Success: ${name}`;\n        if ([\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(conclusion) ||\n          [\"failure\", \"failed\", \"cancelled\", \"canceled\", \"error\", \"timed_out\"].includes(status)) {\n          return `Failed: ${name}`;\n        }\n        if (status) return `${status}: ${name}`;\n        return name;\n      }\n\n      function normalizeLanguage(val) {\n        const lang = normalizeName(val);\n        if (lang === \"rs\") return \"rust\";\n        return lang;\n      }\n\n      function getRelevantJobs(language) {\n        switch (normalizeLanguage(language)) {\n          case \"go\":\n            return [\"build-go\"];\n          case \"rust\":\n            return [\"build-rust\"];\n          case \"python\":\n            return [\"hook-python\"];\n          case \"ts\":\n            return [\"hook-ts\"];\n          case \"lua\":\n            return [\"hook-lua\"];\n          default:\n            return [];\n        }\n      }\n\n      function isRelevantCurrentJob(language, currentJob) {\n        const relevant = getRelevantJobs(language);\n        if (!relevant.length) return true;\n        const job = normalizeName(currentJob);\n        if (!job) return true;\n        return relevant.some(r => job.includes(r));\n      }\n\n      function updateBuildButtons(progress) {\n        const runs = getRuns(progress);\n        document.querySelectorAll(\"[data-endpoint-id]\").forEach(card => {\n          const endpointId = card.getAttribute(\"data-endpoint-id\");\n          const fnName = card.getAttribute(\"data-endpoint-function\");\n          const language = card.getAttribute(\"data-endpoint-language\") || \"\";\n          const isAsync = card.getAttribute(\"data-endpoint-async\") === \"true\";\n          const buildLink = document.getElementById(`build-status-${endpointId}`);\n          const stepLabel = document.getElementById(`build-step-${endpointId}`);\n          const testBtn = document.getElementById(`test-btn-${endpointId}`);\n          const wsTestBtn = document.getElementById(`ws-test-btn-${endpointId}`);\n          if (!buildLink) return;\n\n          const display = pickRunForFunctionAndLanguage(runs, fnName, language);\n          const baseRunning = display ? isInProgress(display) : false;\n          const url = (display && (display.HTMLURL || display.htmlurl)) || \"\";\n          const jobName = display?.CurrentJob || display?.current_job || \"\";\n          const stepName = display?.CurrentStep || display?.current_step || \"\";\n          const relevantRunning = baseRunning && isRelevantCurrentJob(language, jobName);\n          const effectiveStatus = (baseRunning && !relevantRunning) ? \"success\" : (display?.status || display?.Status);\n          const effectiveConclusion = (baseRunning && !relevantRunning) ? \"success\" : (display?.conclusion || display?.Conclusion);\n          const cls = statusClass(\n            effectiveStatus,\n            effectiveConclusion,\n            relevantRunning\n          );\n          const label = display\n            ? (baseRunning && !relevantRunning\n              ? `Success: ${jobName || (display?.Name || display?.name || \"Build\")}`\n              : statusLabel(display, relevantRunning))\n            : \"No Actions\";\n          const stepText = stepName ? (jobName ? `${jobName} • ${stepName}` : stepName) : jobName;\n\n          if (url) {\n            buildLink.setAttribute(\"href\", url);\n            buildLink.classList.remove(\"pointer-events-none\", \"opacity-70\");\n          } else {\n            buildLink.setAttribute(\"href\", \"#\");\n            buildLink.classList.add(\"pointer-events-none\", \"opacity-70\");\n          }\n          buildLink.className = `z-badge ${cls}`;\n          buildLink.textContent = label;\n          buildLink.classList.remove(\"hidden\");\n          if (stepLabel) {\n            if (stepText) {\n              stepLabel.textContent = `Step: ${stepText}`;\n              stepLabel.classList.remove(\"hidden\");\n            } else {\n              stepLabel.textContent = \"\";\n              stepLabel.classList.add(\"hidden\");\n            }\n          }\n\n          if (isAsync) {\n            if (wsTestBtn) wsTestBtn.classList.remove(\"hidden\");\n            if (testBtn) testBtn.classList.add(\"hidden\");\n          } else {\n            if (wsTestBtn) wsTestBtn.classList.add(\"hidden\");\n            if (testBtn) {\n              const showTest = !relevantRunning;\n              if (showTest) testBtn.classList.remove(\"hidden\");\n              else testBtn.classList.add(\"hidden\");\n            }\n          }\n        });\n      }\n\n      function startActionsSSE() {\n        if (!window.EventSource) return;\n        const es = new EventSource(\"/api/actions/status/\");\n        es.addEventListener(\"status\", (ev) => {\n          try {\n            const data = JSON.parse(ev.data || \"{}\");\n            updateBuildButtons(data);\n          } catch (e) {\n            // ignore malformed payloads\n          }\n        });\n        es.addEventListener(\"error\", () => {\n          // keep UI usable if stream drops\n          updateBuildButtons(null);\n        });\n      }\n\n      document.addEventListener(\"DOMContentLoaded\", startActionsSSE);\n    })();\n  </script><script>\n    // Provide a global method selector for DOMContentLoaded initialization.\n    // templ component scripts are scoped, so we expose a stable name here.\n    window.selectMethodForEndpoint = function (id, method) {\n      const input = document.getElementById(\"selected-method-\" + id);\n      const methods = new Set((input?.value || \"\").split(\",\").filter(Boolean));\n      if (methods.has(method)) methods.delete(method); else methods.add(method);\n      const selectedMethods = [...methods];\n      [\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\"].forEach(m => {\n        const btn = document.getElementById(\"method-\" + m + \"-\" + id);\n        if (btn) btn.classList.toggle(\"selected\", methods.has(m));\n      });\n      if (input) input.value = selectedMethods.join(\",\");\n    };\n  </script><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n      document.querySelectorAll('input[id^=\"selected-method-\"]').forEach(el => {\n        const id = el.id.replace(\"selected-method-\", \"\");\n        const methods = (el.value || \"GET\").split(\",\").filter(Boolean);\n        el.value = \"\";\n        methods.forEach(method => selectMethodForEndpoint(id, method));\n      });\n    });\n  </script><style>\n    .ace_editor,\n    .ace_scroller,\n    .ace_content {\n      background: #0b0b0c !important;\n      color: #eee !important;\n    }\n  </style></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,0 +1,231 @@
+package templates
+
+templ ObservabilityContent() {
+	@PageHead("Observability", "Metrics, logs and traces for every function and endpoint, with SLOs and trace waterfalls.", "Operate", templ.Raw(`
+		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('slo-modal')">`+svgPlus()+` New SLO</button>
+	`))
+
+	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("activity", "") Availability</div><div class="z-stat-value" style="color:var(--green)">99.96<small>%</small></div><div class="z-stat-delta">SLO 99.9% <span class="z-faint">·</span> budget 82%</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("gauge", "") P95 latency</div><div class="z-stat-value">42<small>ms</small></div><div class="z-stat-delta">target 120ms <span class="z-faint">·</span> p99 118ms</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("alert", "") Errors · 24h</div><div class="z-stat-value">114</div><div class="z-stat-delta"><span class="z-delta-up">▼ 26%</span> vs yesterday</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("clock", "") Requests · 24h</div><div class="z-stat-value">284<small>k</small></div><div class="z-stat-delta">1.1M spans sampled</div></div>
+	</div>
+
+	<div class="z-tabs" data-tab-group>
+		<button class="z-tab active" data-tab="metrics">Metrics</button>
+		<button class="z-tab" data-tab="logs">Logs</button>
+		<button class="z-tab" data-tab="traces">Traces</button>
+		<button class="z-tab" data-tab="slos">SLOs</button>
+	</div>
+
+	<div data-tab-panel="metrics">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Requests & latency</span>
+				<span class="z-badge z-badge-green">live</span>
+				<div class="z-panel-actions"><div class="z-pill-group"><button class="z-pill">1h</button><button class="z-pill active">24h</button><button class="z-pill">7d</button></div></div>
+			</div>
+			<div class="z-panel-body">
+				<svg class="z-chart" style="height:240px" viewBox="0 0 900 240" preserveAspectRatio="none">
+					<defs><linearGradient id="z-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8ab4ff" stop-opacity=".24"/><stop offset="100%" stop-color="#8ab4ff" stop-opacity="0"/></linearGradient></defs>
+					<g class="z-chart-grid"><line x1="0" y1="60" x2="900" y2="60"/><line x1="0" y1="120" x2="900" y2="120"/><line x1="0" y1="180" x2="900" y2="180"/></g>
+					<path class="z-chart-area" d="M0 190 C40 178 70 156 110 164 S170 128 220 138 S290 104 340 112 S410 84 460 92 S530 62 580 72 S650 48 700 58 S780 34 830 42 S870 28 900 32 L900 240 L0 240 Z"/>
+					<path class="z-chart-line" d="M0 190 C40 178 70 156 110 164 S170 128 220 138 S290 104 340 112 S410 84 460 92 S530 62 580 72 S650 48 700 58 S780 34 830 42 S870 28 900 32"/>
+					<text class="z-chart-label" x="4" y="14">16k req/h</text><text class="z-chart-label" x="4" y="232">0</text>
+				</svg>
+			</div>
+		</div>
+
+		<div class="z-grid z-grid-2" style="margin-top:14px">
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Function latency</span><span class="z-panel-sub">p50 / p95 / p99</span></div>
+				<div class="z-table-wrap">
+					<table class="z-table">
+						<thead><tr><th>Function</th><th>p50</th><th>p95</th><th>p99</th><th>Calls</th><th>Errors</th></tr></thead>
+						<tbody>
+							@latencyRow("list-orders", "18ms", "42ms", "104ms", "122k", "0.01%")
+							@latencyRow("get-order", "14ms", "38ms", "96ms", "64k", "0.02%")
+							@latencyRow("create-order", "26ms", "58ms", "142ms", "48k", "0.08%")
+							@latencyRow("pay-order", "44ms", "112ms", "264ms", "18k", "0.31%")
+							@latencyRow("stripe-webhook", "62ms", "188ms", "412ms", "22k", "0.44%")
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Recent errors</span><span class="z-badge z-badge-amber" style="margin-left:auto">8 groups</span></div>
+				<div class="z-panel-body tight">
+					<div class="z-list">
+						@errorRow("pay-order", "stripe: card_declined", "18", "12m ago")
+						@errorRow("stripe-webhook", "signature verification failed", "6", "32m ago")
+						@errorRow("create-order", "validation: items empty", "4", "1h ago")
+						@errorRow("list-orders", "context deadline exceeded", "2", "2h ago")
+						@errorRow("notify-email", "smtp: 421 try again later", "2", "3h ago")
+					</div>
+				</div>
+				<div class="z-panel-foot"><a href="/audit/" class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto">@Icon("clock", "") Audit log</a></div>
+			</div>
+		</div>
+
+		<div class="z-panel" style="margin-top:14px">
+			<div class="z-panel-header"><span class="z-panel-title">Service health</span><span class="z-badge z-badge-green" style="margin-left:auto">all nominal</span></div>
+			<div class="z-panel-body tight">
+				<div class="z-list">
+					@healthRow("ingestor", "gateway · 2 replicas", "healthy")
+					@healthRow("portal", "api + ssr · 2 replicas", "healthy")
+					@healthRow("NATS JetStream", "3 nodes · quorum", "healthy")
+					@healthRow("orders-db", "postgres 16 · pool 8/20", "healthy")
+					@healthRow("grafana", "datasource · prometheus", "healthy")
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div data-tab-panel="logs" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Logs</span>
+				<span class="z-panel-sub">structured · last 15 minutes</span>
+				<div class="z-panel-actions">
+					<div class="z-search" style="width:220px"><input class="z-input" style="height:25px;font-size:10.5px" placeholder="level:error function:pay-order"/></div>
+					<button class="z-btn z-btn-sm">@Icon("filter", "")</button>
+				</div>
+			</div>
+			<div class="z-panel-body tight">
+				<div class="z-log">
+					<div class="z-log-line"><span class="z-log-time">12:44:02.118</span><span class="z-badge z-badge-red">ERRO</span><span class="z-mono">pay-order</span><span>stripe: card_declined order=ord_8891</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:44:01.902</span><span class="z-badge z-badge-green">INFO</span><span class="z-mono">list-orders</span><span>listed 20 orders tenant=t_9f2a</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:43:58.441</span><span class="z-badge z-badge-green">INFO</span><span class="z-mono">create-order</span><span>order created id=ord_8891</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:43:57.220</span><span class="z-badge z-badge-amber">WARN</span><span class="z-mono">stripe-webhook</span><span>retrying delivery attempt=2</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:43:55.104</span><span class="z-badge z-badge-green">INFO</span><span class="z-mono">orders-worker</span><span>consumed orders.created offset=182233</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:43:51.882</span><span class="z-badge z-badge-red">ERRO</span><span class="z-mono">pay-order</span><span>stripe: card_declined order=ord_8887</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:43:48.330</span><span class="z-badge z-badge-green">INFO</span><span class="z-mono">notify-email</span><span>receipt sent to c***@example.com</span></div>
+					<div class="z-log-line"><span class="z-log-time">12:43:44.019</span><span class="z-badge z-badge-green">INFO</span><span class="z-mono">portal</span><span>GET /dashboard/ 200 12ms</span></div>
+				</div>
+			</div>
+			<div class="z-panel-foot"><span class="z-help">Logs are sampled at 100% under 10k/s, then head-sampled. Trace IDs link to the Traces tab.</span></div>
+		</div>
+	</div>
+
+	<div data-tab-panel="traces" style="display:none">
+		<div class="z-split">
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Trace · ord_8891</span><span class="z-badge z-badge-muted">duration 71ms</span></div>
+				<div class="z-panel-body">
+					<div class="z-trace">
+						@traceSpan("POST /lambda/create-order", "ingestor", 100, "0ms", true)
+						@traceSpan("auth middleware", "ingestor", 22, "2ms", false)
+						@traceSpan("rate limiter", "ingestor", 18, "3ms", false)
+						@traceSpan("create-order", "function", 82, "8ms", true)
+						@traceSpan("db insert order", "postgres", 46, "26ms", false)
+						@traceSpan("publish orders.created", "nats", 12, "62ms", false)
+					</div>
+				</div>
+			</div>
+			<aside>
+				<div class="z-panel">
+					<div class="z-panel-header"><span class="z-panel-title">Span detail</span></div>
+					<div class="z-panel-body">
+						<dl class="z-kv">
+							<dt>Trace</dt><dd>9f2a1c…4b</dd>
+							<dt>Service</dt><dd>create-order</dd>
+							<dt>Runtime</dt><dd>go 1.26</dd>
+							<dt>Status</dt><dd>ok</dd>
+							<dt>Sandbox</dt><dd>worker-1 / 4f2a</dd>
+						</dl>
+						<div class="z-divider"></div>
+						<div class="z-label">Attributes</div>
+						<div class="z-code-editor" style="margin-top:8px">
+							<pre class="z-code-body" style="font-size:10px;padding:10px">tenant.id = t_9f2a
+order.id = ord_8891
+http.method = POST
+http.status = 201</pre>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+	</div>
+
+	<div data-tab-panel="slos" style="display:none">
+		<div class="z-grid z-grid-3">
+			@slosCard("Availability", "99.96%", "99.9%", 82, "green", "5.6m / 43.2m minutes")
+			@slosCard("Latency p95", "42ms", "120ms", 64, "green", "well under target")
+			@slosCard("Error rate", "0.04%", "1.0%", 26, "amber", "elevated on payments")
+		</div>
+		<div class="z-panel" style="margin-top:14px">
+			<div class="z-panel-header"><span class="z-panel-title">Burn rate</span><span class="z-panel-sub">7d window</span></div>
+			<div class="z-panel-body">
+				<svg class="z-chart" style="height:160px" viewBox="0 0 900 160" preserveAspectRatio="none">
+					<g class="z-chart-grid"><line x1="0" y1="40" x2="900" y2="40"/><line x1="0" y1="80" x2="900" y2="80"/><line x1="0" y1="120" x2="900" y2="120"/></g>
+					<path class="z-chart-line" d="M0 118 C60 112 90 104 140 108 S240 92 300 96 S400 84 460 88 S560 70 620 78 S720 58 780 64 S850 50 900 54"/>
+					<text class="z-chart-label" x="4" y="14">2.0x</text><text class="z-chart-label" x="4" y="152">0</text>
+				</svg>
+			</div>
+		</div>
+	</div>
+
+	<div id="slo-modal" class="z-modal-backdrop" onclick="zCloseModal('slo-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">@Icon("gauge", "w-4 h-4")<span class="z-modal-title">New SLO</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-body">
+				<div class="z-field"><label class="z-label">Target</label><input class="z-input" placeholder="e.g. GET /lambda/list-orders"/></div>
+				<div class="z-grid z-grid-2" style="margin-top:11px">
+					<div class="z-field"><label class="z-label">SLI</label><select class="z-select"><option>Availability</option><option>Latency</option><option>Error rate</option></select></div>
+					<div class="z-field"><label class="z-label">Objective</label><input class="z-input z-mono" value="99.9%"/></div>
+				</div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Window</label><select class="z-select"><option>30 days</option><option>7 days</option><option>90 days</option></select></div>
+			</div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('slo-modal'); toast('SLO creation is a placeholder','success')">Create SLO</button></div>
+		</div>
+	</div>
+}
+
+templ latencyRow(name string, p50 string, p95 string, p99 string, calls string, errRate string) {
+	<tr>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ name }</td>
+		<td class="z-cell-mono">{ p50 }</td>
+		<td class="z-cell-mono">{ p95 }</td>
+		<td class="z-cell-mono">{ p99 }</td>
+		<td class="z-cell-mono">{ calls }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", errRate == "0.01%" || errRate == "0.02%"), templ.KV("z-badge-amber", errRate != "0.01%" && errRate != "0.02%") }>{ errRate }</span></td>
+	</tr>
+}
+
+templ errorRow(fn string, msg string, count string, when string) {
+	<div class="z-list-item">
+		<span class="z-list-icon" style="color:#ff7b72;border-color:rgba(255,123,114,.25);background:rgba(255,123,114,.08)">@Icon("alert", "")</span>
+		<div class="z-list-main">
+			<div class="z-list-title z-mono" style="font-size:10.5px">{ msg }</div>
+			<div class="z-list-sub">{ fn } · { when }</div>
+		</div>
+		<span class="z-badge z-badge-red">×{ count }</span>
+	</div>
+}
+
+templ traceSpan(name string, service string, width int, offset string, bold bool) {
+	<div class="z-trace-row">
+		<div class="z-trace-label" style={ templ.KV("bold", bold) }>{ name }</div>
+		<div class="z-trace-track">
+			<div class="z-trace-bar" style={ "width:" + itoa(width) + "%;margin-left:" + offset + "" }></div>
+		</div>
+		<span class="z-trace-service">{ service }</span>
+	</div>
+}
+
+templ slosCard(name string, current string, target string, budget int, tone string, detail string) {
+	<div class="z-panel" style="margin-top:0">
+		<div class="z-panel-body">
+			<div style="display:flex;align-items:center;justify-content:space-between">
+				<span class="z-stat-label">{ name }</span>
+				<span class={ "z-badge", templ.KV("z-badge-green", tone == "green"), templ.KV("z-badge-amber", tone == "amber") }>{ current }</span>
+			</div>
+			<div class="z-stat-value" style="font-size:24px;margin-top:6px">{ current }</div>
+			<div class="z-help">target { target }</div>
+			<div class="z-progress" style="margin-top:10px"><span class={ templ.KV("amber", tone == "amber") } style={ "width:" + itoa(budget) + "%" }></span></div>
+			<div class="z-help" style="margin-top:6px">{ detail } · { itoa(budget) }% budget remaining</div>
+		</div>
+	</div>
+}

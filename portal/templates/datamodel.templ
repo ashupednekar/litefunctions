@@ -1,0 +1,82 @@
+package templates
+
+templ DataModelContent() {
+	@PageHead("Tables", "Define tables, types and .sql views. Queries live on the Queries page.", "Data", templ.Raw(`
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('table-modal')">`+svgPlus()+` New table</button>
+	`))
+
+	<div class="z-split-wide">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Definitions</span>
+				<button class="z-icon-btn" style="margin-left:auto;width:22px;height:22px" onclick="zOpenModal('table-modal')">@Icon("plus", "")</button>
+			</div>
+			<div class="z-panel-body tight" style="padding:6px">
+				<div class="z-nav-label" style="padding-left:8px">Tables</div>
+				<button class="z-nav-item active" style="width:100%;text-align:left">@Icon("table", "") <span>orders</span><span class="z-nav-badge">3</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("table", "") <span>customers</span><span class="z-nav-badge">4</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("table", "") <span>order_items</span><span class="z-nav-badge">5</span></button>
+				<div class="z-nav-label" style="padding-left:8px;margin-top:10px">Types</div>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("braces", "") <span>order_status</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("braces", "") <span>currency_code</span></button>
+				<div class="z-nav-label" style="padding-left:8px;margin-top:10px">SQL views</div>
+				<button class="z-nav-item active" style="width:100%;text-align:left">@Icon("file", "") <span>schema/orders.sql</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("file", "") <span>schema/customers.sql</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("file", "") <span>schema/types.sql</span></button>
+			</div>
+			<div class="z-panel-foot" style="display:flex;gap:6px">
+				<button class="z-btn z-btn-sm z-btn-ghost" style="flex:1" onclick="zOpenModal('table-modal')">@Icon("plus", "") New table</button>
+				<button class="z-btn z-btn-sm z-btn-ghost" style="flex:1" onclick="toast('New .sql view is a placeholder','info')">@Icon("file", "") New view</button>
+			</div>
+		</div>
+
+		<div class="z-panel">
+			<div class="z-panel-header">
+				@Icon("file", "w-3.5 h-3.5")
+				<span class="z-panel-title z-mono">schema/orders.sql</span>
+				<span class="z-badge z-badge-amber">unsaved</span>
+				<div class="z-panel-actions">
+					<select class="z-select" style="width:132px;height:25px;font-size:10px"><option>PostgreSQL 16</option><option>MySQL 8</option><option>SQLite</option></select>
+					<button class="z-btn z-btn-sm" onclick="toast('Schema saved to draft','success')">@Icon("save", "") Save</button>
+				</div>
+			</div>
+			<div class="z-panel-body tight">
+				<div class="z-code-editor" style="border:0;border-radius:0">
+					<div class="z-code-lines" style="padding-top:12px">
+						for i := range lines(dataModelSQL()) {
+							<span>{ itoa(i + 1) }</span>
+						}
+					</div>
+					<pre class="z-code-body" style="padding-top:12px;min-height:480px">{ dataModelSQL() }</pre>
+				</div>
+			</div>
+			<div class="z-panel-foot">
+				<span class="z-mono" style="font-size:9px;color:var(--text-4)">cursor 22:14 · 42 lines · UTF-8 · LF</span>
+				<div style="margin-left:auto;display:flex;gap:6px">
+					<button class="z-btn z-btn-sm z-btn-ghost" onclick="toast('Formatting is a placeholder','info')">Format</button>
+					<button class="z-btn z-btn-sm" onclick="toast('Schema saved to draft','success')">@Icon("save", "") Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="table-modal" class="z-modal-backdrop" onclick="zCloseModal('table-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">
+				@Icon("table", "w-4 h-4")
+				<span class="z-modal-title">New table</span>
+				<button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button>
+			</div>
+			<div class="z-modal-body">
+				<div class="z-field"><label class="z-label">Table name</label><input class="z-input z-mono" placeholder="e.g. invoices"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Primary key</label><select class="z-select"><option>UUID · gen_random_uuid()</option><option>BIGSERIAL</option><option>TEXT</option></select></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Template</label><select class="z-select"><option>Blank table</option><option>Timestamps + soft delete</option><option>Tenant-scoped</option></select></div>
+				<div class="z-alert z-alert-blue" style="margin-top:12px">@Icon("sparkles", "") <div>Tip: describe the table in Plan to generate columns, queries and relationships automatically.</div></div>
+			</div>
+			<div class="z-modal-foot">
+				<button class="z-btn" data-close-modal>Cancel</button>
+				<button class="z-btn z-btn-primary" onclick="zCloseModal('table-modal'); toast('Table added to draft schema','success')">Create table</button>
+			</div>
+		</div>
+	</div>
+}

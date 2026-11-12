@@ -8,9 +8,9 @@ script closeCreate() {
 }
 script selectLang(lang string) {
 }
-script goMetaNext() {
-}
 script openEdit(id string, lang string) {
+}
+script toggleFnConfig(id string) {
 }
 script closeEdit() {
 }
@@ -21,337 +21,187 @@ script saveEdit(exit bool) {
 
 templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample) {
 
-<div class="w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]">
+@PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
+	<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
+	<button class="z-btn z-btn-primary" onclick="openCreate()">`+svgPlus()+` New function</button>
+`))
 
-	
 
-<div class="flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800">
-
-    <!-- LEFT SECTION: Back + Title + Vim toggle -->
-    <div class="flex items-center gap-6">
-        <a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-        </a>
-        <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">
-            Functions
-        </h1>
-
-        <label class="hidden md:flex items-center gap-2 text-neutral-300 text-sm select-none">
-            <input id="vim-toggle" type="checkbox" class="w-4 h-4" checked />
-            Vim Mode
-        </label>
-
-        <!-- SEARCH TRIGGER -->
-        <button 
-            onclick="openSpotlight()"
-            class="flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <span class="flex-1 text-left">Search functions...</span>
-            <div class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium">
-                <span class="font-mono">⌘</span>K
-            </div>
-        </button>
-    </div>
-
-    <!-- RIGHT SECTION: New Function + Profile -->
-    <div class="flex items-center gap-4">
-
-        <!-- New Function -->
-        <button onclick="openCreate()"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition">
-            New Function
-        </button>
-
-        <!-- PROFILE DROPDOWN -->
-        <div class="relative">
-            <button
-                id="profile-btn"
-                class="flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition"
-            >
-                <img src="/static/imgs/user.png" class="w-8 h-8 rounded-full object-cover" />
-                <span class="text-white text-sm font-medium">{ username }</span>
-
-                <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </button>
-
-            <div
-                id="profile-dropdown"
-                class="absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden"
-            >
-                <a href="/profile/" class="block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900">Profile</a>
-                <a href="/logout/" class="block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900">Logout</a>
-            </div>
-        </div>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-    const pb = document.getElementById("profile-btn");
-    const pd = document.getElementById("profile-dropdown");
-
-    if (!pb || !pd) {
-        console.error("Profile dropdown not found in DOM");
-        return;
-    }
-
-    // When clicking the profile button → toggle dropdown
-    pb.addEventListener("click", (e) => {
-        e.stopPropagation();  // Prevent immediate close
-        pd.classList.toggle("hidden");
-    });
-
-    // Click anywhere outside → close dropdown
-    document.addEventListener("click", (e) => {
-        if (!pd.contains(e.target) && !pb.contains(e.target)) {
-            pd.classList.add("hidden");
-        }
-    });
-});
-</script>
-    </div>
+<div class="z-panel">
+	<div class="z-panel-header">
+		<span class="z-panel-title">Functions</span>
+		<span class="z-badge z-badge-muted">{ itoa(len(functions)) }</span>
+		<span class="z-panel-sub">repo-backed · ace editor</span>
+		<div class="z-panel-actions">
+			<div class="z-search" style="width:180px"><input id="fn-filter" class="z-input" style="height:25px;font-size:10.5px" placeholder="Filter functions…" oninput="filterFunctions(this.value)"/></div>
+			<button class="z-btn z-btn-sm" onclick="refreshList()">@Icon("refresh", "")</button>
+		</div>
+	</div>
+	<div id="fn-list-container" class="z-panel-body tight" style="min-height:120px">
+		if len(functions) == 0 {
+			<div class="z-empty" style="padding:40px 16px">
+				<div class="z-empty-icon">@Icon("code", "")</div>
+				<div class="z-empty-title">No functions yet</div>
+				<div class="z-empty-sub">Create your first function to start deploying.</div>
+				<button class="z-btn z-btn-primary z-btn-sm" onclick="openCreate()">New function</button>
+			</div>
+		}
+		for _, fn := range functions {
+			<div class="z-fn-row" data-fn-name={ fn.Name }>
+				<span class="z-fn-icon"><img src={ fn.Icon } alt=""/></span>
+				<div class="z-fn-main">
+					<div class="z-fn-name">{ fn.Name }</div>
+					<div class="z-fn-meta">
+						<span class="z-badge z-badge-muted">{ fn.Language }</span>
+						<span class="z-mono" style="font-size:9px;color:var(--text-4)">{ shortID(fn.ID) }</span>
+					</div>
+				</div>
+				<div class="z-fn-actions">
+					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
+					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
+					<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "") Edit</button>
+					if fn.EndpointID != "" {
+						<a class="z-btn z-btn-sm" title="Endpoint" href={ templ.SafeURL("/traffic/?expand=" + fn.EndpointID) }>@Icon("route", "") Test</a>
+					} else {
+						<span class="z-btn z-btn-sm" style="opacity:.45" title="No endpoint">@Icon("route", "") Test</span>
+					}
+					<button class="z-icon-btn" title="Delete" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>@Icon("trash", "")</button>
+				</div>
+			</div>
+			@functionConfigPanel(fn)
+		}
+	</div>
 </div>
-
-
-<div id="fn-list-container" class="flex-1 overflow-y-auto px-4 sm:px-10 lg:px-14 py-6 space-y-4">
-
-    if len(functions) == 0 {
-        <div class="w-full text-center py-20 text-neutral-500 text-lg">
-            Create a new function to begin.
-        </div>
-    }
-
-    for _, fn := range functions {
-        <!-- MOBILE CARD (<640px) -->
-        <div class="sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4">
-        
-            <!-- TOP: Icon + Name -->
-            <div class="flex items-center gap-3 mb-3">
-                <img src={ fn.Icon } class="w-5 h-5 opacity-80"/>
-                <h2 class="text-white font-medium text-base">{ fn.Name }</h2>
-            </div>
-        
-            <!-- BOTTOM: Actions -->
-            <div class="flex items-center gap-3">
-        
-                <!-- Copy -->
-                <button onclick={ copyFn(fn.ID) }
-                    class="p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white">
-                    <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
-                </button>
-        
-                <!-- Edit -->
-                <button onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }
-                    class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                    title="Edit function">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                </button>
-
-                <!-- Endpoint -->
-                if fn.EndpointID != "" {
-                    <a href={ "/endpoints/?expand=" + fn.EndpointID }
-                        class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                        title="Endpoint settings">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />
-                        </svg>
-                    </a>
-                } else {
-                    <span
-                        class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed"
-                        title="No endpoint">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />
-                        </svg>
-                    </span>
-                }
-        
-                <!-- Delete -->
-                <button onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
-                    class="px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
-                    Delete
-                </button>
-        
-            </div>
-        
-        </div>
-
-
-
-        <!-- DESKTOP ROW (>=640px) -->
-        <div class="hidden sm:flex items-center justify-between px-2 py-3 
-                    border-b border-neutral-800 hover:bg-neutral-900/30 transition">
-
-            <!-- LEFT -->
-            <div class="flex items-center gap-3">
-                <img src={ fn.Icon } class="w-5 h-5 opacity-80"/>
-                <span class="text-white font-medium">{ fn.Name }</span>
-            </div>
-
-            <!-- RIGHT -->
-            <div class="flex items-center gap-2 opacity-60 hover:opacity-100 transition">
-
-                <button onclick={ copyFn(fn.ID) }
-                    class="p-1 rounded-lg hover:bg-neutral-800 transition">
-                    <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
-                </button>
-
-                <button onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }
-                    class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                    title="Edit function">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                </button>
-
-                if fn.EndpointID != "" {
-                    <a href={ "/endpoints/?expand=" + fn.EndpointID }
-                        class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                        title="Endpoint settings">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
-                        </svg>
-                    </a>
-                } else {
-                    <span
-                        class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed"
-                        title="No endpoint">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
-                        </svg>
-                    </span>
-                }
-
-                <button onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
-                    class="px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
-                    Delete
-                </button>
-
-            </div>
-
-        </div>
-
-    }
-
-</div>
-
-
 
 <!-- CREATE -->
-	<div id="create-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
-		<div class="w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col">
-
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-xl font-semibold text-white">New Function</h2>
-				<div class="flex items-center gap-3">
-					<div class="flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1">
-						<button id="create-mode-sync" onclick="setCreateMode('sync')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Sync</button>
-						<button id="create-mode-async" onclick="setCreateMode('async')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Async</button>
+<div id="create-modal" class="z-modal-backdrop" onclick="closeCreate()">
+	<div class="z-modal" style="width:min(1180px,96vw);height:min(90vh,940px);display:flex;flex-direction:column" onclick="event.stopPropagation()">
+		<div class="z-modal-header">
+			@Icon("code", "")
+			<span class="z-modal-title">New function</span>
+			<div class="z-mode-toggle" style="margin-left:auto">
+				<button id="create-mode-sync" onclick="setCreateMode('sync')" class="z-mode-btn">Sync</button>
+				<button id="create-mode-async" onclick="setCreateMode('async')" class="z-mode-btn">Async</button>
+			</div>
+			<label class="z-check" style="margin-left:10px"><input id="create-vim-toggle" type="checkbox" checked/> Vim</label>
+			<button class="z-icon-btn" style="margin-left:4px" onclick="closeCreate()">@Icon("close", "")</button>
+		</div>
+		<div class="z-modal-body" style="display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto">
+			<div class="z-grid z-grid-2" style="gap:12px">
+				<div class="z-field">
+					<span class="z-label">Language</span>
+					<div class="z-lang-grid">
+						for _, lang := range langs {
+							<button data-lang={ lang.ID } class="z-lang-tile" id={ "lang-" + lang.ID }>
+								<img src={ lang.Icon } alt=""/>
+								<span>{ lang.Label }</span>
+							</button>
+						}
 					</div>
-					<button onclick="closeCreate()" class="p-2 text-neutral-300 hover:text-white">
-						<img src="/static/imgs/x.svg" class="w-5 h-5"/>
-					</button>
+				</div>
+				<div class="z-field">
+					<label class="z-label" for="fn-name-input">Function name</label>
+					<input id="fn-name-input" class="z-input" placeholder="e.g. create-order" oninput="renameFunctionDir('create')"/>
+					<span class="z-help">Each function is a directory in the repo. Lowercase letters, digits and dashes.</span>
 				</div>
 			</div>
-
-			<label class="text-neutral-400 text-sm">Choose Language</label>
-
-			<div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 mt-3">
-				for _, lang := range langs {
-				<!-- store language id in data-lang so JS can bind click listeners -->
-				<button data-lang={ lang.ID }
-					class="lang-btn flex flex-col items-center justify-center gap-1.5 sm:gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800" id={ "lang-" + lang.ID }>
-					<img src={ lang.Icon } class="w-8 h-8 sm:w-10 sm:h-10 opacity-90"/>
-					<span class="text-white text-xs sm:text-sm">{ lang.Label }</span>
-				</button>
-				}
-			</div>
-
-			<!-- META -->
-			<div class="mt-4 flex flex-col gap-3">
-				<input id="fn-name-input" class="w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white" placeholder="Function name"/>
-      </div>
-
-			<!-- EDITOR -->
-			<div id="create-ace" class="flex-1 w-full rounded-xl border border-neutral-800 mt-4"></div>
-
-			<div class="flex justify-end gap-3 pt-3">
-				<button onclick="closeCreate()" class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
-					<img src="/static/imgs/close-circle-svgrepo-com.svg" class="w-5 h-5"/>
-				</button>
-
-				<button onclick="saveCreate(true)" class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
-					<img src="/static/imgs/save-floppy-svgrepo-com.svg" class="w-5 h-5"/>
-				</button>
-			</div>
-
-		</div>
-	</div>
-
-	<!-- EDIT -->
-	<div id="edit-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
-		<div class="w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col">
-
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-xl font-semibold text-white">Edit Function</h2>
-				<div class="flex items-center gap-3">
-					<div class="flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1">
-						<button id="edit-mode-sync" onclick="setEditMode('sync')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Sync</button>
-						<button id="edit-mode-async" onclick="setEditMode('async')" class="mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition">Async</button>
+			<div class="z-editor-layout">
+				<aside class="z-file-tree" id="create-file-tree"></aside>
+				<section class="z-editor-pane">
+					<div class="z-editor-breadcrumb">
+						<span id="create-editor-path" class="z-mono">function/</span>
+						<span style="margin-left:auto;display:flex;gap:2px">
+							<button class="z-icon-btn" style="width:22px;height:22px" title="Search files (space space in vim)" onclick="openTelescope('create','files')">@Icon("search", "")</button>
+							<button class="z-icon-btn" style="width:22px;height:22px" title="Search content (space / in vim)" onclick="openTelescope('create','content')">@Icon("file", "")</button>
+						</span>
 					</div>
-					<button onclick="closeEdit()" class="p-2 text-neutral-300 hover:text-white">
-						<img src="/static/imgs/x.svg" class="w-5 h-5"/>
-					</button>
-				</div>
+					<div class="z-editor-shell" style="display:flex;flex-direction:column">
+						<div id="create-ace" style="flex:1"></div>
+					</div>
+					<div class="z-editor-hint">Vim: <span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content · only the main file is persisted in this preview.</div>
+				</section>
 			</div>
-
-			<div id="edit-ace" class="flex-1 w-full rounded-xl border border-neutral-800"></div>
-
-			<div class="flex justify-end gap-3 pt-3">
-				<button onclick="closeEdit()" class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
-					<img src="/static/imgs/cancel.svg" class="w-5 h-5"/>
-				</button>
-
-				<button onclick="saveEdit(true)" class="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
-					<img src="/static/imgs/save-floppy-svgrepo-com.svg" class="w-5 h-5"/>
-				</button>
-			</div>
-
+		</div>
+		<div class="z-modal-foot">
+			<button class="z-btn" onclick="closeCreate()">Cancel</button>
+			<button class="z-btn z-btn-primary" onclick="saveCreate(true)">@Icon("check", "") Create &amp; deploy</button>
 		</div>
 	</div>
+</div>
 
+<!-- EDIT -->
+<div id="edit-modal" class="z-modal-backdrop" onclick="closeEdit()">
+	<div class="z-modal" style="width:min(1180px,96vw);height:min(90vh,940px);display:flex;flex-direction:column" onclick="event.stopPropagation()">
+		<div class="z-modal-header">
+			@Icon("edit", "")
+			<span class="z-modal-title">Edit function</span>
+			<div class="z-mode-toggle" style="margin-left:auto">
+				<button id="edit-mode-sync" onclick="setEditMode('sync')" class="z-mode-btn">Sync</button>
+				<button id="edit-mode-async" onclick="setEditMode('async')" class="z-mode-btn">Async</button>
+			</div>
+			<label class="z-check" style="margin-left:10px"><input id="edit-vim-toggle" type="checkbox" checked/> Vim</label>
+			<button class="z-icon-btn" style="margin-left:4px" onclick="closeEdit()">@Icon("close", "")</button>
+		</div>
+		<div class="z-modal-body" style="display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto">
+			<div class="z-editor-layout">
+				<aside class="z-file-tree" id="edit-file-tree"></aside>
+				<section class="z-editor-pane">
+					<div class="z-editor-breadcrumb">
+						<span id="edit-editor-path" class="z-mono">function/</span>
+						<span style="margin-left:auto;display:flex;gap:2px">
+							<button class="z-icon-btn" style="width:22px;height:22px" title="Search files (space space in vim)" onclick="openTelescope('edit','files')">@Icon("search", "")</button>
+							<button class="z-icon-btn" style="width:22px;height:22px" title="Search content (space / in vim)" onclick="openTelescope('edit','content')">@Icon("file", "")</button>
+						</span>
+					</div>
+					<div class="z-editor-shell" style="display:flex;flex-direction:column">
+						<div id="edit-ace" style="flex:1"></div>
+					</div>
+					<div class="z-editor-hint">Vim: <span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content · only the main file is persisted in this preview.</div>
+				</section>
+			</div>
+		</div>
+		<div class="z-modal-foot">
+			<span class="z-help" style="margin-right:auto">The file tree is a UI preview; multi-file persistence is tracked in #84.</span>
+			<button class="z-btn" onclick="closeEdit()">Cancel</button>
+			<button class="z-btn z-btn-primary" onclick="saveEdit(true)">@Icon("check", "") Save changes</button>
+		</div>
+	</div>
+</div>
 
-  <!-- DELETE CONFIRM MODAL -->
-  <div id="delete-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
-      <div class="bg-[#0f0f10] border border-neutral-800 rounded-2xl p-8 w-[420px]">
-          <h2 class="text-xl font-semibold text-white mb-4">Delete Function?</h2>
-          <p class="text-neutral-400 mb-6">This action cannot be undone.</p>
-  
-          <div class="flex justify-end gap-3">
-              <button onclick="closeDelete()"
-                  class="px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800">
-                  Cancel
-              </button>
-  
-              <button onclick="confirmDelete()"
-                  class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">
-                  Delete
-              </button>
-          </div>
-      </div>
-  </div>
+<!-- DELETE CONFIRM MODAL -->
+<div id="delete-modal" class="z-modal-backdrop" onclick="closeDelete()">
+	<div class="z-modal" onclick="event.stopPropagation()">
+		<div class="z-modal-header">
+			@Icon("trash", "")
+			<span class="z-modal-title">Delete function?</span>
+			<button class="z-icon-btn" style="margin-left:auto" onclick="closeDelete()">@Icon("close", "")</button>
+		</div>
+		<div class="z-modal-body">
+			<p class="z-help" style="margin:0">This removes the function from the repository and deletes its generated endpoint. This action cannot be undone.</p>
+		</div>
+		<div class="z-modal-foot">
+			<button class="z-btn" onclick="closeDelete()">Cancel</button>
+			<button class="z-btn z-btn-danger" onclick="confirmDelete()">Delete function</button>
+		</div>
+	</div>
+</div>
+
+<!-- TELESCOPE -->
+<div id="z-telescope" class="z-telescope" onclick="closeTelescope()">
+	<div class="z-telescope-box" onclick="event.stopPropagation()">
+		<div class="z-telescope-input-row">
+			@Icon("search", "")
+			<input id="z-telescope-input" class="z-telescope-input" placeholder="Search files…" oninput="updateTelescope()"/>
+			<span id="z-telescope-kind" class="z-badge z-badge-muted">files</span>
+		</div>
+		<div id="z-telescope-results" class="z-telescope-results"></div>
+		<div class="z-telescope-foot">
+			<span><span class="z-kbd">↑</span><span class="z-kbd">↓</span> navigate</span>
+			<span><span class="z-kbd">↵</span> open</span>
+			<span><span class="z-kbd">esc</span> close</span>
+		</div>
+	</div>
+</div>
 
 	@templ.JSONScript("function-samples", samples)
 
@@ -496,21 +346,42 @@ function getTemplate(lang, mode) {
   return entry[mode] || entry.sync || "";
 }
 
+function replaceMainBuffer(mode, content) {
+  const state = window["__" + mode + "Files"];
+  const ed = activeEditor(mode);
+  if (!state || !ed) {
+    if (ed) ed.setValue(content || "", -1);
+    return;
+  }
+  syncEditorBuffer(mode);
+  const main = mainFile(mode);
+  if (!main) return;
+  state.contents[main.path] = content || "";
+  window["__" + mode + "ActiveFile"] = main.path;
+  ed.setValue(content || "", -1);
+  ed.focus();
+  document.querySelectorAll("#" + mode + "-file-tree .z-tree-file").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-path") === main.path);
+  });
+  document.getElementById(mode + "-tree-children")?.classList.remove("hidden");
+  updateEditorPath(mode);
+}
+
 function setCreateMode(mode) {
   if (!mode || mode === selectedCreateMode) {
     updateCreateModeButtons();
     return;
   }
-  const template = getTemplate(selectedLang, mode);
+  const template = getTemplate(selectedLang, mode) || "";
   if (createEditor) {
     const current = createEditor.getValue();
     if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
       updateCreateModeButtons();
       return;
     }
-    createEditor.setValue(template || "", -1);
   }
   selectedCreateMode = mode;
+  replaceMainBuffer("create", template);
   updateCreateModeButtons();
 }
 
@@ -520,16 +391,16 @@ function setEditMode(mode) {
     return;
   }
   const lang = window.__editFnLang || "python";
-  const template = getTemplate(lang, mode);
+  const template = getTemplate(lang, mode) || "";
   if (editEditor) {
     const current = editEditor.getValue();
     if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
       updateEditModeButtons();
       return;
     }
-    editEditor.setValue(template || "", -1);
   }
   selectedEditMode = mode;
+  replaceMainBuffer("edit", template);
   updateEditModeButtons();
 }
 
@@ -549,45 +420,240 @@ function updateEditModeButtons() {
   else syncBtn?.classList.add("selected");
 }
 
+function setDynRuntime(btn, mode) {
+  const group = btn.closest(".z-mode-toggle");
+  if (!group) return;
+  group.querySelectorAll(".z-mode-btn").forEach((b, i) => {
+    b.classList.toggle("selected", mode === "dedicated" ? i === 1 : i === 0);
+  });
+}
+
+function toggleFnConfig(id) {
+  const panel = document.getElementById("fn-config-" + id);
+  if (!panel) return;
+  const willOpen = panel.classList.contains("hidden");
+  document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
+  document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
+  if (willOpen) {
+    panel.classList.remove("hidden");
+    document.getElementById("fn-config-btn-" + id)?.classList.add("active");
+  }
+}
+
+const FILE_MANIFESTS = {
+  go: [
+    { path: "main.go", main: true },
+    { path: "types.go" },
+    { path: "go.mod" },
+    { path: "README.md" }
+  ],
+  rust: [
+    { path: "main.rs", main: true },
+    { path: "Cargo.toml" },
+    { path: "README.md" }
+  ],
+  python: [
+    { path: "handler.py", main: true },
+    { path: "requirements.txt" },
+    { path: "README.md" }
+  ],
+  ts: [
+    { path: "index.ts", main: true },
+    { path: "package.json" },
+    { path: "tsconfig.json" }
+  ],
+  lua: [
+    { path: "main.lua", main: true },
+    { path: "README.md" }
+  ]
+};
+
+let lastVimSpace = 0;
+let teleState = { mode: "create", type: "files", results: [], index: -1 };
+
+function activeEditor(mode) {
+  return mode === "create" ? createEditor : editEditor;
+}
+
+function vimEnabled(mode) {
+  return !!document.getElementById(mode + "-vim-toggle")?.checked;
+}
+
+function applyEditorVim(mode) {
+  const ed = activeEditor(mode);
+  if (!ed) return;
+  try {
+    ed.setKeyboardHandler(vimEnabled(mode) ? "ace/keyboard/vim" : null);
+    if (vimEnabled(mode)) defineVimEx();
+  } catch (e) { /* ignore */ }
+}
+
+function functionDirName(mode) {
+  if (mode === "create") {
+    const value = document.getElementById("fn-name-input")?.value?.trim();
+    return value || "function";
+  }
+  return window.__editFnName || (window.__editFnID ? window.__editFnID.slice(0, 10) : "function");
+}
+
+function stubContent(lang, path, dirName) {
+  if (path.endsWith(".md")) {
+    return "# " + (dirName || "function") + "\n\nPlaceholder package file. Multi-file editing is tracked in #84.\n";
+  }
+  if (path.endsWith("go.mod")) return "module example.com/" + (dirName || "function") + "\n\ngo 1.26\n";
+  if (path.endsWith("Cargo.toml")) return '[package]\nname = "' + (dirName || "function") + '"\nversion = "0.1.0"\nedition = "2021"\n';
+  if (path.endsWith("package.json")) return '{\n  "name": "' + (dirName || "function") + '",\n  "private": true\n}\n';
+  if (path.endsWith("tsconfig.json")) return '{\n  "compilerOptions": { "strict": true }\n}\n';
+  if (path.endsWith("requirements.txt")) return "# add dependencies here\n";
+  return "// Placeholder file. Multi-file editing is tracked in #84.\n";
+}
+
+function initEditorFiles(mode, lang, mainContent) {
+  const manifest = FILE_MANIFESTS[lang] || FILE_MANIFESTS.python;
+  const contents = {};
+  const dirName = functionDirName(mode);
+  manifest.forEach(file => {
+    contents[file.path] = file.main ? (mainContent || "") : stubContent(lang, file.path, dirName);
+  });
+  window["__" + mode + "Files"] = { lang: lang, manifest: manifest, contents: contents };
+  window["__" + mode + "ActiveFile"] = (manifest.find(f => f.main) || manifest[0]).path;
+  renderFileTree(mode);
+  updateEditorPath(mode);
+}
+
+function renderFileTree(mode) {
+  const state = window["__" + mode + "Files"];
+  const el = document.getElementById(mode + "-file-tree");
+  if (!state || !el) return;
+  const dirName = functionDirName(mode);
+  const active = window["__" + mode + "ActiveFile"];
+  const files = state.manifest.map(file => {
+    const isActive = file.path === active;
+    return '<button class="z-tree-file' + (isActive ? " active" : "") + '" data-path="' + escapeFnHtml(file.path) + '" onclick="selectEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')" title="' + escapeFnHtml(file.path) + '">' +
+      zIcon("file") + '<span class="z-tree-name">' + escapeFnHtml(file.path) + '</span>' +
+      (file.main ? "" : '<span class="z-badge z-badge-amber">stub</span>') +
+      '</button>';
+  }).join("");
+  el.innerHTML =
+    '<div class="z-tree-root-row">' +
+      '<button class="z-tree-root" id="' + mode + '-tree-root" onclick="toggleFileTree(\'' + mode + '\')">' +
+        '<span class="z-tree-caret">' + zIcon("chevron-right") + '</span>' +
+        '<span class="z-mono">' + escapeFnHtml(dirName) + '/</span>' +
+        '<span class="z-badge z-badge-muted">' + state.manifest.length + '</span>' +
+      '</button>' +
+    '</div>' +
+    '<div class="z-tree-children hidden" id="' + mode + '-tree-children">' + files + '</div>' +
+    '<div class="z-tree-foot"><span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content</div>';
+}
+
+function toggleFileTree(mode) {
+  const children = document.getElementById(mode + "-tree-children");
+  if (!children) return;
+  children.classList.toggle("hidden");
+  const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
+  if (caret) caret.style.transform = children.classList.contains("hidden") ? "" : "rotate(90deg)";
+}
+
+function updateEditorPath(mode) {
+  const state = window["__" + mode + "Files"];
+  const el = document.getElementById(mode + "-editor-path");
+  if (!state || !el) return;
+  const active = window["__" + mode + "ActiveFile"];
+  const main = (state.manifest.find(f => f.main) || {}).path;
+  el.innerHTML = escapeFnHtml(functionDirName(mode)) + '/ <span style="color:var(--text)">' + escapeFnHtml(active) + '</span>' +
+    (active !== main ? ' <span class="z-badge z-badge-amber">stub</span>' : '');
+}
+
+function renameFunctionDir(mode) {
+  const state = window["__" + mode + "Files"];
+  if (!state) return;
+  const dirName = functionDirName(mode);
+  state.manifest.forEach(file => {
+    if (!file.main) state.contents[file.path] = stubContent(state.lang, file.path, dirName);
+  });
+  renderFileTree(mode);
+  updateEditorPath(mode);
+}
+
+function syncEditorBuffer(mode) {
+  const ed = activeEditor(mode);
+  const state = window["__" + mode + "Files"];
+  if (!ed || !state) return;
+  const active = window["__" + mode + "ActiveFile"];
+  if (active) state.contents[active] = ed.getValue();
+}
+
+function mainFile(mode) {
+  const state = window["__" + mode + "Files"];
+  return state ? (state.manifest.find(f => f.main) || state.manifest[0]) : null;
+}
+
+function mainFileContent(mode) {
+  syncEditorBuffer(mode);
+  const main = mainFile(mode);
+  const state = window["__" + mode + "Files"];
+  return main && state ? (state.contents[main.path] || "") : "";
+}
+
+function selectEditorFile(mode, path) {
+  const state = window["__" + mode + "Files"];
+  if (!state || state.contents[path] === undefined) return;
+  syncEditorBuffer(mode);
+  window["__" + mode + "ActiveFile"] = path;
+  const ed = activeEditor(mode);
+  if (ed) {
+    ed.session.setMode("ace/mode/" + modeMap[state.lang]);
+    ed.setValue(state.contents[path] || "", -1);
+    ed.focus();
+  }
+  document.querySelectorAll("#" + mode + "-file-tree .z-tree-file").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-path") === path);
+  });
+  document.getElementById(mode + "-tree-children")?.classList.remove("hidden");
+  const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
+  if (caret) caret.style.transform = "rotate(90deg)";
+  updateEditorPath(mode);
+}
+
 function openCreate(){
   window.__isCreateEditor = true;
   window.__isEditEditor = false;
+  zOpenModal("create-modal");
 
-  document.getElementById('create-modal').classList.remove('hidden');
-
-  if(!createEditor && window.ace){
-    createEditor = ace.edit('create-ace');
-    createEditor.setTheme('ace/theme/dracula');
-    const isVim = document.getElementById('vim-toggle')?.checked;
-    if (isVim) {
-        try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
-        defineVimEx();
-    }
+  if (!createEditor && window.ace) {
+    createEditor = ace.edit("create-ace");
+    createEditor.setTheme("ace/theme/dracula");
+    applyEditorVim("create");
   }
 
-  if(createEditor){
-    createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);
-    createEditor.setValue(getTemplate(selectedLang, selectedCreateMode) || '', -1);
-    setTimeout(()=>createEditor.focus(),120);
+  const mainContent = getTemplate(selectedLang, selectedCreateMode) || "";
+  initEditorFiles("create", selectedLang, mainContent);
+  if (createEditor) {
+    createEditor.session.setMode("ace/mode/" + modeMap[selectedLang]);
+    createEditor.setValue(mainContent, -1);
+    setTimeout(() => createEditor.focus(), 120);
   }
   updateCreateModeButtons();
 }
 
 function selectLang(lang){
   selectedLang = lang;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.z-lang-tile').forEach(b=>b.classList.remove('selected'));
   const el = document.getElementById('lang-' + lang);
   if(el) el.classList.add('selected');
   if(createEditor){
+    const mainContent = getTemplate(lang, selectedCreateMode) || "";
+    initEditorFiles("create", lang, mainContent);
     createEditor.session.setMode('ace/mode/' + modeMap[lang]);
-    createEditor.setValue(getTemplate(lang, selectedCreateMode) || '', -1);
+    createEditor.setValue(mainContent, -1);
     setTimeout(()=>createEditor.focus(),120);
   }
 }
 
 function closeCreate(){
   window.__isCreateEditor = false;
-  document.getElementById('create-modal').classList.add('hidden');
+  closeTelescope();
+  zCloseModal('create-modal');
 }
 
 function saveCreate(exit){
@@ -599,19 +665,27 @@ function saveCreate(exit){
     el.focus();
     return;
   }
+  if (!exit) {
+    toast("Draft saving is not supported; use Create & deploy", "info");
+    return;
+  }
+  const main = mainFile("create");
+  if (window.__createActiveFile && main && window.__createActiveFile !== main.path) {
+    toast("Stub files are read-only in this preview; saving the main file only", "info");
+  }
   const description = document.getElementById('fn-desc-input')?.value?.trim();
   const payload = {
     name: name,
     language: selectedLang,
     description: description,
-    code: createEditor ? createEditor.getValue() : '',
+    code: mainFileContent("create"),
     is_async: selectedCreateMode === "async"
   };
   fetch(`/api/functions/`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(payload)
-  }).then(()=>{ 
+  }).then(()=>{
     if(exit) closeCreate();
     refreshList()
   });
@@ -622,16 +696,12 @@ function openEdit(id, lang){
   window.__isEditEditor = true;
   window.__editFnID = id;
   window.__editFnLang = lang;
-  console.log("opening edit modal")
-  document.getElementById('edit-modal').classList.remove('hidden');
+  window.__editFnName = "";
+  zOpenModal('edit-modal');
   if(!editEditor && window.ace){
     editEditor = ace.edit('edit-ace');
     editEditor.setTheme('ace/theme/dracula');
-    const isVim = document.getElementById('vim-toggle')?.checked;
-    if (isVim) {
-        try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}
-        defineVimEx();
-    }
+    applyEditorVim("edit");
   }
 
   if(editEditor){
@@ -640,16 +710,20 @@ function openEdit(id, lang){
     fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
       selectedEditMode = data?.is_async ? "async" : "sync";
       updateEditModeButtons();
-      editEditor.setValue(data.content || getTemplate(lang, selectedEditMode) || '', -1);
+      window.__editFnName = data?.name || data?.Name || id.slice(0, 10);
+      const mainContent = data.content || getTemplate(lang, selectedEditMode) || '';
+      initEditorFiles("edit", lang, mainContent);
+      editEditor.setValue(mainContent, -1);
+      applyEditorVim("edit");
       editEditor.focus();
-      // Second focus attempt after a tiny delay to be absolutely sure
       setTimeout(() => editEditor.focus(), 50);
     }).catch(()=>{
-      editEditor.setValue(getTemplate(lang, selectedEditMode) || '', -1);
+      window.__editFnName = id.slice(0, 10);
+      const mainContent = getTemplate(lang, selectedEditMode) || '';
+      initEditorFiles("edit", lang, mainContent);
+      editEditor.setValue(mainContent, -1);
       editEditor.focus();
     });
-    
-    // Immediate focus attempt
     editEditor.focus();
   }
   updateEditModeButtons();
@@ -657,12 +731,17 @@ function openEdit(id, lang){
 
 function closeEdit(){
   window.__isEditEditor = false;
-  document.getElementById('edit-modal').classList.add('hidden');
+  closeTelescope();
+  zCloseModal('edit-modal');
 }
 
 function saveEdit(exit){
   if(!window.__editFnID) return;
-  const body = editEditor ? editEditor.getValue() : '';
+  const main = mainFile("edit");
+  if (window.__editActiveFile && main && window.__editActiveFile !== main.path) {
+    toast("Stub files are read-only in this preview; saving the main file only", "info");
+  }
+  const body = mainFileContent("edit");
   fetch(`/api/functions/${window.__editFnID}/`,{
     method:'PUT',
     headers:{'Content-Type':'application/json'},
@@ -670,56 +749,155 @@ function saveEdit(exit){
       code: body,
       is_async: selectedEditMode === "async"
     })
-  }).then(()=>{ 
-    if(exit) closeEdit(); 
+  }).then(()=>{
+    if(exit) closeEdit();
     refreshList()
   });
 }
 
+/* --- telescope-like file/content search --- */
+function openTelescope(mode, type) {
+  syncEditorBuffer(mode);
+  teleState = { mode: mode, type: type, results: [], index: -1 };
+  const modal = document.getElementById("z-telescope");
+  const input = document.getElementById("z-telescope-input");
+  const kind = document.getElementById("z-telescope-kind");
+  if (!modal || !input) return;
+  input.value = "";
+  input.placeholder = type === "files" ? "Search files…" : "Search current file…";
+  if (kind) kind.textContent = type === "files" ? "files" : "content";
+  modal.classList.add("open");
+  updateTelescope();
+  setTimeout(() => input.focus(), 30);
+}
+
+function closeTelescope() {
+  document.getElementById("z-telescope")?.classList.remove("open");
+}
+
+function telescopeItems() {
+  const state = window["__" + teleState.mode + "Files"];
+  const query = (document.getElementById("z-telescope-input")?.value || "").trim().toLowerCase();
+  if (!state) return [];
+  if (teleState.type === "files") {
+    return state.manifest
+      .filter(file => !query || file.path.toLowerCase().includes(query))
+      .map(file => ({ label: file.path, path: file.path, main: file.main }));
+  }
+  const active = window["__" + teleState.mode + "ActiveFile"];
+  const content = state.contents[active] || "";
+  return content.split("\n").map((line, i) => ({
+    label: line.trim() || "(blank line)",
+    line: i + 1
+  })).filter(item => !query || item.label.toLowerCase().includes(query));
+}
+
+function updateTelescope() {
+  teleState.results = telescopeItems();
+  teleState.index = teleState.results.length ? 0 : -1;
+  renderTelescopeResults();
+}
+
+function renderTelescopeResults() {
+  const container = document.getElementById("z-telescope-results");
+  if (!container) return;
+  if (!teleState.results.length) {
+    container.innerHTML = '<div class="z-empty" style="padding:22px"><div class="z-empty-title">No matches</div><div class="z-empty-sub">Try a different query.</div></div>';
+    return;
+  }
+  container.innerHTML = teleState.results.map((item, i) => {
+    const active = i === teleState.index ? " active" : "";
+    const right = teleState.type === "files"
+      ? (item.main ? '<span class="z-badge z-badge-green">main</span>' : '<span class="z-badge z-badge-amber">stub</span>')
+      : '<span class="z-mono" style="font-size:9px;color:var(--text-4)">L' + item.line + '</span>';
+    return '<button class="z-telescope-result' + active + '" onclick="chooseTelescope(' + i + ')">' +
+      zIcon(teleState.type === "files" ? "file" : "search") +
+      '<span class="z-telescope-label">' + escapeFnHtml(item.label) + '</span>' + right + '</button>';
+  }).join("");
+  container.querySelectorAll(".z-telescope-result")[teleState.index]?.scrollIntoView({ block: "nearest" });
+}
+
+function chooseTelescope(index) {
+  const item = teleState.results[index];
+  if (!item) return;
+  if (teleState.type === "files") {
+    selectEditorFile(teleState.mode, item.path);
+  } else {
+    const ed = activeEditor(teleState.mode);
+    if (ed) {
+      ed.gotoLine(item.line, 0, true);
+      ed.focus();
+    }
+  }
+  closeTelescope();
+}
+
+document.addEventListener("keydown", function (e) {
+  const tele = document.getElementById("z-telescope");
+  if (tele?.classList.contains("open")) {
+    if (e.key === "Escape") { e.preventDefault(); closeTelescope(); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); teleState.index = Math.min(teleState.index + 1, teleState.results.length - 1); renderTelescopeResults(); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); teleState.index = Math.max(teleState.index - 1, 0); renderTelescopeResults(); return; }
+    if (e.key === "Enter") { e.preventDefault(); chooseTelescope(teleState.index); return; }
+    return;
+  }
+
+  const editOpen = document.getElementById("edit-modal")?.classList.contains("open");
+  const createOpen = document.getElementById("create-modal")?.classList.contains("open");
+  const mode = editOpen ? "edit" : (createOpen ? "create" : null);
+  if (!mode || !vimEnabled(mode)) return;
+  const ed = activeEditor(mode);
+  if (!ed || !ed.container || !ed.container.contains(e.target)) return;
+
+  // Best-effort guard so insert-mode spaces still type normally.
+  const vimState = ed.state && ed.state.cm && ed.state.cm.state && ed.state.cm.state.vim;
+  if (vimState && vimState.insertMode) return;
+
+  const now = Date.now();
+  if (e.code === "Space" || e.key === " ") {
+    if (now - lastVimSpace < 600) {
+      e.preventDefault();
+      lastVimSpace = 0;
+      openTelescope(mode, "files");
+    } else {
+      lastVimSpace = now;
+    }
+    return;
+  }
+  if (e.key === "/" && now - lastVimSpace < 600) {
+    e.preventDefault();
+    lastVimSpace = 0;
+    openTelescope(mode, "content");
+    return;
+  }
+  lastVimSpace = 0;
+}, true);
+
 /* --- bind language tiles and other DOM wiring after load --- */
 document.addEventListener('DOMContentLoaded', () => {
-  // wire language tiles
-  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>{
+  document.querySelectorAll('.z-lang-tile[data-lang]').forEach(btn=>{
     btn.addEventListener('click', ()=> {
       const lang = btn.getAttribute('data-lang');
       selectLang(lang);
     });
   });
 
-  // if server didn't provide activeProjectID, try cookie
   window.__activeProjectID = getActiveProjectID();
+  selectLang(selectedLang);
   updateCreateModeButtons();
   updateEditModeButtons();
 
-  // Handle Vim Toggle
-  const vimToggle = document.getElementById('vim-toggle');
-  if(vimToggle) {
-    vimToggle.addEventListener('change', () => {
-      const isVim = vimToggle.checked;
-      [createEditor, editEditor].forEach(ed => {
-        if(ed) {
-          ed.setKeyboardHandler(isVim ? 'ace/keyboard/vim' : null);
-          if(isVim) defineVimEx();
-        }
-      });
-    });
-  }
+  ["create", "edit"].forEach(mode => {
+    document.getElementById(mode + "-vim-toggle")?.addEventListener("change", () => applyEditorVim(mode));
+  });
 
-  // Handle ?edit=ID from spotlight
   const params = new URLSearchParams(window.location.search);
-  const editId = params.get('edit');
+  const editId = params.get("edit");
   if (editId) {
-      // Find function in the list to get its language
-      // Since the list might still be loading, we might need a small delay or check periodically
-      const checkAndEdit = () => {
-          fetch(`/api/functions/${editId}/`)
-              .then(r => r.json())
-              .then(f => {
-                  openEdit(f.id, f.language);
-              })
-              .catch(err => console.error("Failed to auto-open edit modal", err));
-      };
-      checkAndEdit();
+    fetch(`/api/functions/${editId}/`)
+      .then(r => r.json())
+      .then(f => openEdit(f.id, f.language))
+      .catch(err => console.error("Failed to auto-open edit modal", err));
   }
 });
 
@@ -727,12 +905,12 @@ window.__deleteFnID = null;
 
 function deleteFn(id) {
     window.__deleteFnID = id;
-    document.getElementById("delete-modal").classList.remove("hidden");
+    zOpenModal("delete-modal");
 }
 
 function closeDelete() {
     window.__deleteFnID = null;
-    document.getElementById("delete-modal").classList.add("hidden");
+    zCloseModal("delete-modal");
 }
 
 function confirmDelete() {
@@ -748,151 +926,201 @@ function confirmDelete() {
 }
 
 
+function fnIcon(name) {
+    const paths = {
+        code: '<path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/>',
+        copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+        edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+        route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+        sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+        github: '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>',
+        trash: '<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'
+    };
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + (paths[name] || "") + '</svg>';
+}
+
+function escapeFnHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function filterFunctions(q) {
+    const needle = String(q || "").trim().toLowerCase();
+    document.querySelectorAll("#fn-list-container .z-fn-row").forEach(row => {
+        const name = String(row.getAttribute("data-fn-name") || "").toLowerCase();
+        row.style.display = (!needle || name.includes(needle)) ? "" : "none";
+    });
+}
+
+function functionConfigPanelHtml(id, name, lang) {
+    const isDynamic = ["python", "ts", "lua"].includes(lang);
+    const dynamicField = isDynamic ? `<div class="z-field">
+                <span class="z-label">Dynamic runtime</span>
+                <div class="z-mode-toggle">
+                    <button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
+                    <button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+                </div>
+                <span class="z-help">Python, TypeScript and Lua only.</span>
+            </div>` : "";
+    return `<div id="fn-config-${id}" class="z-fn-config hidden" data-fn-config>
+        <div class="z-fn-config-head">
+            <span class="z-panel-title">Function config</span>
+            <span class="z-badge z-badge-muted">${name}</span>
+            <span class="z-badge z-badge-amber">dummy data</span>
+            <span class="z-help">Runtime, isolation and rate limits scoped to this function.</span>
+        </div>
+        <div class="z-fn-config-grid">
+            <div class="z-field">
+                <label class="z-label">Runtime interface</label>
+                <select class="z-select">
+                    <option selected>containerd · runc (default)</option>
+                    <option>gVisor · runsc</option>
+                    <option>Kata Containers · microVM</option>
+                    <option>WASM / WASI · wasmtime</option>
+                    <option>Firecracker · microVM</option>
+                </select>
+                <span class="z-help">Containerd by default; stronger isolation is opt-in.</span>
+            </div>
+            ${dynamicField}
+            <div class="z-field">
+                <span class="z-label">Rate limit</span>
+                <div class="z-input-group">
+                    <input class="z-input z-mono" style="width:92px" value="120" aria-label="requests per minute"/>
+                    <span class="z-help">req/min</span>
+                </div>
+                <span class="z-help">Burst <span class="z-code-inline">40</span> · per function at the gateway.</span>
+            </div>
+            <div class="z-field">
+                <span class="z-label">Dedicated resources</span>
+                <div class="z-grid z-grid-2" style="gap:7px">
+                    <select class="z-select" aria-label="vCPU"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>
+                    <select class="z-select" aria-label="Memory"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>
+                </div>
+                <span class="z-help">Applied when dedicated runtime is selected.</span>
+            </div>
+        </div>
+        <div class="z-fn-config-foot">
+            <a class="z-btn z-btn-sm" href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener">${fnIcon("github")} Repo</a>
+            <span class="z-help">Config is stored with this function package.</span>
+            <button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Function config saved (placeholder)','success')">Save config</button>
+        </div>
+    </div>`;
+}
+
 function refreshList() {
-    const url = `/api/functions/`;
-    fetch(url)
+    fetch(`/api/functions/`)
         .then(r => r.json())
         .then(obj => {
-
-            const list = Object.values(obj);
-
+            const list = Object.values(obj || {});
             const container = document.querySelector("#fn-list-container");
             if (!container) return;
 
-            container.innerHTML = "";
-
             if (list.length === 0) {
                 container.innerHTML = `
-                    <div class="w-full text-center py-20 text-neutral-500 text-lg">
-                        Create a new function to begin.
-                    </div>
-                `;
+                    <div class="z-empty" style="padding:40px 16px">
+                        <div class="z-empty-icon">${fnIcon("code")}</div>
+                        <div class="z-empty-title">No functions yet</div>
+                        <div class="z-empty-sub">Create your first function to start deploying.</div>
+                        <button class="z-btn z-btn-primary z-btn-sm" onclick="openCreate()">New function</button>
+                    </div>`;
                 return;
             }
 
-            const renderEndpointButton = (endpointId) => {
-                if (endpointId) {
-                    return '<a href="/endpoints/?expand=' + endpointId + '"' +
-                        ' class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"' +
-                        ' title="Endpoint settings">' +
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />' +
-                        '</svg></a>';
-                }
-                return '<span class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed" title="No endpoint">' +
-                    '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />' +
-                    '</svg></span>';
-            };
-
-            list.forEach(fn => {
-                const id = fn.id;
-                const name = fn.name;
-                const lang = fn.language;
+            container.innerHTML = list.map(fn => {
+                const id = escapeFnHtml(fn.id);
+                const name = escapeFnHtml(fn.name);
+                const lang = escapeFnHtml(fn.language);
                 const endpointId = fn.endpoint_id || "";
+                const icon = `/static/imgs/${encodeURIComponent(lang)}-svgrepo-com.svg`;
+                const endpointBtn = endpointId
+                    ? `<a class="z-btn z-btn-sm" href="/traffic/?expand=${encodeURIComponent(endpointId)}" title="Endpoint">${fnIcon("route")} Test</a>`
+                    : `<span class="z-btn z-btn-sm" style="opacity:.45" title="No endpoint">${fnIcon("route")} Test</span>`;
+                return `
+                    <div class="z-fn-row" data-fn-name="${name.toLowerCase()}">
+                        <span class="z-fn-icon"><img src="${icon}" alt=""/></span>
+                        <div class="z-fn-main">
+                            <div class="z-fn-name">${name}</div>
+                            <div class="z-fn-meta">
+                                <span class="z-badge z-badge-muted">${lang}</span>
+                                <span class="z-mono" style="font-size:9px;color:var(--text-4)">${id.slice(0, 10)}</span>
+                            </div>
+                        </div>
+                        <div class="z-fn-actions">
+                            <button class="z-icon-btn" title="Copy curl" onclick="copyFn('${id}')">${fnIcon("copy")}</button>
+                            <button class="z-icon-btn" id="fn-config-btn-${id}" title="Function config" onclick="toggleFnConfig('${id}')">${fnIcon("sliders")}</button>
+                            <button class="z-btn z-btn-sm" onclick="openEdit('${id}', '${lang}')">${fnIcon("edit")} Edit</button>
+                            ${endpointBtn}
+                            <button class="z-icon-btn" title="Delete" onclick="deleteFn('${id}')">${fnIcon("trash")}</button>
+                        </div>
+                    </div>` + functionConfigPanelHtml(id, name, lang);
+            }).join("");
 
-                const icon = `/static/imgs/${lang}-svgrepo-com.svg`;
-
-                const mobileCard = document.createElement("div");
-                mobileCard.className = "sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4";
-                mobileCard.innerHTML = `
-                    <!-- TOP: Icon + Name -->
-                    <div class="flex items-center gap-3 mb-3">
-                        <img src="${icon}" class="w-5 h-5 opacity-80"/>
-                        <h2 class="text-white font-medium text-base">${name}</h2>
-                    </div>
-                
-                    <!-- BOTTOM: Actions -->
-                    <div class="flex items-center gap-3">
-                
-                        <!-- Copy -->
-                        <button onclick="copyFn('${id}')"
-                            class="p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white">
-                            <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
-                        </button>
-                
-                        <!-- Edit -->
-                        <button onclick="openEdit('${id}', '${lang}')"
-                            class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                            title="Edit function">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                        </button>
-
-                        <!-- Endpoint -->
-                        ${renderEndpointButton(endpointId)}
-                
-                        <!-- Delete -->
-                        <button onclick="deleteFn('${id}')"
-                            class="px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
-                            Delete
-                        </button>
-                
-                    </div>
-                `;
-
-                const desktopRow = document.createElement("div");
-                desktopRow.className = "hidden sm:flex items-center justify-between px-2 py-3 border-b border-neutral-800 hover:bg-neutral-900/30 transition";
-                desktopRow.innerHTML = `
-                    <!-- LEFT -->
-                    <div class="flex items-center gap-3">
-                        <img src="${icon}" class="w-5 h-5 opacity-80"/>
-                        <span class="text-white font-medium">${name}</span>
-                    </div>
-
-                    <!-- RIGHT -->
-                    <div class="flex items-center gap-2 opacity-60 hover:opacity-100 transition">
-
-                        <button onclick="copyFn('${id}')"
-                            class="p-1 rounded-lg hover:bg-neutral-800 transition">
-                            <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
-                        </button>
-
-                        <button onclick="openEdit('${id}', '${lang}')"
-                            class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                            title="Edit function">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                        </button>
-
-                        ${renderEndpointButton(endpointId)}
-
-                        <button onclick="deleteFn('${id}')"
-                            class="px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
-                            Delete
-                        </button>
-
-                    </div>
-                `;
-
-                container.appendChild(mobileCard);
-                container.appendChild(desktopRow);
-            });
-        });
+            filterFunctions(document.getElementById("fn-filter")?.value || "");
+        })
+        .catch(() => toast("Could not refresh functions", "error"));
 }
-
-
-
 	</script>
 
 	<style>
-html,body{background:#0f0f10!important;}
-.ace_editor,.ace_scroller,.ace_content{background:#0b0b0c!important;color:#eee!important;}
-.shake{animation:shake .3s linear;}
-@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}
-
-.lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}
-.lang-btn:hover{background:#1c1c1c;border-color:#666}
-.lang-btn.selected{background:#1f1f20;border-color:#888}
-.mode-btn.selected{background:#1f1f20;border-color:#888}
+	.ace_editor,
+	.ace_scroller,
+	.ace_content { background: #0b0b0c !important; color: #eee !important; }
+	.shake { animation: shake .3s linear; }
+	@keyframes shake { 0%{transform:translateX(0)} 25%{transform:translateX(-6px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-6px)} 100%{transform:translateX(0)} }
 	</style>
 
-</div>
+}
 
+templ functionConfigPanel(fn Function) {
+	<div id={ "fn-config-" + fn.ID } class="z-fn-config hidden" data-fn-config>
+		<div class="z-fn-config-head">
+			<span class="z-panel-title">Function config</span>
+			<span class="z-badge z-badge-muted">{ fn.Name }</span>
+			<span class="z-badge z-badge-amber">dummy data</span>
+			<span class="z-help">Runtime, isolation and rate limits scoped to this function.</span>
+		</div>
+		<div class="z-fn-config-grid">
+			<div class="z-field">
+				<label class="z-label">Runtime interface</label>
+				<select class="z-select">
+					<option selected>containerd · runc (default)</option>
+					<option>gVisor · runsc</option>
+					<option>Kata Containers · microVM</option>
+					<option>WASM / WASI · wasmtime</option>
+					<option>Firecracker · microVM</option>
+				</select>
+				<span class="z-help">Containerd by default; stronger isolation is opt-in.</span>
+			</div>
+			if fn.Language == "python" || fn.Language == "ts" || fn.Language == "lua" {
+				<div class="z-field">
+					<span class="z-label">Dynamic runtime</span>
+					<div class="z-mode-toggle">
+						<button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
+						<button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+					</div>
+					<span class="z-help">Python, TypeScript and Lua only.</span>
+				</div>
+			}
+			<div class="z-field">
+				<span class="z-label">Rate limit</span>
+				<div class="z-input-group">
+					<input class="z-input z-mono" style="width:92px" value="120" aria-label="requests per minute"/>
+					<span class="z-help">req/min</span>
+				</div>
+				<span class="z-help">Burst <span class="z-code-inline">40</span> · per function at the gateway.</span>
+			</div>
+			<div class="z-field">
+				<span class="z-label">Dedicated resources</span>
+				<div class="z-grid z-grid-2" style="gap:7px">
+					<select class="z-select" aria-label="vCPU"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>
+					<select class="z-select" aria-label="Memory"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>
+				</div>
+				<span class="z-help">Applied when dedicated runtime is selected.</span>
+			</div>
+		</div>
+		<div class="z-fn-config-foot">
+			<a class="z-btn z-btn-sm" href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener">@Icon("github", "") Repo</a>
+			<span class="z-help">Config is stored with this function package.</span>
+			<button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Function config saved (placeholder)','success')">@Icon("save", "") Save config</button>
+		</div>
+	</div>
 }

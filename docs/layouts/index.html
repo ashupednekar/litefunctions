@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{ .Title }} · Self-hosted functions</title>
+    <meta name="description" content="{{ .Params.description | default .Site.Params.description }}"/>
+    <link rel="stylesheet" href="{{ "css/style.css" | relURL }}"/>
+    <link rel="stylesheet" href="{{ "css/docs.css" | relURL }}"/>
+    <link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml"/>
+  </head>
+  <body>
+    <div class="z-docs">
+      <nav class="z-docs-nav">
+        <a href="{{ .Site.Home.RelPermalink }}" class="z-brand z-docs-brand">
+          <span class="z-brand-mark">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+            </svg>
+          </span>
+          <span class="z-brand-name">litefunctions</span>
+          <span class="z-brand-version">0.1</span>
+        </a>
+        <span class="z-badge z-docs-selfhosted">self-hosted</span>
+        <div class="z-docs-nav-links">
+          <a href="#features">Features</a>
+          <a href="#screenshots">Screenshots</a>
+          <a href="#quickstart">Quickstart</a>
+          <a class="z-btn z-btn-sm z-btn-ghost" href="{{ .Site.Params.github }}" target="_blank" rel="noopener">GitHub</a>
+          <a class="z-btn z-btn-sm z-btn-primary" href="{{ .Site.Params.github }}#quickstart" target="_blank" rel="noopener">Get started</a>
+        </div>
+      </nav>
+
+      <main class="z-docs-main">
+        <header class="z-docs-hero">
+          <div class="z-docs-eyebrow"><span class="z-dot z-dot-blue"></span> {{ .Params.eyebrow }}</div>
+          <h1>{{ .Params.hero_title | safeHTML }}</h1>
+          <p class="z-docs-sub">{{ .Params.hero_sub }}</p>
+          <div class="z-docs-actions">
+            <a class="z-btn z-btn-primary" href="{{ .Site.Params.github }}#quickstart" target="_blank" rel="noopener">Deploy it yourself</a>
+            <a class="z-btn" href="#screenshots">Tour the portal</a>
+          </div>
+          <div class="z-docs-chips">
+            <span class="z-auth-chip"><span class="z-dot z-dot-green"></span> sync + async</span>
+            <span class="z-auth-chip">HTTP · SSE · WebSocket</span>
+            <span class="z-auth-chip">git-driven deploys</span>
+            <span class="z-auth-chip">per-route policies</span>
+            <span class="z-auth-chip">no vendor lock-in</span>
+          </div>
+        </header>
+
+        <article class="z-docs-content">
+          {{ .Content }}
+        </article>
+      </main>
+
+      <footer class="z-docs-foot">
+        <span>Litefunctions · self-hosted functions for Kubernetes</span>
+        <span class="z-docs-foot-links">
+          <a href="{{ .Site.Params.github }}" target="_blank" rel="noopener">GitHub</a>
+          <a href="{{ .Site.Params.github }}/issues" target="_blank" rel="noopener">Issues</a>
+          <a href="https://github.com/ashupednekar/litefunctions/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a>
+        </span>
+      </footer>
+    </div>
+  </body>
+</html>

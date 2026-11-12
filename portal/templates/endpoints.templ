@@ -31,33 +31,13 @@ if (target) target.classList.remove('hidden');
 }
 
 script selectMethodForEndpoint(id string, method string) {
-const methodStyles = {
-GET: ["border-blue-500", "bg-blue-500/20", "text-blue-400"],
-POST: ["border-green-500", "bg-green-500/20", "text-green-400"],
-PUT: ["border-yellow-500", "bg-yellow-500/20", "text-yellow-400"],
-PATCH: ["border-purple-500", "bg-purple-500/20", "text-purple-400"],
-DELETE: ["border-red-500", "bg-red-500/20", "text-red-400"]
-};
-const allMethodClasses = [
-"border-blue-500","bg-blue-500/20","text-blue-400",
-"border-green-500","bg-green-500/20","text-green-400",
-"border-yellow-500","bg-yellow-500/20","text-yellow-400",
-"border-purple-500","bg-purple-500/20","text-purple-400",
-"border-red-500","bg-red-500/20","text-red-400"
-];
-const neutralClasses = ["border-neutral-700", "text-neutral-400"];
 const input = document.getElementById("selected-method-" + id);
 const methods = new Set((input?.value || "").split(",").filter(Boolean));
 if (methods.has(method)) methods.delete(method); else methods.add(method);
 const selectedMethods = [...methods];
 ["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
-let btn = document.getElementById("method-" + m + "-" + id);
-if(btn) {
-btn.classList.remove(...allMethodClasses);
-btn.classList.remove(...neutralClasses);
-if (methods.has(m)) btn.classList.add(...(methodStyles[m] || methodStyles.GET));
-else btn.classList.add(...neutralClasses);
-}
+const btn = document.getElementById("method-" + m + "-" + id);
+if (btn) btn.classList.toggle("selected", methods.has(m));
 });
 if (input) input.value = selectedMethods.join(",");
 }
@@ -97,294 +77,88 @@ window.openTestModalForEndpoint(id);
 }
 }
 
-templ EndpointsContent(endpoints []Endpoint) {
-<div class="w-full px-6 md:px-14 py-12 space-y-14">
-  <!-- HEADER -->
-  <div class="flex items-center justify-between">
-    <div class="flex items-center gap-6">
-      <a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-      </a>
-      <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">
-        Endpoints
-      </h1>
-      <!-- SEARCH TRIGGER -->
-      <button onclick="openSpotlight()"
-        class="flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-        <span class="flex-1 text-left">Search endpoints...</span>
-        <div
-          class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium">
-          <span class="font-mono">⌘</span>K
-        </div>
-      </button>
-    </div>
-  </div>
-  <!-- WS TEST MODAL -->
-  <div id="ws-test-modal"
-    class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
-    onclick="closeWsTestModal()">
-    <div class="w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl"
-      onclick="event.stopPropagation()">
-      <!-- MODAL HEADER -->
-      <div class="flex items-center justify-between p-4 border-b border-neutral-800">
-        <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-cyan-400" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8m-8 4h8m-6-8h6" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
-          </svg>
-          <span class="text-sm text-neutral-300">WebSocket Tester</span>
-        </div>
-        <button onclick="closeWsTestModal()"
-          class="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <!-- MODAL CONTENT -->
-      <div
-        class="flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden">
-        <!-- LEFT COLUMN: SETTINGS -->
-        <div class="p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50">
-          <div>
-            <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">Endpoint</label>
-            <select id="ws-endpoint-select"
-              class="w-full bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"></select>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">WebSocket
-              URL</label>
-            <div class="flex items-center gap-2">
-              <input id="ws-url"
-                class="w-full bg-[#151516] border border-neutral-800 text-white rounded-lg px-3 py-2 text-xs font-mono focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition"
-                readonly />
-              <button onclick="copyWsUrl()"
-                class="px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition"
-                title="Copy URL">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 16h8M8 12h8m-6-4h6M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
-                </svg>
-              </button>
-            </div>
-            <p class="text-[11px] text-neutral-500 mt-2">Browser WebSockets can't send custom headers. Use query params if your gateway needs auth.</p>
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider block">Connection</label>
-            <div class="flex items-center gap-2">
-              <button id="ws-connect-btn" onclick="connectWs()"
-                class="px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold transition">Connect</button>
-              <button id="ws-disconnect-btn" onclick="disconnectWs()"
-                class="px-3 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-xs font-semibold transition">Disconnect</button>
-              <span id="ws-status"
-                class="text-xs font-mono text-neutral-400 bg-neutral-900 px-2 py-1 rounded">Disconnected</span>
-            </div>
-          </div>
-        </div>
-        <!-- RIGHT COLUMN: MESSAGES -->
-        <div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
-          <!-- SEND MESSAGE -->
-          <div class="p-4 border-b border-neutral-800 flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Send Message</label>
-              <button onclick="sendWsMessage()"
-                class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-cyan-500/10">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    d="M2.94 2.94a1.5 1.5 0 012.12 0l12 12a1.5 1.5 0 01-2.12 2.12l-12-12a1.5 1.5 0 010-2.12zM10.94 2.94a1.5 1.5 0 012.12 0l2.12 2.12a1.5 1.5 0 01-2.12 2.12l-2.12-2.12a1.5 1.5 0 010-2.12z" />
-                </svg>
-                Send
-              </button>
-            </div>
-            <textarea id="ws-message"
-              class="w-full h-24 bg-[#0e0e0f] border border-neutral-800 text-white rounded-lg p-3 font-mono text-xs outline-none resize-none"
-              placeholder='{"hello":"world"}'></textarea>
-          </div>
-          <!-- MESSAGE LOG -->
-          <div class="flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30">
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Messages</label>
-              <button onclick="clearWsLog()"
-                class="px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold">Clear</button>
-            </div>
-            <div id="ws-log"
-              class="w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs overflow-y-auto">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <p class="text-neutral-400 text-sm md:text-base -mt-6">
-    View and manage your service endpoints. Routes are automatically mapped when functions are created.
-  </p>
-  <!-- ENDPOINT LIST -->
-  <div id="endpoints-list" class="space-y-5 mt-10">
-    for _, ep := range endpoints {
-    <div class="rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 space-y-4" data-endpoint-id={ ep.ID }
-      data-endpoint-name={ ep.Name } data-endpoint-method={ ep.Method } data-endpoint-function={ ep.FunctionName }
-      data-endpoint-language={ ep.Language } data-endpoint-async={ ep.IsAsync }>
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          if ep.Method == "POST" {
-          <span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-green-600/20 text-green-400">
-            {
-            ep.Method }
-          </span>
-          } else if ep.Method == "PUT" {
-          <span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-yellow-600/20 text-yellow-400">
-            {
-            ep.Method }
-          </span>
-          } else if ep.Method == "DELETE" {
-          <span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-red-600/20 text-red-400">
-            { ep.Method }
-          </span>
-          } else {
-          <span class="px-3 py-1 rounded-lg text-xs font-bold tracking-widest bg-blue-600/20 text-blue-400">
-            { ep.Method }
-          </span>
-          }
-          <h3 class="text-white text-lg font-semibold">{ ep.Name }</h3>
-          <img src={ "/static/imgs/" + ep.Language + "-svgrepo-com.svg" } class="w-4 h-4 opacity-80" title={ ep.Language
-            } />
-          <span class="text-neutral-500 text-xs font-mono bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
-            { ep.FunctionName }
-          </span>
-        </div>
-        <div class="flex items-center gap-3">
-          <button id={ "ws-test-btn-" + ep.ID } onclick={ openWsTestModalForEndpoint(ep.ID) }
-            class="hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition"
-            title="Test websocket">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8m-8 4h8m-6-8h6" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6h8l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
-            </svg>
-          </button>
-          <button id={ "test-btn-" + ep.ID } onclick={ openTestModalForEndpoint(ep.ID) }
-            class="hidden p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition"
-            title="Test endpoint">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.445-10.832A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                clip-rule="evenodd" />
-            </svg>
-          </button>
-          <a id={ "build-status-" + ep.ID } href="#" target="_blank" rel="noopener"
-            class="hidden px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition">
-            Build
-          </a>
-          <span id={ "build-step-" + ep.ID } class="hidden text-[10px] text-neutral-500 font-mono"></span>
-          <button id={ "test-btn-" + ep.ID } onclick={ openTestModalForEndpoint(ep.ID) }
-            class="hidden px-3 py-1.5 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition text-xs font-semibold tracking-wide">
-            Test
-          </button>
-          <button onclick={ toggleManageEndpoint(ep.ID) }
-            class="p-2 rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition"
-            title="Endpoint settings">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <!-- MANAGE COLLAPSIBLE -->
-      <div id={ "endpoint-" + ep.ID } class="hidden mt-4 space-y-6 animate-in slide-in-from-top-2 duration-200">
-        <!-- HIDDEN INPUTS FOR FORM STATE -->
-        <input type="hidden" id={ "selected-method-" + ep.ID } value={ ep.Method } />
-        <!-- METHOD SELECTOR -->
-        <div>
-          <h4 class="text-white font-semibold mb-2">HTTP Method</h4>
-          if ep.IsAsync {
-          <div
-            class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-cyan-700/60 bg-cyan-700/15 text-cyan-300 text-xs font-semibold tracking-wide">
-            WebSocket (GET)
-          </div>
-          <p class="text-neutral-500 text-xs mt-2">Method selection is disabled for async endpoints.</p>
-          } else {
-          <div class="flex gap-2 flex-wrap">
-            for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
-            if m == ep.Method {
-            <button onclick={ selectMethodForEndpoint(ep.ID, m) } id={ "method-" + m + "-" + ep.ID }
-              class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-blue-500 bg-blue-500/20 text-blue-400">
-              {
-              m }
-            </button>
-            } else {
-            <button onclick={ selectMethodForEndpoint(ep.ID, m) } id={ "method-" + m + "-" + ep.ID }
-              class="px-4 py-2 rounded-lg border text-xs font-bold tracking-widest transition border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white">
-              {
-              m }
-            </button>
-            }
-            }
-          </div>
-          }
-        </div>
-        <!-- RATE LIMITING -->
-        <div>
-          <h4 class="text-white font-semibold mb-2">Rate Limiting</h4>
-          <p class="text-neutral-500 text-sm mb-3">Protect the endpoint with simple throttling.</p>
-          <div class="flex items-center gap-3">
-            <input type="number" min="1" id={ "rl-" + ep.ID }
-              class="bg-[#0b0b0c] border border-neutral-800 rounded-xl p-2.5 text-white w-40 focus:border-blue-500 outline-none transition"
-              placeholder="req/min" />
-            <button
-              class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20">
-              Save
-            </button>
-          </div>
-        </div>
-        <!-- AUTH CONTROLS -->
-        <div>
-          <h4 class="text-white font-semibold mb-2">Authentication</h4>
-          <select id={ "auth-" + ep.ID }
-            class="bg-[#0b0b0c] p-3 border border-neutral-800 rounded-xl text-white w-full focus:border-blue-500 outline-none transition appearance-none">
-            if ep.Scope == "public" {
-            <option selected>No Auth</option>
-            } else {
-            <option>No Auth</option>
-            }
-            if ep.Scope == "authn" {
-            <option selected>API Key (LWS Auth)</option>
-            } else {
-            <option>API Key (LWS Auth)</option>
-            }
-            <option>JWT</option>
-            <option>Session</option>
-          </select>
-        </div>
-        <!-- SAVE BUTTON -->
-        <div class="pt-4 border-t border-neutral-800/50 flex justify-end">
-          <button onclick={ saveEndpointSettings(ep.ID, ep.Scope) }
-            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-    }
-  </div>
+templ EndpointsContent(endpoints []Endpoint, standalone bool) {
+	if standalone {
+		@PageHead("Endpoints", "HTTP and WebSocket routes auto-mapped from functions. Inspect, test and manage them here.", "Operate", templ.Raw(`
+			<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
+			<a class="z-btn z-btn-primary" href="/functions/">`+svgPlus()+` New from function</a>
+		`))
+	}
+
+	<div class="w-full">
+		<div id="endpoints-list" class="z-endpoint-list">
+			if len(endpoints) == 0 {
+				<div class="z-empty" style="padding:44px 16px">
+					<div class="z-empty-icon">@Icon("route", "")</div>
+					<div class="z-empty-title">No endpoints yet</div>
+					<div class="z-empty-sub">Endpoints are generated automatically when you deploy a function.</div>
+					<a class="z-btn z-btn-primary z-btn-sm" href="/functions/">Create a function</a>
+				</div>
+			}
+			for _, ep := range endpoints {
+				<div class="z-endpoint-row" data-endpoint-id={ ep.ID } data-endpoint-name={ ep.Name } data-endpoint-method={ ep.Method } data-endpoint-function={ ep.FunctionName } data-endpoint-language={ ep.Language } data-endpoint-async={ ep.IsAsync }>
+					<div class="z-endpoint-main">
+						<span class={ "z-badge", templ.KV("z-badge-green", ep.Method == "POST"), templ.KV("z-badge-blue", ep.Method == "GET"), templ.KV("z-badge-amber", ep.Method == "PUT" || ep.Method == "PATCH"), templ.KV("z-badge-red", ep.Method == "DELETE"), templ.KV("z-badge-purple", ep.IsAsync) }>{ ep.Method }</span>
+						<span class="z-endpoint-name">{ ep.Name }</span>
+						<img class="z-endpoint-lang" src={ "/static/imgs/" + ep.Language + "-svgrepo-com.svg" } alt="" title={ ep.Language }/>
+						<span class="z-badge z-badge-muted">{ ep.FunctionName }</span>
+					</div>
+					<div class="z-endpoint-actions">
+						<a id={ "build-status-" + ep.ID } href="#" target="_blank" rel="noopener" class="z-badge z-badge-muted hidden">Build</a>
+						<span id={ "build-step-" + ep.ID } class="z-mono hidden" style="font-size:9px;color:var(--text-4)"></span>
+						<button id={ "ws-test-btn-" + ep.ID } onclick={ openWsTestModalForEndpoint(ep.ID) } class="z-btn z-btn-sm hidden" title="Test websocket">@Icon("network", "") Test WS</button>
+						<button id={ "test-btn-" + ep.ID } onclick={ openTestModalForEndpoint(ep.ID) } class="z-btn z-btn-sm hidden" title="Test endpoint">@Icon("play", "") Test</button>
+						<button onclick={ toggleManageEndpoint(ep.ID) } class="z-icon-btn" title="Endpoint settings">@Icon("sliders", "")</button>
+					</div>
+				</div>
+				<div id={ "endpoint-" + ep.ID } class="z-endpoint-manage hidden">
+					<input type="hidden" id={ "selected-method-" + ep.ID } value={ ep.Method }/>
+					<div class="z-endpoint-manage-grid">
+						<div>
+							<div class="z-label">HTTP method</div>
+							if ep.IsAsync {
+								<div style="margin-top:7px"><span class="z-badge z-badge-purple">WebSocket · GET</span></div>
+							} else {
+								<div class="z-method-row">
+									for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+										<button onclick={ selectMethodForEndpoint(ep.ID, m) } id={ "method-" + m + "-" + ep.ID } class={ "z-method-btn", templ.KV("selected", m == ep.Method) }>{ m }</button>
+									}
+								</div>
+							}
+						</div>
+						<div>
+							<label class="z-label" for={ "rl-" + ep.ID }>Rate limit</label>
+							<div class="z-input-group" style="margin-top:7px">
+								<input type="number" min="1" id={ "rl-" + ep.ID } class="z-input z-mono" placeholder="req/min"/>
+								<button class="z-btn z-btn-sm">Save</button>
+							</div>
+						</div>
+						<div>
+							<label class="z-label" for={ "auth-" + ep.ID }>Authentication</label>
+							<select id={ "auth-" + ep.ID } class="z-select" style="margin-top:7px">
+								if ep.Scope == "public" {
+									<option selected>No Auth</option>
+								} else {
+									<option>No Auth</option>
+								}
+								if ep.Scope == "authn" {
+									<option selected>API Key (LWS Auth)</option>
+								} else {
+									<option>API Key (LWS Auth)</option>
+								}
+								<option disabled>JWT (not supported)</option>
+								<option disabled>Session (not supported)</option>
+							</select>
+						</div>
+					</div>
+					<div class="z-endpoint-manage-foot">
+						<span class="z-help">Changes apply to the generated route on the next sync.</span>
+						<button onclick={ saveEndpointSettings(ep.ID, ep.Scope) } class="z-btn z-btn-primary z-btn-sm">@Icon("check", "") Save changes</button>
+					</div>
+				</div>
+			}
+		</div>
+
   <!-- TEST MODAL -->
   <div id="test-modal"
     class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
@@ -475,6 +249,44 @@ templ EndpointsContent(endpoints []Endpoint) {
       </div>
     </div>
   </div>
+
+  <div id="ws-test-modal" class="z-modal-backdrop" onclick="closeWsTestModal()">
+    <div class="z-modal wide" onclick="event.stopPropagation()">
+      <div class="z-modal-header">
+        @Icon("network", "")
+        <span class="z-modal-title">Test WebSocket</span>
+        <button class="z-icon-btn" style="margin-left:auto" onclick="closeWsTestModal()">@Icon("close", "")</button>
+      </div>
+      <div class="z-modal-body">
+        <div class="z-grid z-grid-2" style="gap:12px">
+          <div class="z-field">
+            <label class="z-label" for="ws-endpoint-select">Endpoint</label>
+            <select id="ws-endpoint-select" class="z-select"></select>
+          </div>
+          <div class="z-field">
+            <label class="z-label" for="ws-url">WebSocket URL</label>
+            <div class="z-input-group">
+              <input id="ws-url" class="z-input z-mono" readonly/>
+              <button class="z-btn z-btn-sm" onclick="copyWsUrl()">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <span id="ws-status" class="z-badge z-badge-muted">Disconnected</span>
+          <button class="z-btn z-btn-sm z-btn-primary" onclick="connectWs()">Connect</button>
+          <button class="z-btn z-btn-sm" onclick="disconnectWs()">Disconnect</button>
+          <button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto" onclick="clearWsLog()">Clear log</button>
+        </div>
+        <div id="ws-log" class="z-ws-log z-mono" style="margin-top:10px"></div>
+        <div class="z-input-group" style="margin-top:10px">
+          <input id="ws-message" class="z-input z-mono" placeholder="Message to send…"/>
+          <button class="z-btn z-btn-sm z-btn-primary" onclick="sendWsMessage()">Send</button>
+        </div>
+      </div>
+      <div class="z-modal-foot"><button class="z-btn" onclick="closeWsTestModal()">Close</button></div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const params = new URLSearchParams(window.location.search);
@@ -809,7 +621,8 @@ templ EndpointsContent(endpoints []Endpoint) {
       window.openWsTestModal = function () {
         const modal = document.getElementById("ws-test-modal");
         if (!modal) return;
-        modal.classList.remove("hidden");
+        if (window.zOpenModal) window.zOpenModal("ws-test-modal");
+        else modal.classList.add("open");
         const select = ensureWsModalOptions();
         if (select) {
           select.removeEventListener("change", setWsUrl);
@@ -828,8 +641,8 @@ templ EndpointsContent(endpoints []Endpoint) {
 
       window.closeWsTestModal = function () {
         closeWs();
-        const modal = document.getElementById("ws-test-modal");
-        if (modal) modal.classList.add("hidden");
+        if (window.zCloseModal) window.zCloseModal("ws-test-modal");
+        else document.getElementById("ws-test-modal")?.classList.remove("open");
         setWsStatus("Disconnected");
       };
 
@@ -985,16 +798,16 @@ templ EndpointsContent(endpoints []Endpoint) {
 
       function statusClass(status, conclusion, running) {
         if (running) {
-          return "border-[#6b3f17] bg-[#4a2a0c]/40 text-[#e5b07b] hover:bg-[#4a2a0c]/60";
+          return "z-badge-amber";
         }
         if (conclusion === "success" || status === "success") {
-          return "border-green-700/60 bg-green-700/15 text-green-300 hover:bg-green-700/30";
+          return "z-badge-green";
         }
         if (["failure", "failed", "cancelled", "canceled", "error", "timed_out"].includes(conclusion) ||
           ["failure", "failed", "cancelled", "canceled", "error", "timed_out"].includes(status)) {
-          return "border-red-700/60 bg-red-700/15 text-red-300 hover:bg-red-700/30";
+          return "z-badge-red";
         }
-        return "border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:bg-neutral-800";
+        return "z-badge-muted";
       }
 
       function statusLabel(run, running) {
@@ -1081,7 +894,7 @@ templ EndpointsContent(endpoints []Endpoint) {
             buildLink.setAttribute("href", "#");
             buildLink.classList.add("pointer-events-none", "opacity-70");
           }
-          buildLink.className = `px-3 py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition ${cls}`;
+          buildLink.className = `z-badge ${cls}`;
           buildLink.textContent = label;
           buildLink.classList.remove("hidden");
           if (stepLabel) {
@@ -1132,33 +945,13 @@ templ EndpointsContent(endpoints []Endpoint) {
     // Provide a global method selector for DOMContentLoaded initialization.
     // templ component scripts are scoped, so we expose a stable name here.
     window.selectMethodForEndpoint = function (id, method) {
-      const methodStyles = {
-        GET: ["border-blue-500", "bg-blue-500/20", "text-blue-400"],
-        POST: ["border-green-500", "bg-green-500/20", "text-green-400"],
-        PUT: ["border-yellow-500", "bg-yellow-500/20", "text-yellow-400"],
-        PATCH: ["border-purple-500", "bg-purple-500/20", "text-purple-400"],
-        DELETE: ["border-red-500", "bg-red-500/20", "text-red-400"]
-      };
-      const allMethodClasses = [
-        "border-blue-500", "bg-blue-500/20", "text-blue-400",
-        "border-green-500", "bg-green-500/20", "text-green-400",
-        "border-yellow-500", "bg-yellow-500/20", "text-yellow-400",
-        "border-purple-500", "bg-purple-500/20", "text-purple-400",
-        "border-red-500", "bg-red-500/20", "text-red-400"
-      ];
-      const neutralClasses = ["border-neutral-700", "text-neutral-400"];
       const input = document.getElementById("selected-method-" + id);
       const methods = new Set((input?.value || "").split(",").filter(Boolean));
       if (methods.has(method)) methods.delete(method); else methods.add(method);
       const selectedMethods = [...methods];
       ["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
         const btn = document.getElementById("method-" + m + "-" + id);
-        if (btn) {
-          btn.classList.remove(...allMethodClasses);
-          btn.classList.remove(...neutralClasses);
-          if (methods.has(m)) btn.classList.add(...(methodStyles[m] || methodStyles.GET));
-          else btn.classList.add(...neutralClasses);
-        }
+        if (btn) btn.classList.toggle("selected", methods.has(m));
       });
       if (input) input.value = selectedMethods.join(",");
     };

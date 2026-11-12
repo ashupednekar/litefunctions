@@ -29,7 +29,79 @@ func HomeContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js\"></script><script>\n  function extractPublicKey(opts) {\n    console.log(\"OPTIONS RECEIVED:\", opts);\n    if (opts.publicKey) {return opts.publicKey;}\n    if (opts.response) {return opts.response;}\n    if (opts.challenge) {return opts;}\n    throw new Error(\"Backend did not return valid WebAuthn publicKey options\");\n  }\n\n  window.registerPasskey = async function () {\n    try {\n      const username = document.getElementById(\"username\").value.trim();\n      if (!username) {\n        toast(\"Please enter a username first.\", \"info\");\n        return;\n      }\n\n      const startResp = await fetch(\"/passkey/register/start/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({username}),\n      });\n\n      if (!startResp.ok) {\n        const errText = await startResp.text();\n        toast(\"Failed to start registration: \" + errText, \"error\");\n        return;\n      }\n\n      const sessionKey = startResp.headers.get(\"Session-Key\");\n      const options = await startResp.json();\n      const publicKeyOpts = extractPublicKey(options);\n      const attResp = await SimpleWebAuthnBrowser.startRegistration(publicKeyOpts);\n\n      const finishResp = await fetch(\"/passkey/register/finish/\", {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n          \"Session-Key\": sessionKey,\n        },\n        body: JSON.stringify(attResp),\n      });\n\n      if (finishResp.ok) {\n        window.location.href = '/dashboard';\n      } else {\n        const msg = await finishResp.text();\n        toast(\"Registration failed: \" + msg, \"error\");\n      }\n    } catch (err) {\n      console.error(err);\n      toast(\"Registration error: \" + err, \"error\");\n    }\n  };\n\n  window.loginPasskey = async function () {\n    try {\n      const username = document.getElementById(\"username\").value.trim();\n      if (!username) {\n        toast(\"Please enter your username first.\", \"info\");\n        return;\n      }\n\n      const startResp = await fetch(\"/passkey/login/start/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({username}),\n      });\n\n      if (!startResp.ok) {\n        const errText = await startResp.text();\n        toast(\"Failed to start login: \" + errText, \"error\");\n        return;\n      }\n\n      const sessionKey = startResp.headers.get(\"Session-Key\");\n      const options = await startResp.json();\n      const publicKeyOpts = extractPublicKey(options);\n      const assertionResp = await SimpleWebAuthnBrowser.startAuthentication(publicKeyOpts);\n\n      const finishResp = await fetch(\"/passkey/login/finish/\", {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n          \"Session-Key\": sessionKey,\n        },\n        body: JSON.stringify(assertionResp),\n      });\n\n      if (finishResp.ok) {\n        // Check if there's a redirect parameter\n        const urlParams = new URLSearchParams(window.location.search);\n        const redirect = urlParams.get('redirect');\n        if (redirect) {\n          window.location.href = redirect;\n        } else {\n          window.location.href = '/dashboard';\n        }\n      } else {\n        const msg = await finishResp.text();\n        toast(\"Login failed: \" + msg, \"error\");\n      }\n    } catch (err) {\n      console.error(err);\n      toast(\"Login error: \" + err, \"error\");\n    }\n  };\n</script><div class=\"w-full px-6 md:px-20 py-16 md:py-24 relative min-h-[80vh] flex items-center\"><div class=\"grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-16 w-full\"><!-- LEFT HERO --><div class=\"flex flex-col justify-center max-w-xl\"><h1 class=\"text-5xl md:text-6xl font-semibold tracking-tight text-white leading-tight\">Litefunctions</h1><p class=\"mt-6 text-lg md:text-xl text-neutral-400 leading-relaxed max-w-lg\">Self-hosted function platform for Kubernetes. No vendor lock-in. No language lock-in.</p><div class=\"mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3\"><div class=\"rounded-xl border border-neutral-800 bg-[#101012] px-4 py-3 text-sm text-neutral-300\"><span class=\"text-white font-semibold\">Sync + Async</span><div class=\"text-neutral-500 mt-1\">HTTP, SSE, WebSocket, and pub/sub workloads</div></div><div class=\"rounded-xl border border-neutral-800 bg-[#101012] px-4 py-3 text-sm text-neutral-300\"><span class=\"text-white font-semibold\">Languages</span><div class=\"text-neutral-500 mt-1\">Go, Rust, Python, TypeScript, Lua</div></div><div class=\"rounded-xl border border-neutral-800 bg-[#101012] px-4 py-3 text-sm text-neutral-300 sm:col-span-2\"><span class=\"text-white font-semibold\">Git-driven runtime refresh</span><div class=\"text-neutral-500 mt-1\">Push code, trigger hooks, execute immediately</div></div></div></div><!-- CARD --><div class=\"bg-[#0e0e0f] border border-neutral-800 rounded-2xl shadow-xl w-full lg:w-[420px] max-w-[420px] p-6\"><header class=\"pb-3\"><h2 class=\"text-xl font-semibold text-white\">Sign in to LiteFunctions</h2><p class=\"text-neutral-400 text-sm mt-1\">Use a passkey from your device to register or sign in.</p></header><section class=\"flex flex-col gap-4 pt-2\"><input id=\"username\" type=\"text\" placeholder=\"Enter username\" class=\"w-full px-4 py-3 rounded-xl bg-neutral-900 text-neutral-200 border border-neutral-700 focus:outline-none\"> <button onclick=\"registerPasskey()\" class=\"w-full bg-white text-black font-semibold px-4 py-3 rounded-xl hover:bg-neutral-200 transition\">Register with Passkey</button> <button onclick=\"loginPasskey()\" class=\"w-full border border-neutral-700 text-neutral-300 px-4 py-3 rounded-xl hover:bg-neutral-800 transition\">Sign In with Passkey</button></section><footer class=\"pt-4 text-neutral-700 text-xs\">Your device will securely store your passkey.</footer></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js\"></script><script>\n\t\tfunction extractPublicKey(opts) {\n\t\t\tif (opts.publicKey) { return opts.publicKey; }\n\t\t\tif (opts.response) { return opts.response; }\n\t\t\tif (opts.challenge) { return opts; }\n\t\t\tthrow new Error(\"Backend did not return valid WebAuthn publicKey options\");\n\t\t}\n\n\t\twindow.registerPasskey = async function () {\n\t\t\ttry {\n\t\t\t\tconst username = document.getElementById(\"username\").value.trim();\n\t\t\t\tif (!username) { toast(\"Please enter a username first.\", \"info\"); return; }\n\n\t\t\t\tconst startResp = await fetch(\"/passkey/register/start/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\"},\n\t\t\t\t\tbody: JSON.stringify({username}),\n\t\t\t\t});\n\t\t\t\tif (!startResp.ok) {\n\t\t\t\t\ttoast(\"Failed to start registration: \" + await startResp.text(), \"error\");\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tconst sessionKey = startResp.headers.get(\"Session-Key\");\n\t\t\t\tconst options = await startResp.json();\n\t\t\t\tconst publicKeyOpts = extractPublicKey(options);\n\t\t\t\tconst attResp = await SimpleWebAuthnBrowser.startRegistration(publicKeyOpts);\n\n\t\t\t\tconst finishResp = await fetch(\"/passkey/register/finish/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\", \"Session-Key\": sessionKey},\n\t\t\t\t\tbody: JSON.stringify(attResp),\n\t\t\t\t});\n\t\t\t\tif (finishResp.ok) {\n\t\t\t\t\twindow.location.href = \"/dashboard/\";\n\t\t\t\t} else {\n\t\t\t\t\ttoast(\"Registration failed: \" + await finishResp.text(), \"error\");\n\t\t\t\t}\n\t\t\t} catch (err) {\n\t\t\t\tconsole.error(err);\n\t\t\t\ttoast(\"Registration error: \" + err, \"error\");\n\t\t\t}\n\t\t};\n\n\t\twindow.loginPasskey = async function () {\n\t\t\ttry {\n\t\t\t\tconst username = document.getElementById(\"username\").value.trim();\n\t\t\t\tif (!username) { toast(\"Please enter your username first.\", \"info\"); return; }\n\n\t\t\t\tconst startResp = await fetch(\"/passkey/login/start/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\"},\n\t\t\t\t\tbody: JSON.stringify({username}),\n\t\t\t\t});\n\t\t\t\tif (!startResp.ok) {\n\t\t\t\t\ttoast(\"Failed to start login: \" + await startResp.text(), \"error\");\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tconst sessionKey = startResp.headers.get(\"Session-Key\");\n\t\t\t\tconst options = await startResp.json();\n\t\t\t\tconst publicKeyOpts = extractPublicKey(options);\n\t\t\t\tconst assertionResp = await SimpleWebAuthnBrowser.startAuthentication(publicKeyOpts);\n\n\t\t\t\tconst finishResp = await fetch(\"/passkey/login/finish/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\", \"Session-Key\": sessionKey},\n\t\t\t\t\tbody: JSON.stringify(assertionResp),\n\t\t\t\t});\n\t\t\t\tif (finishResp.ok) {\n\t\t\t\t\tconst redirect = new URLSearchParams(window.location.search).get(\"redirect\");\n\t\t\t\t\twindow.location.href = redirect || \"/dashboard/\";\n\t\t\t\t} else {\n\t\t\t\t\ttoast(\"Login failed: \" + await finishResp.text(), \"error\");\n\t\t\t\t}\n\t\t\t} catch (err) {\n\t\t\t\tconsole.error(err);\n\t\t\t\ttoast(\"Login error: \" + err, \"error\");\n\t\t\t}\n\t\t};\n\t</script><div><div class=\"z-auth-kicker\">Function platform · self-hosted</div><h1 class=\"z-auth-title\">Ship functions.<br><span>Not infrastructure.</span></h1><p class=\"z-auth-sub\">A self-hosted function platform for Kubernetes. Write in Go, Rust, Python, TypeScript or Lua — we handle routing, async execution, pub/sub, secrets and traffic policy.</p><div class=\"z-auth-chips\"><span class=\"z-auth-chip\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("bolt", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "sync + async</span> <span class=\"z-auth-chip\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "HTTP · SSE · WebSocket</span> <span class=\"z-auth-chip\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("git-branch", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "git-driven deploys</span> <span class=\"z-auth-chip\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("shield", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "per-route policies</span> <span class=\"z-auth-chip\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("package", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "no vendor lock-in</span></div><div class=\"z-auth-stat-row\"><div><div class=\"z-auth-stat-value\">5</div><div class=\"z-auth-stat-label\">Runtimes</div></div><div><div class=\"z-auth-stat-value\">0</div><div class=\"z-auth-stat-label\">Cold starts*</div></div><div><div class=\"z-auth-stat-value\">∞</div><div class=\"z-auth-stat-label\">Functions</div></div><div><div class=\"z-auth-stat-value\">MIT</div><div class=\"z-auth-stat-label\">Licensed</div></div></div></div><div class=\"z-auth-card\"><div style=\"display:flex;align-items:center;gap:8px;margin-bottom:2px\"><span class=\"z-badge z-badge-blue\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("lock", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "passkey</span> <span class=\"z-badge z-badge-muted\">passwordless</span></div><h2>Sign in to your workspace</h2><p>Use a passkey stored on this device. No passwords, no resets — the private key never leaves your authenticator.</p><form onsubmit=\"event.preventDefault(); loginPasskey();\"><div class=\"z-field\"><label class=\"z-label\" for=\"username\">Username</label> <input id=\"username\" type=\"text\" class=\"z-input\" placeholder=\"e.g. ashu\" autocomplete=\"username webauthn\" autofocus></div><button type=\"submit\" class=\"z-btn z-btn-primary\" style=\"height:34px;margin-top:2px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("key", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Continue with passkey")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("arrow-right", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</button><div style=\"display:flex;gap:7px\"><button type=\"button\" onclick=\"registerPasskey()\" class=\"z-btn\" style=\"flex:1;height:32px\">Register device</button> <a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-ghost\" style=\"height:32px\">Docs</a></div></form><div class=\"z-auth-foot\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("shield", "w-3 h-3").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span>WebAuthn · credentials stay on-device</span></div><div class=\"z-divider\"></div><div style=\"display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-4)\"><span>New here? Register above.</span> <span class=\"z-mono\">v0.1.0</span></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

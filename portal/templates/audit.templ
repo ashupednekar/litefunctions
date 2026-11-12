@@ -1,0 +1,111 @@
+package templates
+
+templ AuditContent() {
+	@PageHead("Audit Log", "Every privileged action in the project: secret reveals, access changes, deploys and policy edits.", "Project settings", templ.Raw(`
+		<button class="z-btn" onclick="toast('Export is a placeholder','info')">`+svgExternal()+` Export JSON</button>
+		<button class="z-btn z-btn-primary" onclick="refreshAudit()">`+svgRefresh()+` Refresh</button>
+	`))
+
+	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("clock", "") Events · 24h</div><div class="z-stat-value">312</div><div class="z-stat-delta">across 6 actors</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("lock", "") Secret reveals</div><div class="z-stat-value">4</div><div class="z-stat-delta">all passkey verified</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("users", "") Access changes</div><div class="z-stat-value">2</div><div class="z-stat-delta">1 invite <span class="z-faint">·</span> 1 revoke</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("alert", "") Policy denials</div><div class="z-stat-value">0</div><div class="z-stat-delta">no unauthorized attempts</div></div>
+	</div>
+
+	<div class="z-panel">
+		<div class="z-panel-header">
+			<span class="z-panel-title">Events</span>
+			<span class="z-panel-sub">immutable · append-only</span>
+			<div class="z-panel-actions">
+				<div class="z-search" style="width:200px"><input class="z-input" style="height:25px;font-size:10.5px" placeholder="actor, action, target…"/></div>
+				<select class="z-select" style="width:130px;height:25px;font-size:10px"><option>All actions</option><option>secrets</option><option>access</option><option>deploy</option><option>policy</option></select>
+				<button class="z-btn z-btn-sm">@Icon("filter", "")</button>
+			</div>
+		</div>
+		<div class="z-panel-body tight">
+			<div class="z-list">
+				@auditRow("12:44:02", "ashu", "secret.reveal", "STRIPE_SECRET_KEY", "passkey · 1.2.3.4", "blue")
+				@auditRow("12:31:18", "ci-runner", "deploy.release", "v0.15.0-rc1 → staging", "canary 25%", "green")
+				@auditRow("11:58:44", "ashu", "config.update", "MAX_ORDER_ITEMS", "50 → 50 (no-op)", "muted")
+				@auditRow("11:42:10", "priya", "access.invite", "dev@example.com", "role: editor", "purple")
+				@auditRow("10:18:33", "ashu", "traffic.policy", "POST /lambda/pay-order", "rate limit 120 → 60 / min", "amber")
+				@auditRow("09:44:02", "marco", "function.update", "create-order", "validation added", "green")
+				@auditRow("09:12:55", "ashu", "secret.rotate", "JWT_SIGNING_KEY", "rotation 90d", "blue")
+				@auditRow("08:57:21", "chen", "data-model.migration", "00004_orders.sql", "applied in transaction", "purple")
+				@auditRow("08:40:09", "ashu", "access.revoke", "legacy key", "lf_live_…c401", "red")
+				@auditRow("07:22:46", "system", "compute.health", "worker-1", "sandbox recycled", "muted")
+				@auditRow("06:05:31", "ci-runner", "deploy.release", "v0.14.2 → production", "100% · healthy", "green")
+			</div>
+		</div>
+		<div class="z-panel-foot">
+			<span class="z-help">Retained 400 days. Export includes actor, action, target and request metadata.</span>
+			<div style="margin-left:auto;display:flex;gap:6px">
+				<button class="z-btn z-btn-sm z-btn-ghost">Previous</button>
+				<button class="z-btn z-btn-sm z-btn-ghost">Next</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="z-split" style="margin-top:14px">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Activity by actor</span><span class="z-panel-sub">last 24h</span></div>
+			<div class="z-panel-body">
+				@actorBar("ashu", 148, 312)
+				@actorBar("ci-runner", 62, 312)
+				@actorBar("priya", 48, 312)
+				@actorBar("marco", 31, 312)
+				@actorBar("chen", 18, 312)
+				@actorBar("system", 5, 312)
+			</div>
+		</div>
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Event detail</span><span class="z-badge z-badge-muted">secret.reveal</span></div>
+			<div class="z-panel-body">
+				<dl class="z-kv">
+					<dt>Event ID</dt><dd>evt_9f2a1c4b</dd>
+					<dt>Actor</dt><dd>ashu</dd>
+					<dt>Action</dt><dd>secret.reveal</dd>
+					<dt>Target</dt><dd>STRIPE_SECRET_KEY</dd>
+					<dt>IP</dt><dd>1.2.3.4</dd>
+					<dt>Auth</dt><dd>passkey · verified</dd>
+					<dt>Time</dt><dd>2026-11-12 12:44:02Z</dd>
+				</dl>
+				<div class="z-alert z-alert-blue" style="margin-top:12px">@Icon("shield", "") <div>Event integrity hash: <span class="z-mono">sha256:9f2a…4b01</span></div></div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		async function refreshAudit() {
+			toast("Refreshing audit events…", "info");
+			await zDummyFetch("/api/audit/", {events: []});
+			setTimeout(() => toast("Audit log refreshed", "success"), 500);
+		}
+	</script>
+}
+
+templ auditRow(time string, actor string, action string, target string, detail string, tone string) {
+	<div class="z-list-item">
+		<span class={ "z-list-icon", templ.KV("tone-green", tone == "green"), templ.KV("tone-blue", tone == "blue"), templ.KV("tone-purple", tone == "purple"), templ.KV("tone-amber", tone == "amber") }>@Icon("clock", "")</span>
+		<div class="z-list-main">
+			<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+				<span class="z-mono" style="font-size:10px;color:var(--text-2)">{ action }</span>
+				<span class="z-mono" style="font-size:9.5px;color:var(--text-4)">{ target }</span>
+			</div>
+			<div class="z-list-sub">{ detail }</div>
+		</div>
+		<span class="z-badge z-badge-muted">{ actor }</span>
+		<span class="z-mono" style="font-size:9.5px;color:var(--text-4);white-space:nowrap">{ time }</span>
+	</div>
+}
+
+templ actorBar(actor string, count int, total int) {
+	<div style="margin-bottom:10px">
+		<div style="display:flex;justify-content:space-between;margin-bottom:4px">
+			<span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ actor }</span>
+			<span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ itoa(count) }</span>
+		</div>
+		<div class="z-progress"><span style={ "width:" + itoa(count*100/total) + "%" }></span></div>
+	</div>
+}

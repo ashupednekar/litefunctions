@@ -1,0 +1,33 @@
+baseURL = "https://ashupednekar.github.io/litefunctions/"
+languageCode = "en-us"
+title = "Litefunctions"
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term"]
+
+[params]
+  description = "Self-hosted, Kubernetes-native functions platform."
+  github = "https://github.com/ashupednekar/litefunctions"
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[markup.highlight]
+  style = "github-dark"
+  noClasses = true
+
+[module]
+  [[module.mounts]]
+    source = "content"
+    target = "content"
+  [[module.mounts]]
+    source = "data"
+    target = "data"
+  [[module.mounts]]
+    source = "layouts"
+    target = "layouts"
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "ui-overhaul/screenshots"
+    target = "static/screenshots"

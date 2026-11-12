@@ -29,7 +29,523 @@ func ConfigurationContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-10\"><!-- HEADER --><div class=\"flex items-center justify-between\"><div class=\"flex items-center gap-4\"><a href=\"/dashboard/\" class=\"p-2 hover:bg-neutral-800 rounded-lg transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 19l-7-7 7-7\"></path></svg></a><h1 class=\"text-4xl font-semibold text-white tracking-tight\">Configuration</h1></div><button onclick=\"addConfigRow()\" class=\"bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl transition\">New Config</button></div><p class=\"text-neutral-400 text-sm -mt-4\">Project-level configuration & encrypted secrets.</p><!-- CONFIG LIST --><div id=\"config-list\" class=\"space-y-3\"><!-- Example Row --><div class=\"config-item border border-neutral-800 bg-[#0e0e0f] rounded-2xl p-4\"><div class=\"flex items-center justify-between cursor-pointer\" onclick=\"toggleConfig(this)\"><div><h3 class=\"text-white font-semibold text-lg\">APP_MODE</h3><p class=\"text-neutral-500 text-sm\">production</p></div><img src=\"/static/imgs/arrow-down.svg\" class=\"w-5 h-5 opacity-60 rotate-0 transition-transform\"></div><!-- EXPANDED EDITOR --><div class=\"config-body hidden mt-4 space-y-3\"><!-- Key --><div><label class=\"text-neutral-400 text-sm\">Key</label> <input class=\"cfg-key w-full mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white\"></div><!-- Value --><div><label class=\"text-neutral-400 text-sm\">Value</label> <textarea class=\"cfg-value w-full h-32 mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white\"></textarea></div><!-- Options --><label class=\"flex items-center gap-2 text-neutral-300 text-sm\"><input type=\"checkbox\" class=\"cfg-encrypted\"> Encrypted</label><!-- Save/Cancel --><div class=\"flex justify-end gap-3 pt-2\"><button onclick=\"cancelConfigEdit(this)\" class=\"px-4 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">Cancel</button> <button onclick=\"saveConfig(this)\" class=\"px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white\">Save</button></div></div></div></div></div><script>\n  /* Toggle expand/collapse */\n  function toggleConfig(el) {\n    const body = el.parentElement.querySelector(\".config-body\");\n    const arrow = el.querySelector(\"img\");\n\n    if (body.classList.contains(\"hidden\")) {\n      body.classList.remove(\"hidden\");\n      arrow.style.transform = \"rotate(180deg)\";\n    } else {\n      body.classList.add(\"hidden\");\n      arrow.style.transform = \"rotate(0deg)\";\n    }\n  }\n\n  /* Add a new empty row */\n  function addConfigRow() {\n    const list = document.getElementById(\"config-list\");\n\n    const div = document.createElement(\"div\");\n    div.className = \"config-item border border-neutral-800 bg-[#0e0e0f] rounded-2xl p-4\";\n\n    div.innerHTML = `\n\t\t<div class=\"flex items-center justify-between cursor-pointer\" onclick=\"toggleConfig(this)\">\n\t\t\t<div>\n\t\t\t\t<h3 class=\"text-white font-semibold text-lg\">New Key</h3>\n\t\t\t\t<p class=\"text-neutral-500 text-sm\">Click to edit…</p>\n\t\t\t</div>\n\t\t\t<img src=\"/static/imgs/arrow-down.svg\" class=\"w-5 h-5 opacity-60 rotate-0 transition-transform\"/>\n\t\t</div>\n\n\t\t<div class=\"config-body mt-4 space-y-3\">\n\t\t\t<div>\n\t\t\t\t<label class=\"text-neutral-400 text-sm\">Key</label>\n\t\t\t\t<input class=\"cfg-key w-full mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white\"/>\n\t\t\t</div>\n\n\t\t\t<div>\n\t\t\t\t<label class=\"text-neutral-400 text-sm\">Value</label>\n\t\t\t\t<textarea class=\"cfg-value w-full h-32 mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white\"></textarea>\n\t\t\t</div>\n\n\t\t\t<label class=\"flex items-center gap-2 text-neutral-300 text-sm\">\n\t\t\t\t<input type=\"checkbox\" class=\"cfg-encrypted\"/>\n\t\t\t\tEncrypted\n\t\t\t</label>\n\n\t\t\t<div class=\"flex justify-end gap-3 pt-2\">\n\t\t\t\t<button onclick=\"cancelConfigEdit(this)\" \n\t\t\t\t\tclass=\"px-4 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\">\n\t\t\t\t\tCancel\n\t\t\t\t</button>\n\t\t\t\t<button onclick=\"saveConfig(this)\" \n\t\t\t\t\tclass=\"px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white\">\n\t\t\t\t\tSave\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t</div>`;\n\n    list.prepend(div);\n  }\n\n  /* Cancel editing */\n  function cancelConfigEdit(btn) {\n    const body = btn.closest(\".config-body\");\n    body.classList.add(\"hidden\");\n\n    const arrow = body.parentElement.querySelector(\"img\");\n    arrow.style.transform = \"rotate(0deg)\";\n  }\n\n  /* Save logic placeholder */\n  function saveConfig(btn) {\n    const container = btn.closest(\".config-item\");\n    const key = container.querySelector(\".cfg-key\").value;\n    const val = container.querySelector(\".cfg-value\").value;\n    const enc = container.querySelector(\".cfg-encrypted\").checked;\n\n    console.log(\"TODO: Send save to backend\", {key, val, enc});\n\n    // update collapsed summary UI\n    container.querySelector(\"h3\").textContent = key || \"Unnamed\";\n    container.querySelector(\"p\").textContent = enc ? \"(encrypted)\" : val.slice(0, 50);\n\n    cancelConfigEdit(btn);\n  }\n</script><style>\n  .config-item {\n    transition: border-color 0.2s, background-color 0.2s;\n  }\n\n  .config-item:hover {\n    border-color: #666;\n    background-color: #141416;\n  }\n</style>")
+		templ_7745c5c3_Err = PageHead("Configs & Secrets", "Environment variables, encrypted secrets, mounted files and feature flags for this project.", "Project settings", templ.Raw(`
+		<button class="z-btn" onclick="importEnv()">`+svgExternal()+` Import .env</button>
+		<button class="z-btn z-btn-primary" onclick="addConfigRow()">`+svgPlus()+` New config</button>
+	`)).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-alert z-alert-blue\" style=\"margin-bottom:14px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("lock", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div><strong style=\"color:var(--text);font-weight:550\">Encrypted at rest.</strong> Values marked secret are sealed with the project key. Revealing a secret is audited and requires a fresh passkey check.</div></div><div class=\"z-grid z-grid-4\" style=\"margin-bottom:14px\"><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("key", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Variables</div><div class=\"z-stat-value\">18</div><div class=\"z-stat-delta\">12 plain <span class=\"z-faint\">·</span> 6 secret</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("lock", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Secrets</div><div class=\"z-stat-value\">6</div><div class=\"z-stat-delta\">rotated 3 days ago</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Mounted files</div><div class=\"z-stat-value\">2</div><div class=\"z-stat-delta\">config maps <span class=\"z-faint\">·</span> read-only</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("bolt", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Feature flags</div><div class=\"z-stat-value\">3</div><div class=\"z-stat-delta\">1 enabled in production</div></div></div><div class=\"z-tabs\" data-tab-group><button class=\"z-tab active\" data-tab=\"variables\">Variables <span class=\"z-badge z-badge-muted\">18</span></button> <button class=\"z-tab\" data-tab=\"secrets\">Secrets <span class=\"z-badge z-badge-muted\">6</span></button> <button class=\"z-tab\" data-tab=\"volumes\">Mounted files</button> <button class=\"z-tab\" data-tab=\"flags\">Feature flags</button></div><div data-tab-panel=\"variables\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Environment variables</span> <span class=\"z-badge z-badge-blue\">production</span><div class=\"z-panel-actions\"><div class=\"z-search\" style=\"width:200px\"><input class=\"z-input\" style=\"height:25px;font-size:10.5px\" placeholder=\"Search keys…\"></div><button class=\"z-btn z-btn-sm\" onclick=\"addConfigRow()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Add</button></div></div><div id=\"config-list\" class=\"z-panel-body tight\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = configRow("APP_MODE", "production", "all-functions", false).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = configRow("DATABASE_URL", "postgresql://orders:***@db:5432/orders", "all-functions", true).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = configRow("NATS_URL", "nats://nats.litefunctions:4222", "all-functions", false).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = configRow("LOG_LEVEL", "info", "all-functions", false).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = configRow("STRIPE_API_BASE", "https://api.stripe.com", "pay-order", false).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = configRow("MAX_ORDER_ITEMS", "50", "create-order", false).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"z-panel-foot\"><span class=\"z-help\">Changes apply to new sandboxes. Restart a function to pick them up immediately.</span> <span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">synced</span></div></div></div><div data-tab-panel=\"secrets\" style=\"display:none\"><div class=\"z-split\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Secrets vault</span> <span class=\"z-badge z-badge-purple\">age encrypted</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm z-btn-accent\" onclick=\"zOpenModal('secret-modal')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "New secret</button></div></div><div class=\"z-table-wrap\"><table class=\"z-table\"><thead><tr><th>Name</th><th>Scope</th><th>Last rotated</th><th>Used by</th><th>Status</th><th></th></tr></thead> <tbody>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = secretRow("STRIPE_SECRET_KEY", "project", "3 days ago", "pay-order, stripe-webhook", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = secretRow("STRIPE_WEBHOOK_SECRET", "project", "3 days ago", "stripe-webhook", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = secretRow("SMTP_PASSWORD", "project", "12 days ago", "notify-email", "rotate").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = secretRow("JWT_SIGNING_KEY", "project", "1 day ago", "ingestor", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = secretRow("SENTRY_DSN", "function", "—", "list-orders", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = secretRow("OPENAI_API_KEY", "function", "6 days ago", "agent-runner", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</tbody></table></div><div class=\"z-panel-foot\"><span class=\"z-help\">Rotation does not invalidate old values; sandboxes are restarted with the new value.</span></div></div><aside><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Vault</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">sealed</span></div><div class=\"z-panel-body\"><dl class=\"z-kv\"><dt>KMS</dt><dd>local age key</dd><dt>Key ID</dt><dd>age1…q9x2</dd><dt>Rotation policy</dt><dd>90 days</dd><dt>Last audit</dt><dd>2 hours ago</dd><dt>Reveal</dt><dd>passkey + audit</dd></dl><div class=\"z-alert z-alert-amber\" style=\"margin-top:10px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("alert", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div>1 secret is past its rotation window.</div></div></div></div></aside></div></div><div data-tab-panel=\"volumes\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Mounted files</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "Add mount</button></div></div><div class=\"z-panel-body tight\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">/etc/orders/config.yaml</div><div class=\"z-list-sub\">config map · orders-config · 2.1 KB</div></div><span class=\"z-badge z-badge-muted\">read-only</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">/etc/tls/ca.pem</div><div class=\"z-list-sub\">secret · project-ca · 1.4 KB</div></div><span class=\"z-badge z-badge-purple\">secret</span></div></div></div></div></div><div data-tab-panel=\"flags\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Feature flags</span><span class=\"z-panel-sub\">per environment</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "New flag</button></div></div><div class=\"z-panel-body\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = flagRow("orders_v2", "Route create-order to the v2 implementation", true).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = flagRow("strict_rate_limit", "Use 60 req/min instead of 120", false).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = flagRow("async_receipts", "Send receipts through the queue instead of inline", true).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div></div><div id=\"secret-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('secret-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("lock", "w-4 h-4").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<span class=\"z-modal-title\">New secret</span><button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\">Name</label><input class=\"z-input z-mono\" placeholder=\"STRIPE_SECRET_KEY\"></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Value</label><textarea class=\"z-input z-mono\" style=\"min-height:76px;padding-top:8px\" placeholder=\"sk_live_…\"></textarea></div><div class=\"z-grid z-grid-2\" style=\"margin-top:11px\"><div class=\"z-field\"><label class=\"z-label\">Scope</label><select class=\"z-select\"><option>Project</option><option>Function</option><option>Environment</option></select></div><div class=\"z-field\"><label class=\"z-label\">Rotation</label><select class=\"z-select\"><option>90 days</option><option>30 days</option><option>Never</option></select></div></div><div class=\"z-alert z-alert-blue\" style=\"margin-top:12px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("shield", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div>Value is sealed before it leaves this page. It is never rendered back in plain text.</div></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button><button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('secret-modal'); toast('Secret created (placeholder)','success')\">Create secret</button></div></div></div><script>\n\t\tfunction addConfigRow() { toast(\"Config editor is a UI placeholder\", \"info\"); }\n\t\tfunction importEnv() { toast(\"Import .env is a UI placeholder\", \"info\"); }\n\t</script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func configRow(key string, value string, scope string, secret bool) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"z-list-item\" style=\"padding:10px 14px\"><span class=\"z-list-icon\" style=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.KV("tone-purple", secret))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 141, Col: 67}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("key", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:11px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(key)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 143, Col: 64}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"z-list-sub z-mono\" style=\"font-size:9.5px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(value)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 144, Col: 65}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div><span class=\"z-badge z-badge-muted\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(scope)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 146, Col: 45}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if secret {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<span class=\"z-badge z-badge-purple\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("lock", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "secret</span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<span class=\"z-badge z-badge-green\">plain</span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<button class=\"z-icon-btn\" title=\"Reveal\" onclick=\"toast('Reveal requires a fresh passkey check','info')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("eye", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</button> <button class=\"z-icon-btn\" title=\"Edit\" onclick=\"toast('Editing is a UI placeholder','info')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("edit", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</button></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func secretRow(name string, scope string, rotated string, usedBy string, status string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 159, Col: 64}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</td><td><span class=\"z-badge z-badge-muted\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(scope)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 160, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</span></td><td class=\"z-cell-mono\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(rotated)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 161, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</td><td class=\"z-cell-mono\" style=\"max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(usedBy)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 162, Col: 116}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</td><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if status == "rotate" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<span class=\"z-badge z-badge-amber\">rotate soon</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"z-badge z-badge-green\">healthy</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\" onclick=\"toast('Secret reveal is a placeholder','info')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("eye", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</button> <button class=\"z-btn z-btn-sm z-btn-ghost\" onclick=\"toast('Rotation is a placeholder','info')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("refresh", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</button></td></tr>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func flagRow(name string, detail string, on bool) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var12 == nil {
+			templ_7745c5c3_Var12 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div style=\"display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)\"><div><div class=\"z-mono\" style=\"font-size:11px;color:var(--text)\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 180, Col: 70}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div><div class=\"z-help\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 181, Col: 31}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var15 = []any{"z-toggle", templ.KV("on", on)}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var15...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<span class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var16 string
+		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var15).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/configuration.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\"></span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
