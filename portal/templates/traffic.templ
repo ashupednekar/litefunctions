@@ -143,18 +143,6 @@ templ routeRow(method string, path string, upstream string, auth string, limit s
 	</tr>
 }
 
-templ overrideRow(route string, policy string, limit string, burst string, key string, status string) {
-	<tr>
-		<td class="z-cell-main z-mono" style="font-size:10.5px">{ route }</td>
-		<td class="z-cell-mono">{ policy }</td>
-		<td class="z-cell-mono">{ limit }</td>
-		<td class="z-cell-mono">{ burst }</td>
-		<td><span class="z-badge z-badge-muted">{ key }</span></td>
-		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "enforced"), templ.KV("z-badge-amber", status == "draft") }>{ status }</span></td>
-		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
-	</tr>
-}
-
 templ topRoute(name string, count int, pct int) {
 	<div>
 		<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ name }</span><span class="z-mono" style="font-size:9.5px;color:var(--text-3)">{ itoa(count) }k</span></div>

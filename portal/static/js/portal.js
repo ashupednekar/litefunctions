@@ -4,7 +4,6 @@
 
   const navItems = [
     { group: "Workspace", label: "Overview", href: "/dashboard/", icon: "grid", keys: "g o" },
-    { group: "Workspace", label: "Observability", href: "/observability/", icon: "activity" },
     { group: "Build", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
     { group: "Build", label: "Plan", href: "/agent/", icon: "sparkles" },
     { group: "Data", label: "Objects", href: "/data/", icon: "box" },

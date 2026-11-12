@@ -347,16 +347,6 @@ func (h *UIHandlers) Traffic(ctx *gin.Context) {
 	}
 }
 
-func (h *UIHandlers) Observability(ctx *gin.Context) {
-	page := templates.BaseLayout(
-		shellData(ctx, "Observability", "Operate", "observability"),
-		templates.ObservabilityContent(),
-	)
-	if err := page.Render(ctx, ctx.Writer); err != nil {
-		slog.Error("page render failed", "error", err)
-	}
-}
-
 func (h *UIHandlers) Access(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Team & Access", "Project settings", "access"),
