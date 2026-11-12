@@ -2,13 +2,14 @@
 {{- $hosts := include "litefunctions.gatewayHosts" . | fromYaml }}
 {{- $portalHosts := $hosts.portal }}
 {{- $giteaHosts := $hosts.gitea }}
+{{- $grafanaHosts := $hosts.grafana }}
 {{- $gatewayName := include "litefunctions.gatewayName" . }}
 {{- $gatewayClassName := .Values.gatewayApi.gatewayClassName }}
 {{- $httpPort := .Values.gatewayApi.http.port }}
 {{- $tlsEnabled := .Values.gatewayApi.tls.enabled }}
 {{- $tlsPort := .Values.gatewayApi.tls.port }}
 {{- $tlsSecretName := .Values.gatewayApi.tls.secretName }}
-{{- $listenerHosts := concat $portalHosts $giteaHosts $hosts.rustfs $hosts.rustfsConsole | uniq }}
+{{- $listenerHosts := concat $portalHosts $giteaHosts $grafanaHosts $hosts.rustfs $hosts.rustfsConsole | uniq }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -109,6 +110,29 @@ spec:
     backendRefs:
     - name: {{ include "gitea.fullname" (index .Subcharts "gitea") }}-http
       port: {{ .Values.gitea.service.http.port }}
+{{- end }}
+{{- if and .Values.olly.grafana.enabled $grafanaHosts }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: litefunctions-grafana
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+  - name: {{ $gatewayName }}
+  hostnames:
+  {{- range $host := $grafanaHosts }}
+  - {{ $host | quote }}
+  {{- end }}
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: {{ .Release.Name }}-grafana
+      port: 80
 {{- end }}
 {{- if .Values.rustfs.enabled }}
 {{- range $name, $routeHosts := dict "rustfs" $hosts.rustfs "rustfsConsole" $hosts.rustfsConsole }}

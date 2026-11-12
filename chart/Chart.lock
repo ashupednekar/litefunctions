@@ -1,27 +1,45 @@
 dependencies:
 - name: nats
-  repository: https://nats-io.github.io/k8s/helm/charts
   version: 2.12.3
+  repository: https://nats-io.github.io/k8s/helm/charts
 - name: valkey
-  repository: https://valkey.io/valkey-helm/
   version: 0.12.0
+  repository: https://valkey.io/valkey-helm/
 - name: pgo
-  repository: oci://registry-1.docker.io/ashupednekar535
   version: 5.8.1
+  repository: oci://registry-1.docker.io/ashupednekar535
 - name: rustfs
-  repository: https://charts.rustfs.com/
   version: 1.0.1
+  repository: https://charts.rustfs.com/
 - name: gitea
-  repository: https://dl.gitea.com/charts/
   version: 12.4.0
-- name: actions
   repository: https://dl.gitea.com/charts/
+- name: actions
   version: 0.0.2
+  repository: https://dl.gitea.com/charts/
 - name: zot
-  repository: http://zotregistry.dev/helm-charts
   version: 0.1.97
+  repository: http://zotregistry.dev/helm-charts
 - name: cert-manager
-  repository: oci://quay.io/jetstack/charts
   version: v1.20.0
-digest: sha256:f643e707bced7144925d52b4e61ad9020d3b2f1505fc57535e6f027a0b817023
-generated: "2026-11-10T06:19:49.139725765+05:30"
+  repository: oci://quay.io/jetstack/charts
+- name: loki
+  version: 7.6.0
+  repository: https://grafana.github.io/helm-charts
+- name: mimir-distributed
+  version: 6.2.2
+  repository: https://grafana.github.io/helm-charts
+- name: prometheus
+  version: 29.47.2
+  repository: https://prometheus-community.github.io/helm-charts
+- name: tempo
+  version: 1.24.4
+  repository: https://grafana.github.io/helm-charts
+- name: grafana
+  version: 10.5.15
+  repository: https://grafana.github.io/helm-charts
+- name: alloy
+  version: 1.15.0
+  repository: https://grafana.github.io/helm-charts
+digest: sha256:ad761479f0338f58c9ebe5c525b94a9c33f21a6d4741a490b3c90d6689bd52da
+generated: '2026-11-13T00:30:00.000000000+05:30'

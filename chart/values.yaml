@@ -7,6 +7,7 @@ gatewayApi:
   hosts:
     portal: []
     gitea: []
+    grafana: [litefunctions.grafana]
     rustfs: [lws.ashudev.in]
     rustfsConsole: []
   http:
@@ -42,6 +43,22 @@ images:
   giteaSetup: ashupednekar535/litefunctions-gitea-setup:latest
   operator: ashupednekar535/litefunctions-operator:latest
   portal: ashupednekar535/litefunctions-portal:latest
+  ollyBuckets: amazon/aws-cli:2.40.1
+
+# Olly is the bundled observability stack (Loki, Mimir, Grafana, Tempo and
+# Grafana Alloy). Logs and metrics are enabled by default; traces are opt-in.
+# Storage defaults to the RustFS subchart so the data survives restarts.
+olly:
+  logs:
+    enabled: true
+  metrics:
+    enabled: true
+  traces:
+    enabled: false
+  grafana:
+    enabled: true
+  alloy:
+    enabled: true
 
 operator:
   registry: localhost:30050
@@ -92,7 +109,7 @@ database:
     - litefunctions
 
 rustfs:
-  enabled: false
+  enabled: true
   replicaCount: 1
   mode:
     standalone:
@@ -209,3 +226,288 @@ ui:
   ngrok:
     secret: litefunctions-ngrok-secret
     key: token
+
+# Loki stores logs in RustFS. Credentials are injected from the RustFS Secret
+# and expanded by Loki because global.extraArgs enables config expansion.
+loki:
+  deploymentMode: SingleBinary
+  global:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: litefunctions-rustfs-secret
+  loki:
+    auth_enabled: false
+    commonConfig:
+      path_prefix: /var/loki
+      replication_factor: 1
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: s3
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    storage:
+      type: s3
+      bucketNames:
+        chunks: litefunctions-loki-chunks
+        ruler: litefunctions-loki-ruler
+        admin: litefunctions-loki-admin
+      s3:
+        endpoint: litefunctions-rustfs-svc:9000
+        region: us-east-1
+        accessKeyId: ${RUSTFS_ACCESS_KEY}
+        secretAccessKey: ${RUSTFS_SECRET_KEY}
+        s3ForcePathStyle: true
+        insecure: true
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: false
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  chunksCache:
+    enabled: false
+  resultsCache:
+    enabled: false
+  lokiCanary:
+    enabled: false
+  minio:
+    enabled: false
+  test:
+    enabled: false
+  monitoring:
+    selfMonitoring:
+      enabled: false
+      grafanaAgent:
+        installOperator: false
+
+# Mimir keeps metrics durable in RustFS. Prometheus scrapes and remote-writes
+# into Mimir, while Grafana queries Mimir through its Prometheus-compatible API.
+mimir-distributed:
+  kafka:
+    enabled: false
+  minio:
+    enabled: false
+  alertmanager:
+    enabled: false
+  ruler:
+    enabled: false
+  overrides_exporter:
+    enabled: false
+  rollout_operator:
+    enabled: false
+  compactor:
+    replicas: 1
+    persistentVolume:
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+  distributor:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+  ingester:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+    persistentVolume:
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+  querier:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+  query_frontend:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+  query_scheduler:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+  store_gateway:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+    persistentVolume:
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+  gateway:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+  global:
+    extraEnvFrom:
+      - secretRef:
+          name: litefunctions-rustfs-secret
+  mimir:
+    structuredConfig:
+      multitenancy_enabled: false
+      ingest_storage:
+        enabled: false
+        kafka:
+          address: null
+          topic: null
+          auto_create_topic_default_partitions: null
+      distributor:
+        remote_timeout: null
+      ingester:
+        push_grpc_method_enabled: true
+      blocks_storage:
+        backend: s3
+        s3:
+          endpoint: litefunctions-rustfs-svc:9000
+          region: us-east-1
+          access_key_id: ${RUSTFS_ACCESS_KEY}
+          secret_access_key: ${RUSTFS_SECRET_KEY}
+          bucket_name: litefunctions-mimir-tsdb
+          insecure: true
+
+# Prometheus is the scraper in front of Mimir. Mimir itself provides the
+# durable, Prometheus-compatible query API used by Grafana.
+prometheus:
+  alertmanager:
+    enabled: false
+  pushgateway:
+    enabled: false
+  server:
+    retention: 2h
+    persistentVolume:
+      enabled: false
+    remoteWrite:
+      - url: http://litefunctions-mimir-gateway/api/v1/push
+
+# Tempo is opt-in (olly.traces.enabled). When enabled it also stores traces in
+# RustFS and can be added as a Grafana datasource.
+tempo:
+  tempo:
+    storage:
+      trace:
+        backend: s3
+        s3:
+          bucket: litefunctions-tempo-traces
+          endpoint: litefunctions-rustfs-svc:9000
+          access_key: ${RUSTFS_ACCESS_KEY}
+          secret_key: ${RUSTFS_SECRET_KEY}
+          insecure: true
+  extraArgs:
+    config.expand-env: "true"
+  extraEnvFrom:
+    - secretRef:
+        name: litefunctions-rustfs-secret
+
+grafana:
+  adminUser: admin
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 2Gi
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Mimir
+          uid: prom
+          type: prometheus
+          access: proxy
+          url: http://litefunctions-mimir-gateway/prometheus
+          isDefault: true
+        - name: Loki
+          uid: loki
+          type: loki
+          access: proxy
+          url: http://litefunctions-loki-gateway
+          isDefault: false
+
+# Alloy only tails logs from pods labelled app=runtime. The label is applied by
+# the operator to every function runtime Deployment.
+alloy:
+  alloy:
+    configMap:
+      content: |
+        discovery.kubernetes "runtime_pods" {
+          role = "pod"
+
+          selectors {
+            role  = "pod"
+            label = "app=runtime"
+          }
+        }
+
+        discovery.relabel "runtime_pods" {
+          targets = discovery.kubernetes.runtime_pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app"]
+            regex         = "runtime"
+            action        = "keep"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_lang"]
+            target_label  = "lang"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_project"]
+            target_label  = "project"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_function"]
+            target_label  = "function"
+          }
+        }
+
+        loki.source.kubernetes "runtime_pods" {
+          targets    = discovery.relabel.runtime_pods.output
+          forward_to = [loki.write.loki.receiver]
+        }
+
+        loki.write "loki" {
+          endpoint {
+            url = "http://litefunctions-loki-gateway/loki/api/v1/push"
+          }
+        }

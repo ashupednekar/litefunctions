@@ -63,7 +63,7 @@ Each install fetches and applies the latest Gateway API Standard CRDs before
 installing the chart.
 Pass `--argo` to install Argo CD and apply a `litefunctions` Application that
 tracks the published Artifact Hub OCI chart (`ARGOCD_CHART_VERSION`, default
-`0.1.4`). Argo CD itself is installed from the official `argo/argo-cd` Helm
+`0.2.0`). Argo CD itself is installed from the official `argo/argo-cd` Helm
 chart (`ARGOCD_HELM_VERSION`, default `10.10.5`) with its server exposed on
 NodePort 30080. Run `./chart/install.sh argo` to open
 `http://127.0.0.1:30080`. The regular install path continues to install the
@@ -208,7 +208,7 @@ database:
 
 ```yaml
 rustfs:
-  enabled: false
+  enabled: true
   replicaCount: 1
   mode:
     standalone:
@@ -229,14 +229,59 @@ rustfs:
     enabled: false
 ```
 
-Enable object storage with `rustfs.enabled=true`. Replace previous `minio.*`
-overrides with RustFS settings; existing MinIO data is not migrated automatically.
+Object storage is enabled by default so Olly can persist logs and metrics.
+Set `rustfs.enabled=false` to opt out and override the Olly storage settings.
+Replace previous `minio.*` overrides with RustFS settings; existing MinIO data
+is not migrated automatically.
 RustFS serves the S3 API at `/` and includes its console on service port 9001.
 To expose the S3 API and console, set `gatewayApi.hosts.rustfs` and
 `gatewayApi.hosts.rustfsConsole`, respectively.
 Create the `content` bucket with an S3 client after installation; the RustFS chart
 does not support MinIO's `defaultBuckets` setting. TLS uses the shared Gateway
 certificate configured under `gatewayApi.tls`.
+
+#### Olly (Observability)
+
+Olly bundles Grafana Alloy, Loki, Mimir, Prometheus, Grafana and Tempo. Logs and
+metrics are enabled by default; traces are opt-in. Loki and Mimir persist their
+data in the bundled RustFS object store, so `rustfs.enabled=true` is the default.
+A post-install Job creates the required buckets.
+
+```yaml
+olly:
+  logs:
+    enabled: true
+  metrics:
+    enabled: true
+  traces:
+    enabled: false
+  grafana:
+    enabled: true
+  alloy:
+    enabled: true
+```
+
+Loki and Mimir use the bundled RustFS endpoint
+(`litefunctions-rustfs-svc:9000`) and the `litefunctions-rustfs-secret`
+credentials. If you replace RustFS with an external object store, override the
+`loki`, `mimir-distributed`, and `tempo` storage and `extraEnvFrom` values
+directly.
+
+Prometheus scrapes the cluster and remote-writes to Mimir. Grafana reads logs
+from Loki and metrics from Mimir through its Prometheus-compatible API. The
+default Grafana host is `litefunctions.grafana`; set `gatewayApi.hosts.grafana`
+to change it, or set it to an empty list to skip the HTTPRoute.
+
+Grafana Alloy tails logs only from pods labelled `app=runtime`, the label the
+operator applies to every function runtime Deployment. It forwards those logs
+to Loki and adds `namespace`, `pod`, `container`, `lang`, `project` and
+`function` labels. Change `alloy.alloy.configMap.content` to broaden or narrow
+collection.
+
+To enable traces, set `olly.traces.enabled=true`. Tempo also writes to RustFS.
+Add a Tempo datasource to `grafana.datasources` pointing at
+`http://litefunctions-tempo:3200` and optionally link it to the existing `loki`
+and `prom` UIDs.
 
 #### Gitea (Git Server)
 

@@ -1,0 +1,92 @@
+{{- if and .Values.rustfs.enabled (or .Values.olly.logs.enabled .Values.olly.metrics.enabled .Values.olly.traces.enabled) }}
+{{- $buckets := list }}
+{{- if .Values.olly.logs.enabled }}
+{{- $lokiBuckets := dig "loki" "storage" "bucketNames" (dict) .Values.loki }}
+{{- $buckets = append $buckets ($lokiBuckets.chunks | default "litefunctions-loki-chunks") }}
+{{- $buckets = append $buckets ($lokiBuckets.ruler | default "litefunctions-loki-ruler") }}
+{{- $buckets = append $buckets ($lokiBuckets.admin | default "litefunctions-loki-admin") }}
+{{- end }}
+{{- if .Values.olly.metrics.enabled }}
+{{- $mimir := index .Values "mimir-distributed" }}
+{{- $buckets = append $buckets (dig "mimir" "structuredConfig" "blocks_storage" "s3" "bucket_name" "litefunctions-mimir-tsdb" $mimir) }}
+{{- end }}
+{{- if .Values.olly.traces.enabled }}
+{{- $buckets = append $buckets (dig "tempo" "storage" "trace" "s3" "bucket" "litefunctions-tempo-traces" .Values.tempo) }}
+{{- end }}
+{{- $buckets = $buckets | uniq }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litefunctions-olly-storage
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "litefunctions.labels" . | nindent 4 }}
+data:
+  config: |
+    [default]
+    s3 =
+      addressing_style = path
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: litefunctions-olly-buckets
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "litefunctions.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        {{- include "litefunctions.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: create-buckets
+        image: {{ .Values.images.ollyBuckets }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: S3_ENDPOINT
+          value: http://litefunctions-rustfs-svc:9000
+        - name: AWS_CONFIG_FILE
+          value: /etc/aws/config
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: litefunctions-rustfs-secret
+              key: RUSTFS_ACCESS_KEY
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: litefunctions-rustfs-secret
+              key: RUSTFS_SECRET_KEY
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - |
+          set -eu
+          until aws --endpoint-url "$S3_ENDPOINT" s3api list-buckets >/dev/null 2>&1; do
+            echo "waiting for object storage at $S3_ENDPOINT"
+            sleep 3
+          done
+          {{- range $bucket := $buckets }}
+          aws --endpoint-url "$S3_ENDPOINT" s3api create-bucket --bucket {{ $bucket | quote }} >/dev/null 2>&1 || true
+          {{- end }}
+          echo "olly buckets are ready"
+        volumeMounts:
+        - name: aws-config
+          mountPath: /etc/aws
+          readOnly: true
+      volumes:
+      - name: aws-config
+        configMap:
+          name: litefunctions-olly-storage
+{{- end }}
