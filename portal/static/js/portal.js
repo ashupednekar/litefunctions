@@ -67,11 +67,34 @@
   };
 
   // ---------- sidebar / user menu ----------
+  function applySidebarState(collapsed) {
+    const app = document.querySelector(".z-app");
+    if (app) app.classList.toggle("sidebar-collapsed", collapsed);
+    const btn = document.querySelector("[data-sidebar-collapse]");
+    if (btn) {
+      const label = collapsed ? "Expand sidebar" : "Collapse sidebar";
+      btn.title = label;
+      btn.setAttribute("aria-label", label);
+    }
+  }
+
+  try {
+    applySidebarState(localStorage.getItem("lws_sidebar_collapsed") === "1");
+  } catch (err) { /* storage unavailable */ }
+
   document.addEventListener("click", function (e) {
     const toggle = e.target.closest("[data-sidebar-toggle]");
     if (toggle) {
       const sidebar = document.querySelector(".z-sidebar");
       if (sidebar) sidebar.classList.toggle("open");
+    }
+    const collapse = e.target.closest("[data-sidebar-collapse]");
+    if (collapse) {
+      const app = document.querySelector(".z-app");
+      const next = !(app && app.classList.contains("sidebar-collapsed"));
+      applySidebarState(next);
+      try { localStorage.setItem("lws_sidebar_collapsed", next ? "1" : "0"); } catch (err) { /* ignore */ }
+      return;
     }
     const userBtn = e.target.closest("[data-user-menu-btn]");
     const userMenu = document.getElementById("user-menu");

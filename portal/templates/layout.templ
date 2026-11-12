@@ -45,7 +45,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							<div class="z-nav-label">Build</div>
 							@NavItem("/dependencies/", "Dependencies", "package", data.Active == "dependencies", "")
 							@NavItem("/data-model/", "Data Model", "database", data.Active == "data-model", "")
-							@NavItem("/agent/", "Agentic Planner", "sparkles", data.Active == "agent", "AI")
+							@NavItem("/agent/", "Agentic Planner", "sparkles", data.Active == "agent", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Data</div>
@@ -55,7 +55,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 						<div class="z-nav-section">
 							<div class="z-nav-label">Operate</div>
 							@NavItem("/traffic/", "Traffic · Gateway", "shield", data.Active == "traffic", "")
-							@NavItem("/compute/", "Compute · Isolation", "cpu", data.Active == "compute", "FUTURE")
+							@NavItem("/compute/", "Compute · Isolation", "cpu", data.Active == "compute", "")
 							@NavItem("/observability/", "Observability", "activity", data.Active == "observability", "")
 						</div>
 						<div class="z-nav-section">
@@ -67,12 +67,12 @@ templ BaseLayout(data ShellData, content templ.Component) {
 					</nav>
 
 					<div class="z-sidebar-foot">
-						<a href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener" class="z-sidebar-link">
+						<a href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener" class="z-sidebar-link" title="Documentation">
 							@Icon("book", "")
 							<span>Documentation</span>
 							<span style="margin-left:auto">@Icon("external", "w-3 h-3")</span>
 						</a>
-						<a href="https://github.com/ashupednekar/litefunctions/issues" target="_blank" rel="noopener" class="z-sidebar-link">
+						<a href="https://github.com/ashupednekar/litefunctions/issues" target="_blank" rel="noopener" class="z-sidebar-link" title="Platform status">
 							@Icon("activity", "")
 							<span>Platform status</span>
 							<span class="z-dot z-dot-green" style="margin-left:auto"></span>
@@ -84,6 +84,9 @@ templ BaseLayout(data ShellData, content templ.Component) {
 					<header class="z-titlebar">
 						<button class="z-icon-btn z-sidebar-toggle" data-sidebar-toggle aria-label="Toggle sidebar">
 							@Icon("sliders", "")
+						</button>
+						<button class="z-icon-btn z-sidebar-collapse" data-sidebar-collapse aria-label="Collapse sidebar" title="Collapse sidebar">
+							@Icon("chevron-left", "")
 						</button>
 						<div class="z-crumbs">
 							<span class="z-crumb">{ data.Section }</span>
@@ -99,9 +102,6 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							<span>Search workspace…</span>
 							<span class="z-kbd">⌘</span><span class="z-kbd">K</span>
 						</button>
-						<span class="z-badge z-badge-green" title="Platform healthy" style="height:24px">
-							<span class="z-dot z-dot-green"></span> Live
-						</span>
 						<div style="position:relative">
 							<button class="z-user-chip" data-user-menu-btn>
 								<span class="z-user-avatar">{ userInitial(data.Username) }</span>
@@ -126,6 +126,12 @@ templ BaseLayout(data ShellData, content templ.Component) {
 
 					<main class="z-content">
 						<div class="z-content-inner">
+							if data.Dummy {
+								<div class="z-dummy-banner">
+									<span class="z-badge z-badge-amber">dummy data</span>
+									<div>UI preview — values on this screen are fixtures and write actions are placeholders. Build the real APIs and persistence behind them.</div>
+								</div>
+							}
 							@content
 						</div>
 					</main>

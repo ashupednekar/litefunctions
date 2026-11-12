@@ -89,6 +89,8 @@ templ Icon(name string, class string) {
 				<path d="m6 9 6 6 6-6"></path>
 			case "chevron-right":
 				<path d="m9 18 6-6-6-6"></path>
+			case "chevron-left":
+				<path d="m15 18-6-6 6-6"></path>
 			case "plus":
 				<path d="M12 5v14M5 12h14"></path>
 			case "play":
@@ -179,7 +181,7 @@ templ Icon(name string, class string) {
 }
 
 templ NavItem(href string, label string, icon string, active bool, badge string) {
-	<a href={ templ.SafeURL(href) } class={ "z-nav-item", templ.KV("active", active) }>
+	<a href={ templ.SafeURL(href) } class={ "z-nav-item", templ.KV("active", active) } title={ label }>
 		@Icon(icon, "")
 		<span>{ label }</span>
 		if badge != "" {
