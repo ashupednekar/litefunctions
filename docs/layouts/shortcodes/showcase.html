@@ -1,0 +1,21 @@
+<div class="z-docs-showcase">
+  {{ range $index, $item := .Site.Data.showcase }}
+  {{ $reverse := ne (mod $index 2) 0 }}
+  <section class="z-docs-feature-row{{ if $reverse }} reverse{{ end }}">
+    <div class="z-docs-feature-copy">
+      <div class="z-docs-eyebrow"><span class="z-dot z-dot-blue"></span> {{ $item.eyebrow }}</div>
+      <h2>{{ $item.title }}</h2>
+      <p>{{ $item.body }}</p>
+      <ul>
+        {{ range $item.bullets }}<li>{{ . }}</li>{{ end }}
+      </ul>
+    </div>
+    <figure class="z-docs-feature-visual">
+      <a href="{{ printf "screenshots/%s" $item.file | relURL }}" target="_blank" rel="noopener">
+        <img src="{{ printf "screenshots/%s" $item.file | relURL }}" alt="{{ $item.title }} screenshot" loading="lazy"/>
+      </a>
+      <figcaption>{{ $item.caption }}</figcaption>
+    </figure>
+  </section>
+  {{ end }}
+</div>

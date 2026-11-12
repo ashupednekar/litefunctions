@@ -17,21 +17,29 @@ From the first function to production traffic, Litefunctions keeps the pieces in
 - **Plan** — describe a use case and review the generated functions, tables and routes before anything ships.
 - **Audit** — every privileged action lands in an immutable log, available from a Postman-style bottom console.
 
-## Screenshots
+{{< showcase >}}
+
+## More from the portal
 
 {{< screenshots >}}
 
 ## Quickstart
 
-```bash
-helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
-```
-
-The portal is a single Go service. Build and deploy it locally with:
+Clone the repository and run the installer:
 
 ```bash
-make -C portal local-push
+git clone https://github.com/ashupednekar/litefunctions.git
+cd litefunctions
+./chart/install.sh
 ```
+
+Add the portal and Gitea hostnames to `/etc/hosts`:
+
+```bash
+echo "127.0.0.1 litefunctions.portal gitea" | sudo tee -a /etc/hosts
+```
+
+Then visit [https://litefunctions.portal](https://litefunctions.portal). Register a passkey, create a project and deploy your first function.
 
 ## Built for self-hosting
 
