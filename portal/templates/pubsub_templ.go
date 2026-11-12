@@ -29,7 +29,7 @@ func PubSubContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Pub/Sub", "Persistent JetStream streams, durable consumers and Olly telemetry — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Pub/Sub", "Persistent JetStream streams and durable consumers for event-driven functions.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('stream-modal')">`+svgPlus()+` New stream</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)
@@ -68,7 +68,7 @@ func PubSubContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Consumer lag</div><div class=\"z-stat-value\" style=\"color:var(--green)\">0</div><div class=\"z-stat-delta\">no pending acks <span class=\"z-faint\">·</span> 3 replicas</div></div></div><div class=\"z-tabs\" data-tab-group><button class=\"z-tab active\" data-tab=\"streams\">Streams <span class=\"z-badge z-badge-muted\">4</span></button> <button class=\"z-tab\" data-tab=\"consumers\">Consumers <span class=\"z-badge z-badge-muted\">7</span></button> <button class=\"z-tab\" data-tab=\"topology\">Topology</button> <button class=\"z-tab\" data-tab=\"olly\">Olly telemetry <span class=\"z-badge z-badge-purple\">SSR</span></button></div><div data-tab-panel=\"streams\"><div class=\"z-split\"><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Persistent streams</span><div class=\"z-panel-actions\"><div class=\"z-search\" style=\"width:190px\"><input class=\"z-input\" style=\"height:25px;font-size:10.5px\" placeholder=\"Filter streams…\"></div><button class=\"z-btn z-btn-sm\" onclick=\"refreshStreams()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Consumer lag</div><div class=\"z-stat-value\" style=\"color:var(--green)\">0</div><div class=\"z-stat-delta\">no pending acks <span class=\"z-faint\">·</span> 3 replicas</div></div></div><div class=\"z-tabs\" data-tab-group><button class=\"z-tab active\" data-tab=\"streams\">Streams <span class=\"z-badge z-badge-muted\">4</span></button> <button class=\"z-tab\" data-tab=\"consumers\">Consumers <span class=\"z-badge z-badge-muted\">7</span></button> <button class=\"z-tab\" data-tab=\"topology\">Topology</button></div><div data-tab-panel=\"streams\"><div class=\"z-split\"><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Persistent streams</span><div class=\"z-panel-actions\"><div class=\"z-search\" style=\"width:190px\"><input class=\"z-input\" style=\"height:25px;font-size:10.5px\" placeholder=\"Filter streams…\"></div><button class=\"z-btn z-btn-sm\" onclick=\"refreshStreams()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -116,7 +116,7 @@ func PubSubContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"z-panel-foot\"><span class=\"z-help\">JetStream file store · 4 GiB PVC</span><span class=\"z-mono\" style=\"margin-left:auto;font-size:9.5px;color:var(--text-3)\">521 MB / 4 GB</span></div></div></div></div><aside><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Cluster</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">healthy</span></div><div class=\"z-panel-body tight\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-dot z-dot-green\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">nats-0</div><div class=\"z-list-sub\">leader · 2.4k msg/s</div></div><span class=\"z-badge z-badge-muted\">az-a</span></div><div class=\"z-list-item\"><span class=\"z-dot z-dot-green\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">nats-1</div><div class=\"z-list-sub\">follower · 2.4k msg/s</div></div><span class=\"z-badge z-badge-muted\">az-b</span></div><div class=\"z-list-item\"><span class=\"z-dot z-dot-green\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">nats-2</div><div class=\"z-list-sub\">follower · 2.3k msg/s</div></div><span class=\"z-badge z-badge-muted\">az-c</span></div></div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">RAFT · 3/3 quorum</span></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Dead letters</span></div><div class=\"z-panel-body\"><div style=\"display:flex;align-items:baseline;gap:6px\"><span style=\"font-size:22px;font-weight:600;letter-spacing:-.04em\">24</span><span class=\"z-help\">messages</span></div><div class=\"z-help\" style=\"margin-top:4px\">Across 3 consumers. Oldest message 2h ago.</div><button class=\"z-btn\" style=\"width:100%;margin-top:10px\" onclick=\"toast('Dead-letter inspection is a placeholder','info')\">Inspect messages</button></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Olly</span><span class=\"z-badge z-badge-purple\">SSR Go</span></div><div class=\"z-panel-body\"><div class=\"z-help\" style=\"line-height:1.6\">Olly renders server-side telemetry panels and proxies Grafana queries with project-scoped auth.</div><dl class=\"z-kv\" style=\"margin-top:10px\"><dt>Endpoint</dt><dd>olly:8080</dd><dt>Grafana</dt><dd>connected</dd><dt>Datasource</dt><dd>prometheus</dd></dl></div></div></aside></div></div><div data-tab-panel=\"consumers\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Consumers</span><span class=\"z-panel-sub\">durable pull consumers</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"z-panel-foot\"><span class=\"z-help\">JetStream file store · 4 GiB PVC</span><span class=\"z-mono\" style=\"margin-left:auto;font-size:9.5px;color:var(--text-3)\">521 MB / 4 GB</span></div></div></div></div><aside><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Cluster</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">healthy</span></div><div class=\"z-panel-body tight\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-dot z-dot-green\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">nats-0</div><div class=\"z-list-sub\">leader · 2.4k msg/s</div></div><span class=\"z-badge z-badge-muted\">az-a</span></div><div class=\"z-list-item\"><span class=\"z-dot z-dot-green\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">nats-1</div><div class=\"z-list-sub\">follower · 2.4k msg/s</div></div><span class=\"z-badge z-badge-muted\">az-b</span></div><div class=\"z-list-item\"><span class=\"z-dot z-dot-green\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">nats-2</div><div class=\"z-list-sub\">follower · 2.3k msg/s</div></div><span class=\"z-badge z-badge-muted\">az-c</span></div></div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">RAFT · 3/3 quorum</span></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Dead letters</span></div><div class=\"z-panel-body\"><div style=\"display:flex;align-items:baseline;gap:6px\"><span style=\"font-size:22px;font-weight:600;letter-spacing:-.04em\">24</span><span class=\"z-help\">messages</span></div><div class=\"z-help\" style=\"margin-top:4px\">Across 3 consumers. Oldest message 2h ago.</div><button class=\"z-btn\" style=\"width:100%;margin-top:10px\" onclick=\"toast('Dead-letter inspection is a placeholder','info')\">Inspect messages</button></div></div></aside></div></div><div data-tab-panel=\"consumers\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Consumers</span><span class=\"z-panel-sub\">durable pull consumers</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -300,15 +300,7 @@ func PubSubContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span><div><div class=\"z-list-title\">notify-email</div><div class=\"z-list-sub\">consumer</div></div></div></div></div></div></div><div data-tab-panel=\"olly\" style=\"display:none\"><div class=\"z-split\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Olly · telemetry</span> <span class=\"z-badge z-badge-purple\">server-rendered</span> <span class=\"z-panel-sub\">Grafana proxy · project-scoped</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\" onclick=\"refreshStreams()\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("refresh", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "Refresh</button></div></div><div class=\"z-panel-body\"><div class=\"z-grid z-grid-4\" style=\"gap:9px;margin-bottom:14px\"><div class=\"z-stat\" style=\"padding:10px\"><div class=\"z-stat-label\">Msgs / sec</div><div class=\"z-stat-value\" style=\"font-size:20px\">2,418</div></div><div class=\"z-stat\" style=\"padding:10px\"><div class=\"z-stat-label\">Publish p95</div><div class=\"z-stat-value\" style=\"font-size:20px\">4<small>ms</small></div></div><div class=\"z-stat\" style=\"padding:10px\"><div class=\"z-stat-label\">Consume p95</div><div class=\"z-stat-value\" style=\"font-size:20px\">11<small>ms</small></div></div><div class=\"z-stat\" style=\"padding:10px\"><div class=\"z-stat-label\">Errors</div><div class=\"z-stat-value\" style=\"font-size:20px;color:var(--green)\">0</div></div></div><svg class=\"z-chart\" style=\"height:220px\" viewBox=\"0 0 900 220\" preserveAspectRatio=\"none\"><defs><linearGradient id=\"z-area\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"#8ab4ff\" stop-opacity=\".25\"></stop><stop offset=\"100%\" stop-color=\"#8ab4ff\" stop-opacity=\"0\"></stop></linearGradient></defs> <g class=\"z-chart-grid\"><line x1=\"0\" y1=\"55\" x2=\"900\" y2=\"55\"></line><line x1=\"0\" y1=\"110\" x2=\"900\" y2=\"110\"></line><line x1=\"0\" y1=\"165\" x2=\"900\" y2=\"165\"></line></g> <path class=\"z-chart-area\" d=\"M0 162 C40 150 70 132 110 138 S170 106 220 114 S290 80 340 92 S410 64 460 74 S530 48 580 58 S650 34 700 44 S780 24 830 32 S870 18 900 22 L900 220 L0 220 Z\"></path> <path class=\"z-chart-line\" d=\"M0 162 C40 150 70 132 110 138 S170 106 220 114 S290 80 340 92 S410 64 460 74 S530 48 580 58 S650 34 700 44 S780 24 830 32 S870 18 900 22\"></path> <text class=\"z-chart-label\" x=\"4\" y=\"14\">3.0k/s</text><text class=\"z-chart-label\" x=\"4\" y=\"212\">0</text></svg><div class=\"z-panel-foot\" style=\"border:0;padding-left:0;padding-right:0\"><span class=\"z-help\">Rendered by Olly · iframe-free · grafana-api /api/ds/query</span> <span class=\"z-mono\" style=\"margin-left:auto;font-size:9.5px;color:var(--text-3)\">updated 4s ago</span></div></div></div><aside><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Olly connection</span></div><div class=\"z-panel-body\"><dl class=\"z-kv\"><dt>Service</dt><dd>olly.litefunctions</dd><dt>Port</dt><dd>8080</dd><dt>Upstream</dt><dd>grafana:3000</dd><dt>Datasource</dt><dd>prometheus</dd><dt>Scopes</dt><dd>project:read</dd><dt>Cache</dt><dd>15s</dd></dl><div class=\"z-alert z-alert-blue\" style=\"margin-top:10px\"><div>Placeholder: Olly will call Grafana APIs server-side and share the project's Grafana token via the operator.</div></div></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Alerts</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">0 firing</span></div><div class=\"z-panel-body tight\"><div class=\"z-empty\" style=\"padding:20px 12px\"><div class=\"z-empty-title\">No active alerts</div><div class=\"z-empty-sub\">Lag, error-rate and storage thresholds are nominal.</div></div></div></div></aside></div></div><div id=\"stream-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('stream-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span><div><div class=\"z-list-title\">notify-email</div><div class=\"z-list-sub\">consumer</div></div></div></div></div></div></div><div id=\"stream-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('stream-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -316,7 +308,7 @@ func PubSubContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"z-modal-title\">Create stream</span><button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"z-modal-title\">Create stream</span><button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -324,7 +316,7 @@ func PubSubContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\">Name</label><input class=\"z-input z-mono\" placeholder=\"ORDERS\"></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Subjects</label><input class=\"z-input z-mono\" placeholder=\"orders.>\"></div><div class=\"z-grid z-grid-2\" style=\"margin-top:11px\"><div class=\"z-field\"><label class=\"z-label\">Replicas</label><select class=\"z-select\"><option>3</option><option>1</option></select></div><div class=\"z-field\"><label class=\"z-label\">Retention</label><select class=\"z-select\"><option>7 days</option><option>30 days</option><option>work queue</option></select></div></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button><button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('stream-modal'); toast('Stream creation is a placeholder','success')\">Create stream</button></div></div></div><script>\n\t\tasync function refreshStreams() {\n\t\t\ttoast(\"Refreshing JetStream state…\", \"info\");\n\t\t\tawait zDummyFetch(\"/api/pubsub/streams/\", {streams: []});\n\t\t\tsetTimeout(() => toast(\"Streams refreshed\", \"success\"), 500);\n\t\t}\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\">Name</label><input class=\"z-input z-mono\" placeholder=\"ORDERS\"></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Subjects</label><input class=\"z-input z-mono\" placeholder=\"orders.>\"></div><div class=\"z-grid z-grid-2\" style=\"margin-top:11px\"><div class=\"z-field\"><label class=\"z-label\">Replicas</label><select class=\"z-select\"><option>3</option><option>1</option></select></div><div class=\"z-field\"><label class=\"z-label\">Retention</label><select class=\"z-select\"><option>7 days</option><option>30 days</option><option>work queue</option></select></div></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button><button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('stream-modal'); toast('Stream creation is a placeholder','success')\">Create stream</button></div></div></div><script>\n\t\tasync function refreshStreams() {\n\t\t\ttoast(\"Refreshing JetStream state…\", \"info\");\n\t\t\tawait zDummyFetch(\"/api/pubsub/streams/\", {streams: []});\n\t\t\tsetTimeout(() => toast(\"Streams refreshed\", \"success\"), 500);\n\t\t}\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -353,16 +345,29 @@ func streamRow(name string, subjects string, messages string, storage string, re
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 236, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 176, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</td><td class=\"z-cell-mono\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(subjects)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 177, Col: 36}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -370,12 +375,12 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(subjects)
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(messages)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 237, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 178, Col: 36}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -383,55 +388,42 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(messages)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 238, Col: 36}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</td><td class=\"z-cell-mono\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(storage)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 239, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 179, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</td><td><span class=\"z-badge\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</td><td><span class=\"z-badge\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(replicas)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 240, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 180, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</span></td><td class=\"z-cell-mono\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span></td><td class=\"z-cell-mono\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(retention)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 241, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 181, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</td><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</td><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -440,7 +432,7 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<span class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -453,20 +445,20 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(persistence)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 242, Col: 158}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 182, Col: 158}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</span></td><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</span></td><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -475,7 +467,7 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<span class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -488,20 +480,20 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 243, Col: 133}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 183, Col: 133}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</span></td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</span></td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -509,7 +501,7 @@ func streamRow(name string, subjects string, messages string, storage string, re
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</button></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -538,16 +530,29 @@ func consumerRow(name string, stream string, filter string, delivered string, pe
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 250, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 190, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</td><td class=\"z-cell-mono\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(stream)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 191, Col: 34}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -555,12 +560,12 @@ func consumerRow(name string, stream string, filter string, delivered string, pe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var17 string
-		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(stream)
+		var templ_7745c5c3_Var18 string
+		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(filter)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 251, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 192, Col: 34}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -568,29 +573,16 @@ func consumerRow(name string, stream string, filter string, delivered string, pe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var18 string
-		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(filter)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 252, Col: 34}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</td><td class=\"z-cell-mono\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(delivered)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 253, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 193, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</td><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</td><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -599,7 +591,7 @@ func consumerRow(name string, stream string, filter string, delivered string, pe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<span class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<span class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -612,46 +604,46 @@ func consumerRow(name string, stream string, filter string, delivered string, pe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(pending)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 254, Col: 127}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 194, Col: 127}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</span></td><td class=\"z-cell-mono\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</span></td><td class=\"z-cell-mono\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(ack)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 255, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 195, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</td><td><span class=\"z-badge z-badge-green\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</td><td><span class=\"z-badge z-badge-green\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 256, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 196, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span></td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</span></td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -659,7 +651,7 @@ func consumerRow(name string, stream string, filter string, delivered string, pe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</button></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -688,46 +680,46 @@ func storageBar(name string, used int, total int, pct string) templ.Component {
 			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<div style=\"margin-bottom:10px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:4px\"><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<div style=\"margin-bottom:10px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:4px\"><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 263, Col: 147}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 203, Col: 147}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</span><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</span><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(pct)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 263, Col: 226}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 203, Col: 226}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span></div><div class=\"z-progress\"><span style=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</span></div><div class=\"z-progress\"><span style=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("width:" + pct)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 264, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pubsub.templ`, Line: 204, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "\"></span></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\"></span></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
