@@ -268,7 +268,7 @@ func (h *UIHandlers) loadEndpoints(ctx *gin.Context) []templates.Endpoint {
 }
 
 func (h *UIHandlers) Endpoints(ctx *gin.Context) {
-	// Endpoints now live inside Traffic · Gateway. Keep the old path as an alias.
+	// Endpoints now live inside Traffic. Keep the old path as an alias.
 	target := "/traffic/"
 	if q := ctx.Request.URL.RawQuery; q != "" {
 		target += "?" + q
@@ -329,7 +329,7 @@ func (h *UIHandlers) PubSub(ctx *gin.Context) {
 
 func (h *UIHandlers) Traffic(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		shellData(ctx, "Traffic · Gateway", "Operate", "traffic"),
+		shellData(ctx, "Traffic", "Workspace", "traffic"),
 		templates.TrafficContent(h.loadEndpoints(ctx)),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {

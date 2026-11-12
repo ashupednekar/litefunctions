@@ -307,8 +307,38 @@ button, input, select, textarea { font: inherit; }
   border-radius: 4px; white-space: nowrap;
 }
 .z-status-item:hover { background: rgba(255,255,255,.04); color: var(--text-2); }
+.z-statusbar button.z-status-item { background: transparent; border: 0; font: inherit; color: inherit; cursor: pointer; }
 .z-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(126,231,135,.5); }
 .z-status-spacer { flex: 1; }
+
+/* bottom audit console (Postman-style) */
+.z-audit-popover {
+  position: fixed; left: 232px; right: 0; bottom: 27px; z-index: 850;
+  max-height: 44vh; display: none; flex-direction: column;
+  background: #0d0d10; border-top: 1px solid var(--border-3);
+  box-shadow: 0 -24px 60px -24px rgba(0,0,0,.8);
+}
+.z-audit-popover.open { display: flex; }
+.z-app.sidebar-collapsed .z-audit-popover { left: 56px; }
+.z-audit-header {
+  display: flex; align-items: center; gap: 8px; padding: 9px 13px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.z-audit-list { overflow: auto; }
+.z-audit-row {
+  display: flex; align-items: center; gap: 10px; padding: 7px 13px;
+  border-bottom: 1px solid var(--border);
+}
+.z-audit-row:hover { background: rgba(255,255,255,.025); }
+.z-audit-detail {
+  flex: 1; min-width: 0; font-size: 10.5px; color: var(--text-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.z-audit-foot {
+  display: flex; align-items: center; gap: 10px; padding: 8px 13px;
+  border-top: 1px solid var(--border); background: rgba(0,0,0,.14);
+}
+.z-audit-foot .z-help { font-size: 9.5px; }
 
 /* ---------- Page header ---------- */
 .z-page-head {
@@ -1097,6 +1127,7 @@ button, input, select, textarea { font: inherit; }
   .z-file-tree { max-height: 150px; border-right: 1px solid var(--border); border-radius: 6px 6px 0 0; }
   .z-editor-breadcrumb { border-radius: 0; }
   .z-editor-pane .z-editor-shell { border-radius: 0 0 6px 6px; }
+  .z-audit-popover { left: 0; }
 }
 @media (max-width: 720px) {
   .z-grid-2, .z-grid-3, .z-grid-4 { grid-template-columns: minmax(0, 1fr); }

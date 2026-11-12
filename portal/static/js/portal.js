@@ -3,19 +3,18 @@
   "use strict";
 
   const navItems = [
-    { group: "Navigate", label: "Overview", href: "/dashboard/", icon: "grid", keys: "g o" },
-    { group: "Navigate", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
-    { group: "Navigate", label: "Endpoints & routes", href: "/traffic/", icon: "route", keys: "g e" },
-    { group: "Build", label: "Dependencies", href: "/dependencies/", icon: "package" },
-    { group: "Build", label: "Data Model", href: "/data-model/", icon: "database" },
-    { group: "Build", label: "Agentic Planner", href: "/agent/", icon: "sparkles" },
-    { group: "Data", label: "Data & Storage", href: "/data/", icon: "layers" },
-    { group: "Data", label: "Pub/Sub · Olly", href: "/pubsub/", icon: "network" },
-    { group: "Operate", label: "Traffic · Gateway", href: "/traffic/", icon: "shield" },
-    { group: "Operate", label: "Observability", href: "/observability/", icon: "activity" },
-    { group: "Settings", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
-    { group: "Settings", label: "Team & Access", href: "/access/", icon: "users" },
-    { group: "Settings", label: "Audit Log", href: "/audit/", icon: "clock" }
+    { group: "Workspace", label: "Overview", href: "/dashboard/", icon: "grid", keys: "g o" },
+    { group: "Workspace", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
+    { group: "Workspace", label: "Endpoints & routes", href: "/traffic/", icon: "route", keys: "g e" },
+    { group: "Project", label: "Dependencies", href: "/dependencies/", icon: "package" },
+    { group: "Workspace", label: "Data Model", href: "/data-model/", icon: "database" },
+    { group: "Workspace", label: "Agentic Planner", href: "/agent/", icon: "sparkles" },
+    { group: "Workspace", label: "Data & Storage", href: "/data/", icon: "layers" },
+    { group: "Olly", label: "Pub/Sub · Olly", href: "/pubsub/", icon: "network" },
+    { group: "Traffic & Access", label: "Traffic", href: "/traffic/", icon: "shield" },
+    { group: "Workspace", label: "Observability", href: "/observability/", icon: "activity" },
+    { group: "Project", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
+    { group: "Traffic & Access", label: "Team & Access", href: "/access/", icon: "users" }
   ];
 
   const iconPaths = {
@@ -115,6 +114,19 @@
     if (e.target.classList && e.target.classList.contains("z-modal-backdrop")) {
       e.target.classList.remove("open");
     }
+    const auditToggle = e.target.closest("[data-audit-toggle]");
+    if (auditToggle) {
+      document.getElementById("audit-popover")?.classList.toggle("open");
+      return;
+    }
+    if (e.target.closest("[data-audit-close]")) {
+      document.getElementById("audit-popover")?.classList.remove("open");
+      return;
+    }
+    const auditPopover = document.getElementById("audit-popover");
+    if (auditPopover && auditPopover.classList.contains("open") && !e.target.closest("#audit-popover")) {
+      auditPopover.classList.remove("open");
+    }
   });
 
   window.zOpenModal = function (id) {
@@ -125,6 +137,15 @@
     const el = document.getElementById(id);
     if (el) el.classList.remove("open");
   };
+  window.openAuditPopover = function () {
+    document.getElementById("audit-popover")?.classList.add("open");
+  };
+  window.closeAuditPopover = function () {
+    document.getElementById("audit-popover")?.classList.remove("open");
+  };
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeAuditPopover();
+  });
 
   // ---------- tabs ----------
   document.addEventListener("click", function (e) {

@@ -29,7 +29,7 @@ func TrafficContent(endpoints []Endpoint) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Traffic · Gateway", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Operate", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Traffic", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Workspace", templ.Raw(`
 		<button class="z-btn" onclick="toast('Policy templates are a placeholder','info')">`+svgShield()+` Policy templates</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('route-modal')">`+svgPlus()+` New route</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)

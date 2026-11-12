@@ -37,31 +37,26 @@ templ BaseLayout(data ShellData, content templ.Component) {
 
 					<nav class="z-sidebar-scroll">
 						<div class="z-nav-section">
-							<div class="z-nav-label">Workspace</div>
 							@NavItem("/dashboard/", "Overview", "grid", data.Active == "overview", "")
 							@NavItem("/functions/", "Functions", "code", data.Active == "functions", "")
-						</div>
-						<div class="z-nav-section">
-							<div class="z-nav-label">Build</div>
-							@NavItem("/dependencies/", "Dependencies", "package", data.Active == "dependencies", "")
+							@NavItem("/data/", "Data & Storage", "layers", data.Active == "data", "")
 							@NavItem("/data-model/", "Data Model", "database", data.Active == "data-model", "")
 							@NavItem("/agent/", "Agentic Planner", "sparkles", data.Active == "agent", "")
-						</div>
-						<div class="z-nav-section">
-							<div class="z-nav-label">Data</div>
-							@NavItem("/data/", "Data & Storage", "layers", data.Active == "data", "")
-							@NavItem("/pubsub/", "Pub/Sub · Olly", "network", data.Active == "pubsub", "")
-						</div>
-						<div class="z-nav-section">
-							<div class="z-nav-label">Operate</div>
-							@NavItem("/traffic/", "Traffic · Gateway", "shield", data.Active == "traffic", "")
 							@NavItem("/observability/", "Observability", "activity", data.Active == "observability", "")
 						</div>
 						<div class="z-nav-section">
-							<div class="z-nav-label">Project settings</div>
+							<div class="z-nav-label">Olly</div>
+							@NavItem("/pubsub/", "Pub/Sub · Olly", "network", data.Active == "pubsub", "")
+						</div>
+						<div class="z-nav-section">
+							<div class="z-nav-label">Project</div>
+							@NavItem("/dependencies/", "Dependencies", "package", data.Active == "dependencies", "")
 							@NavItem("/configuration/", "Configs & Secrets", "key", data.Active == "configuration", "")
+						</div>
+						<div class="z-nav-section">
+							<div class="z-nav-label">Traffic &amp; Access</div>
+							@NavItem("/traffic/", "Traffic", "shield", data.Active == "traffic", "")
 							@NavItem("/access/", "Team & Access", "users", data.Active == "access", "")
-							@NavItem("/audit/", "Audit Log", "clock", data.Active == "audit", "")
 						</div>
 					</nav>
 
@@ -136,15 +131,32 @@ templ BaseLayout(data ShellData, content templ.Component) {
 					</main>
 
 					<footer class="z-statusbar">
-						<span class="z-status-item">@Icon("git-branch", "w-3 h-3") ui_overhaul</span>
-						<span class="z-status-item z-status-hide-sm">@Icon("package", "w-3 h-3") { projectLabel(data.ProjectName) }</span>
-						<span class="z-status-item z-status-hide-sm"><span class="z-status-dot"></span> NATS connected</span>
-						<span class="z-status-item z-status-hide-sm">@Icon("cloud", "w-3 h-3") local-cluster</span>
+						<span class="z-status-item" title="All systems operational"><span class="z-status-dot"></span> Platform status</span>
 						<span class="z-status-spacer"></span>
-						<span class="z-status-item">@Icon("terminal", "w-3 h-3") Go 1.26</span>
-						<span class="z-status-item">@Icon("clock", "w-3 h-3") 12ms</span>
-						<span class="z-status-item" onclick="openSpotlight()" style="cursor:pointer">⌘K commands</span>
+						<button class="z-status-item" type="button" data-audit-toggle>@Icon("clock", "") Audit</button>
+						<button class="z-status-item" type="button" onclick="openSpotlight()">@Icon("search", "") ⌘K commands</button>
 					</footer>
+
+					<div id="audit-popover" class="z-audit-popover">
+						<div class="z-audit-header">
+							<span class="z-panel-title">Audit log</span>
+							<span class="z-badge z-badge-amber">dummy data</span>
+							<span class="z-panel-sub">recent privileged actions</span>
+							<button class="z-icon-btn" style="margin-left:auto" type="button" data-audit-close aria-label="Close audit log">@Icon("close", "")</button>
+						</div>
+						<div class="z-audit-list">
+							@auditConsoleRow("secret.reveal", "STRIPE_SECRET_KEY · passkey 1.2.3.4", "ashu", "12:44:02")
+							@auditConsoleRow("access.invite", "dev@example.com · role: editor", "priya", "11:42:10")
+							@auditConsoleRow("config.update", "MAX_ORDER_ITEMS · 50 → 50 (no-op)", "ashu", "11:58:48")
+							@auditConsoleRow("traffic.policy", "POST /lambda/pay-order · limit 120 → 60/min", "ashu", "10:18:33")
+							@auditConsoleRow("function.update", "create-order · validation added", "marco", "09:44:02")
+							@auditConsoleRow("data-model.migration", "00004_orders.sql · applied in transaction", "chen", "08:57:21")
+						</div>
+						<div class="z-audit-foot">
+							<span class="z-help">Immutable · retained 400 days · export includes actor and request metadata</span>
+							<a href="/audit/" class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto">Open full log</a>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -167,6 +179,15 @@ templ BaseLayout(data ShellData, content templ.Component) {
 			</div>
 		</body>
 	</html>
+}
+
+templ auditConsoleRow(action string, detail string, actor string, when string) {
+	<div class="z-audit-row">
+		<span class="z-badge z-badge-muted z-mono">{ action }</span>
+		<span class="z-audit-detail">{ detail }</span>
+		<span class="z-mono" style="font-size:9px;color:var(--text-4);white-space:nowrap">{ actor }</span>
+		<span class="z-mono" style="font-size:9px;color:var(--text-4);white-space:nowrap">{ when }</span>
+	</div>
 }
 
 templ AuthLayout(content templ.Component) {

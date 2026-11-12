@@ -1,7 +1,7 @@
 package templates
 
 templ TrafficContent(endpoints []Endpoint) {
-	@PageHead("Traffic · Gateway", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Operate", templ.Raw(`
+	@PageHead("Traffic", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Workspace", templ.Raw(`
 		<button class="z-btn" onclick="toast('Policy templates are a placeholder','info')">`+svgShield()+` Policy templates</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('route-modal')">`+svgPlus()+` New route</button>
 	`))
