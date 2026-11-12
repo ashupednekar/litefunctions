@@ -1,0 +1,180 @@
+package templates
+
+templ QueriesContent() {
+	@PageHead("Queries", "Define sqlc queries, inspect generated code and run them against the project database.", "Data", templ.Raw(`
+		<button class="z-btn" onclick="toast('Query generation is a placeholder','info')">`+svgBraces()+` Generate</button>
+		<button class="z-btn z-btn-primary" onclick="newQuery()">`+svgPlus()+` New query</button>
+	`))
+
+	<div class="z-split-wide">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Saved queries</span>
+				<span class="z-badge z-badge-muted" id="query-count">5</span>
+				<div class="z-panel-actions"><button class="z-icon-btn" style="width:22px;height:22px" onclick="newQuery()">@Icon("plus", "")</button></div>
+			</div>
+			<div class="z-panel-body tight" style="padding:6px" id="query-list">
+				<div class="z-nav-label" style="padding-left:8px">orders.sql</div>
+				<button class="z-nav-item active" style="width:100%;text-align:left" data-query="ListOrders" onclick="selectQuery('ListOrders')">@Icon("code", "") <span>ListOrders</span><span class="z-nav-badge">:many</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left" data-query="GetOrder" onclick="selectQuery('GetOrder')">@Icon("code", "") <span>GetOrder</span><span class="z-nav-badge">:one</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left" data-query="CreateOrder" onclick="selectQuery('CreateOrder')">@Icon("code", "") <span>CreateOrder</span><span class="z-nav-badge">:one</span></button>
+				<div class="z-nav-label" style="padding-left:8px;margin-top:10px">customers.sql</div>
+				<button class="z-nav-item" style="width:100%;text-align:left" data-query="TopCustomers" onclick="selectQuery('TopCustomers')">@Icon("code", "") <span>TopCustomers</span><span class="z-nav-badge">:many</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left" data-query="RevenueByDay" onclick="selectQuery('RevenueByDay')">@Icon("code", "") <span>RevenueByDay</span><span class="z-nav-badge">:many</span></button>
+			</div>
+			<div class="z-panel-foot">
+				<span class="z-help">Generated files: <span class="z-code-inline">internal/db/orders.sql.go</span></span>
+			</div>
+		</div>
+
+		<div>
+			<div class="z-panel">
+				<div class="z-panel-header">
+					@Icon("code", "w-3.5 h-3.5")
+					<span class="z-panel-title z-mono" id="query-file">orders.sql</span>
+					<span class="z-badge z-badge-muted" id="query-annotation">:many</span>
+					<span class="z-panel-sub" id="query-name">ListOrders</span>
+					<div class="z-panel-actions">
+						<select class="z-select" style="width:132px;height:25px;font-size:10px"><option>PostgreSQL 16</option><option>MySQL 8</option><option>SQLite</option></select>
+						<button class="z-btn z-btn-sm z-btn-primary" onclick="runQuery()">@Icon("play", "") Run</button>
+					</div>
+				</div>
+				<div class="z-panel-body tight" style="padding:0">
+					<textarea id="query-editor" class="z-query-editor" spellcheck="false" aria-label="SQL query editor"></textarea>
+				</div>
+				<div class="z-panel-foot">
+					<span class="z-mono" style="font-size:9px;color:var(--text-4)" id="query-lines">7 lines · UTF-8</span>
+					<div style="margin-left:auto;display:flex;gap:6px">
+						<button class="z-btn z-btn-sm z-btn-ghost" onclick="toast('Generated code is a placeholder','info')">@Icon("braces", "") Generated code</button>
+						<button class="z-btn z-btn-sm" onclick="toast('Query saved to draft','success')">@Icon("save", "") Save</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="z-panel" style="margin-top:14px">
+				<div class="z-panel-header">
+					<span class="z-panel-title">Results</span>
+					<span class="z-badge z-badge-muted" id="query-results-meta">24 rows · 18ms</span>
+					<span class="z-panel-sub">read-only · project database</span>
+				</div>
+				<div class="z-table-wrap">
+					<table class="z-table">
+						<thead><tr><th>id</th><th>customer_id</th><th>status</th><th>total_cents</th><th>created_at</th></tr></thead>
+						<tbody id="query-results-body"></tbody>
+					</table>
+				</div>
+				<div class="z-panel-foot">
+					<span class="z-help">Execution is mocked in this preview. Wire it to a read-only database endpoint before shipping.</span>
+					<span class="z-badge z-badge-amber" style="margin-left:auto">dummy data</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const QUERIES = {
+			ListOrders: {
+				file: "orders.sql",
+				annotation: ":many",
+				sql: "-- name: ListOrders :many\nSELECT id, customer_id, status, total_cents, created_at\nFROM orders\nWHERE status = $1\nORDER BY created_at DESC\nLIMIT $2;",
+				rows: [
+					["ord_01HZX3", "cus_01HQ1", "paid", "18400", "2026-11-12 12:41"],
+					["ord_01HZX2", "cus_01HQ4", "pending", "4200", "2026-11-12 12:38"],
+					["ord_01HZX1", "cus_01HQ2", "paid", "9600", "2026-11-12 12:31"],
+					["ord_01HZWZ", "cus_01HQ1", "shipped", "22100", "2026-11-12 12:14"],
+					["ord_01HZWY", "cus_01HQ7", "cancelled", "3100", "2026-11-12 11:58"]
+				]
+			},
+			GetOrder: {
+				file: "orders.sql",
+				annotation: ":one",
+				sql: "-- name: GetOrder :one\nSELECT id, customer_id, status, total_cents, created_at\nFROM orders\nWHERE id = $1;",
+				rows: [["ord_01HZX3", "cus_01HQ1", "paid", "18400", "2026-11-12 12:41"]]
+			},
+			CreateOrder: {
+				file: "orders.sql",
+				annotation: ":one",
+				sql: "-- name: CreateOrder :one\nINSERT INTO orders (customer_id, status, total_cents)\nVALUES ($1, 'pending', $2)\nRETURNING id, customer_id, status, total_cents, created_at;",
+				rows: [["ord_01HZY0", "cus_01HQ1", "pending", "7200", "2026-11-12 12:44"]]
+			},
+			TopCustomers: {
+				file: "customers.sql",
+				annotation: ":many",
+				sql: "-- name: TopCustomers :many\nSELECT c.id, c.name, COUNT(o.id) AS orders, SUM(o.total_cents) AS spend\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name\nORDER BY spend DESC\nLIMIT $1;",
+				rows: [
+					["cus_01HQ1", "Ashu", "42", "428400"],
+					["cus_01HQ2", "Priya", "31", "312900"],
+					["cus_01HQ4", "Marco", "18", "184200"],
+					["cus_01HQ7", "Chen", "14", "96100"]
+				]
+			},
+			RevenueByDay: {
+				file: "customers.sql",
+				annotation: ":many",
+				sql: "-- name: RevenueByDay :many\nSELECT date_trunc('day', created_at) AS day, SUM(total_cents) AS revenue\nFROM orders\nWHERE status = 'paid'\nGROUP BY day\nORDER BY day DESC\nLIMIT $1;",
+				rows: [
+					["2026-11-12", "1842000"],
+					["2026-11-11", "1628400"],
+					["2026-11-10", "1490200"]
+				]
+			}
+		};
+
+		let activeQuery = "ListOrders";
+
+		function renderQuery(name) {
+			const q = QUERIES[name];
+			if (!q) return;
+			activeQuery = name;
+			document.getElementById("query-editor").value = q.sql;
+			document.getElementById("query-file").textContent = q.file;
+			document.getElementById("query-annotation").textContent = q.annotation;
+			document.getElementById("query-name").textContent = name;
+			document.getElementById("query-lines").textContent = q.sql.split("\n").length + " lines · UTF-8";
+			document.getElementById("query-results-meta").textContent = q.rows.length + " rows · " + (12 + q.rows.length * 2) + "ms";
+			document.getElementById("query-results-body").innerHTML = q.rows.map(row =>
+				"<tr>" + row.map((cell, i) => '<td class="' + (i === 0 ? "z-cell-main z-mono" : "z-cell-mono") + '">' + cell + "</td>").join("") + "</tr>"
+			).join("");
+			document.querySelectorAll("#query-list [data-query]").forEach(btn => {
+				btn.classList.toggle("active", btn.getAttribute("data-query") === name);
+			});
+		}
+
+		function selectQuery(name) {
+			if (!QUERIES[name]) return;
+			renderQuery(name);
+		}
+
+		function newQuery() {
+			activeQuery = null;
+			document.getElementById("query-editor").value = "-- name: NewQuery :many\nSELECT * FROM orders LIMIT $1;";
+			document.getElementById("query-file").textContent = "new.sql";
+			document.getElementById("query-annotation").textContent = ":many";
+			document.getElementById("query-name").textContent = "NewQuery";
+			document.getElementById("query-lines").textContent = "3 lines · UTF-8";
+			document.getElementById("query-results-meta").textContent = "not run";
+			document.getElementById("query-results-body").innerHTML = "";
+			document.querySelectorAll("#query-list [data-query]").forEach(btn => btn.classList.remove("active"));
+			document.getElementById("query-editor").focus();
+		}
+
+		function runQuery() {
+			const meta = document.getElementById("query-results-meta");
+			const q = activeQuery ? QUERIES[activeQuery] : null;
+			const started = performance.now();
+			meta.textContent = "running…";
+			setTimeout(() => {
+				if (q) {
+					const elapsed = Math.max(4, Math.round(performance.now() - started));
+					meta.textContent = q.rows.length + " rows · " + elapsed + "ms";
+					toast("Query executed against fixture results", "info");
+				} else {
+					meta.textContent = "0 rows · 6ms";
+					toast("New queries are not executable in this preview", "info");
+				}
+			}, 380);
+		}
+
+		document.addEventListener("DOMContentLoaded", () => renderQuery("ListOrders"));
+	</script>
+}

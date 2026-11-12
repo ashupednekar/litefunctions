@@ -29,14 +29,21 @@ func DataModelContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Tables", "Define tables and queries once, then generate typed code and migrations. sqlc-style, reviewed before it ships.", "Data", templ.Raw(`
-		<button class="z-btn" onclick="previewMigration()">`+svgTable()+` Preview migration</button>
-		<button class="z-btn z-btn-primary" onclick="generateModels()">`+svgBraces()+` Generate</button>
+		templ_7745c5c3_Err = PageHead("Tables", "Define tables, types and .sql views. Queries live on the Queries page.", "Data", templ.Raw(`
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('table-modal')">`+svgPlus()+` New table</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-grid z-grid-4\" style=\"margin-bottom:14px\"><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-split-wide\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Definitions</span> <button class=\"z-icon-btn\" style=\"margin-left:auto;width:22px;height:22px\" onclick=\"zOpenModal('table-modal')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button></div><div class=\"z-panel-body tight\" style=\"padding:6px\"><div class=\"z-nav-label\" style=\"padding-left:8px\">Tables</div><button class=\"z-nav-item active\" style=\"width:100%;text-align:left\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -44,7 +51,23 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Tables</div><div class=\"z-stat-value\">3</div><div class=\"z-stat-delta\">2 domain <span class=\"z-faint\">·</span> 1 system</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span>orders</span><span class=\"z-nav-badge\">3</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span>customers</span><span class=\"z-nav-badge\">4</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span>order_items</span><span class=\"z-nav-badge\">5</span></button><div class=\"z-nav-label\" style=\"padding-left:8px;margin-top:10px\">Types</div><button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -52,7 +75,15 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Queries</div><div class=\"z-stat-value\">24</div><div class=\"z-stat-delta\">18 generated <span class=\"z-faint\">·</span> 6 hand-written</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span>order_status</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("braces", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span>currency_code</span></button><div class=\"z-nav-label\" style=\"padding-left:8px;margin-top:10px\">SQL views</div><button class=\"z-nav-item active\" style=\"width:100%;text-align:left\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -60,79 +91,23 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Migrations</div><div class=\"z-stat-value\">4</div><div class=\"z-stat-delta\"><span style=\"color:var(--amber)\">1 pending</span> <span class=\"z-faint\">·</span> applied: 3</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span>schema/orders.sql</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("database", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Engine</div><div class=\"z-stat-value\" style=\"font-size:18px\">Postgres 16</div><div class=\"z-stat-delta\">connected · pool healthy</div></div></div><div class=\"z-ide-layout\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Definitions</span> <button class=\"z-icon-btn\" style=\"margin-left:auto;width:22px;height:22px\" onclick=\"zOpenModal('table-modal')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span>schema/customers.sql</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</button></div><div class=\"z-panel-body tight\" style=\"padding:6px\"><div class=\"z-nav-label\" style=\"padding-left:8px\">Tables</div><button class=\"z-nav-item active\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span>orders</span><span class=\"z-nav-badge\">3</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span>customers</span><span class=\"z-nav-badge\">4</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span>order_items</span><span class=\"z-nav-badge\">5</span></button><div class=\"z-nav-label\" style=\"padding-left:8px;margin-top:10px\">Types</div><button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("braces", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span>order_status</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("braces", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span>currency_code</span></button><div class=\"z-nav-label\" style=\"padding-left:8px;margin-top:10px\">Queries</div><button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("code", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span>orders.sql</span><span class=\"z-nav-badge\">6</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("code", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span>customers.sql</span><span class=\"z-nav-badge\">4</span></button></div><div class=\"z-panel-foot\"><button class=\"z-btn z-btn-sm z-btn-ghost\" style=\"width:100%\" onclick=\"zOpenModal('table-modal')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span>schema/types.sql</span></button></div><div class=\"z-panel-foot\" style=\"display:flex;gap:6px\"><button class=\"z-btn z-btn-sm z-btn-ghost\" style=\"flex:1\" onclick=\"zOpenModal('table-modal')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -140,7 +115,15 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "New table</button></div></div><div><div class=\"z-panel\"><div class=\"z-panel-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "New table</button> <button class=\"z-btn z-btn-sm z-btn-ghost\" style=\"flex:1\" onclick=\"toast('New .sql view is a placeholder','info')\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "New view</button></div></div><div class=\"z-panel\"><div class=\"z-panel-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -148,51 +131,7 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"z-panel-title z-mono\">schema/orders.sql</span> <span class=\"z-badge z-badge-amber\">unsaved</span><div class=\"z-panel-actions\"><select class=\"z-select\" style=\"width:132px;height:25px;font-size:10px\"><option>PostgreSQL 16</option><option>MySQL 8</option><option>SQLite</option></select> <button class=\"z-btn z-btn-sm\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("play", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "Run</button></div></div><div class=\"z-panel-body tight\"><div class=\"z-code-editor\" style=\"border:0;border-radius:0\"><div class=\"z-code-lines\" style=\"padding-top:12px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		for i := range lines(dataModelSQL()) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(i + 1))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 54, Col: 27}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div><pre class=\"z-code-body\" style=\"padding-top:12px;min-height:420px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(dataModelSQL())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 57, Col: 89}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</pre></div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">cursor 22:14 · 42 lines · UTF-8 · LF</span><div style=\"margin-left:auto;display:flex;gap:6px\"><button class=\"z-btn z-btn-sm z-btn-ghost\" onclick=\"toast('Formatting is a placeholder','info')\">Format</button> <button class=\"z-btn z-btn-sm\" onclick=\"toast('Schema saved to draft','success')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"z-panel-title z-mono\">schema/orders.sql</span> <span class=\"z-badge z-badge-amber\">unsaved</span><div class=\"z-panel-actions\"><select class=\"z-select\" style=\"width:132px;height:25px;font-size:10px\"><option>PostgreSQL 16</option><option>MySQL 8</option><option>SQLite</option></select> <button class=\"z-btn z-btn-sm\" onclick=\"toast('Schema saved to draft','success')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -200,140 +139,51 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "Save</button></div></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Migration preview</span> <span class=\"z-badge z-badge-amber\">pending · 00004</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\" onclick=\"previewMigration()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Save</button></div></div><div class=\"z-panel-body tight\"><div class=\"z-code-editor\" style=\"border:0;border-radius:0\"><div class=\"z-code-lines\" style=\"padding-top:12px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("eye", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "Open diff</button></div></div><div class=\"z-panel-body tight\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">CREATE TYPE order_status</div><div class=\"z-list-sub\">new enum · 4 labels</div></div><span class=\"z-badge z-badge-green\">safe</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">CREATE TABLE orders</div><div class=\"z-list-sub\">6 columns · 1 index · FK to customers</div></div><span class=\"z-badge z-badge-green\">safe</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">CREATE TABLE order_items</div><div class=\"z-list-sub\">5 columns · FK to orders</div></div><span class=\"z-badge z-badge-green\">safe</span></div></div></div><div class=\"z-panel-foot\"><span class=\"z-help\">Runs in a transaction. Estimated lock time &lt; 300ms.</span> <button class=\"z-btn z-btn-sm z-btn-accent\" style=\"margin-left:auto\" onclick=\"toast('Migration apply is a placeholder','success')\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("check", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Apply migration</button></div></div></div><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Generated types</span> <span class=\"z-badge z-badge-blue\">sqlc</span></div><div class=\"z-panel-body tight\"><div class=\"z-code-editor\" style=\"border:0;border-radius:0\"><div class=\"z-code-lines\" style=\"padding-top:11px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		for i := range lines(dataModelGenerated()) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<span>")
+		for i := range lines(dataModelSQL()) {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(i + 1))
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(i + 1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 99, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 47, Col: 26}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div><pre class=\"z-code-body\" style=\"padding-top:11px;max-height:300px;font-size:10.5px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><pre class=\"z-code-body\" style=\"padding-top:12px;min-height:480px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(dataModelGenerated())
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(dataModelSQL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 102, Col: 112}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 50, Col: 88}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</pre></div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">generated 2m ago</span> <button class=\"z-btn z-btn-sm z-btn-ghost\" style=\"margin-left:auto\" data-copy=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(dataModelGenerated())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 107, Col: 105}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</pre></div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">cursor 22:14 · 42 lines · UTF-8 · LF</span><div style=\"margin-left:auto;display:flex;gap:6px\"><button class=\"z-btn z-btn-sm z-btn-ghost\" onclick=\"toast('Formatting is a placeholder','info')\">Format</button> <button class=\"z-btn z-btn-sm\" onclick=\"toast('Schema saved to draft','success')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\">")
+		templ_7745c5c3_Err = Icon("save", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("copy", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "Copy</button></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Relationships</span></div><div class=\"z-panel-body\"><div class=\"z-list\" style=\"border:1px solid var(--border);border-radius:6px;overflow:hidden\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">customers</div><div class=\"z-list-sub\">1 → many orders</div></div><span class=\"z-badge z-badge-muted\">FK</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">orders</div><div class=\"z-list-sub\">1 → many order_items</div></div><span class=\"z-badge z-badge-muted\">FK</span></div></div><div class=\"z-divider\"></div><dl class=\"z-kv\"><dt>sqlc config</dt><dd>sqlc.yaml</dd><dt>Output package</dt><dd>internal/db</dd><dt>Emit interfaces</dt><dd>yes</dd><dt>Migration dir</dt><dd>migrations/</dd></dl></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Checks</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">4 / 4</span></div><div class=\"z-panel-body\" style=\"display:flex;flex-direction:column;gap:8px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = checkRow("Naming conventions", "snake_case, plural tables").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = checkRow("Primary keys", "UUID with defaults").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = checkRow("Foreign keys", "indexed").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = checkRow("Reversible migration", "down block generated").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div></div></div></div><div id=\"table-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('table-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "Save</button></div></div></div></div><div id=\"table-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('table-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -341,7 +191,7 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<span class=\"z-modal-title\">New table</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"z-modal-title\">New table</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -349,7 +199,7 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\">Table name</label><input class=\"z-input z-mono\" placeholder=\"e.g. invoices\"></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Primary key</label><select class=\"z-select\"><option>UUID · gen_random_uuid()</option><option>BIGSERIAL</option><option>TEXT</option></select></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Template</label><select class=\"z-select\"><option>Blank table</option><option>Timestamps + soft delete</option><option>Tenant-scoped</option></select></div><div class=\"z-alert z-alert-blue\" style=\"margin-top:12px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\">Table name</label><input class=\"z-input z-mono\" placeholder=\"e.g. invoices\"></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Primary key</label><select class=\"z-select\"><option>UUID · gen_random_uuid()</option><option>BIGSERIAL</option><option>TEXT</option></select></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Template</label><select class=\"z-select\"><option>Blank table</option><option>Timestamps + soft delete</option><option>Tenant-scoped</option></select></div><div class=\"z-alert z-alert-blue\" style=\"margin-top:12px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -357,70 +207,7 @@ func DataModelContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div>Tip: describe the table in Plan to generate columns, queries and relationships automatically.</div></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('table-modal'); toast('Table added to draft schema','success')\">Create table</button></div></div></div><script>\n\t\tasync function generateModels() {\n\t\t\ttoast(\"Generating types and queries…\", \"info\");\n\t\t\tawait zDummyFetch(\"/api/data-model/generate/\", {ok: true});\n\t\t\tsetTimeout(() => toast(\"Generated 18 functions · 0 errors\", \"success\"), 800);\n\t\t}\n\t\tasync function previewMigration() {\n\t\t\ttoast(\"Opening migration preview…\", \"info\");\n\t\t\tawait zDummyFetch(\"/api/data-model/migrations/preview/\", {ok: true});\n\t\t}\n\t</script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func checkRow(label string, detail string) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div style=\"display:flex;align-items:flex-start;gap:8px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("check", "w-3.5 h-3.5 text-[#7ee787]").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div><div style=\"font-size:10.5px;color:var(--text-2)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(label)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 176, Col: 64}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div><div class=\"z-help\" style=\"font-size:9.5px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/datamodel.templ`, Line: 176, Col: 124}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div>Tip: describe the table in Plan to generate columns, queries and relationships automatically.</div></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('table-modal'); toast('Table added to draft schema','success')\">Create table</button></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

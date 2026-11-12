@@ -297,6 +297,16 @@ func (h *UIHandlers) Dependencies(ctx *gin.Context) {
 	}
 }
 
+func (h *UIHandlers) Queries(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Queries", "Data", "queries"),
+		templates.QueriesContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
 func (h *UIHandlers) DataModel(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Tables", "Data", "data-model"),

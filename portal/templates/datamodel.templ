@@ -1,19 +1,11 @@
 package templates
 
 templ DataModelContent() {
-	@PageHead("Tables", "Define tables and queries once, then generate typed code and migrations. sqlc-style, reviewed before it ships.", "Data", templ.Raw(`
-		<button class="z-btn" onclick="previewMigration()">`+svgTable()+` Preview migration</button>
-		<button class="z-btn z-btn-primary" onclick="generateModels()">`+svgBraces()+` Generate</button>
+	@PageHead("Tables", "Define tables, types and .sql views. Queries live on the Queries page.", "Data", templ.Raw(`
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('table-modal')">`+svgPlus()+` New table</button>
 	`))
 
-	<div class="z-grid z-grid-4" style="margin-bottom:14px">
-		<div class="z-stat"><div class="z-stat-label">@Icon("table", "") Tables</div><div class="z-stat-value">3</div><div class="z-stat-delta">2 domain <span class="z-faint">·</span> 1 system</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("braces", "") Queries</div><div class="z-stat-value">24</div><div class="z-stat-delta">18 generated <span class="z-faint">·</span> 6 hand-written</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("file", "") Migrations</div><div class="z-stat-value">4</div><div class="z-stat-delta"><span style="color:var(--amber)">1 pending</span> <span class="z-faint">·</span> applied: 3</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("database", "") Engine</div><div class="z-stat-value" style="font-size:18px">Postgres 16</div><div class="z-stat-delta">connected · pool healthy</div></div>
-	</div>
-
-	<div class="z-ide-layout">
+	<div class="z-split-wide">
 		<div class="z-panel">
 			<div class="z-panel-header">
 				<span class="z-panel-title">Definitions</span>
@@ -27,111 +19,42 @@ templ DataModelContent() {
 				<div class="z-nav-label" style="padding-left:8px;margin-top:10px">Types</div>
 				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("braces", "") <span>order_status</span></button>
 				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("braces", "") <span>currency_code</span></button>
-				<div class="z-nav-label" style="padding-left:8px;margin-top:10px">Queries</div>
-				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("code", "") <span>orders.sql</span><span class="z-nav-badge">6</span></button>
-				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("code", "") <span>customers.sql</span><span class="z-nav-badge">4</span></button>
+				<div class="z-nav-label" style="padding-left:8px;margin-top:10px">SQL views</div>
+				<button class="z-nav-item active" style="width:100%;text-align:left">@Icon("file", "") <span>schema/orders.sql</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("file", "") <span>schema/customers.sql</span></button>
+				<button class="z-nav-item" style="width:100%;text-align:left">@Icon("file", "") <span>schema/types.sql</span></button>
+			</div>
+			<div class="z-panel-foot" style="display:flex;gap:6px">
+				<button class="z-btn z-btn-sm z-btn-ghost" style="flex:1" onclick="zOpenModal('table-modal')">@Icon("plus", "") New table</button>
+				<button class="z-btn z-btn-sm z-btn-ghost" style="flex:1" onclick="toast('New .sql view is a placeholder','info')">@Icon("file", "") New view</button>
+			</div>
+		</div>
+
+		<div class="z-panel">
+			<div class="z-panel-header">
+				@Icon("file", "w-3.5 h-3.5")
+				<span class="z-panel-title z-mono">schema/orders.sql</span>
+				<span class="z-badge z-badge-amber">unsaved</span>
+				<div class="z-panel-actions">
+					<select class="z-select" style="width:132px;height:25px;font-size:10px"><option>PostgreSQL 16</option><option>MySQL 8</option><option>SQLite</option></select>
+					<button class="z-btn z-btn-sm" onclick="toast('Schema saved to draft','success')">@Icon("save", "") Save</button>
+				</div>
+			</div>
+			<div class="z-panel-body tight">
+				<div class="z-code-editor" style="border:0;border-radius:0">
+					<div class="z-code-lines" style="padding-top:12px">
+						for i := range lines(dataModelSQL()) {
+							<span>{ itoa(i + 1) }</span>
+						}
+					</div>
+					<pre class="z-code-body" style="padding-top:12px;min-height:480px">{ dataModelSQL() }</pre>
+				</div>
 			</div>
 			<div class="z-panel-foot">
-				<button class="z-btn z-btn-sm z-btn-ghost" style="width:100%" onclick="zOpenModal('table-modal')">@Icon("plus", "") New table</button>
-			</div>
-		</div>
-
-		<div>
-			<div class="z-panel">
-				<div class="z-panel-header">
-					@Icon("file", "w-3.5 h-3.5")
-					<span class="z-panel-title z-mono">schema/orders.sql</span>
-					<span class="z-badge z-badge-amber">unsaved</span>
-					<div class="z-panel-actions">
-						<select class="z-select" style="width:132px;height:25px;font-size:10px"><option>PostgreSQL 16</option><option>MySQL 8</option><option>SQLite</option></select>
-						<button class="z-btn z-btn-sm">@Icon("play", "") Run</button>
-					</div>
-				</div>
-				<div class="z-panel-body tight">
-					<div class="z-code-editor" style="border:0;border-radius:0">
-						<div class="z-code-lines" style="padding-top:12px">
-							for i := range lines(dataModelSQL()) {
-								<span>{ itoa(i + 1) }</span>
-							}
-						</div>
-						<pre class="z-code-body" style="padding-top:12px;min-height:420px">{ dataModelSQL() }</pre>
-					</div>
-				</div>
-				<div class="z-panel-foot">
-					<span class="z-mono" style="font-size:9px;color:var(--text-4)">cursor 22:14 · 42 lines · UTF-8 · LF</span>
-					<div style="margin-left:auto;display:flex;gap:6px">
-						<button class="z-btn z-btn-sm z-btn-ghost" onclick="toast('Formatting is a placeholder','info')">Format</button>
-						<button class="z-btn z-btn-sm" onclick="toast('Schema saved to draft','success')">@Icon("save", "") Save</button>
-					</div>
-				</div>
-			</div>
-
-			<div class="z-panel" style="margin-top:14px">
-				<div class="z-panel-header">
-					<span class="z-panel-title">Migration preview</span>
-					<span class="z-badge z-badge-amber">pending · 00004</span>
-					<div class="z-panel-actions"><button class="z-btn z-btn-sm" onclick="previewMigration()">@Icon("eye", "") Open diff</button></div>
-				</div>
-				<div class="z-panel-body tight">
-					<div class="z-list">
-						<div class="z-list-item"><span class="z-list-icon">@Icon("plus", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">CREATE TYPE order_status</div><div class="z-list-sub">new enum · 4 labels</div></div><span class="z-badge z-badge-green">safe</span></div>
-						<div class="z-list-item"><span class="z-list-icon">@Icon("plus", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">CREATE TABLE orders</div><div class="z-list-sub">6 columns · 1 index · FK to customers</div></div><span class="z-badge z-badge-green">safe</span></div>
-						<div class="z-list-item"><span class="z-list-icon">@Icon("plus", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">CREATE TABLE order_items</div><div class="z-list-sub">5 columns · FK to orders</div></div><span class="z-badge z-badge-green">safe</span></div>
-					</div>
-				</div>
-				<div class="z-panel-foot">
-					<span class="z-help">Runs in a transaction. Estimated lock time &lt; 300ms.</span>
-					<button class="z-btn z-btn-sm z-btn-accent" style="margin-left:auto" onclick="toast('Migration apply is a placeholder','success')">@Icon("check", "") Apply migration</button>
-				</div>
-			</div>
-		</div>
-
-		<div>
-			<div class="z-panel">
-				<div class="z-panel-header">
-					<span class="z-panel-title">Generated types</span>
-					<span class="z-badge z-badge-blue">sqlc</span>
-				</div>
-				<div class="z-panel-body tight">
-					<div class="z-code-editor" style="border:0;border-radius:0">
-						<div class="z-code-lines" style="padding-top:11px">
-							for i := range lines(dataModelGenerated()) {
-								<span>{ itoa(i + 1) }</span>
-							}
-						</div>
-						<pre class="z-code-body" style="padding-top:11px;max-height:300px;font-size:10.5px">{ dataModelGenerated() }</pre>
-					</div>
-				</div>
-				<div class="z-panel-foot">
-					<span class="z-mono" style="font-size:9px;color:var(--text-4)">generated 2m ago</span>
-					<button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto" data-copy={ dataModelGenerated() }>@Icon("copy", "") Copy</button>
-				</div>
-			</div>
-
-			<div class="z-panel" style="margin-top:14px">
-				<div class="z-panel-header"><span class="z-panel-title">Relationships</span></div>
-				<div class="z-panel-body">
-					<div class="z-list" style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
-						<div class="z-list-item"><span class="z-list-icon">@Icon("table", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">customers</div><div class="z-list-sub">1 → many orders</div></div><span class="z-badge z-badge-muted">FK</span></div>
-						<div class="z-list-item"><span class="z-list-icon">@Icon("table", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">orders</div><div class="z-list-sub">1 → many order_items</div></div><span class="z-badge z-badge-muted">FK</span></div>
-					</div>
-					<div class="z-divider"></div>
-					<dl class="z-kv">
-						<dt>sqlc config</dt><dd>sqlc.yaml</dd>
-						<dt>Output package</dt><dd>internal/db</dd>
-						<dt>Emit interfaces</dt><dd>yes</dd>
-						<dt>Migration dir</dt><dd>migrations/</dd>
-					</dl>
-				</div>
-			</div>
-
-			<div class="z-panel" style="margin-top:14px">
-				<div class="z-panel-header"><span class="z-panel-title">Checks</span><span class="z-badge z-badge-green" style="margin-left:auto">4 / 4</span></div>
-				<div class="z-panel-body" style="display:flex;flex-direction:column;gap:8px">
-					@checkRow("Naming conventions", "snake_case, plural tables")
-					@checkRow("Primary keys", "UUID with defaults")
-					@checkRow("Foreign keys", "indexed")
-					@checkRow("Reversible migration", "down block generated")
+				<span class="z-mono" style="font-size:9px;color:var(--text-4)">cursor 22:14 · 42 lines · UTF-8 · LF</span>
+				<div style="margin-left:auto;display:flex;gap:6px">
+					<button class="z-btn z-btn-sm z-btn-ghost" onclick="toast('Formatting is a placeholder','info')">Format</button>
+					<button class="z-btn z-btn-sm" onclick="toast('Schema saved to draft','success')">@Icon("save", "") Save</button>
 				</div>
 			</div>
 		</div>
@@ -155,24 +78,5 @@ templ DataModelContent() {
 				<button class="z-btn z-btn-primary" onclick="zCloseModal('table-modal'); toast('Table added to draft schema','success')">Create table</button>
 			</div>
 		</div>
-	</div>
-
-	<script>
-		async function generateModels() {
-			toast("Generating types and queries…", "info");
-			await zDummyFetch("/api/data-model/generate/", {ok: true});
-			setTimeout(() => toast("Generated 18 functions · 0 errors", "success"), 800);
-		}
-		async function previewMigration() {
-			toast("Opening migration preview…", "info");
-			await zDummyFetch("/api/data-model/migrations/preview/", {ok: true});
-		}
-	</script>
-}
-
-templ checkRow(label string, detail string) {
-	<div style="display:flex;align-items:flex-start;gap:8px">
-		@Icon("check", "w-3.5 h-3.5 text-[#7ee787]")
-		<div><div style="font-size:10.5px;color:var(--text-2)">{ label }</div><div class="z-help" style="font-size:9.5px">{ detail }</div></div>
 	</div>
 }

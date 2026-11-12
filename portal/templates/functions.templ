@@ -927,7 +927,16 @@ function filterFunctions(q) {
     });
 }
 
-function functionConfigPanelHtml(id, name) {
+function functionConfigPanelHtml(id, name, lang) {
+    const isDynamic = ["python", "ts", "lua"].includes(lang);
+    const dynamicField = isDynamic ? `<div class="z-field">
+                <span class="z-label">Dynamic runtime</span>
+                <div class="z-mode-toggle">
+                    <button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
+                    <button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+                </div>
+                <span class="z-help">Python, TypeScript and Lua only.</span>
+            </div>` : "";
     return `<div id="fn-config-${id}" class="z-fn-config hidden" data-fn-config>
         <div class="z-fn-config-head">
             <span class="z-panel-title">Function config</span>
@@ -947,14 +956,7 @@ function functionConfigPanelHtml(id, name) {
                 </select>
                 <span class="z-help">Containerd by default; stronger isolation is opt-in.</span>
             </div>
-            <div class="z-field">
-                <span class="z-label">Dynamic runtime</span>
-                <div class="z-mode-toggle">
-                    <button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
-                    <button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
-                </div>
-                <span class="z-help">Python, TypeScript and Lua only.</span>
-            </div>
+            ${dynamicField}
             <div class="z-field">
                 <span class="z-label">Rate limit</span>
                 <div class="z-input-group">
@@ -1025,7 +1027,7 @@ function refreshList() {
                             ${endpointBtn}
                             <button class="z-icon-btn" title="Delete" onclick="deleteFn('${id}')">${fnIcon("trash")}</button>
                         </div>
-                    </div>` + functionConfigPanelHtml(id, name);
+                    </div>` + functionConfigPanelHtml(id, name, lang);
             }).join("");
 
             filterFunctions(document.getElementById("fn-filter")?.value || "");
@@ -1064,14 +1066,16 @@ templ functionConfigPanel(fn Function) {
 				</select>
 				<span class="z-help">Containerd by default; stronger isolation is opt-in.</span>
 			</div>
-			<div class="z-field">
-				<span class="z-label">Dynamic runtime</span>
-				<div class="z-mode-toggle">
-					<button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
-					<button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+			if fn.Language == "python" || fn.Language == "ts" || fn.Language == "lua" {
+				<div class="z-field">
+					<span class="z-label">Dynamic runtime</span>
+					<div class="z-mode-toggle">
+						<button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
+						<button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+					</div>
+					<span class="z-help">Python, TypeScript and Lua only.</span>
 				</div>
-				<span class="z-help">Python, TypeScript and Lua only.</span>
-			</div>
+			}
 			<div class="z-field">
 				<span class="z-label">Rate limit</span>
 				<div class="z-input-group">

@@ -9,6 +9,7 @@
     { group: "Build", label: "Plan", href: "/agent/", icon: "sparkles" },
     { group: "Data", label: "Objects", href: "/data/", icon: "box" },
     { group: "Data", label: "Tables", href: "/data-model/", icon: "table" },
+    { group: "Data", label: "Queries", href: "/queries/", icon: "braces" },
     { group: "Project", label: "Dependencies", href: "/dependencies/", icon: "package" },
     { group: "Project", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
     { group: "Project", label: "Team & Access", href: "/access/", icon: "users" }
@@ -18,6 +19,9 @@
     grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     code: '<path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/>',
     file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    box: '<path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+    table: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+    braces: '<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/>',
     "chevron-right": '<path d="m9 18 6-6-6-6"/>',
     "chevron-down": '<path d="m6 9 6 6 6-6"/>',
     route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',

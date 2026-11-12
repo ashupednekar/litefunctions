@@ -57,6 +57,7 @@ func (s *Server) BuildRoutes() {
 		protected.GET("/data/", ui.Data)
 		protected.GET("/dependencies/", ui.Dependencies)
 		protected.GET("/data-model/", ui.DataModel)
+		protected.GET("/queries/", ui.Queries)
 		protected.GET("/agent/", ui.Agent)
 		protected.GET("/pubsub/", ui.PubSub)
 		protected.GET("/traffic/", ui.Traffic)

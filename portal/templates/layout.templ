@@ -49,6 +49,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							<div class="z-nav-label">Data</div>
 							@NavItem("/data/", "Objects", "box", data.Active == "data", "")
 							@NavItem("/data-model/", "Tables", "table", data.Active == "data-model", "")
+							@NavItem("/queries/", "Queries", "braces", data.Active == "queries", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Project</div>
