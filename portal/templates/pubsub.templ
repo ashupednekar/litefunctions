@@ -1,7 +1,7 @@
 package templates
 
 templ PubSubContent() {
-	@PageHead("Pub/Sub · Olly", "Persistent JetStream streams, durable consumers and a live telemetry surface backed by Olly — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
+	@PageHead("Pub/Sub", "Persistent JetStream streams, durable consumers and Olly telemetry — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('stream-modal')">`+svgPlus()+` New stream</button>
 	`))

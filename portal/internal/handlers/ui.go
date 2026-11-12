@@ -232,7 +232,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 
 func (h *UIHandlers) Data(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		shellData(ctx, "Data & Storage", "Data", "data"),
+		shellData(ctx, "Objects", "Data", "data"),
 		templates.DataContent(),
 	)
 
@@ -299,7 +299,7 @@ func (h *UIHandlers) Dependencies(ctx *gin.Context) {
 
 func (h *UIHandlers) DataModel(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		shellData(ctx, "Data Model", "Build", "data-model"),
+		shellData(ctx, "Tables", "Data", "data-model"),
 		templates.DataModelContent(),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {
@@ -319,7 +319,7 @@ func (h *UIHandlers) Agent(ctx *gin.Context) {
 
 func (h *UIHandlers) PubSub(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		shellData(ctx, "Pub/Sub · Olly", "Data", "pubsub"),
+		shellData(ctx, "Pub/Sub", "Data", "pubsub"),
 		templates.PubSubContent(),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {

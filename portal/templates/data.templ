@@ -1,134 +1,68 @@
 package templates
 
 templ DataContent() {
-	@PageHead("Data & Storage", "Databases, S3-compatible object buckets, key-value stores and persistent streams attached to this project.", "Data", templ.Raw(`
+	@PageHead("Objects", "S3-compatible object buckets, presigned URLs and bucket policies for this project.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="toast('Storage docs are a placeholder','info')">`+svgExternal()+` Storage docs</button>
-		<button class="z-btn z-btn-primary" onclick="zOpenModal('store-modal')">`+svgPlus()+` Attach store</button>
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('store-modal')">`+svgPlus()+` New bucket</button>
 	`))
 
 	<div class="z-grid z-grid-4" style="margin-bottom:14px">
-		<div class="z-stat"><div class="z-stat-label">@Icon("database", "") Databases</div><div class="z-stat-value">3</div><div class="z-stat-delta">Postgres 16 <span class="z-faint">·</span> 2.2 GB used</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("box", "") Object buckets</div><div class="z-stat-value">3</div><div class="z-stat-delta">S3 compatible <span class="z-faint">·</span> 3.4 GB</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("layers", "") Key-value</div><div class="z-stat-value">3</div><div class="z-stat-delta">1.2M keys <span class="z-faint">·</span> versioned</div></div>
-		<div class="z-stat"><div class="z-stat-label">@Icon("network", "") Persistent streams</div><div class="z-stat-value">4</div><div class="z-stat-delta">JetStream <span class="z-faint">·</span> file-backed</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("box", "") Buckets</div><div class="z-stat-value">3</div><div class="z-stat-delta">S3 compatible <span class="z-faint">·</span> MinIO</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("layers", "") Objects</div><div class="z-stat-value">3,682</div><div class="z-stat-delta">across all buckets</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("database", "") Storage</div><div class="z-stat-value">3.4<small>GB</small></div><div class="z-stat-delta">4 GiB PVC <span class="z-faint">·</span> 85% free</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("shield", "") Versioning</div><div class="z-stat-value">2</div><div class="z-stat-delta">buckets versioned <span class="z-faint">·</span> 1 suspended</div></div>
 	</div>
 
-	<div class="z-tabs" data-tab-group>
-		<button class="z-tab active" data-tab="databases">Databases <span class="z-badge z-badge-muted">3</span></button>
-		<button class="z-tab" data-tab="objects">Objects · S3 <span class="z-badge z-badge-muted">3</span></button>
-		<button class="z-tab" data-tab="kv">Key-value <span class="z-badge z-badge-muted">3</span></button>
-		<button class="z-tab" data-tab="streams">Streams <span class="z-badge z-badge-muted">4</span></button>
-	</div>
-
-	<div data-tab-panel="databases">
-		<div class="z-panel">
-			<div class="z-panel-header">
-				<span class="z-panel-title">Postgres databases</span>
-				<span class="z-panel-sub">managed by the operator</span>
-				<div class="z-panel-actions"><a href="/data-model/" class="z-btn z-btn-sm">@Icon("table", "") Open data model</a></div>
-			</div>
-			<div class="z-table-wrap">
-				<table class="z-table">
-					<thead><tr><th>Database</th><th>Engine</th><th>Host</th><th>Size</th><th>Connections</th><th>Backups</th><th>Status</th><th></th></tr></thead>
-					<tbody>
-						@databaseRow("orders", "Postgres 16", "orders-db.litefunctions", "2.2 GB / 10 GB", "8 / 20", "daily · 7 retained", "healthy")
-						@databaseRow("analytics", "Postgres 16", "analytics-db.litefunctions", "410 MB / 5 GB", "3 / 10", "daily · 7 retained", "healthy")
-						@databaseRow("sessions", "Postgres 16", "sessions-db.litefunctions", "96 MB / 2 GB", "12 / 20", "hourly · 24 retained", "healthy")
-					</tbody>
-				</table>
-			</div>
-			<div class="z-panel-foot"><span class="z-help">Connection strings are injected as <span class="z-code-inline">DATABASE_URL</span>. Credentials rotate with the project key.</span><span class="z-badge z-badge-green" style="margin-left:auto"><span class="z-dot z-dot-green"></span> connected</span></div>
+	<div class="z-panel">
+		<div class="z-panel-header">
+			<span class="z-panel-title">Object buckets</span>
+			<span class="z-panel-sub">S3-compatible · presigned URLs</span>
+			<div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") Add bucket</button></div>
 		</div>
+		<div class="z-table-wrap">
+			<table class="z-table">
+				<thead><tr><th>Bucket</th><th>Provider</th><th>Endpoint</th><th>Region</th><th>Objects</th><th>Size</th><th>Versioning</th><th>Status</th><th></th></tr></thead>
+				<tbody>
+					@objectRow("user_uploads", "MinIO", "minio.litefunctions", "local", "3,402", "1.2 GB", "enabled", "healthy")
+					@objectRow("exports", "MinIO", "minio.litefunctions", "local", "184", "1.8 GB", "enabled", "healthy")
+					@objectRow("static-assets", "MinIO", "minio.litefunctions", "local", "96", "410 MB", "suspended", "healthy")
+				</tbody>
+			</table>
+		</div>
+		<div class="z-panel-foot"><span class="z-help">Signed URLs expire in 15 minutes. Direct browser uploads use presigned POST.</span><span class="z-badge z-badge-blue" style="margin-left:auto">S3 API</span></div>
 	</div>
 
-	<div data-tab-panel="objects" style="display:none">
-		<div class="z-panel">
-			<div class="z-panel-header">
-				<span class="z-panel-title">Object buckets</span>
-				<span class="z-panel-sub">S3-compatible · presigned URLs</span>
-				<div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") Add bucket</button></div>
-			</div>
-			<div class="z-table-wrap">
-				<table class="z-table">
-					<thead><tr><th>Bucket</th><th>Provider</th><th>Endpoint</th><th>Region</th><th>Objects</th><th>Size</th><th>Versioning</th><th>Status</th><th></th></tr></thead>
-					<tbody>
-						@objectRow("user_uploads", "MinIO", "minio.litefunctions", "local", "3,402", "1.2 GB", "enabled", "healthy")
-						@objectRow("exports", "MinIO", "minio.litefunctions", "local", "184", "1.8 GB", "enabled", "healthy")
-						@objectRow("static-assets", "MinIO", "minio.litefunctions", "local", "96", "410 MB", "suspended", "healthy")
-					</tbody>
-				</table>
-			</div>
-			<div class="z-panel-foot"><span class="z-help">Signed URLs expire in 15 minutes. Direct browser uploads use presigned POST.</span><span class="z-badge z-badge-blue" style="margin-left:auto">S3 API</span></div>
+	<div class="z-panel" style="margin-top:14px">
+		<div class="z-panel-header">
+			<span class="z-panel-title z-mono">user_uploads</span>
+			<span class="z-badge z-badge-muted">3,402 objects</span>
+			<span class="z-panel-sub">bucket contents</span>
+			<div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") Upload</button></div>
 		</div>
-	</div>
-
-	<div data-tab-panel="kv" style="display:none">
-		<div class="z-panel">
-			<div class="z-panel-header">
-				<span class="z-panel-title">Key-value stores</span>
-				<span class="z-panel-sub">versioned buckets · atomic revisions</span>
-				<div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") New store</button></div>
-			</div>
-			<div class="z-table-wrap">
-				<table class="z-table">
-					<thead><tr><th>Store</th><th>Keys</th><th>Revision</th><th>TTL</th><th>Size</th><th>Status</th><th></th></tr></thead>
-					<tbody>
-						@keyValueRow("app_settings", "24", "v7", "none", "12 KB", "healthy")
-						@keyValueRow("sessions", "1.2M", "v3", "24h", "840 MB", "healthy")
-						@keyValueRow("feature_cache", "82", "v12", "5m", "96 KB", "healthy")
-					</tbody>
-				</table>
-			</div>
-			<div class="z-panel-foot"><span class="z-help">Every write creates a new revision. Functions read through the project-scoped KV client.</span></div>
+		<div class="z-table-wrap">
+			<table class="z-table">
+				<thead><tr><th>Object</th><th>Size</th><th>Content type</th><th>Modified</th><th></th></tr></thead>
+				<tbody>
+					<tr><td class="z-cell-main z-mono" style="font-size:10.5px">avatars/ashu.png</td><td class="z-cell-mono">48 KB</td><td class="z-cell-mono">image/png</td><td class="z-cell-mono">1h ago</td><td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("external", "")</button></td></tr>
+					<tr><td class="z-cell-main z-mono" style="font-size:10.5px">receipts/2026/11/order-8891.pdf</td><td class="z-cell-mono">210 KB</td><td class="z-cell-mono">application/pdf</td><td class="z-cell-mono">2h ago</td><td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("external", "")</button></td></tr>
+					<tr><td class="z-cell-main z-mono" style="font-size:10.5px">imports/products.csv</td><td class="z-cell-mono">1.4 MB</td><td class="z-cell-mono">text/csv</td><td class="z-cell-mono">yesterday</td><td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("external", "")</button></td></tr>
+				</tbody>
+			</table>
 		</div>
-	</div>
-
-	<div data-tab-panel="streams" style="display:none">
-		<div class="z-panel">
-			<div class="z-panel-header">
-				<span class="z-panel-title">Persistent streams</span>
-				<span class="z-panel-sub">JetStream · durable consumers</span>
-				<div class="z-panel-actions"><a href="/pubsub/" class="z-btn z-btn-sm">@Icon("network", "") Manage in Pub/Sub</a></div>
-			</div>
-			<div class="z-table-wrap">
-				<table class="z-table">
-					<thead><tr><th>Stream</th><th>Subjects</th><th>Messages</th><th>Storage</th><th>Replicas</th><th>Retention</th><th>Persistence</th><th>Consumers</th><th>Status</th><th></th></tr></thead>
-					<tbody>
-						@dataStreamRow("ORDERS", "orders.>", "1.28M", "412 MB", "3", "7 days", "file-backed", "3", "healthy")
-						@dataStreamRow("PAYMENTS", "payments.>", "384k", "96 MB", "3", "30 days", "file-backed", "2", "healthy")
-						@dataStreamRow("NOTIFICATIONS", "notify.>", "88k", "12 MB", "1", "24 hours", "memory", "2", "healthy")
-						@dataStreamRow("DEAD_LETTER", "dead.>", "24", "64 KB", "3", "90 days", "file-backed", "0", "idle")
-					</tbody>
-				</table>
-			</div>
-			<div class="z-panel-foot"><span class="z-help">Streams survive restarts when file-backed. Memory streams are recreated on node restart.</span><span class="z-badge z-badge-blue" style="margin-left:auto">JetStream</span></div>
-		</div>
+		<div class="z-panel-foot"><span class="z-help">Object paths are bucket-relative. Lifecycle policies can expire prefixes.</span></div>
 	</div>
 
 	<div id="store-modal" class="z-modal-backdrop" onclick="zCloseModal('store-modal')">
 		<div class="z-modal" onclick="event.stopPropagation()">
-			<div class="z-modal-header">@Icon("layers", "w-4 h-4")<span class="z-modal-title">Attach storage</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-header">@Icon("box", "w-4 h-4")<span class="z-modal-title">New bucket</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
 			<div class="z-modal-body">
-				<div class="z-field"><label class="z-label">Type</label><select class="z-select"><option>Postgres database</option><option>S3 object bucket</option><option>Key-value store</option><option>JetStream persistent stream</option></select></div>
-				<div class="z-field" style="margin-top:11px"><label class="z-label">Name</label><input class="z-input z-mono" placeholder="my_store"/></div>
-				<div class="z-field" style="margin-top:11px"><label class="z-label">Scope</label><select class="z-select"><option>All functions</option><option>Selected functions</option></select></div>
+				<div class="z-field"><label class="z-label">Name</label><input class="z-input z-mono" placeholder="my-bucket"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Versioning</label><select class="z-select"><option>Enabled</option><option>Suspended</option></select></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Lifecycle</label><select class="z-select"><option>Keep forever</option><option>Expire after 30 days</option><option>Expire after 90 days</option></select></div>
 			</div>
-			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('store-modal'); toast('Storage attach is a placeholder','success')">Attach</button></div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('store-modal'); toast('Bucket creation is a placeholder','success')">Create bucket</button></div>
 		</div>
 	</div>
-}
-
-templ databaseRow(name string, engine string, host string, size string, connections string, backups string, status string) {
-	<tr>
-		<td class="z-cell-main z-mono" style="font-size:10.5px">{ name }</td>
-		<td class="z-cell-mono">{ engine }</td>
-		<td class="z-cell-mono">{ host }</td>
-		<td class="z-cell-mono">{ size }</td>
-		<td class="z-cell-mono">{ connections }</td>
-		<td class="z-cell-mono">{ backups }</td>
-		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-amber", status != "healthy") }>{ status }</span></td>
-		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
-	</tr>
 }
 
 templ objectRow(bucket string, provider string, endpoint string, region string, objects string, size string, versioning string, status string) {
@@ -142,32 +76,5 @@ templ objectRow(bucket string, provider string, endpoint string, region string, 
 		<td><span class={ "z-badge", templ.KV("z-badge-green", versioning == "enabled"), templ.KV("z-badge-muted", versioning != "enabled") }>{ versioning }</span></td>
 		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-amber", status != "healthy") }>{ status }</span></td>
 		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("external", "")</button></td>
-	</tr>
-}
-
-templ keyValueRow(store string, keys string, revision string, ttl string, size string, status string) {
-	<tr>
-		<td class="z-cell-main z-mono" style="font-size:10.5px">{ store }</td>
-		<td class="z-cell-mono">{ keys }</td>
-		<td class="z-cell-mono">{ revision }</td>
-		<td class="z-cell-mono">{ ttl }</td>
-		<td class="z-cell-mono">{ size }</td>
-		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-amber", status != "healthy") }>{ status }</span></td>
-		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("edit", "")</button></td>
-	</tr>
-}
-
-templ dataStreamRow(name string, subjects string, messages string, storage string, replicas string, retention string, persistence string, consumers string, status string) {
-	<tr>
-		<td class="z-cell-main z-mono" style="font-size:10.5px">{ name }</td>
-		<td class="z-cell-mono">{ subjects }</td>
-		<td class="z-cell-mono">{ messages }</td>
-		<td class="z-cell-mono">{ storage }</td>
-		<td><span class="z-badge">{ replicas }</span></td>
-		<td class="z-cell-mono">{ retention }</td>
-		<td><span class={ "z-badge", templ.KV("z-badge-blue", persistence == "file-backed"), templ.KV("z-badge-muted", persistence != "file-backed") }>{ persistence }</span></td>
-		<td class="z-cell-mono">{ consumers }</td>
-		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-muted", status == "idle") }>{ status }</span></td>
-		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
 	</tr>
 }

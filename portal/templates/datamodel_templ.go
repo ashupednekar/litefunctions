@@ -29,7 +29,7 @@ func DataModelContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Data Model", "Define tables and queries once, then generate typed code and migrations. sqlc-style, reviewed before it ships.", "Build", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Tables", "Define tables and queries once, then generate typed code and migrations. sqlc-style, reviewed before it ships.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="previewMigration()">`+svgTable()+` Preview migration</button>
 		<button class="z-btn z-btn-primary" onclick="generateModels()">`+svgBraces()+` Generate</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)

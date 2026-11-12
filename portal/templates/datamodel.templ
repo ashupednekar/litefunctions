@@ -1,7 +1,7 @@
 package templates
 
 templ DataModelContent() {
-	@PageHead("Data Model", "Define tables and queries once, then generate typed code and migrations. sqlc-style, reviewed before it ships.", "Build", templ.Raw(`
+	@PageHead("Tables", "Define tables and queries once, then generate typed code and migrations. sqlc-style, reviewed before it ships.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="previewMigration()">`+svgTable()+` Preview migration</button>
 		<button class="z-btn z-btn-primary" onclick="generateModels()">`+svgBraces()+` Generate</button>
 	`))

@@ -29,7 +29,7 @@ func PubSubContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Pub/Sub · Olly", "Persistent JetStream streams, durable consumers and a live telemetry surface backed by Olly — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Pub/Sub", "Persistent JetStream streams, durable consumers and Olly telemetry — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('stream-modal')">`+svgPlus()+` New stream</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)

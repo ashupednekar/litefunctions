@@ -39,14 +39,14 @@ templ BaseLayout(data ShellData, content templ.Component) {
 						<div class="z-nav-section">
 							@NavItem("/dashboard/", "Overview", "grid", data.Active == "overview", "")
 							@NavItem("/functions/", "Functions", "code", data.Active == "functions", "")
-							@NavItem("/data/", "Data & Storage", "layers", data.Active == "data", "")
-							@NavItem("/data-model/", "Data Model", "database", data.Active == "data-model", "")
 							@NavItem("/agent/", "Agentic Planner", "sparkles", data.Active == "agent", "")
 							@NavItem("/observability/", "Observability", "activity", data.Active == "observability", "")
 						</div>
 						<div class="z-nav-section">
-							<div class="z-nav-label">Olly</div>
-							@NavItem("/pubsub/", "Pub/Sub · Olly", "network", data.Active == "pubsub", "")
+							<div class="z-nav-label">Data</div>
+							@NavItem("/data/", "Objects", "box", data.Active == "data", "")
+							@NavItem("/data-model/", "Tables", "table", data.Active == "data-model", "")
+							@NavItem("/pubsub/", "Pub/Sub", "network", data.Active == "pubsub", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Project</div>
