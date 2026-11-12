@@ -6,12 +6,7 @@ templ DependenciesContent() {
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('dep-modal')">`+svgPlus()+` Add dependency</button>
 	`))
 
-	<div class="z-grid z-grid-4" style="margin-bottom:14px">
-		<div class="z-stat">
-			<div class="z-stat-label">@Icon("package", "") Ecosystems</div>
-			<div class="z-stat-value">5</div>
-			<div class="z-stat-delta">Go · Node · Python · Rust · Lua</div>
-		</div>
+	<div class="z-grid z-grid-2" style="margin-bottom:14px">
 		<div class="z-stat">
 			<div class="z-stat-label">@Icon("layers", "") Packages</div>
 			<div class="z-stat-value">35</div>
@@ -22,11 +17,6 @@ templ DependenciesContent() {
 			<div class="z-stat-value">4</div>
 			<div class="z-stat-delta"><span style="color:var(--amber)">2 minor</span> <span class="z-faint">·</span> 2 patch</div>
 		</div>
-		<div class="z-stat">
-			<div class="z-stat-label">@Icon("shield", "") Vulnerabilities</div>
-			<div class="z-stat-value" style="color:var(--green)">0</div>
-			<div class="z-stat-delta">last scan 6m ago <span class="z-faint">·</span> advisory db current</div>
-		</div>
 	</div>
 
 	<div class="z-alert z-alert-blue" style="margin-bottom:14px">
@@ -35,104 +25,105 @@ templ DependenciesContent() {
 	</div>
 
 	<div data-tab-group>
-		<div class="z-split">
-			<div class="z-split-wide">
-				<div class="z-panel">
-					<div class="z-panel-header">
-						<span class="z-panel-title">Manifests</span>
-						<span class="z-badge z-badge-muted">5 files</span>
-					</div>
-					<div class="z-panel-body tight" style="padding:6px">
-						for i, m := range dependencyManifests() {
-							<button data-tab={ m.ID } class={ "z-nav-item", templ.KV("active", i == 0) } style="width:100%;text-align:left;height:36px">
-								@Icon("file", "")
-								<span style="flex:1;min-width:0">
-									<span style="display:block;font-size:11px;color:inherit">{ m.File }</span>
-									<span class="z-mono" style="display:block;font-size:8.5px;color:var(--text-4);margin-top:1px">{ m.Language } · { itoa(m.Count) } packages</span>
-								</span>
-								if m.Updates > 0 {
-									<span class="z-badge z-badge-amber">{ itoa(m.Updates) }</span>
-								} else {
-									@Icon("check", "w-3 h-3 text-[#7ee787]")
-								}
-							</button>
-						}
-					</div>
-					<div class="z-panel-foot">
-						<span class="z-mono" style="font-size:9px;color:var(--text-4)">lockfiles committed</span>
-						<span class="z-badge z-badge-green" style="margin-left:auto">clean</span>
-					</div>
-				</div>
-
-				<div>
+		<div class="z-panel" style="margin-bottom:14px">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Manifests</span>
+				<span class="z-badge z-badge-muted">5 files</span>
+				<span class="z-panel-sub">select a language to edit its manifest and packages</span>
+			</div>
+			<div class="z-panel-body tight" style="padding:10px">
+				<div class="z-lang-grid">
 					for i, m := range dependencyManifests() {
-						<div data-tab-panel={ m.ID } style={ tabStyle(i == 0) }>
-							<div class="z-panel">
-								<div class="z-panel-header">
-									@Icon("file", "w-3.5 h-3.5 text-[#a6a6af]")
-									<span class="z-panel-title z-mono">{ m.File }</span>
-									<span class="z-badge z-badge-muted">{ m.Language }</span>
-									<div class="z-panel-actions">
-										<button class="z-btn z-btn-sm z-btn-ghost" data-copy={ m.Code }>@Icon("copy", "") Copy</button>
-										<button class="z-btn z-btn-sm">@Icon("edit", "") Edit</button>
-									</div>
-								</div>
-								<div class="z-panel-body tight">
-									<div class="z-code-editor" style="border:0;border-radius:0;max-height:280px">
-										<div class="z-code-lines" style="padding-top:11px">
-											for n := range lines(m.Code) {
-												<span>{ itoa(n + 1) }</span>
-											}
-										</div>
-										<pre class="z-code-body" style="padding-top:11px">{ m.Code }</pre>
-									</div>
-								</div>
-								<div class="z-panel-foot">
-									<span class="z-mono" style="font-size:9px;color:var(--text-4)">module path resolved · checksums verified</span>
-									<button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto">@Icon("external", "") View lockfile</button>
-								</div>
-							</div>
-
-							<div class="z-panel" style="margin-top:14px">
-								<div class="z-panel-header">
-									<span class="z-panel-title">Packages</span>
-									<span class="z-badge z-badge-muted">{ itoa(m.Count) } resolved</span>
-									<div class="z-panel-actions">
-										<div class="z-search" style="width:190px">
-											@Icon("search", "")
-											<input class="z-input" style="height:25px;font-size:10.5px" placeholder="Filter packages…"/>
-										</div>
-										<button class="z-btn z-btn-sm">@Icon("filter", "") Filter</button>
-									</div>
-								</div>
-								<div class="z-table-wrap">
-									<table class="z-table">
-										<thead>
-											<tr><th>Package</th><th>Version</th><th>Scope</th><th>Status</th><th></th></tr>
-										</thead>
-										<tbody>
-											for _, d := range m.Deps {
-												<tr>
-													<td class="z-cell-main z-mono" style="font-size:10.5px">{ d.Name }</td>
-													<td class="z-cell-mono">{ d.Version }</td>
-													<td><span class={ "z-badge", templ.KV("z-badge-blue", d.Scope == "direct" || d.Scope == "runtime"), templ.KV("z-badge-muted", d.Scope == "indirect" || d.Scope == "dev") }>{ d.Scope }</span></td>
-													<td>
-														if d.Status == "update" {
-															<span class="z-badge z-badge-amber">update · { d.Note }</span>
-														} else {
-															<span class="z-badge z-badge-green">@Icon("check", "") current</span>
-														}
-													</td>
-													<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
-												</tr>
-											}
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
+						<button data-tab={ m.ID } class={ "z-lang-tile", "z-manifest-card", templ.KV("active", i == 0) }>
+							<img src={ "/static/imgs/" + m.ID + "-svgrepo-com.svg" } alt=""/>
+							<span class="z-manifest-meta">
+								<span class="z-manifest-lang">{ m.Language }</span>
+								<span class="z-manifest-file z-mono">{ m.File }</span>
+							</span>
+							if m.Updates > 0 {
+								<span class="z-badge z-badge-amber">{ itoa(m.Updates) } upd</span>
+							} else {
+								<span class="z-badge z-badge-green">clean</span>
+							}
+						</button>
 					}
 				</div>
+			</div>
+			<div class="z-panel-foot">
+				<span class="z-mono" style="font-size:9px;color:var(--text-4)">lockfiles committed</span>
+				<span class="z-badge z-badge-green" style="margin-left:auto">clean</span>
+			</div>
+		</div>
+
+		<div class="z-split">
+			<div>
+				for i, m := range dependencyManifests() {
+					<div data-tab-panel={ m.ID } style={ tabStyle(i == 0) }>
+						<div class="z-panel">
+							<div class="z-panel-header">
+								@Icon("file", "w-3.5 h-3.5 text-[#a6a6af]")
+								<span class="z-panel-title z-mono">{ m.File }</span>
+								<span class="z-badge z-badge-muted">{ m.Language }</span>
+								<div class="z-panel-actions">
+									<button class="z-btn z-btn-sm z-btn-ghost" data-copy={ m.Code }>@Icon("copy", "") Copy</button>
+									<button class="z-btn z-btn-sm">@Icon("edit", "") Edit</button>
+								</div>
+							</div>
+							<div class="z-panel-body tight">
+								<div class="z-code-editor" style="border:0;border-radius:0;max-height:340px">
+									<div class="z-code-lines" style="padding-top:11px">
+										for n := range lines(m.Code) {
+											<span>{ itoa(n + 1) }</span>
+										}
+									</div>
+									<pre class="z-code-body" style="padding-top:11px">{ m.Code }</pre>
+								</div>
+							</div>
+							<div class="z-panel-foot">
+								<span class="z-mono" style="font-size:9px;color:var(--text-4)">module path resolved · checksums verified</span>
+								<button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto">@Icon("external", "") View lockfile</button>
+							</div>
+						</div>
+
+						<div class="z-panel" style="margin-top:14px">
+							<div class="z-panel-header">
+								<span class="z-panel-title">Packages</span>
+								<span class="z-badge z-badge-muted">{ itoa(m.Count) } resolved</span>
+								<div class="z-panel-actions">
+									<div class="z-search" style="width:190px">
+										@Icon("search", "")
+										<input class="z-input" style="height:25px;font-size:10.5px" placeholder="Filter packages…"/>
+									</div>
+									<button class="z-btn z-btn-sm">@Icon("filter", "") Filter</button>
+								</div>
+							</div>
+							<div class="z-table-wrap">
+								<table class="z-table">
+									<thead>
+										<tr><th>Package</th><th>Version</th><th>Scope</th><th>Status</th><th></th></tr>
+									</thead>
+									<tbody>
+										for _, d := range m.Deps {
+											<tr>
+												<td class="z-cell-main z-mono" style="font-size:10.5px">{ d.Name }</td>
+												<td class="z-cell-mono">{ d.Version }</td>
+												<td><span class={ "z-badge", templ.KV("z-badge-blue", d.Scope == "direct" || d.Scope == "runtime"), templ.KV("z-badge-muted", d.Scope == "indirect" || d.Scope == "dev") }>{ d.Scope }</span></td>
+												<td>
+													if d.Status == "update" {
+														<span class="z-badge z-badge-amber">update · { d.Note }</span>
+													} else {
+														<span class="z-badge z-badge-green">@Icon("check", "") current</span>
+													}
+												</td>
+												<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				}
 			</div>
 
 			<aside>
@@ -144,35 +135,21 @@ templ DependenciesContent() {
 					<div class="z-panel-body">
 						<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
 							<div style="width:42px;height:42px;border-radius:50%;border:3px solid rgba(126,231,135,.5);display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;color:var(--green)">100</div>
-							<div>
-								<div style="font-size:11.5px;color:var(--text)">Dependency score</div>
-								<div class="z-help">No known advisories across 35 packages.</div>
+							<div style="flex:1;min-width:0">
+								<div style="font-size:11.5px;color:var(--text)">Supply-chain score</div>
+								<div class="z-help">Across 35 packages · 5 manifests</div>
 							</div>
+							<span class="z-badge z-badge-green">0 vulns</span>
 						</div>
 						<div class="z-divider"></div>
 						<dl class="z-kv">
+							<dt>Vulnerabilities</dt><dd>0 known advisories</dd>
 							<dt>Last scan</dt><dd>6 minutes ago</dd>
 							<dt>Advisory DB</dt><dd>2026.11.12</dd>
 							<dt>Licenses</dt><dd>MIT · Apache-2.0</dd>
 							<dt>SBOM</dt><dd>available</dd>
 						</dl>
 						<button class="z-btn" style="width:100%;margin-top:12px" onclick="scanDependencies()">@Icon("shield", "") Re-scan now</button>
-					</div>
-				</div>
-
-				<div class="z-panel" style="margin-top:14px">
-					<div class="z-panel-header"><span class="z-panel-title">Runtime images</span></div>
-					<div class="z-panel-body tight">
-						<div class="z-list">
-							@runtimeRow("python", "3.13", "sha-1f2a9c")
-							@runtimeRow("go", "1.26", "sha-77b0e1")
-							@runtimeRow("ts", "22 LTS", "sha-c401da")
-							@runtimeRow("rust", "1.84", "sha-a112fe")
-							@runtimeRow("lua", "5.4", "sha-90bc22")
-						</div>
-					</div>
-					<div class="z-panel-foot">
-						<span class="z-mono" style="font-size:9px;color:var(--text-4);">pinned by project sync</span>
 					</div>
 				</div>
 
@@ -239,15 +216,4 @@ templ DependenciesContent() {
 			setTimeout(() => toast("Scan complete · 4 updates available", "success"), 700);
 		}
 	</script>
-}
-
-templ runtimeRow(lang string, version string, digest string) {
-	<div class="z-list-item">
-		<span class="z-list-icon" style="font-family:var(--font-mono);font-size:9px;color:var(--text-2)">{ lang }</span>
-		<div class="z-list-main">
-			<div class="z-list-title z-mono" style="font-size:10.5px">{ version }</div>
-			<div class="z-list-sub z-mono" style="font-size:9px">{ digest }</div>
-		</div>
-		<span class="z-badge z-badge-green">pinned</span>
-	</div>
 }
