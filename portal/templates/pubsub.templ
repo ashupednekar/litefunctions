@@ -1,7 +1,7 @@
 package templates
 
 templ PubSubContent() {
-	@PageHead("Pub/Sub · Olly", "JetStream streams, consumers and a live telemetry surface backed by Olly — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
+	@PageHead("Pub/Sub · Olly", "Persistent JetStream streams, durable consumers and a live telemetry surface backed by Olly — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('stream-modal')">`+svgPlus()+` New stream</button>
 	`))
@@ -25,7 +25,7 @@ templ PubSubContent() {
 			<div>
 				<div class="z-panel">
 					<div class="z-panel-header">
-						<span class="z-panel-title">JetStream streams</span>
+						<span class="z-panel-title">Persistent streams</span>
 						<div class="z-panel-actions">
 							<div class="z-search" style="width:190px"><input class="z-input" style="height:25px;font-size:10.5px" placeholder="Filter streams…"/></div>
 							<button class="z-btn z-btn-sm" onclick="refreshStreams()">@Icon("refresh", "")</button>
@@ -33,15 +33,16 @@ templ PubSubContent() {
 					</div>
 					<div class="z-table-wrap">
 						<table class="z-table">
-							<thead><tr><th>Stream</th><th>Subjects</th><th>Messages</th><th>Storage</th><th>Replicas</th><th>Retention</th><th>Status</th><th></th></tr></thead>
+							<thead><tr><th>Stream</th><th>Subjects</th><th>Messages</th><th>Storage</th><th>Replicas</th><th>Retention</th><th>Persistence</th><th>Status</th><th></th></tr></thead>
 							<tbody>
-								@streamRow("ORDERS", "orders.>", "1.28M", "412 MB", "3", "7 days", "healthy")
-								@streamRow("PAYMENTS", "payments.>", "384k", "96 MB", "3", "30 days", "healthy")
-								@streamRow("NOTIFICATIONS", "notify.>", "88k", "12 MB", "1", "24 hours", "healthy")
-								@streamRow("DEAD_LETTER", "dead.>", "24", "64 KB", "3", "90 days", "idle")
+								@streamRow("ORDERS", "orders.>", "1.28M", "412 MB", "3", "7 days", "file-backed", "healthy")
+								@streamRow("PAYMENTS", "payments.>", "384k", "96 MB", "3", "30 days", "file-backed", "healthy")
+								@streamRow("NOTIFICATIONS", "notify.>", "88k", "12 MB", "1", "24 hours", "memory", "healthy")
+								@streamRow("DEAD_LETTER", "dead.>", "24", "64 KB", "3", "90 days", "file-backed", "idle")
 							</tbody>
 						</table>
 					</div>
+					<div class="z-panel-foot"><span class="z-help">File-backed streams survive restarts. Memory streams are recreated on node restart.</span><span class="z-badge z-badge-blue" style="margin-left:auto">JetStream</span></div>
 				</div>
 
 				<div class="z-grid z-grid-2" style="margin-top:14px">
@@ -230,7 +231,7 @@ templ PubSubContent() {
 	</script>
 }
 
-templ streamRow(name string, subjects string, messages string, storage string, replicas string, retention string, status string) {
+templ streamRow(name string, subjects string, messages string, storage string, replicas string, retention string, persistence string, status string) {
 	<tr>
 		<td class="z-cell-main z-mono" style="font-size:10.5px">{ name }</td>
 		<td class="z-cell-mono">{ subjects }</td>
@@ -238,6 +239,7 @@ templ streamRow(name string, subjects string, messages string, storage string, r
 		<td class="z-cell-mono">{ storage }</td>
 		<td><span class="z-badge">{ replicas }</span></td>
 		<td class="z-cell-mono">{ retention }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-blue", persistence == "file-backed"), templ.KV("z-badge-muted", persistence != "file-backed") }>{ persistence }</span></td>
 		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-muted", status == "idle") }>{ status }</span></td>
 		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
 	</tr>

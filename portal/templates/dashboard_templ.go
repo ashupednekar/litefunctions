@@ -430,7 +430,7 @@ func DashboardContent(data DashboardData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</a> <a href=\"/compute/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#76d6e0;border-color:rgba(118,214,224,.25);background:rgba(118,214,224,.08)\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</a> <a href=\"/functions/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#76d6e0;border-color:rgba(118,214,224,.25);background:rgba(118,214,224,.08)\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -438,7 +438,7 @@ func DashboardContent(data DashboardData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</span><div><div class=\"z-list-title\">Compute & isolation</div><div class=\"z-list-sub\">CRI, gVisor, Kata and unikernel profiles.</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</span><div><div class=\"z-list-title\">Runtime & isolation</div><div class=\"z-list-sub\">Runtime interfaces, dedicated runtimes and repo settings.</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

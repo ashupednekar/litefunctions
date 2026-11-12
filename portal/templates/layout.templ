@@ -55,7 +55,6 @@ templ BaseLayout(data ShellData, content templ.Component) {
 						<div class="z-nav-section">
 							<div class="z-nav-label">Operate</div>
 							@NavItem("/traffic/", "Traffic · Gateway", "shield", data.Active == "traffic", "")
-							@NavItem("/compute/", "Compute · Isolation", "cpu", data.Active == "compute", "")
 							@NavItem("/observability/", "Observability", "activity", data.Active == "observability", "")
 						</div>
 						<div class="z-nav-section">

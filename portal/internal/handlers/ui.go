@@ -337,16 +337,6 @@ func (h *UIHandlers) Traffic(ctx *gin.Context) {
 	}
 }
 
-func (h *UIHandlers) Compute(ctx *gin.Context) {
-	page := templates.BaseLayout(
-		shellData(ctx, "Compute · Isolation", "Operate", "compute"),
-		templates.ComputeContent(),
-	)
-	if err := page.Render(ctx, ctx.Writer); err != nil {
-		slog.Error("page render failed", "error", err)
-	}
-}
-
 func (h *UIHandlers) Observability(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Observability", "Operate", "observability"),

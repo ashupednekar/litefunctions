@@ -12,7 +12,6 @@
     { group: "Data", label: "Data & Storage", href: "/data/", icon: "layers" },
     { group: "Data", label: "Pub/Sub · Olly", href: "/pubsub/", icon: "network" },
     { group: "Operate", label: "Traffic · Gateway", href: "/traffic/", icon: "shield" },
-    { group: "Operate", label: "Compute · Isolation", href: "/compute/", icon: "cpu" },
     { group: "Operate", label: "Observability", href: "/observability/", icon: "activity" },
     { group: "Settings", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
     { group: "Settings", label: "Team & Access", href: "/access/", icon: "users" },
@@ -22,6 +21,9 @@
   const iconPaths = {
     grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     code: '<path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/>',
+    file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    "chevron-right": '<path d="m9 18 6-6-6-6"/>',
+    "chevron-down": '<path d="m6 9 6 6 6-6"/>',
     route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
     package: '<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
     database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
