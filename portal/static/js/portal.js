@@ -5,14 +5,14 @@
   const navItems = [
     { group: "Workspace", label: "Overview", href: "/dashboard/", icon: "grid", keys: "g o" },
     { group: "Workspace", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
-    { group: "Project", label: "Dependencies", href: "/dependencies/", icon: "package" },
+    { group: "Workspace", label: "Agentic Planner", href: "/agent/", icon: "sparkles" },
+    { group: "Workspace", label: "Observability", href: "/observability/", icon: "activity" },
     { group: "Data", label: "Objects", href: "/data/", icon: "box" },
     { group: "Data", label: "Tables", href: "/data-model/", icon: "table" },
     { group: "Data", label: "Pub/Sub", href: "/pubsub/", icon: "network" },
-    { group: "Workspace", label: "Agentic Planner", href: "/agent/", icon: "sparkles" },
-    { group: "Traffic & Access", label: "Traffic", href: "/traffic/", icon: "shield" },
-    { group: "Workspace", label: "Observability", href: "/observability/", icon: "activity" },
+    { group: "Project", label: "Dependencies", href: "/dependencies/", icon: "package" },
     { group: "Project", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
+    { group: "Traffic & Access", label: "Traffic", href: "/traffic/", icon: "shield", keys: "g e" },
     { group: "Traffic & Access", label: "Team & Access", href: "/access/", icon: "users" }
   ];
 
