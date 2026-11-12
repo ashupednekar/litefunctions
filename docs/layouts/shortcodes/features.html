@@ -1,0 +1,11 @@
+<div class="z-docs-features" id="features">
+  {{ range $index, $feature := .Site.Data.features }}
+  <article class="z-panel z-docs-feature">
+    <span class="z-docs-feature-index z-mono">{{ printf "%02d" (add $index 1) }}</span>
+    <div>
+      <h3>{{ $feature.title }}</h3>
+      <p>{{ $feature.body }}</p>
+    </div>
+  </article>
+  {{ end }}
+</div>
