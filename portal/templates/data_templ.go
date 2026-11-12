@@ -29,7 +29,351 @@ func DataContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Data</h1><!-- Description --><p class=\"text-neutral-400 text-sm md:text-base -mt-6\">KV stores, document storage, object buckets, streams — simple and durable.</p><!-- GRID --><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6\"><!-- Streams --><div class=\"p-6 bg-[#0e0e0f] rounded-2xl border border-neutral-800 space-y-3\"><h2 class=\"text-white text-xl font-semibold\">Streams</h2><p class=\"text-neutral-400 text-sm\">JetStream durable message streams.</p><div id=\"streams-list\" class=\"space-y-4 mt-4\"><div class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-4\"><div class=\"flex items-center justify-between\"><span class=\"text-white font-medium\">events_stream</span> <button class=\"text-neutral-400 hover:text-white transition\">Inspect</button></div></div></div></div><!-- Key-Value Stores --><div class=\"p-6 bg-[#0e0e0f] rounded-2xl border border-neutral-800 space-y-3\"><h2 class=\"text-white text-xl font-semibold\">Key-Value Stores</h2><p class=\"text-neutral-400 text-sm\">Versioned configuration buckets.</p><div id=\"kv-list\" class=\"space-y-4 mt-4\"><div class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-4\"><div class=\"flex items-center justify-between\"><span class=\"text-white font-medium\">app_settings</span> <button onclick=\"openKVEditor('app_settings')\" class=\"text-neutral-400 hover:text-white transition\">Edit</button></div></div></div></div><!-- Object Buckets --><div class=\"p-6 bg-[#0e0e0f] rounded-2xl border border-neutral-800 space-y-3\"><h2 class=\"text-white text-xl font-semibold\">Object Buckets</h2><p class=\"text-neutral-400 text-sm\">Binary blobs, uploads, assets.</p><div id=\"buckets-list\" class=\"space-y-4 mt-4\"><div class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-4\"><div class=\"flex items-center justify-between\"><span class=\"text-white font-medium\">user_uploads</span> <button class=\"text-neutral-400 hover:text-white transition\">Browse</button></div></div></div></div><!-- Databases --><div class=\"p-6 bg-[#0e0e0f] rounded-2xl border border-neutral-800 space-y-3\"><h2 class=\"text-white text-xl font-semibold\">Databases</h2><p class=\"text-neutral-400 text-sm\">Primary SQL / document databases.</p><div id=\"db-list\" class=\"space-y-4 mt-4\"><div class=\"bg-[#0b0b0c] border border-neutral-800 rounded-xl p-4\"><div class=\"flex items-center justify-between\"><span class=\"text-white font-medium\">primary_db</span> <button class=\"text-neutral-400 hover:text-white transition\">View</button></div></div></div></div></div></div>")
+		templ_7745c5c3_Err = PageHead("Data & Storage", "Key-value stores, object buckets, streams and databases attached to this project.", "Data", templ.Raw(`
+		<button class="z-btn" onclick="toast('Storage docs are a placeholder','info')">`+svgExternal()+` Storage docs</button>
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('store-modal')">`+svgPlus()+` Attach store</button>
+	`)).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-grid z-grid-4\" style=\"margin-bottom:14px\"><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("layers", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Key-value</div><div class=\"z-stat-value\">2</div><div class=\"z-stat-delta\">versioned buckets <span class=\"z-faint\">·</span> 1.2M keys</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("box", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Object buckets</div><div class=\"z-stat-value\">1</div><div class=\"z-stat-delta\">3.4 GB <span class=\"z-faint\">·</span> S3 compatible</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("database", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Databases</div><div class=\"z-stat-value\">1</div><div class=\"z-stat-delta\">Postgres 16 <span class=\"z-faint\">·</span> 22% used</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Streams</div><div class=\"z-stat-value\">4</div><div class=\"z-stat-delta\">JetStream <span class=\"z-faint\">·</span> see Pub/Sub</div></div></div><div class=\"z-tabs\" data-tab-group><button class=\"z-tab active\" data-tab=\"overview\">Overview</button> <button class=\"z-tab\" data-tab=\"kv\">Key-value</button> <button class=\"z-tab\" data-tab=\"buckets\">Object buckets</button> <button class=\"z-tab\" data-tab=\"databases\">Databases</button></div><div data-tab-panel=\"overview\"><div class=\"z-grid z-grid-2\"><a href=\"/pubsub/\" class=\"z-panel\" style=\"text-decoration:none\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Streams</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">4 active</span></div><div class=\"z-panel-body\"><div class=\"z-help\">Durable JetStream streams for events and async work.</div><div class=\"z-list\" style=\"margin-top:10px\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">ORDERS</div><div class=\"z-list-sub\">1.28M messages · 412 MB</div></div><span class=\"z-badge z-badge-green\">healthy</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">PAYMENTS</div><div class=\"z-list-sub\">384k messages · 96 MB</div></div><span class=\"z-badge z-badge-green\">healthy</span></div></div></div><div class=\"z-panel-foot\"><span class=\"z-help\">Open Pub/Sub · Olly</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("arrow-right", "ml-auto w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></a><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Key-value stores</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "New</button></div></div><div class=\"z-panel-body tight\"><div class=\"z-list\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = kvRow("app_settings", "24 keys", "v7", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = kvRow("sessions", "1.2M keys", "v3", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = kvRow("feature_cache", "82 keys", "v12", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div></div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Object buckets</span></div><div class=\"z-panel-body\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = storageBar("user_uploads", 3400, 10000, "34%").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"z-divider\"></div><dl class=\"z-kv\"><dt>Provider</dt><dd>S3 compatible</dd><dt>Endpoint</dt><dd>minio.litefunctions</dd><dt>Versioning</dt><dd>enabled</dd></dl></div></div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Databases</span><span class=\"z-badge z-badge-blue\" style=\"margin-left:auto\">postgres 16</span></div><div class=\"z-panel-body\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("database", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">orders</div><div class=\"z-list-sub\">pool 8 / 20 · 22% disk</div></div><span class=\"z-badge z-badge-green\">healthy</span></div></div><div class=\"z-divider\"></div><a href=\"/data-model/\" class=\"z-btn z-btn-sm\" style=\"width:100%\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "Open data model</a></div></div></div></div><div data-tab-panel=\"kv\" style=\"display:none\"><div class=\"z-split-wide\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Buckets</span></div><div class=\"z-panel-body tight\" style=\"padding:6px\"><button class=\"z-nav-item active\" style=\"width:100%;text-align:left\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("layers", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span>app_settings</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("layers", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span>sessions</span></button> <button class=\"z-nav-item\" style=\"width:100%;text-align:left\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("layers", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<span>feature_cache</span></button></div></div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title z-mono\">app_settings</span><span class=\"z-badge z-badge-muted\">24 keys</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "Key</button></div></div><div class=\"z-table-wrap\"><table class=\"z-table\"><thead><tr><th>Key</th><th>Value</th><th>Revision</th><th>Updated</th><th></th></tr></thead> <tbody><tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">orders.currency</td><td class=\"z-cell-mono\">USD</td><td class=\"z-cell-mono\">7</td><td class=\"z-cell-mono\">2d ago</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("edit", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</button></td></tr><tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">orders.max_items</td><td class=\"z-cell-mono\">50</td><td class=\"z-cell-mono\">3</td><td class=\"z-cell-mono\">5d ago</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("edit", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</button></td></tr><tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">payments.provider</td><td class=\"z-cell-mono\">stripe</td><td class=\"z-cell-mono\">1</td><td class=\"z-cell-mono\">12d ago</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("edit", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</button></td></tr></tbody></table></div></div></div></div><div data-tab-panel=\"buckets\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">user_uploads</span><span class=\"z-badge z-badge-muted\">3,402 objects</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "Upload</button></div></div><div class=\"z-table-wrap\"><table class=\"z-table\"><thead><tr><th>Object</th><th>Size</th><th>Content type</th><th>Modified</th><th></th></tr></thead> <tbody><tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">avatars/ashu.png</td><td class=\"z-cell-mono\">48 KB</td><td class=\"z-cell-mono\">image/png</td><td class=\"z-cell-mono\">1h ago</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("external", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button></td></tr><tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">receipts/2026/11/order-8891.pdf</td><td class=\"z-cell-mono\">210 KB</td><td class=\"z-cell-mono\">application/pdf</td><td class=\"z-cell-mono\">2h ago</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("external", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</button></td></tr><tr><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">imports/products.csv</td><td class=\"z-cell-mono\">1.4 MB</td><td class=\"z-cell-mono\">text/csv</td><td class=\"z-cell-mono\">yesterday</td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("external", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</button></td></tr></tbody></table></div><div class=\"z-panel-foot\"><span class=\"z-help\">Signed URLs expire in 15 minutes. Direct browser uploads use presigned POST.</span></div></div></div><div data-tab-panel=\"databases\" style=\"display:none\"><div class=\"z-split\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">orders</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">connected</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("play", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "Query</button></div></div><div class=\"z-panel-body\"><div class=\"z-grid z-grid-3\"><div><div class=\"z-stat-label\">Connections</div><div style=\"font-size:18px;margin-top:4px\">8 / 20</div></div><div><div class=\"z-stat-label\">Disk</div><div style=\"font-size:18px;margin-top:4px\">2.2 / 10 GB</div></div><div><div class=\"z-stat-label\">P95 query</div><div style=\"font-size:18px;margin-top:4px\">7ms</div></div></div><div class=\"z-divider\"></div><dl class=\"z-kv\"><dt>Host</dt><dd>orders-db.litefunctions</dd><dt>Database</dt><dd>orders</dd><dt>Extensions</dt><dd>pgcrypto, pg_stat_statements</dd><dt>Backups</dt><dd>daily · 7 retained</dd></dl><a href=\"/data-model/\" class=\"z-btn\" style=\"width:100%;margin-top:12px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Manage schema</a></div></div><aside><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Tables</span></div><div class=\"z-panel-body tight\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">orders</div><div class=\"z-list-sub\">184k rows · 410 MB</div></div></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">customers</div><div class=\"z-list-sub\">22k rows · 18 MB</div></div></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("table", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">order_items</div><div class=\"z-list-sub\">512k rows · 96 MB</div></div></div></div></div></div></aside></div></div><div id=\"store-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('store-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("layers", "w-4 h-4").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"z-modal-title\">Attach storage</span><button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\">Type</label><select class=\"z-select\"><option>Key-value bucket</option><option>Object bucket</option><option>Postgres database</option><option>JetStream stream</option></select></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Name</label><input class=\"z-input z-mono\" placeholder=\"my_store\"></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Scope</label><select class=\"z-select\"><option>All functions</option><option>Selected functions</option></select></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button><button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('store-modal'); toast('Storage attach is a placeholder','success')\">Attach</button></div></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func kvRow(name string, keys string, revision string, status string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"z-list-item\"><span class=\"z-list-icon\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("layers", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/data.templ`, Line: 165, Col: 67}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</div><div class=\"z-list-sub\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(keys)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/data.templ`, Line: 166, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " · ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(revision)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/data.templ`, Line: 166, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div></div><span class=\"z-badge z-badge-green\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(status)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/data.templ`, Line: 168, Col: 46}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

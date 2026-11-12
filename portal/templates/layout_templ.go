@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func BaseLayout(content templ.Component) templ.Component {
+func BaseLayout(data ShellData, content templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +29,310 @@ func BaseLayout(content templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><!-- Tailwind Instant CDN --><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><!-- Basecoat UI --><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/basecoat.cdn.min.css\"><script src=\"https://cdn.jsdelivr.net/npm/basecoat-css@0.3.6/dist/js/all.min.js\" defer></script><style>\n  </style></head><body class=\"h-full bg-black text-white\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(data.Title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 9, Col: 22}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " · Litefunctions</title><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/js/portal.js\" defer></script></head><body><div class=\"z-app\"><aside class=\"z-sidebar\" id=\"app-sidebar\"><a href=\"/dashboard/\" class=\"z-brand\"><span class=\"z-brand-mark\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"></path></svg></span> <span class=\"z-brand-name\">litefunctions</span> <span class=\"z-brand-version\">0.1</span></a><div class=\"z-workspace-switch\"><a href=\"/dashboard/\" class=\"z-project-btn\" title=\"Switch project\"><span class=\"z-project-avatar\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(projectInitial(data.ProjectName))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 29, Col: 72}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span> <span class=\"z-project-meta\"><span class=\"z-project-name\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(projectLabel(data.ProjectName))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 31, Col: 69}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</span> <span class=\"z-project-role\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(projectRole(data.Role))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 32, Col: 61}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("chevron-down", "w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</a></div><nav class=\"z-sidebar-scroll\"><div class=\"z-nav-section\"><div class=\"z-nav-label\">Workspace</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/dashboard/", "Overview", "grid", data.Active == "overview", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/functions/", "Functions", "code", data.Active == "functions", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/endpoints/", "Endpoints", "route", data.Active == "endpoints", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div class=\"z-nav-section\"><div class=\"z-nav-label\">Build</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/dependencies/", "Dependencies", "package", data.Active == "dependencies", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/data-model/", "Data Model", "database", data.Active == "data-model", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/agent/", "Agentic Planner", "sparkles", data.Active == "agent", "AI").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"z-nav-section\"><div class=\"z-nav-label\">Data</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/data/", "Data & Storage", "layers", data.Active == "data", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/pubsub/", "Pub/Sub · Olly", "network", data.Active == "pubsub", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"z-nav-section\"><div class=\"z-nav-label\">Operate</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/traffic/", "Traffic · Gateway", "shield", data.Active == "traffic", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/compute/", "Compute · Isolation", "cpu", data.Active == "compute", "FUTURE").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/observability/", "Observability", "activity", data.Active == "observability", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/deployments/", "Deployments", "rocket", data.Active == "deployments", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"z-nav-section\"><div class=\"z-nav-label\">Project settings</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/configuration/", "Configs & Secrets", "key", data.Active == "configuration", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/access/", "Team & Access", "users", data.Active == "access", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/audit/", "Audit Log", "clock", data.Active == "audit", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></nav><div class=\"z-sidebar-foot\"><a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-sidebar-link\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("book", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span>Documentation</span> <span style=\"margin-left:auto\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("external", "w-3 h-3").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></a> <a href=\"https://github.com/ashupednekar/litefunctions/issues\" target=\"_blank\" rel=\"noopener\" class=\"z-sidebar-link\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("activity", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span>Platform status</span> <span class=\"z-dot z-dot-green\" style=\"margin-left:auto\"></span></a></div></aside><div class=\"z-main\"><header class=\"z-titlebar\"><button class=\"z-icon-btn z-sidebar-toggle\" data-sidebar-toggle aria-label=\"Toggle sidebar\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("sliders", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</button><div class=\"z-crumbs\"><span class=\"z-crumb\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(data.Section)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 91, Col: 43}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span> <span class=\"z-crumb-sep\">/</span> <span class=\"z-crumb-current\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(data.Title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 93, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></div><div class=\"z-titlebar-spacer\"></div><button class=\"z-cmd-trigger\" onclick=\"openSpotlight()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("search", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span>Search workspace…</span> <span class=\"z-kbd\">⌘</span><span class=\"z-kbd\">K</span></button> <span class=\"z-badge z-badge-green\" title=\"Platform healthy\" style=\"height:24px\"><span class=\"z-dot z-dot-green\"></span> Live</span><div style=\"position:relative\"><button class=\"z-user-chip\" data-user-menu-btn><span class=\"z-user-avatar\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(userInitial(data.Username))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 106, Col: 64}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> <span class=\"z-user-name\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 107, Col: 49}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("chevron-down", "w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</button><div id=\"user-menu\" class=\"z-user-menu\"><div class=\"z-user-menu-head\"><div class=\"z-user-avatar\" style=\"width:28px;height:28px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(userInitial(data.Username))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 112, Col: 95}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div><div><div style=\"font-size:11.5px;color:var(--text)\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 114, Col: 73}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div style=\"font-size:10px;color:var(--text-3)\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(data.Role)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 115, Col: 69}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div></div><a href=\"/dashboard/\" class=\"z-user-menu-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("grid", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "Workspace overview</a> <a href=\"/configuration/\" class=\"z-user-menu-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("key", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Project settings</a><div class=\"z-user-menu-sep\"></div><a href=\"/logout/\" class=\"z-user-menu-item danger\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("arrow-right", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Sign out</a></div></div></header><main class=\"z-content\"><div class=\"z-content-inner\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -37,7 +340,126 @@ func BaseLayout(content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<!-- TOAST CONTAINER --><div id=\"toast-container\" class=\"fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999999] flex flex-col items-center gap-3 pointer-events-none\"></div><!-- SPOTLIGHT MODAL (Global) --><div id=\"spotlight-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-[2px] hidden justify-center items-start pt-[15vh] z-[999999]\" onclick=\"closeSpotlight()\"><div class=\"w-[700px] pointer-events-auto rounded-2xl bg-[#0d0d0e]/90 border border-neutral-800 shadow-[0_0_60px_-10px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><div class=\"flex items-center gap-3 px-5 py-4 border-b border-neutral-800\"><div class=\"p-2 rounded-lg bg-[#1a1a1b] border border-neutral-700 text-neutral-400\"><svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.6\" d=\"M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z\"></path></svg></div><input id=\"spotlight-input\" type=\"text\" placeholder=\"Search functions, snippets, and more...\" class=\"w-full bg-transparent text-white text-lg placeholder-neutral-600 focus:outline-none\" autocomplete=\"off\" oninput=\"handleSpotlightInput(this.value)\"> <span class=\"text-neutral-600 text-xs bg-[#1a1a1b] px-2 py-1 rounded-md border border-neutral-700 font-mono\">⌘K</span></div><div id=\"spotlight-results\" class=\"max-h-[420px] overflow-y-auto custom-scrollbar\"><div class=\"p-8 text-center text-neutral-500 text-sm\">Search for functions by name...</div></div><div class=\"px-5 py-3 bg-[#0b0b0c] border-t border-neutral-800 flex justify-between items-center text-[11px] text-neutral-500 font-medium tracking-tight\"><div class=\"flex gap-4\"><span class=\"flex items-center gap-1.5\"><span class=\"px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 font-mono\">↑↓</span> navigate</span> <span class=\"flex items-center gap-1.5\"><span class=\"px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400 font-mono\">↵</span> select</span></div><div class=\"flex items-center gap-1.5\"><span class=\"w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse\"></span> Spotlight Search</div></div></div></div><script>\n\t\t\t\tfunction toast(msg, type = 'info') {\n\t\t\t\t\tconst container = document.getElementById(\"toast-container\");\n\t\t\t\t\tconst t = document.createElement(\"div\");\n\t\t\t\t\tt.className = `px-6 py-3 rounded-2xl border backdrop-blur-md shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300 pointer-events-auto cursor-pointer`;\n\t\t\t\t\t\n\t\t\t\t\tconst colors = {\n\t\t\t\t\t\tsuccess: 'bg-green-500/10 border-green-500/50 text-green-400',\n\t\t\t\t\t\terror: 'bg-red-500/10 border-red-500/50 text-red-400',\n\t\t\t\t\t\tinfo: 'bg-blue-500/10 border-blue-500/50 text-blue-400'\n\t\t\t\t\t};\n\t\t\t\t\tt.classList.add(...colors[type].split(' '));\n\t\t\t\t\t\n\t\t\t\t\tconst icons = {\n\t\t\t\t\t\tsuccess: '<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M5 13l4 4L19 7\"/></svg>',\n\t\t\t\t\t\terror: '<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M6 18L18 6M6 6l12 12\"/></svg>',\n\t\t\t\t\t\tinfo: '<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"/></svg>'\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tt.innerHTML = `\n\t\t\t\t\t\t<div class=\"p-1 rounded-full bg-black/20\">${icons[type]}</div>\n\t\t\t\t\t\t<span class=\"text-sm font-bold tracking-tight\">${msg}</span>\n\t\t\t\t\t`;\n\t\t\t\t\t\n\t\t\t\t\tt.onclick = () => {\n\t\t\t\t\t\tt.classList.replace(\"slide-in-from-bottom-5\", \"translate-y-2\");\n\t\t\t\t\t\tt.classList.add(\"opacity-0\", \"scale-95\");\n\t\t\t\t\t\tsetTimeout(() => t.remove(), 300);\n\t\t\t\t\t};\n\t\t\t\t\t\n\t\t\t\t\tcontainer.appendChild(t);\n\t\t\t\t\tsetTimeout(() => t.onclick(), 4000);\n\t\t\t\t}\n\n\t\t\t\tlet spotlightIndex = -1;\n\t\t\t\t\n\t\t\t\tfunction openSpotlight() {\n\t\t\t\t\tconst modal = document.getElementById(\"spotlight-modal\");\n\t\t\t\t\tif (!modal) return;\n\t\t\t\t\tmodal.classList.replace(\"hidden\", \"flex\");\n\t\t\t\t\tconst input = document.getElementById(\"spotlight-input\");\n\t\t\t\t\tinput.value = \"\";\n\t\t\t\t\tinput.focus();\n\t\t\t\t\tspotlightIndex = -1;\n\t\t\t\t\tdocument.getElementById(\"spotlight-results\").innerHTML = '<div class=\"p-8 text-center text-neutral-500 text-sm\">Search for functions by name...</div>';\n\t\t\t\t}\n\n\t\t\t\tfunction closeSpotlight() {\n\t\t\t\t\tconst modal = document.getElementById(\"spotlight-modal\");\n\t\t\t\t\tif (modal) {\n\t\t\t\t\t\tmodal.classList.replace(\"flex\", \"hidden\");\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\tfunction selectEndpointFromSpotlight(epId) {\n\t\t\t\t\tcloseSpotlight();\n\t\t\t\t\tif (window.location.pathname === \"/endpoints/\") {\n\t\t\t\t\t\tif (typeof expandEndpointById === \"function\") {\n\t\t\t\t\t\t\texpandEndpointById(epId);\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tdocument.querySelectorAll('[id^=\"endpoint-\"]').forEach(el => el.classList.add('hidden'));\n\t\t\t\t\t\t\tlet target = document.getElementById(\"endpoint-\" + epId);\n\t\t\t\t\t\t\tif (target) target.classList.remove('hidden');\n\t\t\t\t\t\t}\n\t\t\t\t\t\tlet card = document.getElementById(\"endpoint-\" + epId);\n\t\t\t\t\t\tif (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });\n\t\t\t\t\t} else {\n\t\t\t\t\t\twindow.location.href = \"/endpoints/?expand=\" + epId;\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\tdocument.addEventListener(\"keydown\", e => {\n\t\t\t\t\t// IGNORE IF IN ACE OR INPUT\n\t\t\t\t\tconst target = e.target;\n\t\t\t\t\tif (target.tagName === \"INPUT\" || target.tagName === \"TEXTAREA\" || target.closest(\".ace_editor\") || target.isContentEditable) {\n\t\t\t\t\t\t// Special case: if spotlight is open, we DO want to handle Escape\n\t\t\t\t\t\tconst spotlight = document.getElementById(\"spotlight-modal\");\n\t\t\t\t\t\tconst spotlightOpen = spotlight && !spotlight.classList.contains(\"hidden\");\n\t\t\t\t\t\t\n\t\t\t\t\t\tif (e.key === \"Escape\" && spotlightOpen) {\n\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\tcloseSpotlight();\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\t// Otherwise, let the input/editor handle it\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\n\t\t\t\t\t// Cmd+K, Cmd+F, Ctrl+K, Ctrl+F\n\t\t\t\t\tconst isCmdShortcut = (e.metaKey || e.ctrlKey) && (e.key === \"k\" || e.key === \"f\");\n\n\t\t\t\t\tif (isCmdShortcut) {\n\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\topenSpotlight();\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\n\t\t\t\t\tif (e.key === \"Escape\") {\n\t\t\t\t\t\tconst spotlight = document.getElementById(\"spotlight-modal\");\n\t\t\t\t\t\tif (spotlight && !spotlight.classList.contains(\"hidden\")) {\n\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\tcloseSpotlight();\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\n\t\t\t\t\tconst modal = document.getElementById(\"spotlight-modal\");\n\t\t\t\t\tif (modal && !modal.classList.contains(\"hidden\")) {\n\t\t\t\t\t\tconst results = document.querySelectorAll(\".spotlight-result\");\n\t\t\t\t\t\tif (e.key === \"ArrowDown\") {\n\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\tspotlightIndex = Math.min(spotlightIndex + 1, results.length - 1);\n\t\t\t\t\t\t\tupdateSpotlightSelection(results);\n\t\t\t\t\t\t} else if (e.key === \"ArrowUp\") {\n\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\tspotlightIndex = Math.max(spotlightIndex - 1, 0);\n\t\t\t\t\t\t\tupdateSpotlightSelection(results);\n\t\t\t\t\t\t} else if (e.key === \"Enter\" && spotlightIndex >= 0) {\n\t\t\t\t\t\t\te.preventDefault();\n\t\t\t\t\t\t\tresults[spotlightIndex].click();\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t});\n\n\t\t\t\tfunction updateSpotlightSelection(results) {\n\t\t\t\t\tresults.forEach((r, i) => {\n\t\t\t\t\t\tif (i === spotlightIndex) {\n\t\t\t\t\t\t\tr.classList.add(\"bg-[#141415]\", \"active-result\");\n\t\t\t\t\t\t\tr.scrollIntoView({ block: \"nearest\" });\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tr.classList.remove(\"bg-[#141415]\", \"active-result\");\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\n\t\t\t\tlet spotlightTimeout = null;\n\t\t\t\tfunction handleSpotlightInput(val) {\n\t\t\t\t\tclearTimeout(spotlightTimeout);\n\t\t\t\t\tif (!val) {\n\t\t\t\t\t\tdocument.getElementById(\"spotlight-results\").innerHTML = '<div class=\"p-8 text-center text-neutral-500 text-sm\">Search for functions & endpoints...</div>';\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\tspotlightTimeout = setTimeout(async () => {\n\t\t\t\t\t\ttry {\n\t\t\t\t\t\t\tconst [fRes, eRes] = await Promise.all([\n\t\t\t\t\t\t\t\tfetch(`/api/functions/?search=${encodeURIComponent(val)}&limit=5`),\n\t\t\t\t\t\t\t\tfetch(`/api/endpoints/?search=${encodeURIComponent(val)}&limit=5`)\n\t\t\t\t\t\t\t]);\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tconst functions = fRes.ok ? await fRes.json() : [];\n\t\t\t\t\t\t\tconst endpoints = eRes.ok ? await eRes.json() : [];\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\trenderSpotlightResults(functions, endpoints);\n\t\t\t\t\t\t} catch(e) {\n\t\t\t\t\t\t\tconsole.error(\"Spotlight fetch failed\", e);\n\t\t\t\t\t\t}\n\t\t\t\t\t}, 120);\n\t\t\t\t}\n\n\t\t\t\tfunction renderSpotlightResults(functions, endpoints) {\n\t\t\t\t\tconst container = document.getElementById(\"spotlight-results\");\n\t\t\t\t\tif (!container) return;\n\t\t\t\t\t\n\t\t\t\t\tif (functions.length === 0 && endpoints.length === 0) {\n\t\t\t\t\t\tcontainer.innerHTML = '<div class=\"p-8 text-center text-neutral-500 text-sm\">No results found.</div>';\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\n\t\t\t\t\tspotlightIndex = -1;\n\t\t\t\t\tlet html = \"\";\n\n\t\t\t\t\tif (functions.length > 0) {\n\t\t\t\t\t\thtml += '<div class=\"px-5 py-2 text-[10px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-900/50 border-b border-neutral-800\">Functions</div>';\n\t\t\t\t\t\thtml += functions.map(f => `\n\t\t\t\t\t\t\t<a href=\"/functions/?edit=${f.id}\" \n\t\t\t\t\t\t\t   class=\"spotlight-result block w-full text-left px-5 py-3 border-b border-neutral-800/50 flex flex-col gap-0.5 transition hover:bg-[#141415] group\">\n\t\t\t\t\t\t\t\t<div class=\"flex items-center justify-between\">\n\t\t\t\t\t\t\t\t\t<span class=\"text-white font-medium text-sm group-hover:text-blue-400 transition\">${f.name}</span>\n\t\t\t\t\t\t\t\t\t<span class=\"text-blue-400 text-[9px] font-bold tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20\">${f.language}</span>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<span class=\"text-neutral-500 text-[11px] truncate\">${f.path || \"\"}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t`).join(\"\");\n\t\t\t\t\t}\n\n\t\t\t\t\tif (endpoints.length > 0) {\n\t\t\t\t\t\thtml += '<div class=\"px-5 py-2 text-[10px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-900/50 border-b border-neutral-800\">Endpoints</div>';\n\t\t\t\t\t\thtml += endpoints.map(e => `\n\t\t\t\t\t\t\t<button \n\t\t\t\t\t\t\t   onclick=\"selectEndpointFromSpotlight('${e.ID}')\"\n\t\t\t\t\t\t\t   class=\"spotlight-result block w-full text-left px-5 py-3 border-b border-neutral-800/50 flex flex-col gap-0.5 transition hover:bg-[#141415] group\">\n\t\t\t\t\t\t\t\t<div class=\"flex items-center justify-between\">\n\t\t\t\t\t\t\t\t\t<span class=\"text-white font-medium text-sm group-hover:text-purple-400 transition\">${e.Name}</span>\n\t\t\t\t\t\t\t\t\t<div class=\"flex gap-2\">\n\t\t\t\t\t\t\t\t\t\t<span class=\"text-neutral-400 text-[9px] font-mono bg-neutral-800 px-1.5 py-0.5 rounded border border-neutral-700\">${e.FunctionName}</span>\n\t\t\t\t\t\t\t\t\t\t<span class=\"text-purple-400 text-[9px] font-bold tracking-widest bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20\">${e.Method}</span>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t`).join(\"\");\n\t\t\t\t\t}\n\n\t\t\t\t\tcontainer.innerHTML = html;\n\t\t\t\t}\n\t\t\t</script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div></main><footer class=\"z-statusbar\"><span class=\"z-status-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("git-branch", "w-3 h-3").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "ui_overhaul</span> <span class=\"z-status-item z-status-hide-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "projectLabel(data.ProjectName) ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = Icon("package", "w-3 h-3").Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</span> <span class=\"z-status-item z-status-hide-sm\"><span class=\"z-status-dot\"></span> NATS connected</span> <span class=\"z-status-item z-status-hide-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("cloud", "w-3 h-3").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "local-cluster</span> <span class=\"z-status-spacer\"></span> <span class=\"z-status-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("terminal", "w-3 h-3").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "Go 1.26</span> <span class=\"z-status-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("clock", "w-3 h-3").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "12ms</span> <span class=\"z-status-item\" onclick=\"openSpotlight()\" style=\"cursor:pointer\">⌘K commands</span></footer></div></div><div id=\"toast-container\"></div><div id=\"spotlight-modal\" class=\"z-spotlight\" onclick=\"closeSpotlight()\"><div class=\"z-spotlight-box\" onclick=\"event.stopPropagation()\"><div class=\"z-spotlight-input-row\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("search", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<input id=\"spotlight-input\" class=\"z-spotlight-input\" type=\"text\" placeholder=\"Jump to a page, function, or endpoint…\" autocomplete=\"off\"> <span class=\"z-kbd\">esc</span></div><div id=\"spotlight-results\" class=\"z-spotlight-results\"></div><div class=\"z-spotlight-foot\"><span><span class=\"z-kbd\">↑</span><span class=\"z-kbd\">↓</span> navigate</span> <span><span class=\"z-kbd\">↵</span> open</span> <span style=\"margin-left:auto\">Litefunctions command palette</span></div></div></div></body></html>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func AuthLayout(content templ.Component) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Litefunctions · Self-hosted functions</title><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/js/portal.js\" defer></script></head><body><div class=\"z-auth\"><nav class=\"z-auth-nav\"><a href=\"/\" class=\"z-brand\" style=\"border:0;padding:0;height:auto\"><span class=\"z-brand-mark\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"></path></svg></span> <span class=\"z-brand-name\">litefunctions</span></a> <span class=\"z-badge\" style=\"margin-left:8px\">self-hosted</span><div style=\"margin-left:auto;display:flex;gap:8px;align-items:center\"><a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-ghost z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("book", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "Docs</a> <a href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\" class=\"z-btn z-btn-sm\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("github", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "GitHub</a></div></nav><div class=\"z-auth-body\"><div class=\"z-auth-grid\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = content.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div></div></div><div id=\"toast-container\"></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

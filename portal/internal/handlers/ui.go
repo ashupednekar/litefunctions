@@ -28,13 +28,40 @@ func NewUIHandlers(s *state.AppState) *UIHandlers {
 	return &UIHandlers{state: s}
 }
 
+// shellData builds the persistent application chrome for a page.
+func shellData(ctx *gin.Context, title string, section string, active string) templates.ShellData {
+	username := "User"
+	if v, ok := ctx.Get("userName"); ok {
+		if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
+			username = s
+		}
+	}
+	projectName := ""
+	if v, ok := ctx.Get("projectName"); ok {
+		if s, ok := v.(string); ok {
+			projectName = s
+		}
+	}
+	projectID, _ := ctx.Cookie("lws_project")
+
+	return templates.ShellData{
+		Title:       title,
+		Section:     section,
+		Active:      active,
+		Username:    username,
+		Role:        "owner",
+		ProjectID:   projectID,
+		ProjectName: projectName,
+	}
+}
+
 func (h *UIHandlers) Home(ctx *gin.Context) {
 	userId, ok := ctx.Get("userID")
 	if ok && userId != nil {
 		ctx.Redirect(http.StatusFound, "/dashboard")
 		return
 	}
-	page := templates.BaseLayout(
+	page := templates.AuthLayout(
 		templates.HomeContent(),
 	)
 
@@ -70,8 +97,55 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 		}
 	}
 
+	data := templates.DashboardData{
+		Username:        usernameStr,
+		Projects:        projects,
+		ActiveProjectID: activeProjectID,
+	}
+
+	// Resolve the active project's display name, role and counts.
+	for _, p := range projects {
+		if p.ID != activeProjectID {
+			continue
+		}
+		data.ActiveProject = p.Name
+		data.ActiveRole = p.Role
+		break
+	}
+
+	if data.ActiveProject != "" {
+		if idBytes, err := hex.DecodeString(activeProjectID); err == nil && len(idBytes) == 16 {
+			var projectUUID pgtype.UUID
+			copy(projectUUID.Bytes[:], idBytes)
+			projectUUID.Valid = true
+
+			fnQ := functionAdaptors.New(h.state.DBPool)
+			if fns, err := fnQ.ListFunctionsForProject(ctx.Request.Context(), projectUUID); err == nil {
+				data.FunctionCount = len(fns)
+			}
+			epQ := endpointAdaptors.New(h.state.DBPool)
+			if eps, err := epQ.ListEndpointsForProject(ctx.Request.Context(), projectUUID); err == nil {
+				data.EndpointCount = len(eps)
+			}
+		}
+	}
+
+	shell := templates.ShellData{
+		Title:       "Overview",
+		Section:     "Workspace",
+		Active:      "overview",
+		Username:    usernameStr,
+		Role:        data.ActiveRole,
+		ProjectID:   activeProjectID,
+		ProjectName: data.ActiveProject,
+	}
+	if shell.Role == "" {
+		shell.Role = "owner"
+	}
+
 	page := templates.BaseLayout(
-		templates.DashboardContent(usernameStr, projects, activeProjectID),
+		shell,
+		templates.DashboardContent(data),
 	)
 
 	_ = page.Render(ctx, ctx.Writer)
@@ -145,6 +219,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	}
 
 	page := templates.BaseLayout(
+		shellData(ctx, "Functions", "Workspace", "functions"),
 		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples),
 	)
 
@@ -155,6 +230,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 
 func (h *UIHandlers) Data(ctx *gin.Context) {
 	page := templates.BaseLayout(
+		shellData(ctx, "Data & Storage", "Data", "data"),
 		templates.DataContent(),
 	)
 
@@ -172,7 +248,6 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 	if err == nil {
 		baseURL := strings.TrimRight(config.Cfg.IngestorUrl, "/")
 		for _, e := range dbEps {
-			// e.ID is available, e.Name is available, e.Method is available, e.Scope is available, e.FunctionName is available from join
 			endpoints = append(endpoints, templates.Endpoint{
 				ID:           hex.EncodeToString(e.ID.Bytes[:]),
 				Name:         e.Name,
@@ -189,6 +264,7 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 	}
 
 	page := templates.BaseLayout(
+		shellData(ctx, "Endpoints", "Workspace", "endpoints"),
 		templates.EndpointsContent(endpoints),
 	)
 
@@ -199,9 +275,110 @@ func (h *UIHandlers) Endpoints(ctx *gin.Context) {
 
 func (h *UIHandlers) Configuration(ctx *gin.Context) {
 	page := templates.BaseLayout(
+		shellData(ctx, "Configs & Secrets", "Project settings", "configuration"),
 		templates.ConfigurationContent(),
 	)
 
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Dependencies(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Dependencies", "Build", "dependencies"),
+		templates.DependenciesContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) DataModel(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Data Model", "Build", "data-model"),
+		templates.DataModelContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Agent(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Agentic Planner", "Build", "agent"),
+		templates.AgentContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) PubSub(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Pub/Sub · Olly", "Data", "pubsub"),
+		templates.PubSubContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Traffic(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Traffic · Gateway", "Operate", "traffic"),
+		templates.TrafficContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Compute(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Compute · Isolation", "Operate", "compute"),
+		templates.ComputeContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Observability(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Observability", "Operate", "observability"),
+		templates.ObservabilityContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Deployments(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Deployments", "Operate", "deployments"),
+		templates.DeploymentsContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Access(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Team & Access", "Project settings", "access"),
+		templates.AccessContent(),
+	)
+	if err := page.Render(ctx, ctx.Writer); err != nil {
+		slog.Error("page render failed", "error", err)
+	}
+}
+
+func (h *UIHandlers) Audit(ctx *gin.Context) {
+	page := templates.BaseLayout(
+		shellData(ctx, "Audit Log", "Project settings", "audit"),
+		templates.AuditContent(),
+	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		slog.Error("page render failed", "error", err)
 	}

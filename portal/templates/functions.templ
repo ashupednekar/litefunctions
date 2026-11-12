@@ -21,233 +21,54 @@ script saveEdit(exit bool) {
 
 templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample) {
 
-<div class="w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]">
+@PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
+	<label class="z-check" style="white-space:nowrap"><input id="vim-toggle" type="checkbox" checked/> Vim mode</label>
+	<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
+	<button class="z-btn z-btn-primary" onclick="openCreate()">`+svgPlus()+` New function</button>
+`))
 
-	
-
-<div class="flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800">
-
-    <!-- LEFT SECTION: Back + Title + Vim toggle -->
-    <div class="flex items-center gap-6">
-        <a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-        </a>
-        <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">
-            Functions
-        </h1>
-
-        <label class="hidden md:flex items-center gap-2 text-neutral-300 text-sm select-none">
-            <input id="vim-toggle" type="checkbox" class="w-4 h-4" checked />
-            Vim Mode
-        </label>
-
-        <!-- SEARCH TRIGGER -->
-        <button 
-            onclick="openSpotlight()"
-            class="flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <span class="flex-1 text-left">Search functions...</span>
-            <div class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium">
-                <span class="font-mono">⌘</span>K
-            </div>
-        </button>
-    </div>
-
-    <!-- RIGHT SECTION: New Function + Profile -->
-    <div class="flex items-center gap-4">
-
-        <!-- New Function -->
-        <button onclick="openCreate()"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition">
-            New Function
-        </button>
-
-        <!-- PROFILE DROPDOWN -->
-        <div class="relative">
-            <button
-                id="profile-btn"
-                class="flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition"
-            >
-                <img src="/static/imgs/user.png" class="w-8 h-8 rounded-full object-cover" />
-                <span class="text-white text-sm font-medium">{ username }</span>
-
-                <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </button>
-
-            <div
-                id="profile-dropdown"
-                class="absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden"
-            >
-                <a href="/profile/" class="block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900">Profile</a>
-                <a href="/logout/" class="block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900">Logout</a>
-            </div>
-        </div>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-    const pb = document.getElementById("profile-btn");
-    const pd = document.getElementById("profile-dropdown");
-
-    if (!pb || !pd) {
-        console.error("Profile dropdown not found in DOM");
-        return;
-    }
-
-    // When clicking the profile button → toggle dropdown
-    pb.addEventListener("click", (e) => {
-        e.stopPropagation();  // Prevent immediate close
-        pd.classList.toggle("hidden");
-    });
-
-    // Click anywhere outside → close dropdown
-    document.addEventListener("click", (e) => {
-        if (!pd.contains(e.target) && !pb.contains(e.target)) {
-            pd.classList.add("hidden");
-        }
-    });
-});
-</script>
-    </div>
+<div class="z-panel">
+	<div class="z-panel-header">
+		<span class="z-panel-title">Functions</span>
+		<span class="z-badge z-badge-muted">{ itoa(len(functions)) }</span>
+		<span class="z-panel-sub">repo-backed · ace editor</span>
+		<div class="z-panel-actions">
+			<button class="z-btn z-btn-sm" onclick="refreshList()">@Icon("refresh", "")</button>
+		</div>
+	</div>
+	<div id="fn-list-container" class="z-panel-body tight" style="min-height:120px">
+		if len(functions) == 0 {
+			<div class="z-empty" style="padding:40px 16px">
+				<div class="z-empty-icon">@Icon("code", "")</div>
+				<div class="z-empty-title">No functions yet</div>
+				<div class="z-empty-sub">Create your first function to start deploying.</div>
+				<button class="z-btn z-btn-primary z-btn-sm" onclick="openCreate()">New function</button>
+			</div>
+		}
+		for _, fn := range functions {
+			<div class="z-fn-row">
+				<span class="z-fn-icon"><img src={ fn.Icon } alt=""/></span>
+				<div class="z-fn-main">
+					<div class="z-fn-name">{ fn.Name }</div>
+					<div class="z-fn-meta">
+						<span class="z-badge z-badge-muted">{ fn.Language }</span>
+						<span class="z-mono" style="font-size:9px;color:var(--text-4)">{ shortID(fn.ID) }</span>
+					</div>
+				</div>
+				<div class="z-fn-actions">
+					<button class="z-icon-btn" title="Copy" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
+					<button class="z-icon-btn" title="Edit" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "")</button>
+					if fn.EndpointID != "" {
+						<a class="z-icon-btn" title="Endpoint" href={ templ.SafeURL("/endpoints/?expand=" + fn.EndpointID) }>@Icon("route", "")</a>
+					} else {
+						<span class="z-icon-btn" style="opacity:.4" title="No endpoint">@Icon("route", "")</span>
+					}
+					<button class="z-btn z-btn-sm z-btn-danger" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>Delete</button>
+				</div>
+			</div>
+		}
+	</div>
 </div>
-
-
-<div id="fn-list-container" class="flex-1 overflow-y-auto px-4 sm:px-10 lg:px-14 py-6 space-y-4">
-
-    if len(functions) == 0 {
-        <div class="w-full text-center py-20 text-neutral-500 text-lg">
-            Create a new function to begin.
-        </div>
-    }
-
-    for _, fn := range functions {
-        <!-- MOBILE CARD (<640px) -->
-        <div class="sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4">
-        
-            <!-- TOP: Icon + Name -->
-            <div class="flex items-center gap-3 mb-3">
-                <img src={ fn.Icon } class="w-5 h-5 opacity-80"/>
-                <h2 class="text-white font-medium text-base">{ fn.Name }</h2>
-            </div>
-        
-            <!-- BOTTOM: Actions -->
-            <div class="flex items-center gap-3">
-        
-                <!-- Copy -->
-                <button onclick={ copyFn(fn.ID) }
-                    class="p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white">
-                    <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
-                </button>
-        
-                <!-- Edit -->
-                <button onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }
-                    class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                    title="Edit function">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                </button>
-
-                <!-- Endpoint -->
-                if fn.EndpointID != "" {
-                    <a href={ "/endpoints/?expand=" + fn.EndpointID }
-                        class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                        title="Endpoint settings">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />
-                        </svg>
-                    </a>
-                } else {
-                    <span
-                        class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed"
-                        title="No endpoint">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 3l-9 9" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7v10a2 2 0 002 2h10" />
-                        </svg>
-                    </span>
-                }
-        
-                <!-- Delete -->
-                <button onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
-                    class="px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
-                    Delete
-                </button>
-        
-            </div>
-        
-        </div>
-
-
-
-        <!-- DESKTOP ROW (>=640px) -->
-        <div class="hidden sm:flex items-center justify-between px-2 py-3 
-                    border-b border-neutral-800 hover:bg-neutral-900/30 transition">
-
-            <!-- LEFT -->
-            <div class="flex items-center gap-3">
-                <img src={ fn.Icon } class="w-5 h-5 opacity-80"/>
-                <span class="text-white font-medium">{ fn.Name }</span>
-            </div>
-
-            <!-- RIGHT -->
-            <div class="flex items-center gap-2 opacity-60 hover:opacity-100 transition">
-
-                <button onclick={ copyFn(fn.ID) }
-                    class="p-1 rounded-lg hover:bg-neutral-800 transition">
-                    <img src="/static/imgs/copy-svgrepo-com.svg" class="w-4 h-4"/>
-                </button>
-
-                <button onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }
-                    class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                    title="Edit function">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                </button>
-
-                if fn.EndpointID != "" {
-                    <a href={ "/endpoints/?expand=" + fn.EndpointID }
-                        class="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition"
-                        title="Endpoint settings">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
-                        </svg>
-                    </a>
-                } else {
-                    <span
-                        class="p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed"
-                        title="No endpoint">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z" />
-                        </svg>
-                    </span>
-                }
-
-                <button onclick={ templ.JSFuncCall("deleteFn", fn.ID) }
-                    class="px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40">
-                    Delete
-                </button>
-
-            </div>
-
-        </div>
-
-    }
-
-</div>
-
-
 
 <!-- CREATE -->
 	<div id="create-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center">
@@ -892,7 +713,5 @@ html,body{background:#0f0f10!important;}
 .lang-btn.selected{background:#1f1f20;border-color:#888}
 .mode-btn.selected{background:#1f1f20;border-color:#888}
 	</style>
-
-</div>
 
 }

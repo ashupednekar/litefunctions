@@ -8,38 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func openInvite(id string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_openInvite_6e58`,
-		Function: `function __templ_openInvite_6e58(id){openInviteModal(event, id)
-}`,
-		Call:       templ.SafeScript(`__templ_openInvite_6e58`, id),
-		CallInline: templ.SafeScriptInline(`__templ_openInvite_6e58`, id),
-	}
-}
-
-func openAccess(id string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_openAccess_6ca3`,
-		Function: `function __templ_openAccess_6ca3(id){openAccessModal(event, id)
-}`,
-		Call:       templ.SafeScript(`__templ_openAccess_6ca3`, id),
-		CallInline: templ.SafeScriptInline(`__templ_openAccess_6ca3`, id),
-	}
-}
-
-func selectProject(id string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_selectProject_5fa6`,
-		Function: `function __templ_selectProject_5fa6(id){document.cookie = "lws_project=" + id + "; path=/; SameSite=Lax"
-	location.reload()
-}`,
-		Call:       templ.SafeScript(`__templ_selectProject_5fa6`, id),
-		CallInline: templ.SafeScriptInline(`__templ_selectProject_5fa6`, id),
-	}
-}
-
-func DashboardContent(username string, projects []Project, activeProjectID string) templ.Component {
+func DashboardContent(data DashboardData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -60,206 +29,931 @@ func DashboardContent(username string, projects []Project, activeProjectID strin
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full px-6 md:px-14 py-12 space-y-14\"><!-- HEADER --><div class=\"flex items-center justify-between\"><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Dashboard</h1><div class=\"relative\"><button id=\"profile-btn\" class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><img src=\"/static/imgs/user.png\" class=\"w-8 h-8 rounded-full object-cover\"> <span class=\"text-white text-sm font-medium\">")
+		templ_7745c5c3_Err = PageHead("Overview", "Your project workspace, platform health and the paths you take most often.", "Workspace", templ.Raw(`
+		<a href="/functions/" class="z-btn z-btn-primary">`+svgPlus()+` New function</a>
+		<button class="z-btn" onclick="syncProject()">`+svgRefresh()+` Sync project</button>
+	`)).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-grid z-grid-4\" style=\"margin-bottom:14px\"><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("code", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Functions</div><div class=\"z-stat-value\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(data.FunctionCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 27, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 12, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><div id=\"profile-dropdown\" class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden\"><a href=\"/profile/\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900\">Profile</a> <a href=\"/logout/\" class=\"block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900\">Logout</a></div></div></div><script>\n    const pb = document.getElementById(\"profile-btn\")\n    const pd = document.getElementById(\"profile-dropdown\")\n    document.addEventListener(\"click\", e => {if (!pb.contains(e.target)) pd.classList.add(\"hidden\")})\n    pb.onclick = () => pd.classList.toggle(\"hidden\")\n  </script><!-- PROJECT SECTION --><div class=\"space-y-4 mb-12\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Your Projects</h2><div class=\"overflow-x-auto scrollbar-hide -mx-2 px-2\"><div class=\"flex gap-5 pb-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"z-stat-delta\"><span class=\"z-delta-up\">▲ 2</span> this week <span class=\"z-faint\">·</span> 5 runtimes</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for _, p := range projects {
-			var templ_7745c5c3_Var3 = []any{"group relative min-w-[280px] p-5 rounded-2xl border transition-all duration-300",
-				templ.KV("border-blue-500/50 bg-blue-500/5 shadow-[0_0_20px_-5px_rgba(59,130,246,0.3)]", activeProjectID == p.ID),
-				templ.KV("border-neutral-800 bg-[#0e0e0f] hover:border-neutral-700 hover:bg-[#121213]", activeProjectID != p.ID)}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var3).String())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><div class=\"flex items-center justify-between mb-4\"><div class=\"flex items-center gap-3\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var5 = []any{"w-2 h-2 rounded-full", templ.KV("bg-blue-500 animate-pulse", activeProjectID == p.ID), templ.KV("bg-neutral-600", activeProjectID != p.ID)}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"></div><h3 class=\"text-white font-semibold text-lg tracking-tight\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 61, Col: 77}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</h3></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if activeProjectID == p.ID {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<button onclick=\"event.stopPropagation(); syncProject()\" class=\"p-1.5 rounded-lg border border-neutral-800 text-neutral-500 hover:text-green-400 hover:border-green-500/30 transition-all active:scale-95\" title=\"Sync project\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-3.5 h-3.5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\"></path></svg></button>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"flex items-center gap-2 mt-auto\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var8 = []any{"flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all",
-				templ.KV("bg-blue-600 text-white shadow-lg shadow-blue-600/20", activeProjectID == p.ID),
-				templ.KV("bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white", activeProjectID != p.ID)}
-			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var8...)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, selectProject(p.ID))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<button onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var9 templ.ComponentScript = selectProject(p.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var8).String())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if activeProjectID == p.ID {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "Active")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Select")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</button> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if p.Role == "owner" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"flex gap-1.5\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openInvite(p.ID))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<button onclick=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var11 templ.ComponentScript = openInvite(p.ID)
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11.Call)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" class=\"p-2 rounded-xl border border-neutral-800 text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all\" title=\"Invite member\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z\"></path></svg></button> ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, openAccess(p.ID))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button onclick=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var12 templ.ComponentScript = openAccess(p.ID)
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12.Call)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"p-2 rounded-xl border border-neutral-800 text-neutral-500 hover:text-white hover:bg-neutral-800 transition-all\" title=\"Manage access\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z\"></path></svg></button></div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<!-- New project button --><button onclick=\"openProjectModal()\" class=\"min-w-[280px] rounded-2xl border border-dashed border-neutral-800 bg-transparent\n\t\t\t\t\t\tp-5 flex items-center gap-4 text-neutral-500 \n\t\t\t\t\t\thover:text-white hover:border-neutral-600 hover:bg-white/5 transition-all group\"><div class=\"h-10 w-10 rounded-xl border border-neutral-800 bg-neutral-900 grid place-items-center group-hover:bg-neutral-800 transition-colors\"><span class=\"text-2xl font-light\">+</span></div><div class=\"text-left\"><p class=\"font-bold text-sm tracking-tight\">New Project</p><p class=\"text-[10px] text-neutral-600 tracking-widest font-bold\">Create fresh</p></div></button><!-- Join project button --><button onclick=\"openJoinModal()\" class=\"min-w-[280px] rounded-2xl border border-dashed border-neutral-800 bg-transparent\n\t\t\t\t\t\tp-5 flex items-center gap-4 text-neutral-500 \n\t\t\t\t\t\thover:text-white hover:border-neutral-600 hover:bg-white/5 transition-all group\"><div class=\"h-10 w-10 rounded-xl border border-neutral-800 bg-neutral-900 grid place-items-center group-hover:bg-neutral-800 transition-colors\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.5\" d=\"M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z\"></path></svg></div><div class=\"text-left\"><p class=\"font-bold text-sm tracking-tight\">Join Project</p><p class=\"text-[10px] text-neutral-600 tracking-widest font-bold\">Enter code</p></div></button></div></div></div><!-- IF NO ACTIVE PROJECT -->")
+		templ_7745c5c3_Err = Icon("route", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if activeProjectID == "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"w-full text-center py-20 text-neutral-400 text-lg\">Please select a project to continue.</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Endpoints</div><div class=\"z-stat-value\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(data.EndpointCount))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 17, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"z-stat-delta\">HTTP + WebSocket <span class=\"z-faint\">·</span> auto-routed</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("activity", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Requests · 24h</div><div class=\"z-stat-value\">1,284</div><div class=\"z-stat-delta\"><span class=\"z-delta-up\">▲ 18.4%</span> vs previous period</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("gauge", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "P95 latency</div><div class=\"z-stat-value\">42<small>ms</small></div><div class=\"z-stat-delta\"><span class=\"z-delta-up\">▼ 9ms</span> <span class=\"z-faint\">·</span> 0 errors</div></div></div><div class=\"z-split\"><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Your projects</span> <span class=\"z-badge z-badge-muted\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(len(data.Projects)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 37, Col: 67}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\" onclick=\"openJoinModal()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("users", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Join</button> <button class=\"z-btn z-btn-sm z-btn-accent\" onclick=\"openProjectModal()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "New project</button></div></div><div class=\"z-panel-body tight\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if len(data.Projects) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"z-empty\"><div class=\"z-empty-icon\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("grid", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><div class=\"z-empty-title\">No projects yet</div><div class=\"z-empty-sub\">Create your first project to start deploying functions, endpoints and data services.</div><button class=\"z-btn z-btn-primary z-btn-sm\" onclick=\"openProjectModal()\">Create project</button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<!-- FEATURE SECTIONS --> <div class=\"space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-neutral-400 font-medium text-sm tracking-wide\">Tools & Features</h2></div><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6\"><a href=\"/functions/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-blue-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M6 18L18 6M6 6l12 12\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Functions</h3></div></a> <a href=\"/endpoints/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-purple-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M4 12h16m-7-7l7 7-7 7\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Endpoints</h3></div></a> <a href=\"/configuration/\" class=\"group rounded-2xl border border-neutral-800 bg-[#0e0e0f] p-6 hover:border-neutral-600 shadow-md\"><div class=\"flex items-center gap-3\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6 text-yellow-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M12 8c-1.1 0-2 .9-2 2v4h4v-4c0-1.1-.9-2-2-2zM4 12h16\"></path></svg><h3 class=\"text-lg text-white font-semibold\">Configuration</h3></div></a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"z-grid z-grid-2\" style=\"padding:12px\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			for _, p := range data.Projects {
+				var templ_7745c5c3_Var5 = []any{"z-project-card", templ.KV("active", data.ActiveProjectID == p.ID)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><div style=\"display:flex;align-items:flex-start;gap:10px\"><span class=\"z-project-avatar\" style=\"width:30px;height:30px;font-size:12px\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(projectInitial(p.Name))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 56, Col: 111}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span><div style=\"flex:1;min-width:0\"><div style=\"display:flex;align-items:center;gap:7px\"><span style=\"font-size:12.5px;font-weight:600;color:var(--text)\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 59, Col: 85}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if data.ActiveProjectID == p.ID {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span class=\"z-badge z-badge-green\"><span class=\"z-dot z-dot-green\"></span> active</span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div><div class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3);margin-top:2px;text-transform:uppercase;letter-spacing:.06em\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var9 string
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Role)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 64, Col: 144}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " · ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var10 string
+				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(shortID(p.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 64, Col: 165}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if data.ActiveProjectID == p.ID {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button class=\"z-icon-btn\" style=\"width:24px;height:24px\" title=\"Sync project\" onclick=\"event.stopPropagation(); syncProject()\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = Icon("refresh", "").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</button>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><div style=\"display:flex;align-items:center;gap:6px;margin-top:12px\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var11 = []any{"z-btn z-btn-sm", templ.KV("z-btn-primary", data.ActiveProjectID == p.ID)}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var11...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("selectProject", p.ID))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var12 string
+				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var11).String())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" style=\"flex:1\" onclick=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var13 templ.ComponentScript = templ.JSFuncCall("selectProject", p.ID)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if data.ActiveProjectID == p.ID {
+					templ_7745c5c3_Err = Icon("check", "").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " Selected")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "Select project")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</button> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if p.Role == "owner" {
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openInvite", p.ID))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<button class=\"z-btn z-btn-sm\" title=\"Invite member\" onclick=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("openInvite", p.ID)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14.Call)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</button> ")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openAccess", p.ID))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<button class=\"z-btn z-btn-sm\" title=\"Manage access\" onclick=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var15 templ.ComponentScript = templ.JSFuncCall("openAccess", p.ID)
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15.Call)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = Icon("users", "").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</button>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<!-- ACCESS MODAL --><div id=\"access-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeAccessModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-6 w-[500px] shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><div class=\"flex justify-between items-center mb-6\"><h3 class=\"text-lg text-white font-semibold flex items-center gap-2\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-500\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z\"></path></svg> Project Access</h3><button onclick=\"closeAccessModal()\" class=\"text-neutral-500 hover:text-white transition\">✕</button></div><div id=\"access-list\" class=\"space-y-3 max-h-96 overflow-y-auto mb-6 custom-scrollbar pr-1\"><!-- Loaded via JS --></div><div class=\"flex justify-end pt-2 border-t border-neutral-800/50\"><button onclick=\"closeAccessModal()\" class=\"px-5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-white text-sm font-semibold hover:bg-neutral-800 transition\">Close</button></div></div></div><!-- INVITE MODAL --><div id=\"invite-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeInviteModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-8 w-96 shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><h3 class=\"text-xl text-white font-bold mb-2\">Invite Teammate</h3><p class=\"text-neutral-500 text-sm mb-6 leading-relaxed\">Generated code expires in 24 hours. Teammates can join as viewers.</p><div class=\"flex items-center gap-2 p-1.5 bg-black/40 border border-neutral-800 rounded-2xl overflow-hidden\"><input id=\"invite-code-input\" readonly class=\"flex-1 min-w-0 bg-transparent border-none pl-4 pr-1 py-2 text-white font-mono text-center text-lg focus:outline-none\" value=\"...\"> <button onclick=\"copyInviteCode()\" class=\"bg-white text-black px-5 py-2 rounded-xl text-xs font-black hover:bg-neutral-200 transition active:scale-95 shrink-0\">Copy</button></div><div class=\"flex justify-end mt-8\"><button onclick=\"closeInviteModal()\" class=\"text-neutral-400 hover:text-white font-bold text-sm transition\">Dismiss</button></div></div></div><!-- JOIN MODAL --><div id=\"join-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeJoinModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-8 w-96 shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><h3 class=\"text-xl text-white font-bold mb-2\">Join Project</h3><p class=\"text-neutral-500 text-sm mb-6 leading-relaxed\">Enter the 8-character code shared by the project owner.</p><input id=\"join-code-input\" class=\"w-full bg-black/40 border border-neutral-800 rounded-2xl px-4 py-4 text-white font-mono text-center mb-6 tracking-widest text-xl placeholder-neutral-800 focus:outline-none focus:border-blue-600 transition-colors\" placeholder=\"ABCDEFGH\"><div class=\"flex flex-col gap-3\"><button onclick=\"submitJoinInvite()\" class=\"w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-black hover:bg-blue-500 transition shadow-lg shadow-blue-600/20 active:scale-95\">Verify & Join</button> <button onclick=\"closeJoinModal()\" class=\"w-full py-2 text-neutral-500 hover:text-white font-bold text-sm transition\">Cancel</button></div></div></div><!-- NEW PROJECT MODAL --><div id=\"project-modal\" class=\"fixed inset-0 bg-transparent backdrop-blur-md hidden justify-center items-center z-[110]\" onclick=\"closeProjectModal()\"><div class=\"bg-[#0e0e0f]/90 border border-neutral-800 rounded-2xl p-7 w-96 shadow-2xl animate-in fade-in zoom-in duration-200\" onclick=\"event.stopPropagation()\"><h3 class=\"text-xl text-white font-bold mb-2\">Create Project</h3><p class=\"text-neutral-500 text-sm mb-6\">Give your workspace a name to get started.</p><input id=\"new-project-name\" class=\"w-full bg-black/40 border border-neutral-800 rounded-2xl px-4 py-3 text-white placeholder-neutral-700 focus:outline-none focus:border-neutral-600 transition-colors\" placeholder=\"My Workspace\"><div class=\"flex justify-end gap-3 mt-8\"><button onclick=\"closeProjectModal()\" class=\"text-neutral-500 hover:text-white font-medium text-sm transition\">Cancel</button> <button onclick=\"submitNewProject()\" class=\"bg-white text-black px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-neutral-200 transition active:scale-95\">Initialize</button></div></div></div><script>\n    function openProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.remove(\"hidden\")\n      modal.classList.add(\"flex\")\n    }\n    function closeProjectModal() {\n      const modal = document.getElementById(\"project-modal\")\n      modal.classList.add(\"hidden\")\n      modal.classList.remove(\"flex\")\n    }\n\n    async function submitNewProject() {\n      const name = document.getElementById(\"new-project-name\").value.trim()\n      if (!name) return\n      await fetch(\"/api/projects/\", {\n        method: \"POST\",\n        headers: {\"Content-Type\": \"application/json\"},\n        body: JSON.stringify({name})\n      })\n      closeProjectModal()\n      location.reload()\n    }\n\n    async function syncProject() {\n      await fetch(\"/api/projects/sync/\", {\n        method: \"POST\"\n      })\n      toast(\"Sync completed!\", \"success\")\n      setTimeout(() => location.reload(), 500)\n    }\n\n    async function loadProjectAccess() {\n      const res = await fetch(\"/api/projects/access/\")\n      const users = await res.json()\n      const list = document.getElementById(\"access-list\")\n      if(!list) return;\n      list.innerHTML = users.map(u => {\n        const revokeBtn = u.role !== 'owner' \n          ? `<button onclick=\"revokeAccess('${u.id}')\" class=\"px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-[10px] font-bold tracking-widest transition-all opacity-0 group-hover/user:opacity-100\">Revoke</button>`\n          : `<span class=\"px-3 py-1.5 text-neutral-600 text-[9px] font-bold tracking-widest\">Locked</span>`;\n          \n        return `\n          <div class=\"flex items-center justify-between p-4 bg-black/40 border border-neutral-800 rounded-2xl group/user transition-all hover:border-neutral-700\">\n            <div class=\"flex items-center gap-4\">\n              <div class=\"w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 grid place-items-center text-[12px] text-white font-black tracking-tighter\">\n                ${u.name.substring(0,2)}\n              </div>\n              <div>\n                <div class=\"text-white text-sm font-bold tracking-tight\">${u.name}</div>\n                <div class=\"text-neutral-500 text-[9px] tracking-[0.1em] font-black mt-0.5\">${u.role}</div>\n              </div>\n            </div>\n            ${revokeBtn}\n          </div>\n        `;\n      }).join(\"\")\n    }\n\n    async function revokeAccess(id) {\n      if(!confirm(\"Are you sure?\")) return\n      await fetch(`/api/projects/access/${id}/`, { method: \"DELETE\" })\n      loadProjectAccess()\n    }\n\n    function openAccessModal(e, id) {\n      if(e) e.stopPropagation()\n      // set active project cookie first to ensure we fetch correct access\n      document.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\"\n      document.getElementById(\"access-modal\").classList.remove(\"hidden\")\n      document.getElementById(\"access-modal\").classList.add(\"flex\")\n      loadProjectAccess()\n    }\n\n    function closeAccessModal() {\n      document.getElementById(\"access-modal\").classList.add(\"hidden\")\n      document.getElementById(\"access-modal\").classList.remove(\"flex\")\n    }\n\n    async function openInviteModal(e, id) {\n      if(e) e.stopPropagation()\n      document.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\"\n      document.getElementById(\"invite-modal\").classList.remove(\"hidden\")\n      document.getElementById(\"invite-modal\").classList.add(\"flex\")\n      \n      const res = await fetch(\"/api/projects/invites/\", { method: \"POST\" })\n      const data = await res.json()\n      const input = document.getElementById(\"invite-code-input\")\n      input.value = data.code\n      input.classList.add(\"tracking-widest\")\n    }\n\n    function closeInviteModal() {\n      document.getElementById(\"invite-modal\").classList.add(\"hidden\")\n      document.getElementById(\"invite-modal\").classList.remove(\"flex\")\n    }\n\n    function copyInviteCode() {\n      const input = document.getElementById(\"invite-code-input\")\n      input.select()\n      document.execCommand(\"copy\")\n      toast(\"Code copied!\", \"success\")\n    }\n\n    function openJoinModal() {\n      document.getElementById(\"join-modal\").classList.remove(\"hidden\")\n      document.getElementById(\"join-modal\").classList.add(\"flex\")\n    }\n\n    function closeJoinModal() {\n      document.getElementById(\"join-modal\").classList.add(\"hidden\")\n      document.getElementById(\"join-modal\").classList.remove(\"flex\")\n    }\n\n    async function submitJoinInvite() {\n      const code = document.getElementById(\"join-code-input\").value.trim()\n      if(!code) return\n      const res = await fetch(`/api/projects/join/?code=${code}`, { method: \"POST\" })\n      if(res.ok) {\n        const data = await res.json()\n        document.cookie = \"lws_project=\" + data.project_id + \"; path=/; SameSite=Lax\"\n        location.reload()\n      } else {\n        const data = await res.json()\n        toast(data.error || \"Failed to join\", \"error\")\n      }\n    }\n\n  </script></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if data.ActiveProjectID == "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-empty\"><div class=\"z-empty-icon\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("arrow-right", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</div><div class=\"z-empty-title\">Select a project to continue</div><div class=\"z-empty-sub\">Functions, endpoints and platform tools are scoped to the active project.</div></div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"z-grid z-grid-2\" style=\"margin-top:14px\"><a href=\"/agent/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#c7b3ff;border-color:rgba(182,156,255,.25);background:rgba(182,156,255,.08)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</span><div><div class=\"z-list-title\">Plan something new</div><div class=\"z-list-sub\">Describe a use case and generate functions, schemas and routes.</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("arrow-right", "ml-auto w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</a> <a href=\"/dependencies/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#8ab4ff;border-color:rgba(138,180,255,.25);background:rgba(138,180,255,.08)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("package", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</span><div><div class=\"z-list-title\">Manage dependencies</div><div class=\"z-list-sub\">go.mod, package.json, requirements and lockfiles.</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("arrow-right", "ml-auto w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</a> <a href=\"/traffic/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#e8b96a;border-color:rgba(232,185,106,.25);background:rgba(232,185,106,.08)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("shield", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</span><div><div class=\"z-list-title\">Traffic & rate limits</div><div class=\"z-list-sub\">Gateway routes, quotas and circuit breakers.</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("arrow-right", "ml-auto w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</a> <a href=\"/compute/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#76d6e0;border-color:rgba(118,214,224,.25);background:rgba(118,214,224,.08)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("cpu", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</span><div><div class=\"z-list-title\">Compute & isolation</div><div class=\"z-list-sub\">CRI, gVisor, Kata and unikernel profiles.</div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("arrow-right", "ml-auto w-3 h-3 text-[#5b5b65]").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</a></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Recent activity</span> <span class=\"z-panel-sub\">auto-refreshed</span><div class=\"z-panel-actions\"><a href=\"/audit/\" class=\"z-btn z-btn-sm z-btn-ghost\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("clock", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "View audit log</a></div></div><div class=\"z-panel-body tight\"><div class=\"z-list\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = activityItem("Deployed", "hello-world", "Go · function deployed to production", "2m ago", "green").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = activityItem("Endpoint updated", "POST /lambda/orders", "Rate limit changed to 120 req/min", "18m ago", "blue").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = activityItem("Dependency synced", "go.mod", "3 packages updated by project sync", "1h ago", "purple").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = activityItem("Secret rotated", "STRIPE_SECRET_KEY", "Rotated by ashu", "3h ago", "amber").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div></div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Platform health</span> <span class=\"z-badge z-badge-green\" style=\"margin-left:auto\"><span class=\"z-dot z-dot-green\"></span> operational</span></div><div class=\"z-panel-body tight\"><div class=\"z-list\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = healthRow("Portal", "API + SSR", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = healthRow("Ingestor", "HTTP gateway", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = healthRow("NATS JetStream", "3 nodes · clustered", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = healthRow("Operator", "Reconcile loop", "healthy").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = healthRow("Compute", "containerd pool", "idle").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div></div><div class=\"z-panel-foot\"><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-4)\">last check 12s ago</span> <a href=\"/observability/\" class=\"z-btn z-btn-sm z-btn-ghost\" style=\"margin-left:auto\">Open observability</a></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Plan usage</span> <span class=\"z-badge z-badge-muted\">self-hosted</span></div><div class=\"z-panel-body\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = usageBar("Functions", "4 of 50", 8, "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = usageBar("Endpoints", "4 of 50", 8, "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = usageBar("Requests / month", "38.4k of 1M", 4, "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = usageBar("Queue storage", "220 MB of 4 GB", 6, "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Keyboard shortcuts</span></div><div class=\"z-panel-body\" style=\"display:flex;flex-direction:column;gap:8px\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = shortcutRow("Command palette", "⌘ K").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = shortcutRow("Search functions", "⌘ F").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = shortcutRow("New function", "N").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = shortcutRow("Toggle sidebar", "[").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</div></div></div></div><!-- ACCESS MODAL --><div id=\"access-modal\" class=\"z-modal-backdrop\" onclick=\"closeAccessModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("users", "w-4 h-4 text-[#a6a6af]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<span class=\"z-modal-title\">Project access</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "</button></div><div class=\"z-modal-body\"><div id=\"access-list\" class=\"z-list\" style=\"border:1px solid var(--border);border-radius:6px;overflow:hidden\"></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Close</button></div></div></div><!-- INVITE MODAL --><div id=\"invite-modal\" class=\"z-modal-backdrop\" onclick=\"closeInviteModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "w-4 h-4 text-[#a6a6af]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"z-modal-title\">Invite teammate</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin-top:0\">Generate a one-time invite code. Codes expire in 24 hours.</p><div class=\"z-input-group\" style=\"margin-top:12px\"><input id=\"invite-code-input\" readonly class=\"z-input z-mono\" style=\"text-align:center;font-size:14px;letter-spacing:.2em\" value=\"…\"> <button onclick=\"copyInviteCode()\" class=\"z-btn z-btn-primary\">Copy</button></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Dismiss</button></div></div></div><!-- JOIN MODAL --><div id=\"join-modal\" class=\"z-modal-backdrop\" onclick=\"closeJoinModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("users", "w-4 h-4 text-[#a6a6af]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"z-modal-title\">Join a project</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin-top:0\">Enter the 8-character code shared by the project owner.</p><input id=\"join-code-input\" class=\"z-input z-mono\" style=\"margin-top:12px;text-align:center;letter-spacing:.3em;font-size:15px\" placeholder=\"ABCDEFGH\"></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"submitJoinInvite()\">Verify & join</button></div></div></div><!-- NEW PROJECT MODAL --><div id=\"project-modal\" class=\"z-modal-backdrop\" onclick=\"closeProjectModal()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("plus", "w-4 h-4 text-[#a6a6af]").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<span class=\"z-modal-title\">Create project</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</button></div><div class=\"z-modal-body\"><div class=\"z-field\"><label class=\"z-label\" for=\"new-project-name\">Project name</label> <input id=\"new-project-name\" class=\"z-input\" placeholder=\"My workspace\"> <span class=\"z-help\">A Git repository and namespace will be provisioned for this project.</span></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"submitNewProject()\">Initialize project</button></div></div></div><script>\n\t\tfunction selectProject(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tlocation.reload();\n\t\t}\n\t\tfunction openProjectModal() { zOpenModal(\"project-modal\"); }\n\t\tfunction closeProjectModal() { zCloseModal(\"project-modal\"); }\n\t\tfunction openJoinModal() { zOpenModal(\"join-modal\"); }\n\t\tfunction closeJoinModal() { zCloseModal(\"join-modal\"); }\n\t\tfunction openAccessModal(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tzOpenModal(\"access-modal\");\n\t\t\tloadProjectAccess();\n\t\t}\n\t\tfunction closeAccessModal() { zCloseModal(\"access-modal\"); }\n\t\tfunction openInviteModal(id) {\n\t\t\tdocument.cookie = \"lws_project=\" + id + \"; path=/; SameSite=Lax\";\n\t\t\tzOpenModal(\"invite-modal\");\n\t\t\tfetch(\"/api/projects/invites/\", {method: \"POST\"})\n\t\t\t\t.then(r => r.json())\n\t\t\t\t.then(data => { document.getElementById(\"invite-code-input\").value = data.code || \"--------\"; })\n\t\t\t\t.catch(() => { document.getElementById(\"invite-code-input\").value = \"--------\"; });\n\t\t}\n\t\tfunction closeInviteModal() { zCloseModal(\"invite-modal\"); }\n\t\tfunction copyInviteCode() {\n\t\t\tconst input = document.getElementById(\"invite-code-input\");\n\t\t\tinput.select();\n\t\t\tnavigator.clipboard.writeText(input.value).then(() => toast(\"Invite code copied\", \"success\"));\n\t\t}\n\t\tasync function submitNewProject() {\n\t\t\tconst name = document.getElementById(\"new-project-name\").value.trim();\n\t\t\tif (!name) return;\n\t\t\ttry {\n\t\t\t\tawait fetch(\"/api/projects/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: {\"Content-Type\": \"application/json\"},\n\t\t\t\t\tbody: JSON.stringify({name})\n\t\t\t\t});\n\t\t\t\tcloseProjectModal();\n\t\t\t\tlocation.reload();\n\t\t\t} catch (e) { toast(\"Could not create project\", \"error\"); }\n\t\t}\n\t\tasync function submitJoinInvite() {\n\t\t\tconst code = document.getElementById(\"join-code-input\").value.trim();\n\t\t\tif (!code) return;\n\t\t\tconst res = await fetch(\"/api/projects/join/?code=\" + encodeURIComponent(code), {method: \"POST\"});\n\t\t\tif (res.ok) {\n\t\t\t\tconst data = await res.json();\n\t\t\t\tdocument.cookie = \"lws_project=\" + data.project_id + \"; path=/; SameSite=Lax\";\n\t\t\t\tlocation.reload();\n\t\t\t} else {\n\t\t\t\tconst data = await res.json().catch(() => ({}));\n\t\t\t\ttoast(data.error || \"Failed to join project\", \"error\");\n\t\t\t}\n\t\t}\n\t\tasync function syncProject() {\n\t\t\ttry {\n\t\t\t\tawait fetch(\"/api/projects/sync/\", {method: \"POST\"});\n\t\t\t\ttoast(\"Project sync started\", \"success\");\n\t\t\t\tsetTimeout(() => location.reload(), 600);\n\t\t\t} catch (e) { toast(\"Sync failed\", \"error\"); }\n\t\t}\n\t\tasync function loadProjectAccess() {\n\t\t\tconst list = document.getElementById(\"access-list\");\n\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">Loading members…</div></div>';\n\t\t\ttry {\n\t\t\t\tconst res = await fetch(\"/api/projects/access/\");\n\t\t\t\tconst users = await res.json();\n\t\t\t\tif (!Array.isArray(users) || users.length === 0) {\n\t\t\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">No members</div></div>';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tlist.innerHTML = users.map(u => {\n\t\t\t\t\tconst initial = String(u.name || \"?\").substring(0, 2).toUpperCase();\n\t\t\t\t\tconst action = u.role !== \"owner\"\n\t\t\t\t\t\t? '<button class=\"z-btn z-btn-sm z-btn-danger\" onclick=\"revokeAccess(\\'' + u.id + '\\')\">Revoke</button>'\n\t\t\t\t\t\t: '<span class=\"z-badge z-badge-muted\">owner</span>';\n\t\t\t\t\treturn '<div class=\"z-list-item\"><span class=\"z-user-avatar\">' + initial + '</span><div class=\"z-list-main\"><div class=\"z-list-title\">' + escapeHtml(u.name) + '</div><div class=\"z-list-sub\">' + escapeHtml(u.role) + '</div></div>' + action + '</div>';\n\t\t\t\t}).join(\"\");\n\t\t\t} catch (e) {\n\t\t\t\tlist.innerHTML = '<div class=\"z-empty\" style=\"padding:24px\"><div class=\"z-empty-title\">Could not load access</div></div>';\n\t\t\t}\n\t\t}\n\t\tasync function revokeAccess(id) {\n\t\t\tif (!confirm(\"Revoke access for this member?\")) return;\n\t\t\tawait fetch(\"/api/projects/access/\" + id + \"/\", {method: \"DELETE\"});\n\t\t\tloadProjectAccess();\n\t\t}\n\t\tfunction escapeHtml(s) { return String(s == null ? \"\" : s).replace(/[&<>\"']/g, c => ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\",\"'\":\"&#39;\"}[c])); }\n\t</script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func activityItem(title string, subject string, detail string, when string, tone string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<div class=\"z-list-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 = []any{"z-list-icon", templ.KV("tone-green", tone == "green"), templ.KV("tone-blue", tone == "blue"), templ.KV("tone-purple", tone == "purple"), templ.KV("tone-amber", tone == "amber")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var17...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<span class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var18 string
+		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var17).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("activity", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</span><div class=\"z-list-main\"><div style=\"display:flex;align-items:center;gap:6px\"><span class=\"z-list-title\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var19 string
+		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 374, Col: 38}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</span> <span class=\"z-mono\" style=\"font-size:10px;color:var(--text-3)\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var20 string
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(subject)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 375, Col: 77}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</span></div><div class=\"z-list-sub\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var21 string
+		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 377, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</div></div><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-4);white-space:nowrap\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var22 string
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(when)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 379, Col: 92}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "</span></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func healthRow(name string, detail string, status string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var23 == nil {
+			templ_7745c5c3_Var23 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "<div class=\"z-list-item\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var24 = []any{"z-dot", templ.KV("z-dot-green", status == "healthy"), templ.KV("z-dot-blue", status == "idle")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<span class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var25 string
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var24).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "\"></span><div class=\"z-list-main\"><div class=\"z-list-title\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var26 string
+		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 387, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "</div><div class=\"z-list-sub\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var27 string
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 388, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "</div></div><span class=\"z-badge z-badge-muted\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var28 string
+		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(status)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 390, Col: 46}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "</span></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func usageBar(label string, value string, pct int, tone string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var29 == nil {
+			templ_7745c5c3_Var29 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "<div style=\"margin-bottom:11px\"><div style=\"display:flex;justify-content:space-between;margin-bottom:5px\"><span style=\"font-size:10.5px;color:var(--text-3)\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var30 string
+		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 397, Col: 61}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "</span> <span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var31 string
+		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(value)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 398, Col: 75}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "</span></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var32 = []any{"z-progress", templ.KV("green", tone == "green"), templ.KV("amber", tone == "amber")}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var32...)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "<div class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var33 string
+		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var32).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 83, "\"><span style=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var34 string
+		templ_7745c5c3_Var34, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("width: " + itoa(pct) + "%")
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 401, Col: 44}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "\"></span></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func shortcutRow(label string, keys string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var35 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var35 == nil {
+			templ_7745c5c3_Var35 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "<div style=\"display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--text-3)\"><span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var36 string
+		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 408, Col: 15}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</span> <span class=\"z-kbd\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var37 string
+		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(keys)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dashboard.templ`, Line: 409, Col: 28}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

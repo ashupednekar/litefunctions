@@ -110,57 +110,107 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full h-full flex flex-col overflow-hidden bg-[#0f0f10]\"><div class=\"flex items-center justify-between px-14 pt-10 pb-4 shrink-0 bg-[#0f0f10] border-b border-neutral-800\"><!-- LEFT SECTION: Back + Title + Vim toggle --><div class=\"flex items-center gap-6\"><a href=\"/dashboard/\" class=\"p-2 hover:bg-neutral-800 rounded-lg transition\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-5 h-5 text-neutral-400\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 19l-7-7 7-7\"></path></svg></a><h1 class=\"text-3xl md:text-4xl font-semibold text-white tracking-tight\">Functions</h1><label class=\"hidden md:flex items-center gap-2 text-neutral-300 text-sm select-none\"><input id=\"vim-toggle\" type=\"checkbox\" class=\"w-4 h-4\" checked> Vim Mode</label><!-- SEARCH TRIGGER --><button onclick=\"openSpotlight()\" class=\"flex items-center gap-3 px-4 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl text-neutral-500 hover:text-neutral-300 transition text-sm flex-1 max-w-md ml-4\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path></svg> <span class=\"flex-1 text-left\">Search functions...</span><div class=\"flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-600 font-medium\"><span class=\"font-mono\">⌘</span>K</div></button></div><!-- RIGHT SECTION: New Function + Profile --><div class=\"flex items-center gap-4\"><!-- New Function --><button onclick=\"openCreate()\" class=\"bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-xl transition\">New Function</button><!-- PROFILE DROPDOWN --><div class=\"relative\"><button id=\"profile-btn\" class=\"flex items-center gap-3 px-3 py-2 bg-[#0e0e0f] border border-neutral-800 rounded-xl hover:border-neutral-600 transition\"><img src=\"/static/imgs/user.png\" class=\"w-8 h-8 rounded-full object-cover\"> <span class=\"text-white text-sm font-medium\">")
+		templ_7745c5c3_Err = PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
+	<label class="z-check" style="white-space:nowrap"><input id="vim-toggle" type="checkbox" checked/> Vim mode</label>
+	<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
+	<button class="z-btn z-btn-primary" onclick="openCreate()">`+svgPlus()+` New function</button>
+`)).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Functions</span> <span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(len(functions)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 77, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 33, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <svg class=\"w-4 h-4 text-neutral-500\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.7\" d=\"M19 9l-7 7-7-7\"></path></svg></button><div id=\"profile-dropdown\" class=\"absolute right-0 mt-2 w-44 rounded-xl bg-[#0e0e0f] border border-neutral-800 shadow-xl hidden\"><a href=\"/profile/\" class=\"block px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-900\">Profile</a> <a href=\"/logout/\" class=\"block px-4 py-3 text-sm text-red-400 hover:bg-neutral-900\">Logout</a></div></div><script>\n    document.addEventListener(\"DOMContentLoaded\", () => {\n    const pb = document.getElementById(\"profile-btn\");\n    const pd = document.getElementById(\"profile-dropdown\");\n\n    if (!pb || !pd) {\n        console.error(\"Profile dropdown not found in DOM\");\n        return;\n    }\n\n    // When clicking the profile button → toggle dropdown\n    pb.addEventListener(\"click\", (e) => {\n        e.stopPropagation();  // Prevent immediate close\n        pd.classList.toggle(\"hidden\");\n    });\n\n    // Click anywhere outside → close dropdown\n    document.addEventListener(\"click\", (e) => {\n        if (!pd.contains(e.target) && !pb.contains(e.target)) {\n            pd.classList.add(\"hidden\");\n        }\n    });\n});\n</script></div></div><div id=\"fn-list-container\" class=\"flex-1 overflow-y-auto px-4 sm:px-10 lg:px-14 py-6 space-y-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <span class=\"z-panel-sub\">repo-backed · ace editor</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\" onclick=\"refreshList()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("refresh", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button></div></div><div id=\"fn-list-container\" class=\"z-panel-body tight\" style=\"min-height:120px\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(functions) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"w-full text-center py-20 text-neutral-500 text-lg\">Create a new function to begin.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"z-empty\" style=\"padding:40px 16px\"><div class=\"z-empty-icon\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("code", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"z-empty-title\">No functions yet</div><div class=\"z-empty-sub\">Create your first function to start deploying.</div><button class=\"z-btn z-btn-primary z-btn-sm\" onclick=\"openCreate()\">New function</button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		for _, fn := range functions {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<!-- MOBILE CARD (<640px) --> <div class=\"sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4\"><!-- TOP: Icon + Name --><div class=\"flex items-center gap-3 mb-3\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"z-fn-row\"><span class=\"z-fn-icon\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 134, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 50, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"w-5 h-5 opacity-80\"><h2 class=\"text-white font-medium text-base\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" alt=\"\"></span><div class=\"z-fn-main\"><div class=\"z-fn-name\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 135, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 52, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</h2></div><!-- BOTTOM: Actions --><div class=\"flex items-center gap-3\"><!-- Copy -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div><div class=\"z-fn-meta\"><span class=\"z-badge z-badge-muted\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Language)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 54, Col: 55}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> <span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(shortID(fn.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 55, Col: 85}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span></div></div><div class=\"z-fn-actions\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -168,16 +218,24 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<button class=\"z-icon-btn\" title=\"Copy\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 templ.ComponentScript = copyFn(fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5.Call)
+			var templ_7745c5c3_Var7 templ.ComponentScript = copyFn(fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white\"><img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"></button><!-- Edit -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("copy", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -185,144 +243,63 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<button class=\"z-icon-btn\" title=\"Edit\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var6 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Edit function\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z\"></path></svg></button><!-- Endpoint -->")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if fn.EndpointID != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<a href=\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var7 templ.SafeURL
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs("/endpoints/?expand=" + fn.EndpointID)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 158, Col: 67}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Endpoint settings\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14 3h7v7\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 3l-9 9\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 7v10a2 2 0 002 2h10\"></path></svg></a>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed\" title=\"No endpoint\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14 3h7v7\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 3l-9 9\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 7v10a2 2 0 002 2h10\"></path></svg></span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<!-- Delete -->")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("deleteFn", fn.ID))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var8 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
+			var templ_7745c5c3_Var8 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">Delete</button></div></div><!-- DESKTOP ROW (>=640px) --> <div class=\"hidden sm:flex items-center justify-between px-2 py-3 \n                    border-b border-neutral-800 hover:bg-neutral-900/30 transition\"><!-- LEFT --><div class=\"flex items-center gap-3\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 197, Col: 34}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			templ_7745c5c3_Err = Icon("edit", "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"w-5 h-5 opacity-80\"> <span class=\"text-white font-medium\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 198, Col: 62}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></div><!-- RIGHT --><div class=\"flex items-center gap-2 opacity-60 hover:opacity-100 transition\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, copyFn(fn.ID))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var11 templ.ComponentScript = copyFn(fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"p-1 rounded-lg hover:bg-neutral-800 transition\"><img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"></button> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openEdit", fn.ID, fn.Language))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button onclick=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var12 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12.Call)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Edit function\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z\"></path></svg></button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if fn.EndpointID != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<a class=\"z-icon-btn\" title=\"Endpoint\" href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var13 templ.SafeURL
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinURLErrs("/endpoints/?expand=" + fn.EndpointID)
+				var templ_7745c5c3_Var9 templ.SafeURL
+				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/endpoints/?expand=" + fn.EndpointID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 218, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 62, Col: 104}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\" title=\"Endpoint settings\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z\"></path></svg></a> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = Icon("route", "").Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</a> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<span class=\"p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed\" title=\"No endpoint\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.4 15a1.65 1.65 0 00.33 1.82l.02.02a2 2 0 11-2.83 2.83l-.02-.02a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.03a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.02.02a2 2 0 11-2.83-2.83l.02-.02a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.03a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.02-.02a2 2 0 112.83-2.83l.02.02a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.03a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.02-.02a2 2 0 112.83 2.83l-.02.02a1.65 1.65 0 00-.33 1.82V9c0 .66.39 1.25 1 1.51H21a2 2 0 110 4h-.03a1.65 1.65 0 00-1.57 1.19z\"></path></svg></span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"z-icon-btn\" style=\"opacity:.4\" title=\"No endpoint\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = Icon("route", "").Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -331,83 +308,83 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<button onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<button class=\"z-btn z-btn-sm z-btn-danger\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14.Call)
+			var templ_7745c5c3_Var10 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">Delete</button></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\">Delete</button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div><!-- CREATE --><div id=\"create-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">New Function</h2><div class=\"flex items-center gap-3\"><div class=\"flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1\"><button id=\"create-mode-sync\" onclick=\"setCreateMode('sync')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Sync</button> <button id=\"create-mode-async\" onclick=\"setCreateMode('async')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Async</button></div><button onclick=\"closeCreate()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div></div><label class=\"text-neutral-400 text-sm\">Choose Language</label><div class=\"grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 mt-3\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div><!-- CREATE --><div id=\"create-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">New Function</h2><div class=\"flex items-center gap-3\"><div class=\"flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1\"><button id=\"create-mode-sync\" onclick=\"setCreateMode('sync')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Sync</button> <button id=\"create-mode-async\" onclick=\"setCreateMode('async')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Async</button></div><button onclick=\"closeCreate()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div></div><label class=\"text-neutral-400 text-sm\">Choose Language</label><div class=\"grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 mt-3\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, lang := range langs {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<!-- store language id in data-lang so JS can bind click listeners --> <button data-lang=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<!-- store language id in data-lang so JS can bind click listeners --> <button data-lang=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 274, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 95, Col: 31}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"lang-btn flex flex-col items-center justify-center gap-1.5 sm:gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800\" id=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 275, Col: 188}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"lang-btn flex flex-col items-center justify-center gap-1.5 sm:gap-2 aspect-square border border-neutral-800 rounded-xl bg-[#0b0b0c] hover:bg-neutral-800\" id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\"><img src=\"")
+			var templ_7745c5c3_Var12 string
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 96, Col: 188}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 276, Col: 25}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" class=\"w-8 h-8 sm:w-10 sm:h-10 opacity-90\"> <span class=\"text-white text-xs sm:text-sm\">")
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 97, Col: 25}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 277, Col: 61}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" class=\"w-8 h-8 sm:w-10 sm:h-10 opacity-90\"> <span class=\"text-white text-xs sm:text-sm\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span></button>")
+			var templ_7745c5c3_Var14 string
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 98, Col: 61}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</div><!-- META --><div class=\"mt-4 flex flex-col gap-3\"><input id=\"fn-name-input\" class=\"w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white\" placeholder=\"Function name\"></div><!-- EDITOR --><div id=\"create-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800 mt-4\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeCreate()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/close-circle-svgrepo-com.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveCreate(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- EDIT --><div id=\"edit-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">Edit Function</h2><div class=\"flex items-center gap-3\"><div class=\"flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1\"><button id=\"edit-mode-sync\" onclick=\"setEditMode('sync')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Sync</button> <button id=\"edit-mode-async\" onclick=\"setEditMode('async')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Async</button></div><button onclick=\"closeEdit()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div></div><div id=\"edit-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeEdit()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/cancel.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveEdit(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- DELETE CONFIRM MODAL --><div id=\"delete-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"bg-[#0f0f10] border border-neutral-800 rounded-2xl p-8 w-[420px]\"><h2 class=\"text-xl font-semibold text-white mb-4\">Delete Function?</h2><p class=\"text-neutral-400 mb-6\">This action cannot be undone.</p><div class=\"flex justify-end gap-3\"><button onclick=\"closeDelete()\" class=\"px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800\">Cancel</button> <button onclick=\"confirmDelete()\" class=\"px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg\">Delete</button></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div><!-- META --><div class=\"mt-4 flex flex-col gap-3\"><input id=\"fn-name-input\" class=\"w-full px-3 py-2 rounded-xl bg-[#0b0b0c] border border-neutral-800 text-white\" placeholder=\"Function name\"></div><!-- EDITOR --><div id=\"create-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800 mt-4\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeCreate()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/close-circle-svgrepo-com.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveCreate(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- EDIT --><div id=\"edit-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"w-[98vw] h-[96vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl p-6 flex flex-col\"><div class=\"flex items-center justify-between mb-4\"><h2 class=\"text-xl font-semibold text-white\">Edit Function</h2><div class=\"flex items-center gap-3\"><div class=\"flex items-center gap-2 bg-[#0b0b0c] border border-neutral-800 rounded-xl p-1\"><button id=\"edit-mode-sync\" onclick=\"setEditMode('sync')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Sync</button> <button id=\"edit-mode-async\" onclick=\"setEditMode('async')\" class=\"mode-btn px-3 py-1.5 text-xs rounded-lg border border-neutral-800 text-neutral-300 hover:bg-neutral-800 transition\">Async</button></div><button onclick=\"closeEdit()\" class=\"p-2 text-neutral-300 hover:text-white\"><img src=\"/static/imgs/x.svg\" class=\"w-5 h-5\"></button></div></div><div id=\"edit-ace\" class=\"flex-1 w-full rounded-xl border border-neutral-800\"></div><div class=\"flex justify-end gap-3 pt-3\"><button onclick=\"closeEdit()\" class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800\"><img src=\"/static/imgs/cancel.svg\" class=\"w-5 h-5\"></button> <button onclick=\"saveEdit(true)\" class=\"p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white\"><img src=\"/static/imgs/save-floppy-svgrepo-com.svg\" class=\"w-5 h-5\"></button></div></div></div><!-- DELETE CONFIRM MODAL --><div id=\"delete-modal\" class=\"hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center\"><div class=\"bg-[#0f0f10] border border-neutral-800 rounded-2xl p-8 w-[420px]\"><h2 class=\"text-xl font-semibold text-white mb-4\">Delete Function?</h2><p class=\"text-neutral-400 mb-6\">This action cannot be undone.</p><div class=\"flex justify-end gap-3\"><button onclick=\"closeDelete()\" class=\"px-4 py-2 border border-neutral-700 text-neutral-300 rounded-lg hover:bg-neutral-800\">Cancel</button> <button onclick=\"confirmDelete()\" class=\"px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg\">Delete</button></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -415,7 +392,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<!-- ACE from CDN (fallback to local if needed) --><script>\n\t(function(){\n\t\tconst cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n\t\tconst s1 = document.createElement('script');\n\t\ts1.src = cdn + 'ace.js';\n\t\ts1.onload = () => {\n            ace.config.set('basePath', cdn);\n            ace.config.set('modePath', cdn);\n            ace.config.set('themePath', cdn);\n\t\t\t// load optional ext and keybinding after ace\n\t\t\tconst s2 = document.createElement('script');\n\t\t\ts2.src = cdn + 'ext-language_tools.js';\n\t\t\tdocument.head.appendChild(s2);\n\t\t\tconst s3 = document.createElement('script');\n\t\t\ts3.src = cdn + 'keybinding-vim.js';\n            s3.onload = () => {\n                // Periodically check for Vim global to ensure it's ready\n                const check = () => {\n                    if (ace.require && ace.require(\"ace/keyboard/vim\")) {\n                        defineVimEx();\n                    } else {\n                        setTimeout(check, 100);\n                    }\n                };\n                check();\n            };\n\t\t\tdocument.head.appendChild(s3);\n\t\t};\n\t\tdocument.head.appendChild(s1);\n\t})();\n\t</script><script>\nwindow.ACE_MODES = {\n    python: \"python\",\n    ts: \"typescript\",\n    go: \"golang\",\n    rust: \"rust\",\n    lua: \"lua\"\n};\n\nwindow.__activeProjectID = \"{ activeProjectID }\";\n\nlet createEditor = null;\nlet editEditor = null;\nlet selectedLang = \"python\";\nlet selectedCreateMode = \"sync\";\nlet selectedEditMode = \"sync\";\n\n\n\nconst modeMap = window.ACE_MODES;\n\n/* --- Helpers for project id resolution (use cookie fallback) --- */\nfunction getCookie(name) {\n  const v = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');\n  return v ? decodeURIComponent(v.pop()) : '';\n}\n\nfunction getActiveProjectID() {\n  const raw = (window.__activeProjectID || '').trim();\n  // treat templ placeholder or empty as \"not provided\"\n  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;\n  // fallback to cookie\n  return getCookie('lws_project') || '';\n}\n\nfunction projectUrl(pathSuffix) {\n  const pid = getActiveProjectID();\n  if (!pid) {\n    console.warn('no active project id set (lws_project cookie missing and server didn\\'t provide one)');\n    return pathSuffix || '';\n  }\n  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;\n  // NOTE: prepend /api here so we call server routes under /api\n  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;\n}\n\n/* --- Ace + Vim ex helpers --- */\nwindow.__isCreateEditor = false;\nwindow.__isEditEditor = false;\n\nfunction defineVimEx(){\n  try {\n    const vimMod = ace.require(\"ace/keyboard/vim\") || window.Vim;\n    if (!vimMod) return;\n    const Vim = vimMod.CodeMirror ? vimMod.CodeMirror.Vim : (vimMod.Vim || vimMod);\n    if (!Vim || !Vim.defineEx) return;\n    \n    const writeHandler = function() {\n        if (window.__isCreateEditor) saveCreate(false);\n        else if (window.__isEditEditor) saveEdit(false);\n    };\n    const saveAndQuitHandler = function() {\n        if (window.__isCreateEditor) saveCreate(true);\n        else if (window.__isEditEditor) saveEdit(true);\n    };\n    const quitHandler = function() {\n        if (window.__isCreateEditor) closeCreate();\n        else if (window.__isEditEditor) closeEdit();\n    };\n\n    Vim.defineEx(\"w\", \"\", writeHandler);\n    Vim.defineEx(\"write\", \"\", writeHandler);\n    Vim.defineEx(\"wq\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"x\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"q\", \"\", quitHandler);\n    Vim.defineEx(\"quit\", \"\", quitHandler);\n    Vim.defineEx(\"q!\", \"\", quitHandler);\n    Vim.defineEx(\"quit!\", \"\", quitHandler);\n    \n    console.log(\"LWS: Vim Ex commands registered\");\n    Vim.__lws_ex_defined = true;\n  } catch (e) {\n    console.error(\"LWS: Error in defineVimEx\", e);\n  }\n}\n\n/* --- UI functions --- */\nfunction copyFn(id){\n  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;\n  navigator.clipboard.writeText(curl);\n}\n\nfunction getTemplate(lang, mode) {\n  const el = document.getElementById(\"function-samples\");\n  if (!el) return \"\";\n  let samples = {};\n  try {\n    samples = JSON.parse(el.textContent || \"{}\");\n  } catch (e) {\n    console.error(\"failed to parse function samples\", e);\n    return \"\";\n  }\n  const entry = samples[lang];\n  if (!entry) return \"\";\n  if (typeof entry === \"string\") return entry;\n  return entry[mode] || entry.sync || \"\";\n}\n\nfunction setCreateMode(mode) {\n  if (!mode || mode === selectedCreateMode) {\n    updateCreateModeButtons();\n    return;\n  }\n  const template = getTemplate(selectedLang, mode);\n  if (createEditor) {\n    const current = createEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateCreateModeButtons();\n      return;\n    }\n    createEditor.setValue(template || \"\", -1);\n  }\n  selectedCreateMode = mode;\n  updateCreateModeButtons();\n}\n\nfunction setEditMode(mode) {\n  if (!mode || mode === selectedEditMode) {\n    updateEditModeButtons();\n    return;\n  }\n  const lang = window.__editFnLang || \"python\";\n  const template = getTemplate(lang, mode);\n  if (editEditor) {\n    const current = editEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateEditModeButtons();\n      return;\n    }\n    editEditor.setValue(template || \"\", -1);\n  }\n  selectedEditMode = mode;\n  updateEditModeButtons();\n}\n\nfunction updateCreateModeButtons() {\n  const syncBtn = document.getElementById(\"create-mode-sync\");\n  const asyncBtn = document.getElementById(\"create-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedCreateMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction updateEditModeButtons() {\n  const syncBtn = document.getElementById(\"edit-mode-sync\");\n  const asyncBtn = document.getElementById(\"edit-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedEditMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction openCreate(){\n  window.__isCreateEditor = true;\n  window.__isEditEditor = false;\n\n  document.getElementById('create-modal').classList.remove('hidden');\n\n  if(!createEditor && window.ace){\n    createEditor = ace.edit('create-ace');\n    createEditor.setTheme('ace/theme/dracula');\n    const isVim = document.getElementById('vim-toggle')?.checked;\n    if (isVim) {\n        try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n        defineVimEx();\n    }\n  }\n\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);\n    createEditor.setValue(getTemplate(selectedLang, selectedCreateMode) || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n  updateCreateModeButtons();\n}\n\nfunction selectLang(lang){\n  selectedLang = lang;\n  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));\n  const el = document.getElementById('lang-' + lang);\n  if(el) el.classList.add('selected');\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    createEditor.setValue(getTemplate(lang, selectedCreateMode) || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction closeCreate(){\n  window.__isCreateEditor = false;\n  document.getElementById('create-modal').classList.add('hidden');\n}\n\nfunction saveCreate(exit){\n  const name = document.getElementById('fn-name-input')?.value?.trim();\n  if(!name){\n    const el = document.getElementById('fn-name-input');\n    el.classList.add('shake');\n    setTimeout(()=>el.classList.remove('shake'),400);\n    el.focus();\n    return;\n  }\n  const description = document.getElementById('fn-desc-input')?.value?.trim();\n  const payload = {\n    name: name,\n    language: selectedLang,\n    description: description,\n    code: createEditor ? createEditor.getValue() : '',\n    is_async: selectedCreateMode === \"async\"\n  };\n  fetch(`/api/functions/`,{\n    method:'POST',\n    headers:{'Content-Type':'application/json'},\n    body:JSON.stringify(payload)\n  }).then(()=>{ \n    if(exit) closeCreate();\n    refreshList()\n  });\n}\n\nfunction openEdit(id, lang){\n  window.__isCreateEditor = false;\n  window.__isEditEditor = true;\n  window.__editFnID = id;\n  window.__editFnLang = lang;\n  console.log(\"opening edit modal\")\n  document.getElementById('edit-modal').classList.remove('hidden');\n  if(!editEditor && window.ace){\n    editEditor = ace.edit('edit-ace');\n    editEditor.setTheme('ace/theme/dracula');\n    const isVim = document.getElementById('vim-toggle')?.checked;\n    if (isVim) {\n        try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n        defineVimEx();\n    }\n  }\n\n  if(editEditor){\n    editEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    editEditor.setValue('Loading...', -1);\n    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{\n      selectedEditMode = data?.is_async ? \"async\" : \"sync\";\n      updateEditModeButtons();\n      editEditor.setValue(data.content || getTemplate(lang, selectedEditMode) || '', -1);\n      editEditor.focus();\n      // Second focus attempt after a tiny delay to be absolutely sure\n      setTimeout(() => editEditor.focus(), 50);\n    }).catch(()=>{\n      editEditor.setValue(getTemplate(lang, selectedEditMode) || '', -1);\n      editEditor.focus();\n    });\n    \n    // Immediate focus attempt\n    editEditor.focus();\n  }\n  updateEditModeButtons();\n}\n\nfunction closeEdit(){\n  window.__isEditEditor = false;\n  document.getElementById('edit-modal').classList.add('hidden');\n}\n\nfunction saveEdit(exit){\n  if(!window.__editFnID) return;\n  const body = editEditor ? editEditor.getValue() : '';\n  fetch(`/api/functions/${window.__editFnID}/`,{\n    method:'PUT',\n    headers:{'Content-Type':'application/json'},\n    body: JSON.stringify({\n      code: body,\n      is_async: selectedEditMode === \"async\"\n    })\n  }).then(()=>{ \n    if(exit) closeEdit(); \n    refreshList()\n  });\n}\n\n/* --- bind language tiles and other DOM wiring after load --- */\ndocument.addEventListener('DOMContentLoaded', () => {\n  // wire language tiles\n  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>{\n    btn.addEventListener('click', ()=> {\n      const lang = btn.getAttribute('data-lang');\n      selectLang(lang);\n    });\n  });\n\n  // if server didn't provide activeProjectID, try cookie\n  window.__activeProjectID = getActiveProjectID();\n  updateCreateModeButtons();\n  updateEditModeButtons();\n\n  // Handle Vim Toggle\n  const vimToggle = document.getElementById('vim-toggle');\n  if(vimToggle) {\n    vimToggle.addEventListener('change', () => {\n      const isVim = vimToggle.checked;\n      [createEditor, editEditor].forEach(ed => {\n        if(ed) {\n          ed.setKeyboardHandler(isVim ? 'ace/keyboard/vim' : null);\n          if(isVim) defineVimEx();\n        }\n      });\n    });\n  }\n\n  // Handle ?edit=ID from spotlight\n  const params = new URLSearchParams(window.location.search);\n  const editId = params.get('edit');\n  if (editId) {\n      // Find function in the list to get its language\n      // Since the list might still be loading, we might need a small delay or check periodically\n      const checkAndEdit = () => {\n          fetch(`/api/functions/${editId}/`)\n              .then(r => r.json())\n              .then(f => {\n                  openEdit(f.id, f.language);\n              })\n              .catch(err => console.error(\"Failed to auto-open edit modal\", err));\n      };\n      checkAndEdit();\n  }\n});\n\nwindow.__deleteFnID = null;\n\nfunction deleteFn(id) {\n    window.__deleteFnID = id;\n    document.getElementById(\"delete-modal\").classList.remove(\"hidden\");\n}\n\nfunction closeDelete() {\n    window.__deleteFnID = null;\n    document.getElementById(\"delete-modal\").classList.add(\"hidden\");\n}\n\nfunction confirmDelete() {\n    if (!window.__deleteFnID) return;\n\n    fetch(`/api/functions/${window.__deleteFnID}/`, {\n        method: \"DELETE\"\n    })\n    .then(() => {\n        closeDelete();\n        refreshList(); // refresh UI\n    });\n}\n\n\nfunction refreshList() {\n    const url = `/api/functions/`;\n    fetch(url)\n        .then(r => r.json())\n        .then(obj => {\n\n            const list = Object.values(obj);\n\n            const container = document.querySelector(\"#fn-list-container\");\n            if (!container) return;\n\n            container.innerHTML = \"\";\n\n            if (list.length === 0) {\n                container.innerHTML = `\n                    <div class=\"w-full text-center py-20 text-neutral-500 text-lg\">\n                        Create a new function to begin.\n                    </div>\n                `;\n                return;\n            }\n\n            const renderEndpointButton = (endpointId) => {\n                if (endpointId) {\n                    return '<a href=\"/endpoints/?expand=' + endpointId + '\"' +\n                        ' class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\"' +\n                        ' title=\"Endpoint settings\">' +\n                        '<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">' +\n                        '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14 3h7v7\" />' +\n                        '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 3l-9 9\" />' +\n                        '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 7v10a2 2 0 002 2h10\" />' +\n                        '</svg></a>';\n                }\n                return '<span class=\"p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed\" title=\"No endpoint\">' +\n                    '<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">' +\n                    '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14 3h7v7\" />' +\n                    '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 3l-9 9\" />' +\n                    '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 7v10a2 2 0 002 2h10\" />' +\n                    '</svg></span>';\n            };\n\n            list.forEach(fn => {\n                const id = fn.id;\n                const name = fn.name;\n                const lang = fn.language;\n                const endpointId = fn.endpoint_id || \"\";\n\n                const icon = `/static/imgs/${lang}-svgrepo-com.svg`;\n\n                const mobileCard = document.createElement(\"div\");\n                mobileCard.className = \"sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4\";\n                mobileCard.innerHTML = `\n                    <!-- TOP: Icon + Name -->\n                    <div class=\"flex items-center gap-3 mb-3\">\n                        <img src=\"${icon}\" class=\"w-5 h-5 opacity-80\"/>\n                        <h2 class=\"text-white font-medium text-base\">${name}</h2>\n                    </div>\n                \n                    <!-- BOTTOM: Actions -->\n                    <div class=\"flex items-center gap-3\">\n                \n                        <!-- Copy -->\n                        <button onclick=\"copyFn('${id}')\"\n                            class=\"p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white\">\n                            <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"/>\n                        </button>\n                \n                        <!-- Edit -->\n                        <button onclick=\"openEdit('${id}', '${lang}')\"\n                            class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\"\n                            title=\"Edit function\">\n                            <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z\" />\n                            </svg>\n                        </button>\n\n                        <!-- Endpoint -->\n                        ${renderEndpointButton(endpointId)}\n                \n                        <!-- Delete -->\n                        <button onclick=\"deleteFn('${id}')\"\n                            class=\"px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">\n                            Delete\n                        </button>\n                \n                    </div>\n                `;\n\n                const desktopRow = document.createElement(\"div\");\n                desktopRow.className = \"hidden sm:flex items-center justify-between px-2 py-3 border-b border-neutral-800 hover:bg-neutral-900/30 transition\";\n                desktopRow.innerHTML = `\n                    <!-- LEFT -->\n                    <div class=\"flex items-center gap-3\">\n                        <img src=\"${icon}\" class=\"w-5 h-5 opacity-80\"/>\n                        <span class=\"text-white font-medium\">${name}</span>\n                    </div>\n\n                    <!-- RIGHT -->\n                    <div class=\"flex items-center gap-2 opacity-60 hover:opacity-100 transition\">\n\n                        <button onclick=\"copyFn('${id}')\"\n                            class=\"p-1 rounded-lg hover:bg-neutral-800 transition\">\n                            <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"/>\n                        </button>\n\n                        <button onclick=\"openEdit('${id}', '${lang}')\"\n                            class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\"\n                            title=\"Edit function\">\n                            <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z\" />\n                            </svg>\n                        </button>\n\n                        ${renderEndpointButton(endpointId)}\n\n                        <button onclick=\"deleteFn('${id}')\"\n                            class=\"px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">\n                            Delete\n                        </button>\n\n                    </div>\n                `;\n\n                container.appendChild(mobileCard);\n                container.appendChild(desktopRow);\n            });\n        });\n}\n\n\n\n\t</script><style>\nhtml,body{background:#0f0f10!important;}\n.ace_editor,.ace_scroller,.ace_content{background:#0b0b0c!important;color:#eee!important;}\n.shake{animation:shake .3s linear;}\n@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}\n\n.lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}\n.lang-btn:hover{background:#1c1c1c;border-color:#666}\n.lang-btn.selected{background:#1f1f20;border-color:#888}\n.mode-btn.selected{background:#1f1f20;border-color:#888}\n\t</style></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<!-- ACE from CDN (fallback to local if needed) --><script>\n\t(function(){\n\t\tconst cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n\t\tconst s1 = document.createElement('script');\n\t\ts1.src = cdn + 'ace.js';\n\t\ts1.onload = () => {\n            ace.config.set('basePath', cdn);\n            ace.config.set('modePath', cdn);\n            ace.config.set('themePath', cdn);\n\t\t\t// load optional ext and keybinding after ace\n\t\t\tconst s2 = document.createElement('script');\n\t\t\ts2.src = cdn + 'ext-language_tools.js';\n\t\t\tdocument.head.appendChild(s2);\n\t\t\tconst s3 = document.createElement('script');\n\t\t\ts3.src = cdn + 'keybinding-vim.js';\n            s3.onload = () => {\n                // Periodically check for Vim global to ensure it's ready\n                const check = () => {\n                    if (ace.require && ace.require(\"ace/keyboard/vim\")) {\n                        defineVimEx();\n                    } else {\n                        setTimeout(check, 100);\n                    }\n                };\n                check();\n            };\n\t\t\tdocument.head.appendChild(s3);\n\t\t};\n\t\tdocument.head.appendChild(s1);\n\t})();\n\t</script><script>\nwindow.ACE_MODES = {\n    python: \"python\",\n    ts: \"typescript\",\n    go: \"golang\",\n    rust: \"rust\",\n    lua: \"lua\"\n};\n\nwindow.__activeProjectID = \"{ activeProjectID }\";\n\nlet createEditor = null;\nlet editEditor = null;\nlet selectedLang = \"python\";\nlet selectedCreateMode = \"sync\";\nlet selectedEditMode = \"sync\";\n\n\n\nconst modeMap = window.ACE_MODES;\n\n/* --- Helpers for project id resolution (use cookie fallback) --- */\nfunction getCookie(name) {\n  const v = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');\n  return v ? decodeURIComponent(v.pop()) : '';\n}\n\nfunction getActiveProjectID() {\n  const raw = (window.__activeProjectID || '').trim();\n  // treat templ placeholder or empty as \"not provided\"\n  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;\n  // fallback to cookie\n  return getCookie('lws_project') || '';\n}\n\nfunction projectUrl(pathSuffix) {\n  const pid = getActiveProjectID();\n  if (!pid) {\n    console.warn('no active project id set (lws_project cookie missing and server didn\\'t provide one)');\n    return pathSuffix || '';\n  }\n  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;\n  // NOTE: prepend /api here so we call server routes under /api\n  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;\n}\n\n/* --- Ace + Vim ex helpers --- */\nwindow.__isCreateEditor = false;\nwindow.__isEditEditor = false;\n\nfunction defineVimEx(){\n  try {\n    const vimMod = ace.require(\"ace/keyboard/vim\") || window.Vim;\n    if (!vimMod) return;\n    const Vim = vimMod.CodeMirror ? vimMod.CodeMirror.Vim : (vimMod.Vim || vimMod);\n    if (!Vim || !Vim.defineEx) return;\n    \n    const writeHandler = function() {\n        if (window.__isCreateEditor) saveCreate(false);\n        else if (window.__isEditEditor) saveEdit(false);\n    };\n    const saveAndQuitHandler = function() {\n        if (window.__isCreateEditor) saveCreate(true);\n        else if (window.__isEditEditor) saveEdit(true);\n    };\n    const quitHandler = function() {\n        if (window.__isCreateEditor) closeCreate();\n        else if (window.__isEditEditor) closeEdit();\n    };\n\n    Vim.defineEx(\"w\", \"\", writeHandler);\n    Vim.defineEx(\"write\", \"\", writeHandler);\n    Vim.defineEx(\"wq\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"x\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"q\", \"\", quitHandler);\n    Vim.defineEx(\"quit\", \"\", quitHandler);\n    Vim.defineEx(\"q!\", \"\", quitHandler);\n    Vim.defineEx(\"quit!\", \"\", quitHandler);\n    \n    console.log(\"LWS: Vim Ex commands registered\");\n    Vim.__lws_ex_defined = true;\n  } catch (e) {\n    console.error(\"LWS: Error in defineVimEx\", e);\n  }\n}\n\n/* --- UI functions --- */\nfunction copyFn(id){\n  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;\n  navigator.clipboard.writeText(curl);\n}\n\nfunction getTemplate(lang, mode) {\n  const el = document.getElementById(\"function-samples\");\n  if (!el) return \"\";\n  let samples = {};\n  try {\n    samples = JSON.parse(el.textContent || \"{}\");\n  } catch (e) {\n    console.error(\"failed to parse function samples\", e);\n    return \"\";\n  }\n  const entry = samples[lang];\n  if (!entry) return \"\";\n  if (typeof entry === \"string\") return entry;\n  return entry[mode] || entry.sync || \"\";\n}\n\nfunction setCreateMode(mode) {\n  if (!mode || mode === selectedCreateMode) {\n    updateCreateModeButtons();\n    return;\n  }\n  const template = getTemplate(selectedLang, mode);\n  if (createEditor) {\n    const current = createEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateCreateModeButtons();\n      return;\n    }\n    createEditor.setValue(template || \"\", -1);\n  }\n  selectedCreateMode = mode;\n  updateCreateModeButtons();\n}\n\nfunction setEditMode(mode) {\n  if (!mode || mode === selectedEditMode) {\n    updateEditModeButtons();\n    return;\n  }\n  const lang = window.__editFnLang || \"python\";\n  const template = getTemplate(lang, mode);\n  if (editEditor) {\n    const current = editEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateEditModeButtons();\n      return;\n    }\n    editEditor.setValue(template || \"\", -1);\n  }\n  selectedEditMode = mode;\n  updateEditModeButtons();\n}\n\nfunction updateCreateModeButtons() {\n  const syncBtn = document.getElementById(\"create-mode-sync\");\n  const asyncBtn = document.getElementById(\"create-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedCreateMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction updateEditModeButtons() {\n  const syncBtn = document.getElementById(\"edit-mode-sync\");\n  const asyncBtn = document.getElementById(\"edit-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedEditMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction openCreate(){\n  window.__isCreateEditor = true;\n  window.__isEditEditor = false;\n\n  document.getElementById('create-modal').classList.remove('hidden');\n\n  if(!createEditor && window.ace){\n    createEditor = ace.edit('create-ace');\n    createEditor.setTheme('ace/theme/dracula');\n    const isVim = document.getElementById('vim-toggle')?.checked;\n    if (isVim) {\n        try{ createEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n        defineVimEx();\n    }\n  }\n\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[selectedLang]);\n    createEditor.setValue(getTemplate(selectedLang, selectedCreateMode) || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n  updateCreateModeButtons();\n}\n\nfunction selectLang(lang){\n  selectedLang = lang;\n  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));\n  const el = document.getElementById('lang-' + lang);\n  if(el) el.classList.add('selected');\n  if(createEditor){\n    createEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    createEditor.setValue(getTemplate(lang, selectedCreateMode) || '', -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction closeCreate(){\n  window.__isCreateEditor = false;\n  document.getElementById('create-modal').classList.add('hidden');\n}\n\nfunction saveCreate(exit){\n  const name = document.getElementById('fn-name-input')?.value?.trim();\n  if(!name){\n    const el = document.getElementById('fn-name-input');\n    el.classList.add('shake');\n    setTimeout(()=>el.classList.remove('shake'),400);\n    el.focus();\n    return;\n  }\n  const description = document.getElementById('fn-desc-input')?.value?.trim();\n  const payload = {\n    name: name,\n    language: selectedLang,\n    description: description,\n    code: createEditor ? createEditor.getValue() : '',\n    is_async: selectedCreateMode === \"async\"\n  };\n  fetch(`/api/functions/`,{\n    method:'POST',\n    headers:{'Content-Type':'application/json'},\n    body:JSON.stringify(payload)\n  }).then(()=>{ \n    if(exit) closeCreate();\n    refreshList()\n  });\n}\n\nfunction openEdit(id, lang){\n  window.__isCreateEditor = false;\n  window.__isEditEditor = true;\n  window.__editFnID = id;\n  window.__editFnLang = lang;\n  console.log(\"opening edit modal\")\n  document.getElementById('edit-modal').classList.remove('hidden');\n  if(!editEditor && window.ace){\n    editEditor = ace.edit('edit-ace');\n    editEditor.setTheme('ace/theme/dracula');\n    const isVim = document.getElementById('vim-toggle')?.checked;\n    if (isVim) {\n        try{ editEditor.setKeyboardHandler('ace/keyboard/vim'); }catch(e){}\n        defineVimEx();\n    }\n  }\n\n  if(editEditor){\n    editEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    editEditor.setValue('Loading...', -1);\n    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{\n      selectedEditMode = data?.is_async ? \"async\" : \"sync\";\n      updateEditModeButtons();\n      editEditor.setValue(data.content || getTemplate(lang, selectedEditMode) || '', -1);\n      editEditor.focus();\n      // Second focus attempt after a tiny delay to be absolutely sure\n      setTimeout(() => editEditor.focus(), 50);\n    }).catch(()=>{\n      editEditor.setValue(getTemplate(lang, selectedEditMode) || '', -1);\n      editEditor.focus();\n    });\n    \n    // Immediate focus attempt\n    editEditor.focus();\n  }\n  updateEditModeButtons();\n}\n\nfunction closeEdit(){\n  window.__isEditEditor = false;\n  document.getElementById('edit-modal').classList.add('hidden');\n}\n\nfunction saveEdit(exit){\n  if(!window.__editFnID) return;\n  const body = editEditor ? editEditor.getValue() : '';\n  fetch(`/api/functions/${window.__editFnID}/`,{\n    method:'PUT',\n    headers:{'Content-Type':'application/json'},\n    body: JSON.stringify({\n      code: body,\n      is_async: selectedEditMode === \"async\"\n    })\n  }).then(()=>{ \n    if(exit) closeEdit(); \n    refreshList()\n  });\n}\n\n/* --- bind language tiles and other DOM wiring after load --- */\ndocument.addEventListener('DOMContentLoaded', () => {\n  // wire language tiles\n  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn=>{\n    btn.addEventListener('click', ()=> {\n      const lang = btn.getAttribute('data-lang');\n      selectLang(lang);\n    });\n  });\n\n  // if server didn't provide activeProjectID, try cookie\n  window.__activeProjectID = getActiveProjectID();\n  updateCreateModeButtons();\n  updateEditModeButtons();\n\n  // Handle Vim Toggle\n  const vimToggle = document.getElementById('vim-toggle');\n  if(vimToggle) {\n    vimToggle.addEventListener('change', () => {\n      const isVim = vimToggle.checked;\n      [createEditor, editEditor].forEach(ed => {\n        if(ed) {\n          ed.setKeyboardHandler(isVim ? 'ace/keyboard/vim' : null);\n          if(isVim) defineVimEx();\n        }\n      });\n    });\n  }\n\n  // Handle ?edit=ID from spotlight\n  const params = new URLSearchParams(window.location.search);\n  const editId = params.get('edit');\n  if (editId) {\n      // Find function in the list to get its language\n      // Since the list might still be loading, we might need a small delay or check periodically\n      const checkAndEdit = () => {\n          fetch(`/api/functions/${editId}/`)\n              .then(r => r.json())\n              .then(f => {\n                  openEdit(f.id, f.language);\n              })\n              .catch(err => console.error(\"Failed to auto-open edit modal\", err));\n      };\n      checkAndEdit();\n  }\n});\n\nwindow.__deleteFnID = null;\n\nfunction deleteFn(id) {\n    window.__deleteFnID = id;\n    document.getElementById(\"delete-modal\").classList.remove(\"hidden\");\n}\n\nfunction closeDelete() {\n    window.__deleteFnID = null;\n    document.getElementById(\"delete-modal\").classList.add(\"hidden\");\n}\n\nfunction confirmDelete() {\n    if (!window.__deleteFnID) return;\n\n    fetch(`/api/functions/${window.__deleteFnID}/`, {\n        method: \"DELETE\"\n    })\n    .then(() => {\n        closeDelete();\n        refreshList(); // refresh UI\n    });\n}\n\n\nfunction refreshList() {\n    const url = `/api/functions/`;\n    fetch(url)\n        .then(r => r.json())\n        .then(obj => {\n\n            const list = Object.values(obj);\n\n            const container = document.querySelector(\"#fn-list-container\");\n            if (!container) return;\n\n            container.innerHTML = \"\";\n\n            if (list.length === 0) {\n                container.innerHTML = `\n                    <div class=\"w-full text-center py-20 text-neutral-500 text-lg\">\n                        Create a new function to begin.\n                    </div>\n                `;\n                return;\n            }\n\n            const renderEndpointButton = (endpointId) => {\n                if (endpointId) {\n                    return '<a href=\"/endpoints/?expand=' + endpointId + '\"' +\n                        ' class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\"' +\n                        ' title=\"Endpoint settings\">' +\n                        '<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">' +\n                        '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14 3h7v7\" />' +\n                        '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 3l-9 9\" />' +\n                        '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 7v10a2 2 0 002 2h10\" />' +\n                        '</svg></a>';\n                }\n                return '<span class=\"p-2 rounded-lg border border-neutral-800 text-neutral-500 opacity-60 cursor-not-allowed\" title=\"No endpoint\">' +\n                    '<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">' +\n                    '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14 3h7v7\" />' +\n                    '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 3l-9 9\" />' +\n                    '<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 7v10a2 2 0 002 2h10\" />' +\n                    '</svg></span>';\n            };\n\n            list.forEach(fn => {\n                const id = fn.id;\n                const name = fn.name;\n                const lang = fn.language;\n                const endpointId = fn.endpoint_id || \"\";\n\n                const icon = `/static/imgs/${lang}-svgrepo-com.svg`;\n\n                const mobileCard = document.createElement(\"div\");\n                mobileCard.className = \"sm:hidden w-full rounded-xl border border-neutral-800 bg-[#0e0e0f] px-4 py-4\";\n                mobileCard.innerHTML = `\n                    <!-- TOP: Icon + Name -->\n                    <div class=\"flex items-center gap-3 mb-3\">\n                        <img src=\"${icon}\" class=\"w-5 h-5 opacity-80\"/>\n                        <h2 class=\"text-white font-medium text-base\">${name}</h2>\n                    </div>\n                \n                    <!-- BOTTOM: Actions -->\n                    <div class=\"flex items-center gap-3\">\n                \n                        <!-- Copy -->\n                        <button onclick=\"copyFn('${id}')\"\n                            class=\"p-2 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-white\">\n                            <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"/>\n                        </button>\n                \n                        <!-- Edit -->\n                        <button onclick=\"openEdit('${id}', '${lang}')\"\n                            class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\"\n                            title=\"Edit function\">\n                            <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z\" />\n                            </svg>\n                        </button>\n\n                        <!-- Endpoint -->\n                        ${renderEndpointButton(endpointId)}\n                \n                        <!-- Delete -->\n                        <button onclick=\"deleteFn('${id}')\"\n                            class=\"px-4 py-2 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">\n                            Delete\n                        </button>\n                \n                    </div>\n                `;\n\n                const desktopRow = document.createElement(\"div\");\n                desktopRow.className = \"hidden sm:flex items-center justify-between px-2 py-3 border-b border-neutral-800 hover:bg-neutral-900/30 transition\";\n                desktopRow.innerHTML = `\n                    <!-- LEFT -->\n                    <div class=\"flex items-center gap-3\">\n                        <img src=\"${icon}\" class=\"w-5 h-5 opacity-80\"/>\n                        <span class=\"text-white font-medium\">${name}</span>\n                    </div>\n\n                    <!-- RIGHT -->\n                    <div class=\"flex items-center gap-2 opacity-60 hover:opacity-100 transition\">\n\n                        <button onclick=\"copyFn('${id}')\"\n                            class=\"p-1 rounded-lg hover:bg-neutral-800 transition\">\n                            <img src=\"/static/imgs/copy-svgrepo-com.svg\" class=\"w-4 h-4\"/>\n                        </button>\n\n                        <button onclick=\"openEdit('${id}', '${lang}')\"\n                            class=\"p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition\"\n                            title=\"Edit function\">\n                            <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M11 5h-4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z\" />\n                            </svg>\n                        </button>\n\n                        ${renderEndpointButton(endpointId)}\n\n                        <button onclick=\"deleteFn('${id}')\"\n                            class=\"px-3 py-1 text-sm rounded-lg border border-red-700 text-red-400 hover:bg-red-900/40\">\n                            Delete\n                        </button>\n\n                    </div>\n                `;\n\n                container.appendChild(mobileCard);\n                container.appendChild(desktopRow);\n            });\n        });\n}\n\n\n\n\t</script><style>\nhtml,body{background:#0f0f10!important;}\n.ace_editor,.ace_scroller,.ace_content{background:#0b0b0c!important;color:#eee!important;}\n.shake{animation:shake .3s linear;}\n@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}\n\n.lang-btn{padding:10px 8px;border-radius:12px;background:#0e0e0f;border:1px solid #282828;color:white;font-size:0.85rem;transition:0.15s}\n.lang-btn:hover{background:#1c1c1c;border-color:#666}\n.lang-btn.selected{background:#1f1f20;border-color:#888}\n.mode-btn.selected{background:#1f1f20;border-color:#888}\n\t</style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

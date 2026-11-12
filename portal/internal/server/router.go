@@ -55,6 +55,16 @@ func (s *Server) BuildRoutes() {
 		protected.GET("/functions/", ui.Functions)
 		protected.GET("/endpoints/", ui.Endpoints)
 		protected.GET("/data/", ui.Data)
+		protected.GET("/dependencies/", ui.Dependencies)
+		protected.GET("/data-model/", ui.DataModel)
+		protected.GET("/agent/", ui.Agent)
+		protected.GET("/pubsub/", ui.PubSub)
+		protected.GET("/traffic/", ui.Traffic)
+		protected.GET("/compute/", ui.Compute)
+		protected.GET("/observability/", ui.Observability)
+		protected.GET("/deployments/", ui.Deployments)
+		protected.GET("/access/", ui.Access)
+		protected.GET("/audit/", ui.Audit)
 	}
 
 	projectHandlers := handlers.NewProjectHandlers(s.state)

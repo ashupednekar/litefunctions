@@ -1,168 +1,185 @@
 package templates
 
 templ ConfigurationContent() {
-	<div class="w-full px-6 md:px-14 py-12 space-y-10">
-		<!-- HEADER -->
-		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-4">
-				<a href="/dashboard/" class="p-2 hover:bg-neutral-800 rounded-lg transition">
-					<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-					</svg>
-				</a>
-				<h1 class="text-4xl font-semibold text-white tracking-tight">Configuration</h1>
-			</div>
-			<button
-				onclick="addConfigRow()"
-				class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl transition"
-			>
-				New Config
-			</button>
-		</div>
-		<p class="text-neutral-400 text-sm -mt-4">
-			Project-level configuration & encrypted secrets.
-		</p>
-		<!-- CONFIG LIST -->
-		<div id="config-list" class="space-y-3">
-			<!-- Example Row -->
-			<div class="config-item border border-neutral-800 bg-[#0e0e0f] rounded-2xl p-4">
-				<div class="flex items-center justify-between cursor-pointer" onclick="toggleConfig(this)">
-					<div>
-						<h3 class="text-white font-semibold text-lg">APP_MODE</h3>
-						<p class="text-neutral-500 text-sm">production</p>
-					</div>
-					<img src="/static/imgs/arrow-down.svg" class="w-5 h-5 opacity-60 rotate-0 transition-transform"/>
+	@PageHead("Configs & Secrets", "Environment variables, encrypted secrets, mounted files and feature flags for this project.", "Project settings", templ.Raw(`
+		<button class="z-btn" onclick="importEnv()">`+svgExternal()+` Import .env</button>
+		<button class="z-btn z-btn-primary" onclick="addConfigRow()">`+svgPlus()+` New config</button>
+	`))
+
+	<div class="z-alert z-alert-blue" style="margin-bottom:14px">
+		@Icon("lock", "")
+		<div><strong style="color:var(--text);font-weight:550">Encrypted at rest.</strong> Values marked secret are sealed with the project key. Revealing a secret is audited and requires a fresh passkey check.</div>
+	</div>
+
+	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("key", "") Variables</div><div class="z-stat-value">18</div><div class="z-stat-delta">12 plain <span class="z-faint">·</span> 6 secret</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("lock", "") Secrets</div><div class="z-stat-value">6</div><div class="z-stat-delta">rotated 3 days ago</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("file", "") Mounted files</div><div class="z-stat-value">2</div><div class="z-stat-delta">config maps <span class="z-faint">·</span> read-only</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("bolt", "") Feature flags</div><div class="z-stat-value">3</div><div class="z-stat-delta">1 enabled in production</div></div>
+	</div>
+
+	<div class="z-tabs" data-tab-group>
+		<button class="z-tab active" data-tab="variables">Variables <span class="z-badge z-badge-muted">18</span></button>
+		<button class="z-tab" data-tab="secrets">Secrets <span class="z-badge z-badge-muted">6</span></button>
+		<button class="z-tab" data-tab="volumes">Mounted files</button>
+		<button class="z-tab" data-tab="flags">Feature flags</button>
+	</div>
+
+	<div data-tab-panel="variables">
+		<div class="z-panel">
+			<div class="z-panel-header">
+				<span class="z-panel-title">Environment variables</span>
+				<span class="z-badge z-badge-blue">production</span>
+				<div class="z-panel-actions">
+					<div class="z-search" style="width:200px"><input class="z-input" style="height:25px;font-size:10.5px" placeholder="Search keys…"/></div>
+					<button class="z-btn z-btn-sm" onclick="addConfigRow()">@Icon("plus", "") Add</button>
 				</div>
-				<!-- EXPANDED EDITOR -->
-				<div class="config-body hidden mt-4 space-y-3">
-					<!-- Key -->
-					<div>
-						<label class="text-neutral-400 text-sm">Key</label>
-						<input class="cfg-key w-full mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white"/>
+			</div>
+			<div id="config-list" class="z-panel-body tight">
+				@configRow("APP_MODE", "production", "all-functions", false)
+				@configRow("DATABASE_URL", "postgresql://orders:***@db:5432/orders", "all-functions", true)
+				@configRow("NATS_URL", "nats://nats.litefunctions:4222", "all-functions", false)
+				@configRow("LOG_LEVEL", "info", "all-functions", false)
+				@configRow("STRIPE_API_BASE", "https://api.stripe.com", "pay-order", false)
+				@configRow("MAX_ORDER_ITEMS", "50", "create-order", false)
+			</div>
+			<div class="z-panel-foot">
+				<span class="z-help">Changes apply to new sandboxes. Restart a function to pick them up immediately.</span>
+				<span class="z-badge z-badge-green" style="margin-left:auto">synced</span>
+			</div>
+		</div>
+	</div>
+
+	<div data-tab-panel="secrets" style="display:none">
+		<div class="z-split">
+			<div class="z-panel">
+				<div class="z-panel-header">
+					<span class="z-panel-title">Secrets vault</span>
+					<span class="z-badge z-badge-purple">age encrypted</span>
+					<div class="z-panel-actions"><button class="z-btn z-btn-sm z-btn-accent" onclick="zOpenModal('secret-modal')">@Icon("plus", "") New secret</button></div>
+				</div>
+				<div class="z-table-wrap">
+					<table class="z-table">
+						<thead><tr><th>Name</th><th>Scope</th><th>Last rotated</th><th>Used by</th><th>Status</th><th></th></tr></thead>
+						<tbody>
+							@secretRow("STRIPE_SECRET_KEY", "project", "3 days ago", "pay-order, stripe-webhook", "healthy")
+							@secretRow("STRIPE_WEBHOOK_SECRET", "project", "3 days ago", "stripe-webhook", "healthy")
+							@secretRow("SMTP_PASSWORD", "project", "12 days ago", "notify-email", "rotate")
+							@secretRow("JWT_SIGNING_KEY", "project", "1 day ago", "ingestor", "healthy")
+							@secretRow("SENTRY_DSN", "function", "—", "list-orders", "healthy")
+							@secretRow("OPENAI_API_KEY", "function", "6 days ago", "agent-runner", "healthy")
+						</tbody>
+					</table>
+				</div>
+				<div class="z-panel-foot"><span class="z-help">Rotation does not invalidate old values; sandboxes are restarted with the new value.</span></div>
+			</div>
+			<aside>
+				<div class="z-panel">
+					<div class="z-panel-header"><span class="z-panel-title">Vault</span><span class="z-badge z-badge-green" style="margin-left:auto">sealed</span></div>
+					<div class="z-panel-body">
+						<dl class="z-kv">
+							<dt>KMS</dt><dd>local age key</dd>
+							<dt>Key ID</dt><dd>age1…q9x2</dd>
+							<dt>Rotation policy</dt><dd>90 days</dd>
+							<dt>Last audit</dt><dd>2 hours ago</dd>
+							<dt>Reveal</dt><dd>passkey + audit</dd>
+						</dl>
+						<div class="z-alert z-alert-amber" style="margin-top:10px">@Icon("alert", "") <div>1 secret is past its rotation window.</div></div>
 					</div>
-					<!-- Value -->
-					<div>
-						<label class="text-neutral-400 text-sm">Value</label>
-						<textarea
-							class="cfg-value w-full h-32 mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white"
-						></textarea>
-					</div>
-					<!-- Options -->
-					<label class="flex items-center gap-2 text-neutral-300 text-sm">
-						<input type="checkbox" class="cfg-encrypted"/>
-						Encrypted
-					</label>
-					<!-- Save/Cancel -->
-					<div class="flex justify-end gap-3 pt-2">
-						<button
-							onclick="cancelConfigEdit(this)"
-							class="px-4 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
-						>
-							Cancel
-						</button>
-						<button onclick="saveConfig(this)" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
-							Save
-						</button>
-					</div>
+				</div>
+			</aside>
+		</div>
+	</div>
+
+	<div data-tab-panel="volumes" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Mounted files</span><div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") Add mount</button></div></div>
+			<div class="z-panel-body tight">
+				<div class="z-list">
+					<div class="z-list-item"><span class="z-list-icon">@Icon("file", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">/etc/orders/config.yaml</div><div class="z-list-sub">config map · orders-config · 2.1 KB</div></div><span class="z-badge z-badge-muted">read-only</span></div>
+					<div class="z-list-item"><span class="z-list-icon">@Icon("file", "")</span><div class="z-list-main"><div class="z-list-title z-mono" style="font-size:10.5px">/etc/tls/ca.pem</div><div class="z-list-sub">secret · project-ca · 1.4 KB</div></div><span class="z-badge z-badge-purple">secret</span></div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<script>
-  /* Toggle expand/collapse */
-  function toggleConfig(el) {
-    const body = el.parentElement.querySelector(".config-body");
-    const arrow = el.querySelector("img");
 
-    if (body.classList.contains("hidden")) {
-      body.classList.remove("hidden");
-      arrow.style.transform = "rotate(180deg)";
-    } else {
-      body.classList.add("hidden");
-      arrow.style.transform = "rotate(0deg)";
-    }
-  }
-
-  /* Add a new empty row */
-  function addConfigRow() {
-    const list = document.getElementById("config-list");
-
-    const div = document.createElement("div");
-    div.className = "config-item border border-neutral-800 bg-[#0e0e0f] rounded-2xl p-4";
-
-    div.innerHTML = `
-		<div class="flex items-center justify-between cursor-pointer" onclick="toggleConfig(this)">
-			<div>
-				<h3 class="text-white font-semibold text-lg">New Key</h3>
-				<p class="text-neutral-500 text-sm">Click to edit…</p>
+	<div data-tab-panel="flags" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Feature flags</span><span class="z-panel-sub">per environment</span><div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") New flag</button></div></div>
+			<div class="z-panel-body">
+				@flagRow("orders_v2", "Route create-order to the v2 implementation", true)
+				@flagRow("strict_rate_limit", "Use 60 req/min instead of 120", false)
+				@flagRow("async_receipts", "Send receipts through the queue instead of inline", true)
 			</div>
-			<img src="/static/imgs/arrow-down.svg" class="w-5 h-5 opacity-60 rotate-0 transition-transform"/>
 		</div>
+	</div>
 
-		<div class="config-body mt-4 space-y-3">
-			<div>
-				<label class="text-neutral-400 text-sm">Key</label>
-				<input class="cfg-key w-full mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white"/>
+	<div id="secret-modal" class="z-modal-backdrop" onclick="zCloseModal('secret-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">@Icon("lock", "w-4 h-4")<span class="z-modal-title">New secret</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-body">
+				<div class="z-field"><label class="z-label">Name</label><input class="z-input z-mono" placeholder="STRIPE_SECRET_KEY"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Value</label><textarea class="z-input z-mono" style="min-height:76px;padding-top:8px" placeholder="sk_live_…"></textarea></div>
+				<div class="z-grid z-grid-2" style="margin-top:11px">
+					<div class="z-field"><label class="z-label">Scope</label><select class="z-select"><option>Project</option><option>Function</option><option>Environment</option></select></div>
+					<div class="z-field"><label class="z-label">Rotation</label><select class="z-select"><option>90 days</option><option>30 days</option><option>Never</option></select></div>
+				</div>
+				<div class="z-alert z-alert-blue" style="margin-top:12px">@Icon("shield", "") <div>Value is sealed before it leaves this page. It is never rendered back in plain text.</div></div>
 			</div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('secret-modal'); toast('Secret created (placeholder)','success')">Create secret</button></div>
+		</div>
+	</div>
 
-			<div>
-				<label class="text-neutral-400 text-sm">Value</label>
-				<textarea class="cfg-value w-full h-32 mt-1 p-2 bg-[#0c0c0d] border border-neutral-700 rounded-xl text-white"></textarea>
-			</div>
+	<script>
+		function addConfigRow() { toast("Config editor is a UI placeholder", "info"); }
+		function importEnv() { toast("Import .env is a UI placeholder", "info"); }
+	</script>
+}
 
-			<label class="flex items-center gap-2 text-neutral-300 text-sm">
-				<input type="checkbox" class="cfg-encrypted"/>
-				Encrypted
-			</label>
+templ configRow(key string, value string, scope string, secret bool) {
+	<div class="z-list-item" style="padding:10px 14px">
+		<span class="z-list-icon" style={ templ.KV("tone-purple", secret) }>@Icon("key", "")</span>
+		<div class="z-list-main">
+			<div class="z-list-title z-mono" style="font-size:11px">{ key }</div>
+			<div class="z-list-sub z-mono" style="font-size:9.5px">{ value }</div>
+		</div>
+		<span class="z-badge z-badge-muted">{ scope }</span>
+		if secret {
+			<span class="z-badge z-badge-purple">@Icon("lock", "") secret</span>
+		} else {
+			<span class="z-badge z-badge-green">plain</span>
+		}
+		<button class="z-icon-btn" title="Reveal" onclick="toast('Reveal requires a fresh passkey check','info')">@Icon("eye", "")</button>
+		<button class="z-icon-btn" title="Edit" onclick="toast('Editing is a UI placeholder','info')">@Icon("edit", "")</button>
+	</div>
+}
 
-			<div class="flex justify-end gap-3 pt-2">
-				<button onclick="cancelConfigEdit(this)" 
-					class="px-4 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800">
-					Cancel
-				</button>
-				<button onclick="saveConfig(this)" 
-					class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
-					Save
-				</button>
-			</div>
-		</div>`;
+templ secretRow(name string, scope string, rotated string, usedBy string, status string) {
+	<tr>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ name }</td>
+		<td><span class="z-badge z-badge-muted">{ scope }</span></td>
+		<td class="z-cell-mono">{ rotated }</td>
+		<td class="z-cell-mono" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{ usedBy }</td>
+		<td>
+			if status == "rotate" {
+				<span class="z-badge z-badge-amber">rotate soon</span>
+			} else {
+				<span class="z-badge z-badge-green">healthy</span>
+			}
+		</td>
+		<td class="z-cell-actions">
+			<button class="z-btn z-btn-sm z-btn-ghost" onclick="toast('Secret reveal is a placeholder','info')">@Icon("eye", "")</button>
+			<button class="z-btn z-btn-sm z-btn-ghost" onclick="toast('Rotation is a placeholder','info')">@Icon("refresh", "")</button>
+		</td>
+	</tr>
+}
 
-    list.prepend(div);
-  }
-
-  /* Cancel editing */
-  function cancelConfigEdit(btn) {
-    const body = btn.closest(".config-body");
-    body.classList.add("hidden");
-
-    const arrow = body.parentElement.querySelector("img");
-    arrow.style.transform = "rotate(0deg)";
-  }
-
-  /* Save logic placeholder */
-  function saveConfig(btn) {
-    const container = btn.closest(".config-item");
-    const key = container.querySelector(".cfg-key").value;
-    const val = container.querySelector(".cfg-value").value;
-    const enc = container.querySelector(".cfg-encrypted").checked;
-
-    console.log("TODO: Send save to backend", {key, val, enc});
-
-    // update collapsed summary UI
-    container.querySelector("h3").textContent = key || "Unnamed";
-    container.querySelector("p").textContent = enc ? "(encrypted)" : val.slice(0, 50);
-
-    cancelConfigEdit(btn);
-  }
-</script>
-	<style>
-  .config-item {
-    transition: border-color 0.2s, background-color 0.2s;
-  }
-
-  .config-item:hover {
-    border-color: #666;
-    background-color: #141416;
-  }
-</style>
+templ flagRow(name string, detail string, on bool) {
+	<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+		<div>
+			<div class="z-mono" style="font-size:11px;color:var(--text)">{ name }</div>
+			<div class="z-help">{ detail }</div>
+		</div>
+		<span class={ "z-toggle", templ.KV("on", on) }></span>
+	</div>
 }

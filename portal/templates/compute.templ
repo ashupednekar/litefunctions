@@ -1,0 +1,255 @@
+package templates
+
+templ ComputeContent() {
+	@PageHead("Compute · Isolation", "Workload pools, container runtimes and the isolation tiers available to functions. CRI today, sandboxes and unikernels next.", "Operate · future", templ.Raw(`
+		<button class="z-btn" onclick="toast('Node pool provisioning is a placeholder','info')">`+svgCpu()+` Node pools</button>
+		<button class="z-btn z-btn-primary" onclick="zOpenModal('profile-modal')">`+svgPlus()+` New profile</button>
+	`))
+
+	<div class="z-alert z-alert-amber" style="margin-bottom:14px">
+		@Icon("alert", "")
+		<div><strong style="color:var(--text);font-weight:550">Future surface.</strong> The runtime and isolation data here is illustrative. gVisor, Kata and unikernel profiles are planned; CRI/containerd is the current execution path.</div>
+	</div>
+
+	<div class="z-grid z-grid-4" style="margin-bottom:14px">
+		<div class="z-stat"><div class="z-stat-label">@Icon("cpu", "") Nodes</div><div class="z-stat-value">3</div><div class="z-stat-delta">1 control <span class="z-faint">·</span> 2 workers</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("layers", "") vCPU capacity</div><div class="z-stat-value">48</div><div class="z-stat-delta">14 allocated <span class="z-faint">·</span> 29%</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("box", "") Sandboxes</div><div class="z-stat-value">4</div><div class="z-stat-delta">2 warm <span class="z-faint">·</span> 2 cold</div></div>
+		<div class="z-stat"><div class="z-stat-label">@Icon("gauge", "") Cold start p95</div><div class="z-stat-value">220<small>ms</small></div><div class="z-stat-delta"><span class="z-delta-up">▼ 32ms</span> <span class="z-faint">·</span> containerd</div></div>
+	</div>
+
+	<div class="z-tabs" data-tab-group>
+		<button class="z-tab active" data-tab="runtimes">Runtimes</button>
+		<button class="z-tab" data-tab="pools">Node pools</button>
+		<button class="z-tab" data-tab="profiles">Isolation profiles</button>
+		<button class="z-tab" data-tab="sandboxes">Sandboxes</button>
+	</div>
+
+	<div data-tab-panel="runtimes">
+		<div class="z-grid z-grid-3">
+			@runtimeCard("containerd", "CRI · runc", "1.7.24", "stable", "green", "Default execution path. OCI images, seccomp + AppArmor, rootless where possible.", "~180ms", true)
+			@runtimeCard("gVisor", "runsc", "2026.11", "available", "blue", "User-space kernel for stronger workload isolation. Higher syscall overhead, lower host exposure.", "~310ms", false)
+			@runtimeCard("Kata Containers", "kata-runtime", "3.12", "preview", "amber", "Lightweight VM per pod. Strong isolation with near-container ergonomics. Requires bare-metal or nested virt.", "~700ms", false)
+			@runtimeCard("Unikernel", "firecracker", "0.9", "future", "purple", "Single-address-space images with microVM isolation. Planned for ultra-fast, single-purpose functions.", "~25ms", false)
+			@runtimeCard("WASM / WASI", "wasmtime", "26.0", "future", "cyan", "Portable, capability-based sandbox. Planned for edge and plugin-style functions.", "~5ms", false)
+			@runtimeCard("Nanos", "nanos", "—", "exploring", "muted", "Unikernel experiment for Go/Rust workloads. No general availability yet.", "—", false)
+		</div>
+
+		<div class="z-split" style="margin-top:14px">
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Isolation comparison</span><span class="z-panel-sub">host exposure vs. startup cost</span></div>
+				<div class="z-table-wrap">
+					<table class="z-table">
+						<thead><tr><th>Runtime</th><th>Kernel boundary</th><th>Rootless</th><th>Snapshot</th><th>Cold start</th><th>Maturity</th></tr></thead>
+						<tbody>
+							<tr><td class="z-cell-main">containerd</td><td class="z-cell-mono">shared host</td><td><span class="z-badge z-badge-green">yes</span></td><td><span class="z-badge z-badge-green">yes</span></td><td class="z-cell-mono">180ms</td><td><span class="z-badge z-badge-green">GA</span></td></tr>
+							<tr><td class="z-cell-main">gVisor</td><td class="z-cell-mono">user-space kernel</td><td><span class="z-badge z-badge-green">yes</span></td><td><span class="z-badge z-badge-amber">partial</span></td><td class="z-cell-mono">310ms</td><td><span class="z-badge z-badge-blue">beta</span></td></tr>
+							<tr><td class="z-cell-main">Kata</td><td class="z-cell-mono">microVM</td><td><span class="z-badge z-badge-amber">partial</span></td><td><span class="z-badge z-badge-green">yes</span></td><td class="z-cell-mono">700ms</td><td><span class="z-badge z-badge-amber">preview</span></td></tr>
+							<tr><td class="z-cell-main">Firecracker</td><td class="z-cell-mono">microVM</td><td><span class="z-badge z-badge-green">yes</span></td><td><span class="z-badge z-badge-green">yes</span></td><td class="z-cell-mono">25ms</td><td><span class="z-badge z-badge-purple">future</span></td></tr>
+							<tr><td class="z-cell-main">WASM/WASI</td><td class="z-cell-mono">wasm sandbox</td><td><span class="z-badge z-badge-green">yes</span></td><td><span class="z-badge z-badge-green">yes</span></td><td class="z-cell-mono">5ms</td><td><span class="z-badge z-badge-purple">future</span></td></tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<aside>
+				<div class="z-panel">
+					<div class="z-panel-header"><span class="z-panel-title">Cluster</span><span class="z-badge z-badge-green" style="margin-left:auto">connected</span></div>
+					<div class="z-panel-body">
+						<dl class="z-kv">
+							<dt>Distribution</dt><dd>k3s</dd>
+							<dt>CRI</dt><dd>containerd 1.7</dd>
+							<dt>Arch</dt><dd>amd64</dd>
+							<dt>Runtime class</dt><dd>runc</dd>
+							<dt>Node OS</dt><dd>linux 6.16</dd>
+							<dt>Namespace</dt><dd>litefunctions</dd>
+						</dl>
+					</div>
+				</div>
+				<div class="z-panel" style="margin-top:14px">
+					<div class="z-panel-header"><span class="z-panel-title">Hardening</span></div>
+					<div class="z-panel-body" style="display:flex;flex-direction:column;gap:8px">
+						@checkRow("Seccomp profile", "RuntimeDefault")
+						@checkRow("AppArmor", "enforced")
+						@checkRow("Root filesystem", "read-only")
+						@checkRow("Network policy", "default deny egress")
+						@checkRow("Resource limits", "required")
+					</div>
+				</div>
+			</aside>
+		</div>
+	</div>
+
+	<div data-tab-panel="pools" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Node pools</span><div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("refresh", "") Refresh</button><button class="z-btn z-btn-sm z-btn-accent">@Icon("plus", "") Add pool</button></div></div>
+			<div class="z-table-wrap">
+				<table class="z-table">
+					<thead><tr><th>Pool</th><th>Runtime class</th><th>Isolation</th><th>Nodes</th><th>vCPU</th><th>Memory</th><th>Utilization</th><th>Status</th><th></th></tr></thead>
+					<tbody>
+						@poolRow("default", "runc", "container", "2", "32", "128 GiB", 34, "ready")
+						@poolRow("gvisor", "runsc", "user-space kernel", "0", "0", "0 GiB", 0, "planned")
+						@poolRow("kata", "kata-qemu", "microVM", "0", "0", "0 GiB", 0, "planned")
+						@poolRow("edge-wasm", "wasmtime", "wasm", "0", "0", "0 GiB", 0, "future")
+					</tbody>
+				</table>
+			</div>
+			<div class="z-panel-foot"><span class="z-help">Pools map to Kubernetes RuntimeClasses and node taints. Isolation profiles pin workloads to compatible pools.</span></div>
+		</div>
+
+		<div class="z-panel" style="margin-top:14px">
+			<div class="z-panel-header"><span class="z-panel-title">Placement rules</span><span class="z-badge z-badge-muted">2 rules</span><div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("plus", "") New rule</button></div></div>
+			<div class="z-panel-body tight">
+				<div class="z-list">
+					<div class="z-list-item"><span class="z-list-icon">@Icon("cpu", "")</span><div class="z-list-main"><div class="z-list-title">functions with <span class="z-code-inline">runtime: gvisor</span></div><div class="z-list-sub">→ pool gvisor · taint isolation=gvisor</div></div><span class="z-badge z-badge-blue">preview</span></div>
+					<div class="z-list-item"><span class="z-list-icon">@Icon("shield", "")</span><div class="z-list-main"><div class="z-list-title">functions with <span class="z-code-inline">isolation: strict</span></div><div class="z-list-sub">→ pool kata · 1 vCPU / 512 MiB minimum</div></div><span class="z-badge z-badge-amber">planned</span></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div data-tab-panel="profiles" style="display:none">
+		<div class="z-split-wide">
+			<div class="z-panel">
+				<div class="z-panel-header"><span class="z-panel-title">Profiles</span></div>
+				<div class="z-panel-body tight" style="padding:6px">
+					<button class="z-nav-item active" style="width:100%;text-align:left">@Icon("shield", "") <span>strict</span><span class="z-nav-badge">kata</span></button>
+					<button class="z-nav-item" style="width:100%;text-align:left">@Icon("shield", "") <span>balanced</span><span class="z-nav-badge">runsc</span></button>
+					<button class="z-nav-item" style="width:100%;text-align:left">@Icon("bolt", "") <span>fast</span><span class="z-nav-badge">runc</span></button>
+					<button class="z-nav-item" style="width:100%;text-align:left">@Icon("globe", "") <span>edge</span><span class="z-nav-badge">wasm</span></button>
+				</div>
+			</div>
+			<div>
+				<div class="z-panel">
+					<div class="z-panel-header"><span class="z-panel-title">strict</span><span class="z-badge z-badge-amber">preview</span><div class="z-panel-actions"><button class="z-btn z-btn-sm">@Icon("save", "") Save</button></div></div>
+					<div class="z-panel-body">
+						<div class="z-grid z-grid-2">
+							<div class="z-field"><label class="z-label">Runtime class</label><select class="z-select"><option>kata-qemu</option><option>runsc</option><option>runc</option></select></div>
+							<div class="z-field"><label class="z-label">Kernel</label><select class="z-select"><option>guest kernel 6.6</option><option>host kernel</option></select></div>
+							<div class="z-field"><label class="z-label">Network</label><select class="z-select"><option>isolated + egress policy</option><option>host</option></select></div>
+							<div class="z-field"><label class="z-label">Filesystem</label><select class="z-select"><option>read-only + tmpfs /tmp</option><option>writable</option></select></div>
+						</div>
+						<div class="z-divider"></div>
+						<div class="z-grid z-grid-3">
+							@profileMetric("Cold start", "700ms")
+							@profileMetric("Memory overhead", "48 MiB")
+							@profileMetric("Host exposure", "microVM")
+						</div>
+						<div class="z-alert z-alert-blue" style="margin-top:12px">@Icon("alert", "") <div>Requires nodes with virtualization support. The UI will gate this profile until a compatible pool is available.</div></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div data-tab-panel="sandboxes" style="display:none">
+		<div class="z-panel">
+			<div class="z-panel-header"><span class="z-panel-title">Active sandboxes</span><span class="z-panel-sub">function instances</span></div>
+			<div class="z-table-wrap">
+				<table class="z-table">
+					<thead><tr><th>Function</th><th>Runtime</th><th>Node</th><th>Image</th><th>Uptime</th><th>Memory</th><th>Status</th><th></th></tr></thead>
+					<tbody>
+						@boxRow("create-order", "runc", "worker-1", "go:sha-77b0e1", "18m", "42 / 256 MiB", "warm")
+						@boxRow("list-orders", "runc", "worker-1", "go:sha-77b0e1", "18m", "38 / 256 MiB", "warm")
+						@boxRow("pay-order", "runc", "worker-2", "go:sha-77b0e1", "4m", "44 / 256 MiB", "cold")
+						@boxRow("stripe-webhook", "runc", "worker-2", "go:sha-77b0e1", "2m", "40 / 256 MiB", "cold")
+					</tbody>
+				</table>
+			</div>
+			<div class="z-panel-foot"><span class="z-help">Warm sandboxes are kept per the operator's keep-warm window. Isolation upgrades will require a sandbox restart.</span></div>
+		</div>
+	</div>
+
+	<div id="profile-modal" class="z-modal-backdrop" onclick="zCloseModal('profile-modal')">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">@Icon("cpu", "w-4 h-4")<span class="z-modal-title">New isolation profile</span><button class="z-icon-btn" style="margin-left:auto" data-close-modal>@Icon("close", "")</button></div>
+			<div class="z-modal-body">
+				<div class="z-field"><label class="z-label">Profile name</label><input class="z-input" placeholder="e.g. strict"/></div>
+				<div class="z-field" style="margin-top:11px"><label class="z-label">Runtime</label><select class="z-select"><option>containerd (runc)</option><option>gVisor (runsc)</option><option>Kata Containers</option><option>Unikernel (Firecracker)</option><option>WASM (WASI)</option></select></div>
+				<div class="z-grid z-grid-2" style="margin-top:11px">
+					<div class="z-field"><label class="z-label">Filesystem</label><select class="z-select"><option>read-only</option><option>writable</option></select></div>
+					<div class="z-field"><label class="z-label">Network</label><select class="z-select"><option>isolated</option><option>egress allowlist</option><option>host</option></select></div>
+				</div>
+				<div class="z-label" style="margin-top:12px">Hardening</div>
+				<div style="display:flex;flex-direction:column;gap:7px;margin-top:7px">
+					<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text-2)">Seccomp RuntimeDefault</span><span class="z-toggle on"></span></div>
+					<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text-2)">Rootless container</span><span class="z-toggle on"></span></div>
+					<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:var(--text-2)">Drop all capabilities</span><span class="z-toggle on"></span></div>
+				</div>
+			</div>
+			<div class="z-modal-foot"><button class="z-btn" data-close-modal>Cancel</button><button class="z-btn z-btn-primary" onclick="zCloseModal('profile-modal'); toast('Profile saved (placeholder)','success')">Create profile</button></div>
+		</div>
+	</div>
+}
+
+templ runtimeCard(name string, kind string, version string, status string, tone string, detail string, cold string, isDefault bool) {
+	<div class="z-panel" style="margin-top:0">
+		<div class="z-panel-header">
+			<span class="z-list-icon" style={ "color:" + toneColor(tone) }>@Icon("cpu", "")</span>
+			<div>
+				<div class="z-panel-title">{ name }</div>
+				<div class="z-panel-sub z-mono" style="font-size:9px">{ kind } · { version }</div>
+			</div>
+			<span class={ "z-badge", templ.KV("z-badge-green", tone == "green"), templ.KV("z-badge-blue", tone == "blue"), templ.KV("z-badge-amber", tone == "amber"), templ.KV("z-badge-purple", tone == "purple"), templ.KV("z-badge-cyan", tone == "cyan"), templ.KV("z-badge-muted", tone == "muted") } style="margin-left:auto">{ status }</span>
+		</div>
+		<div class="z-panel-body">
+			<div class="z-help" style="min-height:48px;line-height:1.55">{ detail }</div>
+			<div class="z-divider" style="margin:10px 0"></div>
+			<div style="display:flex;align-items:center;justify-content:space-between">
+				<div><div class="z-stat-label">Cold start</div><div class="z-mono" style="font-size:11px;margin-top:2px">{ cold }</div></div>
+				if isDefault {
+					<span class="z-badge z-badge-green">@Icon("check", "") default</span>
+				} else {
+					<button class="z-btn z-btn-sm">Set default</button>
+				}
+			</div>
+		</div>
+	</div>
+}
+
+func toneColor(tone string) string {
+	switch tone {
+	case "green":
+		return "var(--green)"
+	case "blue":
+		return "var(--accent)"
+	case "amber":
+		return "var(--amber)"
+	case "purple":
+		return "#c7b3ff"
+	case "cyan":
+		return "var(--cyan)"
+	default:
+		return "var(--text-3)"
+	}
+}
+
+templ poolRow(name string, runtimeClass string, isolation string, nodes string, cpu string, memory string, util int, status string) {
+	<tr>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ name }</td>
+		<td class="z-cell-mono">{ runtimeClass }</td>
+		<td><span class="z-badge z-badge-muted">{ isolation }</span></td>
+		<td class="z-cell-mono">{ nodes }</td>
+		<td class="z-cell-mono">{ cpu }</td>
+		<td class="z-cell-mono">{ memory }</td>
+		<td style="min-width:120px"><div class="z-progress"><span style={ "width:" + itoa(util) + "%" }></span></div><span class="z-mono" style="font-size:9px;color:var(--text-4)">{ itoa(util) }%</span></td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "ready"), templ.KV("z-badge-amber", status == "planned"), templ.KV("z-badge-purple", status == "future") }>{ status }</span></td>
+		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
+	</tr>
+}
+
+templ profileMetric(label string, value string) {
+	<div><div class="z-stat-label">{ label }</div><div style="font-size:16px;margin-top:4px;font-weight:550">{ value }</div></div>
+}
+
+templ boxRow(fn string, runtime string, node string, image string, uptime string, memory string, status string) {
+	<tr>
+		<td class="z-cell-main z-mono" style="font-size:10.5px">{ fn }</td>
+		<td><span class="z-badge z-badge-muted">{ runtime }</span></td>
+		<td class="z-cell-mono">{ node }</td>
+		<td class="z-cell-mono">{ image }</td>
+		<td class="z-cell-mono">{ uptime }</td>
+		<td class="z-cell-mono">{ memory }</td>
+		<td><span class={ "z-badge", templ.KV("z-badge-green", status == "warm"), templ.KV("z-badge-muted", status == "cold") }>{ status }</span></td>
+		<td class="z-cell-actions"><button class="z-btn z-btn-sm z-btn-ghost">@Icon("more", "")</button></td>
+	</tr>
+}
