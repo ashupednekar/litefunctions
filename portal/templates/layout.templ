@@ -38,24 +38,22 @@ templ BaseLayout(data ShellData, content templ.Component) {
 					<nav class="z-sidebar-scroll">
 						<div class="z-nav-section">
 							@NavItem("/dashboard/", "Overview", "grid", data.Active == "overview", "")
-							@NavItem("/functions/", "Functions", "code", data.Active == "functions", "")
-							@NavItem("/agent/", "Agentic Planner", "sparkles", data.Active == "agent", "")
 							@NavItem("/observability/", "Observability", "activity", data.Active == "observability", "")
+						</div>
+						<div class="z-nav-section">
+							<div class="z-nav-label">Build</div>
+							@NavItem("/functions/", "Functions", "code", data.Active == "functions", "")
+							@NavItem("/agent/", "Plan", "sparkles", data.Active == "agent", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Data</div>
 							@NavItem("/data/", "Objects", "box", data.Active == "data", "")
 							@NavItem("/data-model/", "Tables", "table", data.Active == "data-model", "")
-							@NavItem("/pubsub/", "Pub/Sub", "network", data.Active == "pubsub", "")
 						</div>
 						<div class="z-nav-section">
 							<div class="z-nav-label">Project</div>
 							@NavItem("/dependencies/", "Dependencies", "package", data.Active == "dependencies", "")
 							@NavItem("/configuration/", "Configs & Secrets", "key", data.Active == "configuration", "")
-						</div>
-						<div class="z-nav-section">
-							<div class="z-nav-label">Traffic &amp; Access</div>
-							@NavItem("/traffic/", "Traffic", "shield", data.Active == "traffic", "")
 							@NavItem("/access/", "Team & Access", "users", data.Active == "access", "")
 						</div>
 					</nav>

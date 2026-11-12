@@ -10,6 +10,8 @@ script selectLang(lang string) {
 }
 script openEdit(id string, lang string) {
 }
+script toggleFnConfig(id string) {
+}
 script closeEdit() {
 }
 script saveCreate(exit bool) {
@@ -24,51 +26,6 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 	<button class="z-btn z-btn-primary" onclick="openCreate()">`+svgPlus()+` New function</button>
 `))
 
-<details class="z-panel z-compute-config" style="margin-bottom:14px">
-	<summary class="z-panel-header" style="margin:0;cursor:pointer">
-		@Icon("cpu", "")
-		<span class="z-panel-title">Compute &amp; isolation</span>
-		<span class="z-badge z-badge-amber">dummy data</span>
-		<span class="z-panel-sub">runtime interface and execution mode</span>
-		<span style="margin-left:auto;color:var(--text-4);display:flex">@Icon("chevron-down", "")</span>
-	</summary>
-	<div class="z-panel-body">
-		<div class="z-grid z-grid-3">
-			<div class="z-field">
-				<label class="z-label" for="runtime-interface">Runtime interface</label>
-				<select id="runtime-interface" class="z-select">
-					<option selected>containerd · runc (default)</option>
-					<option>gVisor · runsc (preview)</option>
-					<option>Kata Containers · microVM (preview)</option>
-					<option>WASM / WASI · wasmtime (future)</option>
-					<option>Firecracker · microVM (future)</option>
-				</select>
-				<span class="z-help">Containerd is the default execution path. Stronger isolation profiles are opt-in per function.</span>
-			</div>
-			<div class="z-field">
-				<span class="z-label">Dynamic language runtime</span>
-				<div class="z-mode-toggle" id="dyn-runtime-toggle">
-					<button class="z-mode-btn selected" onclick="setDynRuntime('shared')">Shared</button>
-					<button class="z-mode-btn" onclick="setDynRuntime('dedicated')">Dedicated</button>
-				</div>
-				<span class="z-help">Python, TypeScript and Lua can share a warm interpreter pool. Go and Rust always ship dedicated binaries.</span>
-			</div>
-			<div class="z-field">
-				<span class="z-label">Dedicated resources</span>
-				<div class="z-grid z-grid-2" style="gap:7px">
-					<select class="z-select" aria-label="vCPU"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>
-					<select class="z-select" aria-label="Memory"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>
-				</div>
-				<span class="z-help">Applied only when the dedicated runtime is selected.</span>
-			</div>
-		</div>
-		<div class="z-compute-foot">
-			<a class="z-btn z-btn-sm" href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener">@Icon("github", "") Open project repo</a>
-			<span class="z-help">Runtime config is stored with the function package. The UI is a placeholder until the operator API lands.</span>
-			<button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Compute config saved (placeholder)','success')">@Icon("save", "") Save config</button>
-		</div>
-	</div>
-</details>
 
 <div class="z-panel">
 	<div class="z-panel-header">
@@ -101,6 +58,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 				</div>
 				<div class="z-fn-actions">
 					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
+					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
 					<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "") Edit</button>
 					if fn.EndpointID != "" {
 						<a class="z-btn z-btn-sm" title="Endpoint" href={ templ.SafeURL("/traffic/?expand=" + fn.EndpointID) }>@Icon("route", "") Test</a>
@@ -110,6 +68,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<button class="z-icon-btn" title="Delete" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>@Icon("trash", "")</button>
 				</div>
 			</div>
+			@functionConfigPanel(fn)
 		}
 	</div>
 </div>
@@ -441,11 +400,24 @@ function updateEditModeButtons() {
   else syncBtn?.classList.add("selected");
 }
 
-function setDynRuntime(mode) {
-  document.querySelectorAll("#dyn-runtime-toggle .z-mode-btn").forEach((btn, i) => {
-    btn.classList.toggle("selected", mode === "dedicated" ? i === 1 : i === 0);
+function setDynRuntime(btn, mode) {
+  const group = btn.closest(".z-mode-toggle");
+  if (!group) return;
+  group.querySelectorAll(".z-mode-btn").forEach((b, i) => {
+    b.classList.toggle("selected", mode === "dedicated" ? i === 1 : i === 0);
   });
-  toast(mode === "dedicated" ? "Dedicated dynamic runtime selected" : "Shared dynamic runtime selected", "info");
+}
+
+function toggleFnConfig(id) {
+  const panel = document.getElementById("fn-config-" + id);
+  if (!panel) return;
+  const willOpen = panel.classList.contains("hidden");
+  document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
+  document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
+  if (willOpen) {
+    panel.classList.remove("hidden");
+    document.getElementById("fn-config-btn-" + id)?.classList.add("active");
+  }
 }
 
 const FILE_MANIFESTS = {
@@ -936,6 +908,8 @@ function fnIcon(name) {
         copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
         edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
         route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+        sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+        github: '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>',
         trash: '<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'
     };
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + (paths[name] || "") + '</svg>';
@@ -951,6 +925,59 @@ function filterFunctions(q) {
         const name = String(row.getAttribute("data-fn-name") || "").toLowerCase();
         row.style.display = (!needle || name.includes(needle)) ? "" : "none";
     });
+}
+
+function functionConfigPanelHtml(id, name) {
+    return `<div id="fn-config-${id}" class="z-fn-config hidden" data-fn-config>
+        <div class="z-fn-config-head">
+            <span class="z-panel-title">Function config</span>
+            <span class="z-badge z-badge-muted">${name}</span>
+            <span class="z-badge z-badge-amber">dummy data</span>
+            <span class="z-help">Runtime, isolation and rate limits scoped to this function.</span>
+        </div>
+        <div class="z-fn-config-grid">
+            <div class="z-field">
+                <label class="z-label">Runtime interface</label>
+                <select class="z-select">
+                    <option selected>containerd · runc (default)</option>
+                    <option>gVisor · runsc</option>
+                    <option>Kata Containers · microVM</option>
+                    <option>WASM / WASI · wasmtime</option>
+                    <option>Firecracker · microVM</option>
+                </select>
+                <span class="z-help">Containerd by default; stronger isolation is opt-in.</span>
+            </div>
+            <div class="z-field">
+                <span class="z-label">Dynamic runtime</span>
+                <div class="z-mode-toggle">
+                    <button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
+                    <button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+                </div>
+                <span class="z-help">Python, TypeScript and Lua only.</span>
+            </div>
+            <div class="z-field">
+                <span class="z-label">Rate limit</span>
+                <div class="z-input-group">
+                    <input class="z-input z-mono" style="width:92px" value="120" aria-label="requests per minute"/>
+                    <span class="z-help">req/min</span>
+                </div>
+                <span class="z-help">Burst <span class="z-code-inline">40</span> · per function at the gateway.</span>
+            </div>
+            <div class="z-field">
+                <span class="z-label">Dedicated resources</span>
+                <div class="z-grid z-grid-2" style="gap:7px">
+                    <select class="z-select" aria-label="vCPU"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>
+                    <select class="z-select" aria-label="Memory"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>
+                </div>
+                <span class="z-help">Applied when dedicated runtime is selected.</span>
+            </div>
+        </div>
+        <div class="z-fn-config-foot">
+            <a class="z-btn z-btn-sm" href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener">${fnIcon("github")} Repo</a>
+            <span class="z-help">Config is stored with this function package.</span>
+            <button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Function config saved (placeholder)','success')">Save config</button>
+        </div>
+    </div>`;
 }
 
 function refreshList() {
@@ -993,11 +1020,12 @@ function refreshList() {
                         </div>
                         <div class="z-fn-actions">
                             <button class="z-icon-btn" title="Copy curl" onclick="copyFn('${id}')">${fnIcon("copy")}</button>
+                            <button class="z-icon-btn" id="fn-config-btn-${id}" title="Function config" onclick="toggleFnConfig('${id}')">${fnIcon("sliders")}</button>
                             <button class="z-btn z-btn-sm" onclick="openEdit('${id}', '${lang}')">${fnIcon("edit")} Edit</button>
                             ${endpointBtn}
                             <button class="z-icon-btn" title="Delete" onclick="deleteFn('${id}')">${fnIcon("trash")}</button>
                         </div>
-                    </div>`;
+                    </div>` + functionConfigPanelHtml(id, name);
             }).join("");
 
             filterFunctions(document.getElementById("fn-filter")?.value || "");
@@ -1014,4 +1042,57 @@ function refreshList() {
 	@keyframes shake { 0%{transform:translateX(0)} 25%{transform:translateX(-6px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-6px)} 100%{transform:translateX(0)} }
 	</style>
 
+}
+
+templ functionConfigPanel(fn Function) {
+	<div id={ "fn-config-" + fn.ID } class="z-fn-config hidden" data-fn-config>
+		<div class="z-fn-config-head">
+			<span class="z-panel-title">Function config</span>
+			<span class="z-badge z-badge-muted">{ fn.Name }</span>
+			<span class="z-badge z-badge-amber">dummy data</span>
+			<span class="z-help">Runtime, isolation and rate limits scoped to this function.</span>
+		</div>
+		<div class="z-fn-config-grid">
+			<div class="z-field">
+				<label class="z-label">Runtime interface</label>
+				<select class="z-select">
+					<option selected>containerd · runc (default)</option>
+					<option>gVisor · runsc</option>
+					<option>Kata Containers · microVM</option>
+					<option>WASM / WASI · wasmtime</option>
+					<option>Firecracker · microVM</option>
+				</select>
+				<span class="z-help">Containerd by default; stronger isolation is opt-in.</span>
+			</div>
+			<div class="z-field">
+				<span class="z-label">Dynamic runtime</span>
+				<div class="z-mode-toggle">
+					<button class="z-mode-btn selected" onclick="setDynRuntime(this,'shared')">Shared</button>
+					<button class="z-mode-btn" onclick="setDynRuntime(this,'dedicated')">Dedicated</button>
+				</div>
+				<span class="z-help">Python, TypeScript and Lua only.</span>
+			</div>
+			<div class="z-field">
+				<span class="z-label">Rate limit</span>
+				<div class="z-input-group">
+					<input class="z-input z-mono" style="width:92px" value="120" aria-label="requests per minute"/>
+					<span class="z-help">req/min</span>
+				</div>
+				<span class="z-help">Burst <span class="z-code-inline">40</span> · per function at the gateway.</span>
+			</div>
+			<div class="z-field">
+				<span class="z-label">Dedicated resources</span>
+				<div class="z-grid z-grid-2" style="gap:7px">
+					<select class="z-select" aria-label="vCPU"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>
+					<select class="z-select" aria-label="Memory"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>
+				</div>
+				<span class="z-help">Applied when dedicated runtime is selected.</span>
+			</div>
+		</div>
+		<div class="z-fn-config-foot">
+			<a class="z-btn z-btn-sm" href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener">@Icon("github", "") Repo</a>
+			<span class="z-help">Config is stored with this function package.</span>
+			<button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Function config saved (placeholder)','success')">@Icon("save", "") Save config</button>
+		</div>
+	</div>
 }

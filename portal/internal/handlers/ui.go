@@ -309,7 +309,7 @@ func (h *UIHandlers) DataModel(ctx *gin.Context) {
 
 func (h *UIHandlers) Agent(ctx *gin.Context) {
 	page := templates.BaseLayout(
-		shellData(ctx, "Agentic Planner", "Build", "agent"),
+		shellData(ctx, "Plan", "Build", "agent"),
 		templates.AgentContent(),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {

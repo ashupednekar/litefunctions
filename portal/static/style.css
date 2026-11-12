@@ -921,6 +921,22 @@ button, input, select, textarea { font: inherit; }
 .z-fn-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
 .z-fn-actions { display: flex; align-items: center; gap: 4px; opacity: .55; transition: opacity .12s ease; }
 .z-fn-row:hover .z-fn-actions { opacity: 1; }
+#fn-list-container .z-icon-btn.active {
+  color: var(--accent); background: rgba(138,180,255,.09);
+  border-color: rgba(138,180,255,.30);
+}
+.z-fn-config {
+  padding: 12px 14px 14px; border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.012);
+}
+.z-fn-config-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.z-fn-config-head .z-help { margin-left: auto; }
+.z-fn-config-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 14px; }
+.z-fn-config-foot {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px;
+  padding-top: 11px; border-top: 1px solid var(--border);
+}
+.z-fn-config-foot .z-help { flex: 1; }
 
 /* endpoint rows (merged into Traffic · Gateway) */
 .z-endpoint-list { display: flex; flex-direction: column; }
@@ -985,17 +1001,6 @@ button, input, select, textarea { font: inherit; }
   border-radius: 6px; overflow: hidden; background: #0b0b0c;
 }
 .z-editor-shell .ace_editor { height: 100%; }
-
-/* compute config (folded into Functions) */
-.z-compute-config > summary { list-style: none; }
-.z-compute-config > summary::-webkit-details-marker { display: none; }
-.z-compute-config > summary > span:last-child svg { transition: transform .15s ease; }
-.z-compute-config[open] > summary > span:last-child svg { transform: rotate(180deg); }
-.z-compute-foot {
-  display: flex; align-items: center; gap: 10px; margin-top: 14px;
-  padding-top: 12px; border-top: 1px solid var(--border);
-}
-.z-compute-foot .z-help { flex: 1; }
 
 /* function editor: directory tree + telescope */
 .z-editor-layout {
@@ -1106,6 +1111,7 @@ button, input, select, textarea { font: inherit; }
   .z-split-wide { grid-template-columns: 220px minmax(0, 1fr); }
   .z-ide-layout { grid-template-columns: 190px minmax(0, 1fr); }
   .z-ide-layout > :last-child { grid-template-columns: minmax(0, 1fr); }
+  .z-fn-config-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 960px) {
   .z-sidebar {
@@ -1132,6 +1138,7 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 720px) {
   .z-grid-2, .z-grid-3, .z-grid-4 { grid-template-columns: minmax(0, 1fr); }
   .z-split-wide { grid-template-columns: minmax(0, 1fr); }
+  .z-fn-config-grid { grid-template-columns: minmax(0, 1fr); }
   .z-page-head { flex-direction: column; }
   .z-page-actions { width: 100%; }
   .z-page-actions .z-btn { flex: 1; }

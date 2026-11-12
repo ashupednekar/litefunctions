@@ -16,7 +16,6 @@ templ TrafficContent(endpoints []Endpoint) {
 	<div class="z-tabs" data-tab-group>
 		<button class="z-tab active" data-tab="endpoints">Endpoints <span class="z-badge z-badge-muted">{ itoa(len(endpoints)) }</span></button>
 		<button class="z-tab" data-tab="routes">Gateway routes <span class="z-badge z-badge-muted">6</span></button>
-		<button class="z-tab" data-tab="limits">Rate limits</button>
 		<button class="z-tab" data-tab="policies">Policies</button>
 		<button class="z-tab" data-tab="analytics">Analytics</button>
 	</div>
@@ -60,54 +59,6 @@ templ TrafficContent(endpoints []Endpoint) {
 			<div class="z-panel-foot">
 				<span class="z-help">Routes are generated from function endpoints. Edits here become gateway policy overrides.</span>
 				<span class="z-badge z-badge-green" style="margin-left:auto"><span class="z-dot z-dot-green"></span> synced</span>
-			</div>
-		</div>
-	</div>
-
-	<div data-tab-panel="limits" style="display:none">
-		<div class="z-grid z-grid-3">
-			<div class="z-panel">
-				<div class="z-panel-header"><span class="z-panel-title">Token bucket</span><span class="z-badge z-badge-blue" style="margin-left:auto">default</span></div>
-				<div class="z-panel-body">
-					<div class="z-field"><label class="z-label">Rate · requests / minute</label><input class="z-input z-mono" value="120"/></div>
-					<div class="z-field" style="margin-top:10px"><label class="z-label">Burst</label><input class="z-input z-mono" value="40"/></div>
-					<div class="z-field" style="margin-top:10px"><label class="z-label">Key</label><select class="z-select"><option>API key</option><option>IP address</option><option>JWT subject</option><option>Tenant</option></select></div>
-					<div class="z-panel-foot" style="border:0;padding:10px 0 0"><span class="z-help">Applies to /lambda/*</span><button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Rate limit saved (placeholder)','success')">Save</button></div>
-				</div>
-			</div>
-			<div class="z-panel">
-				<div class="z-panel-header"><span class="z-panel-title">Sliding window</span><span class="z-badge z-badge-purple" style="margin-left:auto">per tenant</span></div>
-				<div class="z-panel-body">
-					<div class="z-field"><label class="z-label">Window</label><select class="z-select"><option>1 minute</option><option>5 minutes</option><option>1 hour</option></select></div>
-					<div class="z-field" style="margin-top:10px"><label class="z-label">Max requests</label><input class="z-input z-mono" value="3600"/></div>
-					<div class="z-field" style="margin-top:10px"><label class="z-label">On limit</label><select class="z-select"><option>429 + Retry-After</option><option>queue</option><option>drop</option></select></div>
-					<div class="z-panel-foot" style="border:0;padding:10px 0 0"><span class="z-help">Tenant-scoped plans</span><button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Rate limit saved (placeholder)','success')">Save</button></div>
-				</div>
-			</div>
-			<div class="z-panel">
-				<div class="z-panel-header"><span class="z-panel-title">Concurrency</span><span class="z-badge z-badge-cyan" style="margin-left:auto">async</span></div>
-				<div class="z-panel-body">
-					<div class="z-field"><label class="z-label">Max in-flight</label><input class="z-input z-mono" value="200"/></div>
-					<div class="z-field" style="margin-top:10px"><label class="z-label">Queue depth</label><input class="z-input z-mono" value="1000"/></div>
-					<div class="z-field" style="margin-top:10px"><label class="z-label">Timeout</label><input class="z-input z-mono" value="30s"/></div>
-					<div class="z-panel-foot" style="border:0;padding:10px 0 0"><span class="z-help">Protects cold-start bursts</span><button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Rate limit saved (placeholder)','success')">Save</button></div>
-				</div>
-			</div>
-		</div>
-
-		<div class="z-panel" style="margin-top:14px">
-			<div class="z-panel-header"><span class="z-panel-title">Per-route overrides</span><div class="z-panel-actions"><button class="z-btn z-btn-sm z-btn-accent">@Icon("plus", "") Add override</button></div></div>
-			<div class="z-table-wrap">
-				<table class="z-table">
-					<thead><tr><th>Route</th><th>Policy</th><th>Limit</th><th>Burst</th><th>Key</th><th>Status</th><th></th></tr></thead>
-					<tbody>
-						@overrideRow("POST /lambda/create-order", "token bucket", "120 / min", "40", "api key", "enforced")
-						@overrideRow("GET /lambda/list-orders", "token bucket", "300 / min", "80", "api key", "enforced")
-						@overrideRow("POST /lambda/stripe-webhook", "sliding window", "600 / min", "—", "signature", "enforced")
-						@overrideRow("WS /lambda/ws/presence", "concurrency", "20 conn", "—", "api key", "enforced")
-						@overrideRow("POST /lambda/pay-order", "token bucket", "60 / min", "20", "jwt subject", "draft")
-					</tbody>
-				</table>
 			</div>
 		</div>
 	</div>

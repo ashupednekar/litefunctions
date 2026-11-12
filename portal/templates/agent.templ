@@ -1,7 +1,7 @@
 package templates
 
 templ AgentContent() {
-	@PageHead("Agentic Planner", "Describe a use case. Review the functions, schema, routes and policies the agent would generate before anything ships.", "Build · AI", templ.Raw(`
+	@PageHead("Plan", "Describe a use case. Review the functions, schema, routes and policies the agent would generate before anything ships.", "Build", templ.Raw(`
 		<button class="z-btn" onclick="toast('Draft history is a placeholder','info')">`+svgClock()+` History</button>
 		<button class="z-btn z-btn-primary" onclick="newPlan()">`+svgPlus()+` New plan</button>
 	`))

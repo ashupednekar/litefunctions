@@ -4,16 +4,14 @@
 
   const navItems = [
     { group: "Workspace", label: "Overview", href: "/dashboard/", icon: "grid", keys: "g o" },
-    { group: "Workspace", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
-    { group: "Workspace", label: "Agentic Planner", href: "/agent/", icon: "sparkles" },
     { group: "Workspace", label: "Observability", href: "/observability/", icon: "activity" },
+    { group: "Build", label: "Functions", href: "/functions/", icon: "code", keys: "g f" },
+    { group: "Build", label: "Plan", href: "/agent/", icon: "sparkles" },
     { group: "Data", label: "Objects", href: "/data/", icon: "box" },
     { group: "Data", label: "Tables", href: "/data-model/", icon: "table" },
-    { group: "Data", label: "Pub/Sub", href: "/pubsub/", icon: "network" },
     { group: "Project", label: "Dependencies", href: "/dependencies/", icon: "package" },
     { group: "Project", label: "Configs & Secrets", href: "/configuration/", icon: "key" },
-    { group: "Traffic & Access", label: "Traffic", href: "/traffic/", icon: "shield", keys: "g e" },
-    { group: "Traffic & Access", label: "Team & Access", href: "/access/", icon: "users" }
+    { group: "Project", label: "Team & Access", href: "/access/", icon: "users" }
   ];
 
   const iconPaths = {

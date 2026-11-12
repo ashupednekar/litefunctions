@@ -29,7 +29,7 @@ func AgentContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Agentic Planner", "Describe a use case. Review the functions, schema, routes and policies the agent would generate before anything ships.", "Build · AI", templ.Raw(`
+		templ_7745c5c3_Err = PageHead("Plan", "Describe a use case. Review the functions, schema, routes and policies the agent would generate before anything ships.", "Build", templ.Raw(`
 		<button class="z-btn" onclick="toast('Draft history is a placeholder','info')">`+svgClock()+` History</button>
 		<button class="z-btn z-btn-primary" onclick="newPlan()">`+svgPlus()+` New plan</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)
