@@ -266,8 +266,14 @@ loki:
         insecure: true
   singleBinary:
     replicas: 1
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: litefunctions-rustfs-secret
     persistence:
-      enabled: false
+      enabled: true
+      size: 2Gi
   read:
     replicas: 0
   write:
@@ -468,6 +474,11 @@ alloy:
             source_labels = ["__meta_kubernetes_pod_label_app"]
             regex         = "runtime"
             action        = "keep"
+          }
+
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app"]
+            target_label  = "app"
           }
 
           rule {

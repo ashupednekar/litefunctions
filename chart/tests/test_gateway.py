@@ -100,6 +100,7 @@ class GatewayTests(unittest.TestCase):
         alloy = configs["litefunctions-alloy"]["data"]["config.alloy"]
         self.assertIn('label = "app=runtime"', alloy)
         self.assertIn('source_labels = ["__meta_kubernetes_pod_label_app"]', alloy)
+        self.assertIn('target_label  = "app"', alloy)
         self.assertIn('url = "http://litefunctions-loki-gateway/loki/api/v1/push"', alloy)
 
         buckets = resources(docs, "Job")["litefunctions-olly-buckets"]["spec"]["template"]["spec"]["containers"][0]["args"][0]
