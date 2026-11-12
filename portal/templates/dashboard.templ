@@ -362,13 +362,3 @@ templ requestLogRow(when string, method string, path string, status int, latency
 	</tr>
 }
 
-templ healthRow(name string, detail string, status string) {
-	<div class="z-list-item">
-		<span class={ "z-dot", templ.KV("z-dot-green", status == "healthy"), templ.KV("z-dot-blue", status == "idle") }></span>
-		<div class="z-list-main">
-			<div class="z-list-title">{ name }</div>
-			<div class="z-list-sub">{ detail }</div>
-		</div>
-		<span class="z-badge z-badge-muted">{ status }</span>
-	</div>
-}

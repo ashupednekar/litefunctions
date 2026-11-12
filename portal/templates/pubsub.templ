@@ -1,7 +1,7 @@
 package templates
 
 templ PubSubContent() {
-	@PageHead("Pub/Sub", "Persistent JetStream streams, durable consumers and Olly telemetry — the SSR Go service that fronts Grafana.", "Data", templ.Raw(`
+	@PageHead("Pub/Sub", "Persistent JetStream streams and durable consumers for event-driven functions.", "Data", templ.Raw(`
 		<button class="z-btn" onclick="toast('Grafana deep-link is a placeholder','info')">`+svgExternal()+` Open Grafana</button>
 		<button class="z-btn z-btn-primary" onclick="zOpenModal('stream-modal')">`+svgPlus()+` New stream</button>
 	`))
@@ -17,7 +17,6 @@ templ PubSubContent() {
 		<button class="z-tab active" data-tab="streams">Streams <span class="z-badge z-badge-muted">4</span></button>
 		<button class="z-tab" data-tab="consumers">Consumers <span class="z-badge z-badge-muted">7</span></button>
 		<button class="z-tab" data-tab="topology">Topology</button>
-		<button class="z-tab" data-tab="olly">Olly telemetry <span class="z-badge z-badge-purple">SSR</span></button>
 	</div>
 
 	<div data-tab-panel="streams">
@@ -91,13 +90,6 @@ templ PubSubContent() {
 						<button class="z-btn" style="width:100%;margin-top:10px" onclick="toast('Dead-letter inspection is a placeholder','info')">Inspect messages</button>
 					</div>
 				</div>
-				<div class="z-panel" style="margin-top:14px">
-					<div class="z-panel-header"><span class="z-panel-title">Olly</span><span class="z-badge z-badge-purple">SSR Go</span></div>
-					<div class="z-panel-body">
-						<div class="z-help" style="line-height:1.6">Olly renders server-side telemetry panels and proxies Grafana queries with project-scoped auth.</div>
-						<dl class="z-kv" style="margin-top:10px"><dt>Endpoint</dt><dd>olly:8080</dd><dt>Grafana</dt><dd>connected</dd><dt>Datasource</dt><dd>prometheus</dd></dl>
-					</div>
-				</div>
 			</aside>
 		</div>
 	</div>
@@ -152,58 +144,6 @@ templ PubSubContent() {
 					<div class="z-flow-node"><span class="z-list-icon">@Icon("bolt", "")</span><div><div class="z-list-title">notify-email</div><div class="z-list-sub">consumer</div></div></div>
 				</div>
 			</div>
-		</div>
-	</div>
-
-	<div data-tab-panel="olly" style="display:none">
-		<div class="z-split">
-			<div class="z-panel">
-				<div class="z-panel-header">
-					<span class="z-panel-title">Olly · telemetry</span>
-					<span class="z-badge z-badge-purple">server-rendered</span>
-					<span class="z-panel-sub">Grafana proxy · project-scoped</span>
-					<div class="z-panel-actions"><button class="z-btn z-btn-sm" onclick="refreshStreams()">@Icon("refresh", "") Refresh</button></div>
-				</div>
-				<div class="z-panel-body">
-					<div class="z-grid z-grid-4" style="gap:9px;margin-bottom:14px">
-						<div class="z-stat" style="padding:10px"><div class="z-stat-label">Msgs / sec</div><div class="z-stat-value" style="font-size:20px">2,418</div></div>
-						<div class="z-stat" style="padding:10px"><div class="z-stat-label">Publish p95</div><div class="z-stat-value" style="font-size:20px">4<small>ms</small></div></div>
-						<div class="z-stat" style="padding:10px"><div class="z-stat-label">Consume p95</div><div class="z-stat-value" style="font-size:20px">11<small>ms</small></div></div>
-						<div class="z-stat" style="padding:10px"><div class="z-stat-label">Errors</div><div class="z-stat-value" style="font-size:20px;color:var(--green)">0</div></div>
-					</div>
-					<svg class="z-chart" style="height:220px" viewBox="0 0 900 220" preserveAspectRatio="none">
-						<defs><linearGradient id="z-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8ab4ff" stop-opacity=".25"/><stop offset="100%" stop-color="#8ab4ff" stop-opacity="0"/></linearGradient></defs>
-						<g class="z-chart-grid"><line x1="0" y1="55" x2="900" y2="55"/><line x1="0" y1="110" x2="900" y2="110"/><line x1="0" y1="165" x2="900" y2="165"/></g>
-						<path class="z-chart-area" d="M0 162 C40 150 70 132 110 138 S170 106 220 114 S290 80 340 92 S410 64 460 74 S530 48 580 58 S650 34 700 44 S780 24 830 32 S870 18 900 22 L900 220 L0 220 Z"/>
-						<path class="z-chart-line" d="M0 162 C40 150 70 132 110 138 S170 106 220 114 S290 80 340 92 S410 64 460 74 S530 48 580 58 S650 34 700 44 S780 24 830 32 S870 18 900 22"/>
-						<text class="z-chart-label" x="4" y="14">3.0k/s</text><text class="z-chart-label" x="4" y="212">0</text>
-					</svg>
-					<div class="z-panel-foot" style="border:0;padding-left:0;padding-right:0">
-						<span class="z-help">Rendered by Olly · iframe-free · grafana-api /api/ds/query</span>
-						<span class="z-mono" style="margin-left:auto;font-size:9.5px;color:var(--text-3)">updated 4s ago</span>
-					</div>
-				</div>
-			</div>
-			<aside>
-				<div class="z-panel">
-					<div class="z-panel-header"><span class="z-panel-title">Olly connection</span></div>
-					<div class="z-panel-body">
-						<dl class="z-kv">
-							<dt>Service</dt><dd>olly.litefunctions</dd>
-							<dt>Port</dt><dd>8080</dd>
-							<dt>Upstream</dt><dd>grafana:3000</dd>
-							<dt>Datasource</dt><dd>prometheus</dd>
-							<dt>Scopes</dt><dd>project:read</dd>
-							<dt>Cache</dt><dd>15s</dd>
-						</dl>
-						<div class="z-alert z-alert-blue" style="margin-top:10px"><div>Placeholder: Olly will call Grafana APIs server-side and share the project's Grafana token via the operator.</div></div>
-					</div>
-				</div>
-				<div class="z-panel" style="margin-top:14px">
-					<div class="z-panel-header"><span class="z-panel-title">Alerts</span><span class="z-badge z-badge-green" style="margin-left:auto">0 firing</span></div>
-					<div class="z-panel-body tight"><div class="z-empty" style="padding:20px 12px"><div class="z-empty-title">No active alerts</div><div class="z-empty-sub">Lag, error-rate and storage thresholds are nominal.</div></div></div>
-				</div>
-			</aside>
 		</div>
 	</div>
 
