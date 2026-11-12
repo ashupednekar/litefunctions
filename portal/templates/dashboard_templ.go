@@ -303,7 +303,7 @@ func DashboardContent(data DashboardData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if p.Role == "owner" {
-					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openInvite", p.ID))
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openInviteModal", p.ID))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -311,7 +311,7 @@ func DashboardContent(data DashboardData) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("openInvite", p.ID)
+					var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("openInviteModal", p.ID)
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14.Call)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -328,7 +328,7 @@ func DashboardContent(data DashboardData) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openAccess", p.ID))
+					templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openAccessModal", p.ID))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -336,7 +336,7 @@ func DashboardContent(data DashboardData) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var15 templ.ComponentScript = templ.JSFuncCall("openAccess", p.ID)
+					var templ_7745c5c3_Var15 templ.ComponentScript = templ.JSFuncCall("openAccessModal", p.ID)
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15.Call)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err

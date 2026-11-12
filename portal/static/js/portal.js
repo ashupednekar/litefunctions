@@ -107,14 +107,6 @@
     }
     if (userMenu && !e.target.closest("#user-menu")) userMenu.classList.remove("open");
 
-    const m = e.target.closest("[data-close-modal]");
-    if (m) {
-      const backdrop = m.closest(".z-modal-backdrop");
-      if (backdrop) backdrop.classList.remove("open");
-    }
-    if (e.target.classList && e.target.classList.contains("z-modal-backdrop")) {
-      e.target.classList.remove("open");
-    }
     const auditToggle = e.target.closest("[data-audit-toggle]");
     if (auditToggle) {
       document.getElementById("audit-popover")?.classList.toggle("open");
@@ -130,14 +122,68 @@
     }
   });
 
+  // Modal closes must run in the capture phase: modal content stops click
+  // propagation so the bubble-phase document handler never sees these clicks.
+  document.addEventListener("click", function (e) {
+    const closeBtn = e.target.closest("[data-close-modal]");
+    if (closeBtn) {
+      const backdrop = closeBtn.closest(".z-modal-backdrop");
+      if (backdrop) window.zCloseModal(backdrop.id);
+      return;
+    }
+    if (e.target.classList && e.target.classList.contains("z-modal-backdrop")) {
+      window.zCloseModal(e.target.id);
+    }
+  }, true);
+
+  function modalFocusables(el) {
+    return Array.from(el.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+      .filter(node => node.getClientRects().length > 0);
+  }
+
   window.zOpenModal = function (id) {
     const el = document.getElementById(id);
-    if (el) el.classList.add("open");
+    if (!el) return;
+    el.__restoreFocus = document.activeElement;
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-modal", "true");
+    const title = el.querySelector(".z-modal-title");
+    if (title) {
+      if (!title.id) title.id = id + "-title";
+      el.setAttribute("aria-labelledby", title.id);
+    }
+    el.classList.add("open");
+    const preferred = el.querySelector(".z-modal-body input:not([disabled]), .z-modal-body select:not([disabled]), .z-modal-body textarea:not([disabled])");
+    setTimeout(() => (preferred || modalFocusables(el)[0] || el).focus(), 30);
   };
   window.zCloseModal = function (id) {
     const el = document.getElementById(id);
-    if (el) el.classList.remove("open");
+    if (!el) return;
+    el.classList.remove("open");
+    if (el.__restoreFocus && typeof el.__restoreFocus.focus === "function") {
+      el.__restoreFocus.focus();
+    }
   };
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab") return;
+    const open = document.querySelector(".z-modal-backdrop.open");
+    if (!open) return;
+    const nodes = modalFocusables(open);
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (!open.contains(document.activeElement)) {
+      e.preventDefault();
+      first.focus();
+    } else if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
   window.openAuditPopover = function () {
     document.getElementById("audit-popover")?.classList.add("open");
   };
@@ -317,7 +363,7 @@
     }
     if (e.key === "Escape") {
       if (open) { e.preventDefault(); closeSpotlight(); return; }
-      document.querySelectorAll(".z-modal-backdrop.open").forEach(m => m.classList.remove("open"));
+      document.querySelectorAll(".z-modal-backdrop.open").forEach(m => window.zCloseModal(m.id));
     }
     if (open && !inField) {
       if (e.key === "ArrowDown") {

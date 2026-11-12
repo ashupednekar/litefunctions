@@ -146,8 +146,8 @@ templ EndpointsContent(endpoints []Endpoint, standalone bool) {
 								} else {
 									<option>API Key (LWS Auth)</option>
 								}
-								<option>JWT</option>
-								<option>Session</option>
+								<option disabled>JWT (not supported)</option>
+								<option disabled>Session (not supported)</option>
 							</select>
 						</div>
 					</div>
@@ -249,6 +249,44 @@ templ EndpointsContent(endpoints []Endpoint, standalone bool) {
       </div>
     </div>
   </div>
+
+  <div id="ws-test-modal" class="z-modal-backdrop" onclick="closeWsTestModal()">
+    <div class="z-modal wide" onclick="event.stopPropagation()">
+      <div class="z-modal-header">
+        @Icon("network", "")
+        <span class="z-modal-title">Test WebSocket</span>
+        <button class="z-icon-btn" style="margin-left:auto" onclick="closeWsTestModal()">@Icon("close", "")</button>
+      </div>
+      <div class="z-modal-body">
+        <div class="z-grid z-grid-2" style="gap:12px">
+          <div class="z-field">
+            <label class="z-label" for="ws-endpoint-select">Endpoint</label>
+            <select id="ws-endpoint-select" class="z-select"></select>
+          </div>
+          <div class="z-field">
+            <label class="z-label" for="ws-url">WebSocket URL</label>
+            <div class="z-input-group">
+              <input id="ws-url" class="z-input z-mono" readonly/>
+              <button class="z-btn z-btn-sm" onclick="copyWsUrl()">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <span id="ws-status" class="z-badge z-badge-muted">Disconnected</span>
+          <button class="z-btn z-btn-sm z-btn-primary" onclick="connectWs()">Connect</button>
+          <button class="z-btn z-btn-sm" onclick="disconnectWs()">Disconnect</button>
+          <button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto" onclick="clearWsLog()">Clear log</button>
+        </div>
+        <div id="ws-log" class="z-ws-log z-mono" style="margin-top:10px"></div>
+        <div class="z-input-group" style="margin-top:10px">
+          <input id="ws-message" class="z-input z-mono" placeholder="Message to send…"/>
+          <button class="z-btn z-btn-sm z-btn-primary" onclick="sendWsMessage()">Send</button>
+        </div>
+      </div>
+      <div class="z-modal-foot"><button class="z-btn" onclick="closeWsTestModal()">Close</button></div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const params = new URLSearchParams(window.location.search);
@@ -583,7 +621,8 @@ templ EndpointsContent(endpoints []Endpoint, standalone bool) {
       window.openWsTestModal = function () {
         const modal = document.getElementById("ws-test-modal");
         if (!modal) return;
-        modal.classList.remove("hidden");
+        if (window.zOpenModal) window.zOpenModal("ws-test-modal");
+        else modal.classList.add("open");
         const select = ensureWsModalOptions();
         if (select) {
           select.removeEventListener("change", setWsUrl);
@@ -602,8 +641,8 @@ templ EndpointsContent(endpoints []Endpoint, standalone bool) {
 
       window.closeWsTestModal = function () {
         closeWs();
-        const modal = document.getElementById("ws-test-modal");
-        if (modal) modal.classList.add("hidden");
+        if (window.zCloseModal) window.zCloseModal("ws-test-modal");
+        else document.getElementById("ws-test-modal")?.classList.remove("open");
         setWsStatus("Disconnected");
       };
 

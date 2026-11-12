@@ -76,8 +76,8 @@ templ DashboardContent(data DashboardData) {
 											}
 										</button>
 										if p.Role == "owner" {
-											<button class="z-btn z-btn-sm" title="Invite member" onclick={ templ.JSFuncCall("openInvite", p.ID) }>@Icon("plus", "")</button>
-											<button class="z-btn z-btn-sm" title="Manage access" onclick={ templ.JSFuncCall("openAccess", p.ID) }>@Icon("users", "")</button>
+											<button class="z-btn z-btn-sm" title="Invite member" onclick={ templ.JSFuncCall("openInviteModal", p.ID) }>@Icon("plus", "")</button>
+											<button class="z-btn z-btn-sm" title="Manage access" onclick={ templ.JSFuncCall("openAccessModal", p.ID) }>@Icon("users", "")</button>
 										}
 									</div>
 								</div>

@@ -124,7 +124,6 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 		</div>
 		<div class="z-modal-foot">
 			<button class="z-btn" onclick="closeCreate()">Cancel</button>
-			<button class="z-btn" onclick="saveCreate(false)">@Icon("save", "") Save draft</button>
 			<button class="z-btn z-btn-primary" onclick="saveCreate(true)">@Icon("check", "") Create &amp; deploy</button>
 		</div>
 	</div>
@@ -347,21 +346,42 @@ function getTemplate(lang, mode) {
   return entry[mode] || entry.sync || "";
 }
 
+function replaceMainBuffer(mode, content) {
+  const state = window["__" + mode + "Files"];
+  const ed = activeEditor(mode);
+  if (!state || !ed) {
+    if (ed) ed.setValue(content || "", -1);
+    return;
+  }
+  syncEditorBuffer(mode);
+  const main = mainFile(mode);
+  if (!main) return;
+  state.contents[main.path] = content || "";
+  window["__" + mode + "ActiveFile"] = main.path;
+  ed.setValue(content || "", -1);
+  ed.focus();
+  document.querySelectorAll("#" + mode + "-file-tree .z-tree-file").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-path") === main.path);
+  });
+  document.getElementById(mode + "-tree-children")?.classList.remove("hidden");
+  updateEditorPath(mode);
+}
+
 function setCreateMode(mode) {
   if (!mode || mode === selectedCreateMode) {
     updateCreateModeButtons();
     return;
   }
-  const template = getTemplate(selectedLang, mode);
+  const template = getTemplate(selectedLang, mode) || "";
   if (createEditor) {
     const current = createEditor.getValue();
     if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
       updateCreateModeButtons();
       return;
     }
-    createEditor.setValue(template || "", -1);
   }
   selectedCreateMode = mode;
+  replaceMainBuffer("create", template);
   updateCreateModeButtons();
 }
 
@@ -371,16 +391,16 @@ function setEditMode(mode) {
     return;
   }
   const lang = window.__editFnLang || "python";
-  const template = getTemplate(lang, mode);
+  const template = getTemplate(lang, mode) || "";
   if (editEditor) {
     const current = editEditor.getValue();
     if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
       updateEditModeButtons();
       return;
     }
-    editEditor.setValue(template || "", -1);
   }
   selectedEditMode = mode;
+  replaceMainBuffer("edit", template);
   updateEditModeButtons();
 }
 
@@ -643,6 +663,10 @@ function saveCreate(exit){
     el.classList.add('shake');
     setTimeout(()=>el.classList.remove('shake'),400);
     el.focus();
+    return;
+  }
+  if (!exit) {
+    toast("Draft saving is not supported; use Create & deploy", "info");
     return;
   }
   const main = mainFile("create");

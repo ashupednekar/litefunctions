@@ -80,7 +80,7 @@ type ShellData struct {
 func PageUsesDummyData(active string) bool {
 	switch active {
 	case "overview", "dependencies", "data-model", "queries", "agent", "data",
-		"pubsub", "traffic", "compute", "observability", "configuration",
+		"pubsub", "compute", "observability", "configuration",
 		"access", "audit":
 		return true
 	}

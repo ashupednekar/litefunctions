@@ -174,8 +174,15 @@ templ DependenciesContent() {
 	<script>
 		async function scanDependencies() {
 			toast("Scanning manifests…", "info");
-			await zDummyFetch("/api/dependencies/scan/", {updates: 4, vulnerabilities: 0});
-			setTimeout(() => toast("Scan complete · 4 updates available", "success"), 700);
+			try {
+				const res = await fetch("/api/dependencies/scan/", {method: "POST", headers: {Accept: "application/json"}});
+				if (!res.ok) throw new Error("HTTP " + res.status);
+				const data = await res.json().catch(() => ({}));
+				const updates = Number.isFinite(data.updates) ? data.updates : 0;
+				setTimeout(() => toast("Scan complete · " + updates + " updates available", "success"), 700);
+			} catch (err) {
+				setTimeout(() => toast("Scan unavailable — fixture data unchanged", "error"), 400);
+			}
 		}
 	</script>
 }
