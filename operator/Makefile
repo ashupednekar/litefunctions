@@ -173,11 +173,11 @@ build: protoc manifests generate fmt vet ## Build operator binary.
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} -f Dockerfile ..
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t ${IMG} -f Dockerfile ..
 
 .PHONY: docker-build-ingestor
 docker-build-ingestor: ## Build docker image for the ingestor.
-	$(CONTAINER_TOOL) build -t ingestor:latest -f ../build/ingestor/Dockerfile ..
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t ingestor:latest -f ../build/ingestor/Dockerfile ..
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -186,7 +186,7 @@ docker-push: ## Push docker image with the manager.
 .PHONY: local-build-push
 local-build-push:
 	@local_img="$(LOCAL_REGISTRY)/$$(basename "${IMG}")"; \
-	$(CONTAINER_TOOL) build -t "$$local_img" -f Dockerfile ..; \
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t "$$local_img" -f Dockerfile ..; \
 	$(CONTAINER_TOOL) push "$$local_img"
 
 .PHONY: local-push

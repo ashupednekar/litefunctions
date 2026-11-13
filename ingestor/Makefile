@@ -33,7 +33,7 @@ build: protoc
 .PHONY: docker-build
 docker-build: 
 	@echo "Building docker image..."
-	$(CONTAINER_TOOL) build -t ${IMG} -f ../build/ingestor/Dockerfile ..
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t ${IMG} -f ../build/ingestor/Dockerfile ..
 
 .PHONY: docker-push
 docker-push: 
@@ -43,7 +43,7 @@ docker-push:
 .PHONY: local-build-push
 local-build-push:
 	@local_img="$(LOCAL_REGISTRY)/$$(basename "${IMG}")"; \
-	$(CONTAINER_TOOL) build -t "$$local_img" -f ../build/ingestor/Dockerfile ..; \
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t "$$local_img" -f ../build/ingestor/Dockerfile ..; \
 	$(CONTAINER_TOOL) push "$$local_img"
 
 .PHONY: local-push

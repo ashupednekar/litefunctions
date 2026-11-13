@@ -123,6 +123,7 @@ public class AppState implements AutoCloseable {
 		}
 	}
 
+	//TODO: check and deprecate
 	private static String safeUrlSummary(String raw) {
 		if (raw == null || raw.isBlank()) {
 			return "(empty)";
