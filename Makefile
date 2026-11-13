@@ -10,6 +10,7 @@ build:
 	$(MAKE) runtime-python
 	$(MAKE) runtime-ts
 	$(MAKE) runtime-lua
+	$(MAKE) runtime-java
 	$(MAKE) gitea-setup
 
 .PHONY: local-push
@@ -41,6 +42,10 @@ runtime-ts:
 runtime-lua:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-runtime-lua -f build/runtimes/Dockerfile.lua runtimes/lua && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-runtime-lua
 
+.PHONY: runtime-java
+runtime-java:
+	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-runtime-java -f build/runtimes/Dockerfile.java runtimes/java && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-runtime-java
+
 .PHONY: gitea-setup
 gitea-setup:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-gitea-setup -f build/gitea-setup/Dockerfile build/gitea-setup && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-gitea-setup
@@ -54,7 +59,7 @@ build-multiarch:
 	$(MAKE) -C operator helm-sync
 	$(MAKE) -C ingestor docker-buildx
 	$(MAKE) -C portal docker-buildx
-	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx gitea-setup-buildx
+	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx runtime-java-buildx gitea-setup-buildx
 
 .PHONY: gitea-setup-buildx
 gitea-setup-buildx: docker-builder
@@ -71,3 +76,7 @@ runtime-ts-buildx: docker-builder
 .PHONY: runtime-lua-buildx
 runtime-lua-buildx: docker-builder
 	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t ashupednekar535/litefunctions-runtime-lua -f build/runtimes/Dockerfile.lua runtimes/lua
+
+.PHONY: runtime-java-buildx
+runtime-java-buildx: docker-builder
+	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t ashupednekar535/litefunctions-runtime-java -f build/runtimes/Dockerfile.java runtimes/java
