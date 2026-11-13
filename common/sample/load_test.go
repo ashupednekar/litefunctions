@@ -22,6 +22,8 @@ func TestLoadPackageAllLanguages(t *testing.T) {
 		{"ts", "ts", false, []string{"package.json", "internal/types.ts"}, `from "./internal/types"`},
 		{"ts", "ts", true, []string{"package.json"}, "yield"},
 		{"lua", "lua", false, []string{"internal/types.lua"}, `require("internal.types")`},
+		{"java", "java", false, []string{"types/Input.java", "types/Output.java"}, "class Handler"},
+		{"java", "java", true, []string{"types/Input.java", "types/Output.java"}, "streamHandler"},
 	}
 
 	for _, tc := range cases {

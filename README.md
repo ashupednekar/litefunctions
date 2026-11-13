@@ -49,7 +49,7 @@ helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefuncti
 Current platform features:
 
 - Kubernetes-native function lifecycle via CRDs and operator reconciliation.
-- Multi-language runtimes: Go, Rust, Python, TypeScript (Bun), Lua.
+- Multi-language runtimes: Go, Rust, Java, Python, TypeScript (Bun), Lua.
 - Sync HTTP execution and async pub/sub execution.
 - Dynamic runtime refresh for Python/TS/Lua via VCS hook events.
 - Git-integrated workflow support (Gitea/GitHub workflow templates).

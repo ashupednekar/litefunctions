@@ -1,0 +1,8 @@
+apiVersion: apps.ashupednekar.github.io/v1
+kind: Function
+metadata:
+  name: onejava
+spec:
+  name: one
+  project: projectx
+  language: java

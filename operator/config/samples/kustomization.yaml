@@ -1,4 +1,6 @@
 ## Append samples of your project ##
 resources:
-- apps_v1_function.yaml
+- onego.yaml
+- onepy.yaml
+- onejava.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
