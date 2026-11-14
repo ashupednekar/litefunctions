@@ -11,8 +11,7 @@ concurrency:
 env:
   REGISTRY: litefunctions-zot:5000
   IMAGE_PREFIX: ashudev
-  PORTAL_RUNTIME_ASSETS_URL: http://litefunctions-portal:3000/api/runtime-assets/runtimes.tar.gz
-  RUNTIME_REPO_URL: https://github.com/ashupednekar/litefunctions
+  RUNTIME_ASSETS_IMAGE: ashupednekar535/litefunctions-runtime-assets:latest
   INGESTOR_HOOK_BASE_URL: http://litefunctions-ingestor:3000
 
   # Languages are described by exception. Defaults:
@@ -176,21 +175,40 @@ jobs:
           set -euo pipefail
           mkdir -p litefunctions
 
-          downloaded=false
-          if [ -n "${PORTAL_RUNTIME_ASSETS_URL:-}" ]; then
-            if curl -fsSL "$PORTAL_RUNTIME_ASSETS_URL" | tar -xz -C litefunctions; then
-              downloaded=true
-            else
-              echo "Portal runtime assets unavailable, falling back to git clone"
-              rm -rf litefunctions
-              mkdir -p litefunctions
-            fi
+          # Runtime sources are shipped as a scratch image built from this
+          # repository, so pull its layers straight from the registry instead
+          # of cloning the repo (which is slow and flaky in-cluster).
+          image="${RUNTIME_ASSETS_IMAGE}"
+          repo="${image%:*}"
+          tag="${image##*:}"
+          registry="registry-1.docker.io"
+          accept="application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json"
+
+          token=$(curl -fsSL "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull" | jq -r '.token')
+          fetch() {
+            curl -fsSL -H "Authorization: Bearer ${token}" -H "Accept: ${accept}" "$1"
+          }
+
+          manifest=$(fetch "https://${registry}/v2/${repo}/manifests/${tag}")
+          if echo "$manifest" | jq -e '.manifests' >/dev/null 2>&1; then
+            # Skip provenance/attestation manifests (platform "unknown") and
+            # prefer the linux/amd64 image the runner can execute.
+            digest=$(echo "$manifest" | jq -r '
+              ([.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")][0].digest)
+              // ([.manifests[] | select(.platform.os != "unknown")][0].digest)
+            ')
+            test -n "$digest"
+            test "$digest" != "null"
+            manifest=$(fetch "https://${registry}/v2/${repo}/manifests/${digest}")
           fi
 
-          if [ "$downloaded" != "true" ] || [ ! -d "litefunctions/build/runtimes" ]; then
-            rm -rf litefunctions
-            git clone --depth 1 "$RUNTIME_REPO_URL" litefunctions
-          fi
+          while IFS= read -r layer; do
+            [ -n "$layer" ] || continue
+            fetch "https://${registry}/v2/${repo}/blobs/${layer}" | tar -xz -C litefunctions
+          done <<< "$(echo "$manifest" | jq -r '.layers[].digest')"
+
+          test -d litefunctions/build/runtimes
+          test -d litefunctions/runtimes
 
       - name: Setup Kaniko config
         if: steps.select.outputs.name != ''

@@ -1,5 +1,10 @@
 Welcome to litefunctions :)
 
+{{- if and .Values.ui.enabled .Values.ui.admin.enabled }}
+WARNING: the system admin password login is enabled. Change ui.admin.password
+from its default before exposing the portal outside a trusted network.
+{{- end }}
+
 Usage:
 Install:
 helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
@@ -30,6 +35,11 @@ curl --noproxy '*' -H 'Host: litefunctions.portal' http://127.0.0.1:18080/
 curl --noproxy '*' -H 'Host: litefunctions.gitea' http://127.0.0.1:18080/
 
 curl --noproxy '*' -k -H 'Host: litefunctions.gitea' https://127.0.0.1:18443/
+
+curl --noproxy '*' -H 'Host: litefunctions.grafana' http://127.0.0.1:18080/
+
+Olly defaults to logs and metrics. Grafana is available at the
+gatewayApi.hosts.grafana host (default: litefunctions.grafana).
 
 If you want locally trusted certs with mkcert while using tls.certManager.enabled=false:
 

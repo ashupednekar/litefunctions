@@ -27,6 +27,7 @@ func (s *Server) BuildRoutes() {
 	s.router.POST("/passkey/register/finish/", auth.FinishRegistration)
 	s.router.POST("/passkey/login/start/", auth.BeginLogin)
 	s.router.POST("/passkey/login/finish/", auth.FinishLogin)
+	s.router.POST("/admin/login/", auth.AdminLogin)
 
 	s.router.GET("/logout/", auth.Logout)
 	s.router.POST("/logout/", auth.Logout)
@@ -84,25 +85,27 @@ func (s *Server) BuildRoutes() {
 		endpointHandlers := handlers.NewEndpointHandlers(s.state)
 		actionHandlers := handlers.NewActionHandlers()
 
+		manager := middleware.RequireProjectRole("owner", "manager")
+
 		api.GET("/projects/", projectHandlers.ListProjects)
 		api.GET("/projects/:id/", projectHandlers.GetProject)
-		api.DELETE("/projects/:id/", projectHandlers.DeleteProject)
-		api.POST("/projects/sync/", projectHandlers.SyncProject)
+		api.DELETE("/projects/:id/", manager, projectHandlers.DeleteProject)
+		api.POST("/projects/sync/", manager, projectHandlers.SyncProject)
 
 		api.POST("/projects/invites/", projectHandlers.CreateProjectInvite)
 		api.GET("/projects/access/", projectHandlers.ListProjectAccess)
 		api.PUT("/projects/access/:id/", projectHandlers.UpdateProjectAccess)
 		api.DELETE("/projects/access/:id/", projectHandlers.RevokeProjectAccess)
 
-		api.POST("/functions/", functionHandlers.CreateFunction)
+		api.POST("/functions/", manager, functionHandlers.CreateFunction)
 		api.GET("/functions/", functionHandlers.ListFunctions)
 		api.GET("/functions/:fnID/", functionHandlers.GetFunction)
-		api.PUT("/functions/:fnID/", functionHandlers.UpdateFunction)
-		api.DELETE("/functions/:fnID/", functionHandlers.DeleteFunction)
+		api.PUT("/functions/:fnID/", manager, functionHandlers.UpdateFunction)
+		api.DELETE("/functions/:fnID/", manager, functionHandlers.DeleteFunction)
 
 		api.GET("/endpoints/", endpointHandlers.ListEndpoints)
 		api.GET("/endpoints/:epID/", endpointHandlers.GetEndpoint)
-		api.PUT("/endpoints/:epID/", endpointHandlers.UpdateEndpoint)
+		api.PUT("/endpoints/:epID/", manager, endpointHandlers.UpdateEndpoint)
 
 		api.GET("/actions/status/", actionHandlers.Status)
 

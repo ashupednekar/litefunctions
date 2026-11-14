@@ -1,4 +1,18 @@
 {{- if .Values.ui.enabled }}
+{{- if .Values.ui.admin.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: litefunctions-portal-admin
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-portal
+    {{- include "litefunctions.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  password: {{ .Values.ui.admin.password | quote }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -40,6 +54,19 @@ spec:
               key: {{ .Values.ui.db.key }}
         - name: FQDN
           value: {{ .Values.ui.domain | quote }}
+        - name: ADMIN_LOGIN_ENABLED
+          value: {{ .Values.ui.admin.enabled | quote }}
+        {{- if .Values.ui.admin.enabled }}
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: litefunctions-portal-admin
+              key: password
+        {{- end }}
+        - name: TRUSTED_PROXIES
+          value: {{ join "," .Values.ui.trustedProxies | quote }}
+        - name: COOKIE_SECURE
+          value: {{ .Values.gatewayApi.tls.enabled | quote }}
         - name: VCS_AUTH_MODE
           value: token
         - name: VCS_USER
