@@ -207,17 +207,9 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	}
 	log.Info("Bootstrapped function package in repo", "repoDir", repoDir, "pushed", pushed)
 
-	if function.Annotations == nil {
-		function.Annotations = make(map[string]string)
-	}
-	function.Annotations[repoPathAnnotation] = repoPath
-
-	if err := r.Update(ctx, function); err != nil {
-		return fmt.Errorf("record repo bootstrap annotation for %s: %w", repoPath, err)
-	}
-
 	if r.Broker == nil {
 		log.Info("Broker unavailable, skipping bootstrap event")
+		return nil
 	}
 	bootstrapEvent := events.FunctionBootstrap{
 		Name:     function.Name,
@@ -229,10 +221,19 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	if err != nil {
 		return err
 	}
-	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s", function.Spec.Project), data); err != nil {
+	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s.%s", function.Spec.Project, function.Spec.Name), data); err != nil {
 		return err
 	}
 	log.Info("Submitted portal bootstrap event for", "function", function.Spec.Name)
+
+	if function.Annotations == nil {
+		function.Annotations = make(map[string]string)
+	}
+	function.Annotations[repoPathAnnotation] = repoPath
+
+	if err := r.Update(ctx, function); err != nil {
+		return fmt.Errorf("record repo bootstrap annotation for %s: %w", repoPath, err)
+	}
 
 	return nil
 }
