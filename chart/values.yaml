@@ -9,7 +9,7 @@ gatewayApi:
     gitea: []
     grafana: [litefunctions.grafana]
     rustfs: [lws.ashudev.in]
-    rustfsConsole: []
+    rustfsConsole: [litefunctions.rustfs]
   http:
     port: 80
   tls:
@@ -111,6 +111,10 @@ database:
 rustfs:
   enabled: true
   replicaCount: 1
+  config:
+    rustfs:
+      console_enable: "true"
+      console_address: ":9001"
   mode:
     standalone:
       enabled: true
@@ -211,6 +215,15 @@ zot:
 ui:
   enabled: true
   replicas: 1
+  admin:
+    # The system admin signs in with this password instead of a passkey.
+    # Change the default before exposing the portal outside a trusted network.
+    enabled: true
+    password: "lfadmin@123"
+  # CIDRs of reverse proxies allowed to set X-Forwarded-* headers. Empty means
+  # never trust forwarded headers. Set this to the ingress/gateway CIDR when
+  # you need the real client IP in logs and request metadata.
+  trustedProxies: []
   service:
     type: ClusterIP
     nodePort: 30003
@@ -386,6 +399,10 @@ mimir-distributed:
         remote_timeout: null
       ingester:
         push_grpc_method_enabled: true
+        ring:
+          # This chart runs a single ingester. Mimir's default RF of 3 makes
+          # every remote write fail with "at least 2 live replicas required".
+          replication_factor: 1
       blocks_storage:
         backend: s3
         s3:
@@ -452,8 +469,8 @@ grafana:
           url: http://litefunctions-loki-gateway
           isDefault: false
 
-# Alloy only tails logs from pods labelled app=runtime. The label is applied by
-# the operator to every function runtime Deployment.
+# Alloy tails logs from function runtime pods (app=runtime) and the ingestor.
+# The runtime label is applied by the operator to every function Deployment.
 alloy:
   alloy:
     configMap:
@@ -463,7 +480,7 @@ alloy:
 
           selectors {
             role  = "pod"
-            label = "app=runtime"
+            label = "app in (runtime,litefunctions-ingestor)"
           }
         }
 
@@ -472,7 +489,7 @@ alloy:
 
           rule {
             source_labels = ["__meta_kubernetes_pod_label_app"]
-            regex         = "runtime"
+            regex         = "runtime|litefunctions-ingestor"
             action        = "keep"
           }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/ashupednekar/litefunctions/common"
 	"github.com/ashupednekar/litefunctions/common/events"
 	accessadaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/internal/auth"
 	authadaptors "github.com/ashupednekar/litefunctions/portal/internal/auth/adaptors"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
@@ -20,14 +21,14 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-const bootstrapUserName = "litefunctions-system"
+const bootstrapUserName = auth.SystemUserName
 
-var bootstrapUserID = []byte(bootstrapUserName)
+var bootstrapUserID = auth.SystemUserID
 
 func Consume(s *state.AppState) error {
 	slog.Info("waiting for messages")
 	ctx := context.Background() // TODO: consider timeouts
-	sub, err := s.Broker.Subscribe("lf.bootstrap.*.*", func(msg *nats.Msg) {
+	_, err := s.Broker.Subscribe("lf.bootstrap.*", func(msg *nats.Msg) {
 		slog.Info("received bootstrap event", "subject", msg.Subject)
 		var event events.FunctionBootstrap
 		if err := json.Unmarshal(msg.Data, &event); err != nil {
@@ -43,7 +44,8 @@ func Consume(s *state.AppState) error {
 	if err != nil {
 		return err
 	}
-	defer sub.Unsubscribe()
+	// The subscription is owned by the long-lived NATS connection in AppState.
+	// Unsubscribing here would tear it down as soon as this function returns.
 	return nil
 }
 

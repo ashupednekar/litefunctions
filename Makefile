@@ -13,11 +13,24 @@ build:
 	$(MAKE) runtime-assets
 	$(MAKE) gitea-setup
 
+.PHONY: local-images
+local-images: local-image-operator local-image-ingestor local-image-portal
+
+.PHONY: local-image-operator
+local-image-operator:
+	$(MAKE) -C operator local-build-push
+
+.PHONY: local-image-ingestor
+local-image-ingestor:
+	$(MAKE) -C ingestor local-build-push
+
+.PHONY: local-image-portal
+local-image-portal:
+	$(MAKE) -C portal local-build-push
+
 .PHONY: local-push
 local-push:
-	$(MAKE) -C operator local-build-push
-	$(MAKE) -C ingestor local-build-push
-	$(MAKE) -C portal local-build-push
+	$(MAKE) -j3 local-images
 	$(MAKE) -C operator helm-sync
 	helm upgrade --install litefunctions ./chart --namespace litefunctions --create-namespace \
 		--set-string images.operator=$(LOCAL_REGISTRY)/litefunctions-operator:latest \

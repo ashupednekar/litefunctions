@@ -221,10 +221,14 @@ func (r *FunctionReconciler) ensureRepoFile(ctx context.Context, function *apiv1
 	if err != nil {
 		return err
 	}
-	if err := r.Broker.Publish(fmt.Sprintf("lf.bootstrap.%s.%s", function.Spec.Project, function.Spec.Name), data); err != nil {
+	sub := fmt.Sprintf("lf.bootstrap.%s", function.Spec.Project)
+	if err := r.Broker.Publish(sub, data); err != nil {
 		return err
 	}
-	log.Info("Submitted portal bootstrap event for", "function", function.Spec.Name)
+	log.Info("Submitted portal bootstrap event",
+		"at", sub,
+		"for", function.Spec.Name,
+	)
 
 	if function.Annotations == nil {
 		function.Annotations = make(map[string]string)

@@ -234,8 +234,9 @@ Set `rustfs.enabled=false` to opt out and override the Olly storage settings.
 Replace previous `minio.*` overrides with RustFS settings; existing MinIO data
 is not migrated automatically.
 RustFS serves the S3 API at `/` and includes its console on service port 9001.
-To expose the S3 API and console, set `gatewayApi.hosts.rustfs` and
-`gatewayApi.hosts.rustfsConsole`, respectively.
+The defaults expose the S3 API at `lws.ashudev.in` and the console at
+`litefunctions.rustfs`; override `gatewayApi.hosts.rustfs` and
+`gatewayApi.hosts.rustfsConsole` to change them.
 Create the `content` bucket with an S3 client after installation; the RustFS chart
 does not support MinIO's `defaultBuckets` setting. TLS uses the shared Gateway
 certificate configured under `gatewayApi.tls`.
@@ -272,11 +273,16 @@ from Loki and metrics from Mimir through its Prometheus-compatible API. The
 default Grafana host is `litefunctions.grafana`; set `gatewayApi.hosts.grafana`
 to change it, or set it to an empty list to skip the HTTPRoute.
 
-Grafana Alloy tails logs only from pods labelled `app=runtime`, the label the
-operator applies to every function runtime Deployment. It forwards those logs
-to Loki and adds `namespace`, `pod`, `container`, `lang`, `project` and
-`function` labels. Change `alloy.alloy.configMap.content` to broaden or narrow
-collection.
+Grafana Alloy tails logs from function runtime pods (`app=runtime`, applied by
+the operator) and from the ingestor (`app=litefunctions-ingestor`). It forwards
+those logs to Loki and adds `namespace`, `pod`, `container`, `lang`, `project`
+and `function` labels. Change `alloy.alloy.configMap.content` to broaden or
+narrow collection.
+
+Metrics are scraped by Prometheus using the chart's default Kubernetes jobs
+(API server, nodes, cAdvisor, annotated pods/services and endpoints) and
+remote-written to Mimir. Mimir runs with replication factor 1 because the chart
+deploys a single ingester; both Mimir and Loki persist blocks in RustFS.
 
 To enable traces, set `olly.traces.enabled=true`. Tempo also writes to RustFS.
 Add a Tempo datasource to `grafana.datasources` pointing at
@@ -369,11 +375,22 @@ zot:
 
 ```yaml
 ui:
-  enabled: false
-  server:
-    db:
-      secret: litefunctions-pguser-litefunctions
+  enabled: true
+  db:
+    secret: litefunctions-pguser-litefunctions
+  admin:
+    # Allows the internal litefunctions-system user to sign in with a password
+    # instead of a passkey. It has owner access to every project.
+    enabled: true
+    password: "lfadmin@123" # change before exposing the portal
+  # Reverse proxy CIDRs allowed to supply X-Forwarded-* headers. Empty never
+  # trusts them. Set this to the ingress/gateway CIDR to preserve client IPs.
+  trustedProxies: []
 ```
+
+The admin password is stored only in Helm's Secret and the portal environment;
+it is never written to the database. Disable `ui.admin.enabled` if the system
+user should not be able to sign in.
 
 ## Advanced Usage
 

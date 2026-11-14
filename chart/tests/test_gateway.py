@@ -35,7 +35,7 @@ class GatewayTests(unittest.TestCase):
     def test_default_routes(self):
         docs = render()
         routes = resources(docs, "HTTPRoute")
-        self.assertEqual(set(routes), {"litefunctions-portal", "litefunctions-ingestor", "litefunctions-gitea", "litefunctions-grafana", "litefunctions-rustfs"})
+        self.assertEqual(set(routes), {"litefunctions-portal", "litefunctions-ingestor", "litefunctions-gitea", "litefunctions-grafana", "litefunctions-rustfs", "litefunctions-rustfs-console"})
         self.assertEqual(routes["litefunctions-ingestor"]["spec"]["rules"][0]["matches"][0]["path"]["value"], "/lambda")
         self.assertEqual(routes["litefunctions-portal"]["spec"]["rules"][0]["backendRefs"], [{"name": "litefunctions-portal", "port": 3000}])
         self.assertEqual(routes["litefunctions-grafana"]["spec"]["hostnames"], ["litefunctions.grafana"])
@@ -98,7 +98,7 @@ class GatewayTests(unittest.TestCase):
         docs = render()
         configs = resources(docs, "ConfigMap")
         alloy = configs["litefunctions-alloy"]["data"]["config.alloy"]
-        self.assertIn('label = "app=runtime"', alloy)
+        self.assertIn('label = "app in (runtime,litefunctions-ingestor)"', alloy)
         self.assertIn('source_labels = ["__meta_kubernetes_pod_label_app"]', alloy)
         self.assertIn('target_label  = "app"', alloy)
         self.assertIn('url = "http://litefunctions-loki-gateway/loki/api/v1/push"', alloy)
@@ -113,6 +113,28 @@ class GatewayTests(unittest.TestCase):
         datasources = configs["litefunctions-grafana"]["data"]["datasources.yaml"]
         self.assertIn("http://litefunctions-loki-gateway", datasources)
         self.assertIn("http://litefunctions-mimir-gateway/prometheus", datasources)
+
+    def test_portal_admin_login(self):
+        docs = render()
+        secret = resources(docs, "Secret")["litefunctions-portal-admin"]
+        self.assertEqual(secret["stringData"]["password"], "lfadmin@123")
+        containers = resources(docs, "Deployment")["litefunctions-portal"]["spec"]["template"]["spec"]["containers"]
+        env = {item["name"]: item for item in containers[0]["env"]}
+        self.assertEqual(env["ADMIN_LOGIN_ENABLED"]["value"], "true")
+        self.assertEqual(
+            env["ADMIN_PASSWORD"]["valueFrom"]["secretKeyRef"],
+            {"name": "litefunctions-portal-admin", "key": "password"},
+        )
+        self.assertEqual(env["TRUSTED_PROXIES"]["value"], "")
+        self.assertEqual(env["COOKIE_SECURE"]["value"], "true")
+
+        docs = render("ui.admin.enabled=false", "gatewayApi.tls.enabled=false")
+        self.assertNotIn("litefunctions-portal-admin", resources(docs, "Secret"))
+        containers = resources(docs, "Deployment")["litefunctions-portal"]["spec"]["template"]["spec"]["containers"]
+        env = {item["name"]: item for item in containers[0]["env"]}
+        self.assertEqual(env["ADMIN_LOGIN_ENABLED"]["value"], "false")
+        self.assertNotIn("ADMIN_PASSWORD", env)
+        self.assertEqual(env["COOKIE_SECURE"]["value"], "false")
 
     def test_olly_disabled_backends(self):
         docs = render("olly.logs.enabled=false", "olly.metrics.enabled=false")

@@ -1,5 +1,10 @@
 Welcome to litefunctions :)
 
+{{- if and .Values.ui.enabled .Values.ui.admin.enabled }}
+WARNING: the system admin password login is enabled. Change ui.admin.password
+from its default before exposing the portal outside a trusted network.
+{{- end }}
+
 Usage:
 Install:
 helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
