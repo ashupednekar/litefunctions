@@ -17,11 +17,12 @@ import (
 )
 
 var extLang = map[string]string{
-	".py":  "python",
-	".go":  "go",
-	".rs":  "rust",
-	".ts":  "ts",
-	".lua": "lua",
+	".py":   "python",
+	".go":   "go",
+	".rs":   "rust",
+	".ts":   "ts",
+	".lua":  "lua",
+	".java": "java",
 }
 
 func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtype.UUID, projectName string, userID []byte) error {

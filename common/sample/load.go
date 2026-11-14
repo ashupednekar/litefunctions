@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//go:embed all:_go all:_rust all:_python all:_ts all:_lua
+//go:embed all:_go all:_rust all:_python all:_ts all:_lua all:_java
 var files embed.FS
 
 // File is one file in a starter function package. Path is relative to the
@@ -66,6 +66,13 @@ var languages = map[string]language{
 		syncFile:   "handle_sync.lua",
 		asyncFile:  "handle_async.lua",
 		extraFiles: []string{"internal/types.lua"},
+	},
+	"java": {
+		dir:        "_java",
+		extension:  "java",
+		syncFile:   "handle_sync.java",
+		asyncFile:  "handle_async.java",
+		extraFiles: []string{"types/Input.java", "types/Output.java"},
 	},
 }
 

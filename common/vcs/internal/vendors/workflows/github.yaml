@@ -18,12 +18,14 @@ jobs:
     outputs:
       rust: ${{ steps.changes.outputs.rust }}
       go: ${{ steps.changes.outputs.go }}
+      java: ${{ steps.changes.outputs.java }}
       zig: ${{ steps.changes.outputs.zig }}
       python: ${{ steps.changes.outputs.python }}
       ts: ${{ steps.changes.outputs.ts }}
       lua: ${{ steps.changes.outputs.lua }}
       rust-files: ${{ steps.get-changed-files.outputs.rust-files }}
       go-files: ${{ steps.get-changed-files.outputs.go-files }}
+      java-files: ${{ steps.get-changed-files.outputs.java-files }}
       repo_name: ${{ steps.set-repo-name.outputs.repo_name }}
     steps:
       - name: Checkout repository
@@ -41,6 +43,8 @@ jobs:
               - 'functions/rust/**'
             go:
               - 'functions/go/**'
+            java:
+              - 'functions/java/**'
             zig:
               - 'functions/zig/**'
             python:
@@ -60,6 +64,10 @@ jobs:
           # Get changed Go files as JSON array
           GO_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/go/**' | awk -F/ '$2 == "go" && NF >= 4 { print $3 }' | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
           echo "go-files=${GO_FILES_JSON}" >> $GITHUB_OUTPUT
+
+          # Get changed Java files as JSON array
+          JAVA_FILES_JSON=$(git diff --name-only ${{ github.event.before }}..${{ github.sha }} -- 'functions/java/**' | awk -F/ '$2 == "java" && NF >= 4 { print $3 }' | sort -u | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "java-files=${JAVA_FILES_JSON}" >> $GITHUB_OUTPUT
 
       - name: Set repo name
         id: set-repo-name
@@ -317,6 +325,149 @@ jobs:
           
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             docker push ${{ env.REGISTRY }}/${{ env.REPO_NAME }}-go-${GO_FILE}:${{ github.sha }}
+          fi
+
+  build-java:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.java == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      matrix:
+        java-file: ${{ fromJson(needs.detect-changes.outputs.java-files) }}
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Fetch litefunctions runtimes (optional)
+        run: |
+          if [ -n "${PORTAL_RUNTIME_ASSETS_URL}" ]; then
+            mkdir -p litefunctions
+            curl -fsSL "${PORTAL_RUNTIME_ASSETS_URL}" | tar -xz -C litefunctions
+            if [ ! -d "litefunctions/runtimes/java/src/main/java/com/example/internal" ]; then
+              echo "Runtime assets missing after download, cleaning up..."
+              rm -rf litefunctions
+            fi
+          else
+            echo "PORTAL_RUNTIME_ASSETS_URL not set, skipping runtime asset download."
+          fi
+
+      - name: Checkout litefunctions repository (fallback)
+        if: ${{ env.PORTAL_RUNTIME_ASSETS_URL == '' || (env.PORTAL_RUNTIME_ASSETS_URL != '' && hashFiles('litefunctions/runtimes/java/src/main/java/com/example/internal/fn/FunctionImpl.java') == '') }}
+        uses: actions/checkout@v4
+        with:
+          repository: ashupednekar/litefunctions
+          path: litefunctions
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Inject Java function into runtime
+        run: |
+          JAVA_FILE="${{ matrix.java-file }}"
+          FUNCTION_DIR="current-repo/functions/java/${JAVA_FILE}"
+          ENTRYPOINT="handle.java"
+          if [ ! -f "$FUNCTION_DIR/$ENTRYPOINT" ]; then
+            echo "Function entrypoint not found: $FUNCTION_DIR/$ENTRYPOINT"
+            exit 1
+          fi
+
+          RUNTIME_DIR="litefunctions/runtimes/java/src/main/java/com/example/internal/fn"
+          if [ ! -d "$RUNTIME_DIR" ]; then
+            echo "Java runtime package not found: $RUNTIME_DIR"
+            exit 1
+          fi
+
+          cp -R "$FUNCTION_DIR"/. "$RUNTIME_DIR"/
+          rm -f "$RUNTIME_DIR/pom.xml" "$RUNTIME_DIR/build.gradle" \
+                "$RUNTIME_DIR/build.gradle.kts" "$RUNTIME_DIR/settings.gradle"
+
+          if grep -Eq "streamHandler" "$FUNCTION_DIR/$ENTRYPOINT"; then
+            cat > "$RUNTIME_DIR/FunctionImpl.java" <<'EOF'
+          package com.example.internal.fn;
+
+          import com.example.internal.Function;
+          import java.util.stream.Stream;
+          import org.springframework.stereotype.Component;
+
+          @Component
+          public class FunctionImpl implements Function {
+
+          	private final Handler delegate = new Handler();
+
+          	@Override
+          	public byte[] handle(byte[] body) {
+          		Stream<byte[]> out = delegate.streamHandler(Stream.of(body));
+          		try {
+          			return out.findFirst().orElseGet(() -> new byte[0]);
+          		}
+          		finally {
+          			out.close();
+          		}
+          	}
+
+          	@Override
+          	public Stream<byte[]> streamHandler(Stream<byte[]> input) {
+          		return delegate.streamHandler(input);
+          	}
+
+          }
+          EOF
+          else
+            cat > "$RUNTIME_DIR/FunctionImpl.java" <<'EOF'
+          package com.example.internal.fn;
+
+          import com.example.internal.Function;
+          import java.util.stream.Stream;
+          import org.springframework.stereotype.Component;
+
+          @Component
+          public class FunctionImpl implements Function {
+
+          	private final Handler delegate = new Handler();
+
+          	@Override
+          	public byte[] handle(byte[] body) {
+          		return delegate.handle(body);
+          	}
+
+          	@Override
+          	public Stream<byte[]> streamHandler(Stream<byte[]> input) {
+          		return input.map(delegate::handle);
+          	}
+
+          }
+          EOF
+          fi
+
+      - name: Build and push Java Docker image
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          JAVA_FILE="${{ matrix.java-file }}"
+
+          cd litefunctions
+          docker build -t ${{ env.REGISTRY }}/${{ env.REPO_NAME }}-java-${JAVA_FILE}:${{ github.sha }} \
+            runtimes/java/ \
+            -f build/runtimes/Dockerfile.java \
+            --build-arg PROJECT=${REPO_NAME} \
+            --build-arg NAME=${JAVA_FILE} \
+            --build-arg GIT_TOKEN=${{ secrets.GITHUB_TOKEN }}
+
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            docker push ${{ env.REGISTRY }}/${{ env.REPO_NAME }}-java-${JAVA_FILE}:${{ github.sha }}
           fi
 
   hook-python:

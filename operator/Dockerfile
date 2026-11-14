@@ -1,4 +1,7 @@
 # Build the manager binary
+# BuildKit sets BUILDPLATFORM automatically; the default keeps the legacy
+# builder (used when the buildx plugin is unavailable) working.
+ARG BUILDPLATFORM=linux/amd64
 FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
 ARG TARGETOS
 ARG TARGETARCH

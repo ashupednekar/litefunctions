@@ -30,6 +30,7 @@ env:
     {
       "go":     {"type": "static", "mode": "package"},
       "rust":   {"type": "static", "ext": "rs"},
+      "java":   {"type": "static", "mode": "jvm"},
       "python": {"ext": "py"},
       "ts":     {"aliases": ["typescript"]},
       "lua":    {}
@@ -82,7 +83,7 @@ jobs:
           # The static matrix cannot be generated on this Gitea version, so keep
           # its literal list honest.
           static_languages=$(echo "$normalized" | jq -r '[.[] | select(.type == "static") | .name] | sort | join(" ")')
-          if [ "$static_languages" != "go rust" ]; then
+          if [ "$static_languages" != "go java rust" ]; then
             echo "build-static.matrix is out of sync with LANGUAGES (static: $static_languages)" >&2
             exit 1
           fi
@@ -153,7 +154,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [go, rust]
+        language: [go, java, rust]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -248,9 +249,13 @@ jobs:
             exit 1
           fi
 
-          RUNTIME_DIR="litefunctions/$CONTEXT/internal"
-          if [ ! -d "$RUNTIME_DIR" ]; then
-            RUNTIME_DIR="litefunctions/$CONTEXT/pkg"
+          if [ "$MODE" = "jvm" ]; then
+            RUNTIME_DIR="litefunctions/$CONTEXT/src/main/java/com/example/internal/fn"
+          else
+            RUNTIME_DIR="litefunctions/$CONTEXT/internal"
+            if [ ! -d "$RUNTIME_DIR" ]; then
+              RUNTIME_DIR="litefunctions/$CONTEXT/pkg"
+            fi
           fi
           if [ ! -d "$RUNTIME_DIR" ]; then
             echo "No runtime directory for $LANG" >&2
@@ -268,6 +273,8 @@ jobs:
 
           if [ "$MODE" = "package" ]; then
             ASYNC_PATTERN='func[[:space:]]+StreamHandler'
+          elif [ "$MODE" = "jvm" ]; then
+            ASYNC_PATTERN='streamHandler'
           else
             ASYNC_PATTERN='stream_handler'
           fi
@@ -340,6 +347,73 @@ jobs:
               rm -f "$MODULE_DIR/Cargo.toml" "$MODULE_DIR/Cargo.lock" \
                     "$MODULE_DIR/go.mod" "$MODULE_DIR/go.sum"
               mv "$MODULE_DIR/$ENTRYPOINT" "$RUNTIME_DIR/$TARGET_FILE"
+              ;;
+
+            jvm)
+              # Copy the whole Java function into the runtime's function package
+              # and generate a FunctionImpl wrapper that delegates to Handler.
+              mkdir -p "$RUNTIME_DIR"
+              cp -R "$FUNCTION_DIR"/. "$RUNTIME_DIR"/
+              rm -f "$RUNTIME_DIR/pom.xml" "$RUNTIME_DIR/build.gradle" \
+                    "$RUNTIME_DIR/build.gradle.kts" "$RUNTIME_DIR/settings.gradle"
+
+              if [ "$TARGET_FILE" = "function_async.$EXT" ]; then
+                cat > "$RUNTIME_DIR/FunctionImpl.java" <<EOF
+          package com.example.internal.fn;
+
+          import com.example.internal.Function;
+          import java.util.stream.Stream;
+          import org.springframework.stereotype.Component;
+
+          @Component
+          public class FunctionImpl implements Function {
+
+          	private final Handler delegate = new Handler();
+
+          	@Override
+          	public byte[] handle(byte[] body) {
+          		Stream<byte[]> out = delegate.streamHandler(Stream.of(body));
+          		try {
+          			return out.findFirst().orElseGet(() -> new byte[0]);
+          		}
+          		finally {
+          			out.close();
+          		}
+          	}
+
+          	@Override
+          	public Stream<byte[]> streamHandler(Stream<byte[]> input) {
+          		return delegate.streamHandler(input);
+          	}
+
+          }
+          EOF
+              else
+                cat > "$RUNTIME_DIR/FunctionImpl.java" <<EOF
+          package com.example.internal.fn;
+
+          import com.example.internal.Function;
+          import java.util.stream.Stream;
+          import org.springframework.stereotype.Component;
+
+          @Component
+          public class FunctionImpl implements Function {
+
+          	private final Handler delegate = new Handler();
+
+          	@Override
+          	public byte[] handle(byte[] body) {
+          		return delegate.handle(body);
+          	}
+
+          	@Override
+          	public Stream<byte[]> streamHandler(Stream<byte[]> input) {
+          		return input.map(delegate::handle);
+          	}
+
+          }
+          EOF
+              fi
               ;;
 
             *)

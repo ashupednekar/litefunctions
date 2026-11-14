@@ -49,7 +49,7 @@ helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefuncti
 Current platform features:
 
 - Kubernetes-native function lifecycle via CRDs and operator reconciliation.
-- Multi-language runtimes: Go, Rust, Python, TypeScript (Bun), Lua.
+- Multi-language runtimes: Go, Rust, Java, Python, TypeScript (Bun), Lua.
 - Sync HTTP execution and async pub/sub execution.
 - Dynamic runtime refresh for Python/TS/Lua via VCS hook events.
 - Git-integrated workflow support (Gitea/GitHub workflow templates).
@@ -71,20 +71,30 @@ make -C ingestor docker-build
 make -C operator docker-build
 ```
 
+Build and push a runtime image for the Docker host's architecture:
+
+```bash
+make runtime-python
+make runtime-ts
+make runtime-lua
+make runtime-java
+```
+
 Publish both architectures under one tag (log in to the registry first):
 
 ```bash
 make -C portal docker-buildx IMG=your-user/litefunctions-portal:dev
 make -C ingestor docker-buildx IMG=your-user/litefunctions-ingestor:dev
 make -C operator docker-buildx IMG=your-user/litefunctions-operator:dev
-make runtime-python-buildx runtime-ts-buildx runtime-lua-buildx
+make runtime-python-buildx runtime-ts-buildx runtime-lua-buildx runtime-java-buildx
 ```
 
-`make build-multiarch` publishes all six images and syncs the Helm artifacts.
+`make build-multiarch` publishes all seven images and syncs the Helm artifacts.
 GitHub Actions uses the same Makefile targets. `PLATFORMS` defaults to
 `linux/amd64,linux/arm64` and can be overridden on the command line.
-The existing `make build` and `make runtime-python`, `make runtime-ts`, and
-`make runtime-lua` targets still build and publish for the Docker host only.
+The existing `make build` and `make runtime-python`, `make runtime-ts`,
+`make runtime-lua`, and `make runtime-java` targets still build and publish for
+the Docker host only.
 
 Multi-platform targets create and reuse a `docker-container` builder named
 `litefunctions-builder`; set `BUILDER` to use another builder. These targets push
@@ -92,8 +102,8 @@ directly to the registry and do not load the result into the local image store.
 Build errors stop Make and return a failure status.
 
 Go binaries are cross-compiled on the builder's native architecture. Building
-Python, TypeScript, and Lua for another architecture requires emulation or a
-builder with native nodes for both architectures. Docker Desktop includes
+Python, TypeScript, Lua, and Java for another architecture requires emulation or
+a builder with native nodes for both architectures. Docker Desktop includes
 emulation; GitHub Actions configures QEMU automatically. With standalone Docker
 on Linux, configure emulation once if it is not already available:
 

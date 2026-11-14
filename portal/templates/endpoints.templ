@@ -741,7 +741,7 @@ templ EndpointsContent(endpoints []Endpoint, standalone bool) {
       function extractFunctionName(run) {
         const title = String(run?.DisplayTitle || run?.display_title || "").toLowerCase();
         if (!title) return "";
-        const m = title.match(/functions\/(?:go|rs|rust|py|python|ts|typescript|lua)\/([^.\s\/]+)\./);
+        const m = title.match(/functions\/(?:go|rs|rust|py|python|ts|typescript|lua|java)\/([^.\s\/]+)\./);
         return m ? m[1] : "";
       }
 
@@ -835,6 +835,8 @@ templ EndpointsContent(endpoints []Endpoint, standalone bool) {
             return ["build-go"];
           case "rust":
             return ["build-rust"];
+          case "java":
+            return ["build-java"];
           case "python":
             return ["hook-python"];
           case "ts":

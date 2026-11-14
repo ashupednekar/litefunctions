@@ -201,6 +201,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	langs := []templates.Lang{
 		{ID: "rust", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "rust"), Label: "Rust", AceMode: "rust"},
 		{ID: "go", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "go"), Label: "Go", AceMode: "golang"},
+		{ID: "java", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "java"), Label: "Java", AceMode: "java"},
 		{ID: "python", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "python"), Label: "Python", AceMode: "python"},
 		{ID: "ts", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "ts"), Label: "TypeScript", AceMode: "typescript"},
 		{ID: "lua", Icon: fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", "lua"), Label: "Lua", AceMode: "lua"},

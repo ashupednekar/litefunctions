@@ -6,4 +6,5 @@ var LangExt = map[string]string{
 	"rust":   ".rs",
 	"ts":     ".ts",
 	"lua":    ".lua",
+	"java":   ".java",
 }

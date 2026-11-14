@@ -6,7 +6,7 @@ LOCAL_IMG ?= $(LOCAL_REGISTRY)/$(notdir $(IMG))
 
 .PHONY: docker-build
 docker-build:
-	$(CONTAINER_TOOL) build -t $(IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t $(IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
 
 .PHONY: docker-push
 docker-push:
@@ -14,7 +14,7 @@ docker-push:
 
 .PHONY: local-build-push
 local-build-push:
-	$(CONTAINER_TOOL) build -t $(LOCAL_IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
+	$(CONTAINER_TOOL) build $(LOCAL_BUILD_ARGS) -t $(LOCAL_IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
 	$(CONTAINER_TOOL) push $(LOCAL_IMG)
 
 .PHONY: local-push

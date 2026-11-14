@@ -21,7 +21,7 @@ script saveEdit(exit bool) {
 
 templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample) {
 
-@PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
+@PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Java, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
 	<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
 	<button class="z-btn z-btn-primary" onclick="openCreate()">`+svgPlus()+` New function</button>
 `))
@@ -244,6 +244,7 @@ window.ACE_MODES = {
     ts: "typescript",
     go: "golang",
     rust: "rust",
+    java: "java",
     lua: "lua"
 };
 
@@ -461,6 +462,12 @@ const FILE_MANIFESTS = {
     { path: "index.ts", main: true },
     { path: "package.json" },
     { path: "tsconfig.json" }
+  ],
+  java: [
+    { path: "handle.java", main: true },
+    { path: "types/Input.java" },
+    { path: "types/Output.java" },
+    { path: "README.md" }
   ],
   lua: [
     { path: "main.lua", main: true },
