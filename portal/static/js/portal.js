@@ -310,7 +310,7 @@
 
   window.selectEndpointFromSpotlight = function (epId) {
     closeSpotlight();
-    const target = document.querySelector('[data-endpoint-id="' + CSS.escape(epId) + '"]');
+    const target = document.querySelector('[data-fn-endpoint-id="' + CSS.escape(epId) + '"]');
     if (target && typeof window.toggleFnTraffic === "function") {
       window.toggleFnTraffic(target.getAttribute("data-fn-id"));
       target.scrollIntoView({ behavior: "smooth", block: "center" });

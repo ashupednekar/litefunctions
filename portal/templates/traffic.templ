@@ -1,5 +1,12 @@
 package templates
 
+script testTrafficEndpoint(id string) {
+	window.testFnEndpoint(id);
+}
+script testTrafficWsEndpoint(id string) {
+	window.openWsTestModalForEndpoint(id);
+}
+
 templ FunctionTrafficPanel(fn Function, ep Endpoint) {
 	<div id={ "fn-traffic-" + fn.ID } class="z-fn-config hidden" data-fn-traffic>
 		<div class="z-fn-config-head">
@@ -16,6 +23,12 @@ templ FunctionTrafficPanel(fn Function, ep Endpoint) {
 				<span class="z-label">Endpoint</span>
 				if ep.ID != "" {
 					<input class="z-input z-mono" readonly value={ ep.URL }/>
+					<div style="display:flex;gap:6px;margin-top:8px">
+						<button class="z-btn z-btn-sm z-btn-primary" onclick={ testTrafficEndpoint(ep.ID) }>@Icon("play", "") Test endpoint</button>
+						if ep.IsAsync {
+							<button class="z-btn z-btn-sm" onclick={ testTrafficWsEndpoint(ep.ID) }>@Icon("network", "") Test WS</button>
+						}
+					</div>
 					<span class="z-help">{ ep.Method } <span class="z-faint">·</span> { ep.Scope } <span class="z-faint">·</span> auto-mapped route</span>
 				} else {
 					<span class="z-help">No endpoint is mapped to this function yet.</span>
