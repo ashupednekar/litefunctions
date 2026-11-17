@@ -228,7 +228,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 
 	page := templates.BaseLayout(
 		shellData(ctx, "Functions", "Workspace", "functions"),
-		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples),
+		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples, h.loadEndpoints(ctx)),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
@@ -271,15 +271,6 @@ func (h *UIHandlers) loadEndpoints(ctx *gin.Context) []templates.Endpoint {
 		slog.Error("failed to list endpoints", "project", projUUID, "error", err)
 	}
 	return endpoints
-}
-
-func (h *UIHandlers) Endpoints(ctx *gin.Context) {
-	// Endpoints now live inside Traffic. Keep the old path as an alias.
-	target := "/traffic/"
-	if q := ctx.Request.URL.RawQuery; q != "" {
-		target += "?" + q
-	}
-	ctx.Redirect(http.StatusFound, target)
 }
 
 func (h *UIHandlers) Configuration(ctx *gin.Context) {
@@ -337,16 +328,6 @@ func (h *UIHandlers) PubSub(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Pub/Sub", "Data", "pubsub"),
 		templates.PubSubContent(),
-	)
-	if err := page.Render(ctx, ctx.Writer); err != nil {
-		slog.Error("page render failed", "error", err)
-	}
-}
-
-func (h *UIHandlers) Traffic(ctx *gin.Context) {
-	page := templates.BaseLayout(
-		shellData(ctx, "Traffic", "Workspace", "traffic"),
-		templates.TrafficContent(h.loadEndpoints(ctx)),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		slog.Error("page render failed", "error", err)

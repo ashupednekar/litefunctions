@@ -89,7 +89,7 @@ func saveEdit(exit bool) templ.ComponentScript {
 	}
 }
 
-func FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample) templ.Component {
+func FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample, endpoints []Endpoint) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -170,59 +170,85 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><span class=\"z-fn-icon\"><img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" data-fn-id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fn.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 51, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 50, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" alt=\"\"></span><div class=\"z-fn-main\"><div class=\"z-fn-name\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-endpoint-id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fn.EndpointID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 53, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 50, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"z-fn-meta\"><span class=\"z-badge z-badge-muted\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><span class=\"z-fn-icon\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Language)
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 55, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 51, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" alt=\"\"></span><div class=\"z-fn-main\"><div class=\"z-fn-name\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(shortID(fn.ID))
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 56, Col: 85}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 53, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span></div></div><div class=\"z-fn-actions\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"z-fn-meta\"><span class=\"z-badge z-badge-muted\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Language)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 55, Col: 55}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> <span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(shortID(fn.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 56, Col: 85}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div><div class=\"z-fn-actions\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -230,16 +256,16 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<button class=\"z-icon-btn\" title=\"Copy curl\" onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<button class=\"z-icon-btn\" title=\"Copy curl\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 templ.ComponentScript = copyFn(fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8.Call)
+			var templ_7745c5c3_Var10 templ.ComponentScript = copyFn(fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -247,7 +273,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -255,29 +281,29 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button class=\"z-icon-btn\" id=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<button class=\"z-icon-btn\" id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs("fn-config-btn-" + fn.ID)
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("fn-config-btn-" + fn.ID)
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 61, Col: 61}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" title=\"Function config\" onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" title=\"Function config\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var10 templ.ComponentScript = templ.JSFuncCall("toggleFnConfig", fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10.Call)
+			var templ_7745c5c3_Var12 templ.ComponentScript = templ.JSFuncCall("toggleFnConfig", fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -285,7 +311,45 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("toggleFnTraffic", fn.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button class=\"z-icon-btn\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("fn-traffic-btn-" + fn.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 62, Col: 62}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" title=\"Traffic &amp; logs\" onclick=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 templ.ComponentScript = templ.JSFuncCall("toggleFnTraffic", fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14.Call)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Icon("activity", "").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -293,16 +357,16 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button class=\"z-btn z-btn-sm\" onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button class=\"z-btn z-btn-sm\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var11 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11.Call)
+			var templ_7745c5c3_Var15 templ.ComponentScript = templ.JSFuncCall("openEdit", fn.ID, fn.Language)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -310,25 +374,25 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "Edit</button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Edit</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if fn.EndpointID != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<a class=\"z-btn z-btn-sm\" title=\"Endpoint\" href=\"")
+				templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("toggleFnTraffic", fn.ID))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var12 templ.SafeURL
-				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/traffic/?expand=" + fn.EndpointID))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 64, Col: 106}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<button class=\"z-btn z-btn-sm\" title=\"Endpoint &amp; logs\" onclick=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\">")
+				var templ_7745c5c3_Var16 templ.ComponentScript = templ.JSFuncCall("toggleFnTraffic", fn.ID)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16.Call)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -336,12 +400,12 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "Test</a> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "Test</button> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<span class=\"z-btn z-btn-sm\" style=\"opacity:.45\" title=\"No endpoint\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"z-btn z-btn-sm\" style=\"opacity:.45\" title=\"No endpoint\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -349,7 +413,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Test</span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "Test</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -358,16 +422,16 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<button class=\"z-icon-btn\" title=\"Delete\" onclick=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<button class=\"z-icon-btn\" title=\"Delete\" onclick=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var13 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13.Call)
+			var templ_7745c5c3_Var17 templ.ComponentScript = templ.JSFuncCall("deleteFn", fn.ID)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17.Call)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -375,7 +439,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</button></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -383,8 +447,16 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = FunctionTrafficPanel(fn, endpointForFunction(endpoints, fn.ID)).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div></div><!-- CREATE --><div id=\"create-modal\" class=\"z-modal-backdrop\" onclick=\"closeCreate()\"><div class=\"z-modal\" style=\"width:min(1180px,96vw);height:min(90vh,940px);display:flex;flex-direction:column\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div></div><!-- CREATE --><div id=\"create-modal\" class=\"z-modal-backdrop\" onclick=\"closeCreate()\"><div class=\"z-modal\" style=\"width:min(1180px,96vw);height:min(90vh,940px);display:flex;flex-direction:column\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -392,7 +464,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"z-modal-title\">New function</span><div class=\"z-mode-toggle\" style=\"margin-left:auto\"><button id=\"create-mode-sync\" onclick=\"setCreateMode('sync')\" class=\"z-mode-btn\">Sync</button> <button id=\"create-mode-async\" onclick=\"setCreateMode('async')\" class=\"z-mode-btn\">Async</button></div><label class=\"z-check\" style=\"margin-left:10px\"><input id=\"create-vim-toggle\" type=\"checkbox\" checked> Vim</label> <button class=\"z-icon-btn\" style=\"margin-left:4px\" onclick=\"closeCreate()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<span class=\"z-modal-title\">New function</span><div class=\"z-mode-toggle\" style=\"margin-left:auto\"><button id=\"create-mode-sync\" onclick=\"setCreateMode('sync')\" class=\"z-mode-btn\">Sync</button> <button id=\"create-mode-async\" onclick=\"setCreateMode('async')\" class=\"z-mode-btn\">Async</button></div><label class=\"z-check\" style=\"margin-left:10px\"><input id=\"create-vim-toggle\" type=\"checkbox\" checked> Vim</label> <button class=\"z-icon-btn\" style=\"margin-left:4px\" onclick=\"closeCreate()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -400,69 +472,69 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</button></div><div class=\"z-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto\"><div class=\"z-grid z-grid-2\" style=\"gap:12px\"><div class=\"z-field\"><span class=\"z-label\">Language</span><div class=\"z-lang-grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</button></div><div class=\"z-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto\"><div class=\"z-grid z-grid-2\" style=\"gap:12px\"><div class=\"z-field\"><span class=\"z-label\">Language</span><div class=\"z-lang-grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, lang := range langs {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<button data-lang=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<button data-lang=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
+			var templ_7745c5c3_Var18 string
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(lang.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 95, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 97, Col: 34}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" class=\"z-lang-tile\" id=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 95, Col: 79}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" class=\"z-lang-tile\" id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\"><img src=\"")
+			var templ_7745c5c3_Var19 string
+			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("lang-" + lang.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 97, Col: 79}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 96, Col: 28}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"><img src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" alt=\"\"> <span>")
+			var templ_7745c5c3_Var20 string
+			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Icon)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 98, Col: 28}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 97, Col: 26}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\" alt=\"\"> <span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span></button>")
+			var templ_7745c5c3_Var21 string
+			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(lang.Label)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 99, Col: 26}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</span></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div></div><div class=\"z-field\"><label class=\"z-label\" for=\"fn-name-input\">Function name</label> <input id=\"fn-name-input\" class=\"z-input\" placeholder=\"e.g. create-order\" oninput=\"renameFunctionDir('create')\"> <span class=\"z-help\">Each function is a directory in the repo. Lowercase letters, digits and dashes.</span></div></div><div class=\"z-editor-layout\"><aside class=\"z-file-tree\" id=\"create-file-tree\"></aside><section class=\"z-editor-pane\"><div class=\"z-editor-breadcrumb\"><span id=\"create-editor-path\" class=\"z-mono\">function/</span> <span style=\"margin-left:auto;display:flex;gap:2px\"><button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search files (space space in vim)\" onclick=\"openTelescope('create','files')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div></div><div class=\"z-field\"><label class=\"z-label\" for=\"fn-name-input\">Function name</label> <input id=\"fn-name-input\" class=\"z-input\" placeholder=\"e.g. create-order\" oninput=\"renameFunctionDir('create')\"> <span class=\"z-help\">Each function is a directory in the repo. Lowercase letters, digits and dashes.</span></div></div><div class=\"z-editor-layout\"><aside class=\"z-file-tree\" id=\"create-file-tree\"></aside><section class=\"z-editor-pane\"><div class=\"z-editor-breadcrumb\"><span id=\"create-editor-path\" class=\"z-mono\">function/</span> <span style=\"margin-left:auto;display:flex;gap:2px\"><button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search files (space space in vim)\" onclick=\"openTelescope('create','files')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -470,7 +542,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</button> <button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search content (space / in vim)\" onclick=\"openTelescope('create','content')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</button> <button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search content (space / in vim)\" onclick=\"openTelescope('create','content')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -478,7 +550,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</button></span></div><div class=\"z-editor-shell\" style=\"display:flex;flex-direction:column\"><div id=\"create-ace\" style=\"flex:1\"></div></div><div class=\"z-editor-hint\">Vim: <span class=\"z-kbd\">space</span><span class=\"z-kbd\">space</span> files · <span class=\"z-kbd\">space</span><span class=\"z-kbd\">/</span> content · only the main file is persisted in this preview.</div></section></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" onclick=\"closeCreate()\">Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"saveCreate(true)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</button></span></div><div class=\"z-editor-shell\" style=\"display:flex;flex-direction:column\"><div id=\"create-ace\" style=\"flex:1\"></div></div><div class=\"z-editor-hint\">Vim: <span class=\"z-kbd\">space</span><span class=\"z-kbd\">space</span> files · <span class=\"z-kbd\">space</span><span class=\"z-kbd\">/</span> content · only the main file is persisted in this preview.</div></section></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" onclick=\"closeCreate()\">Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"saveCreate(true)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -486,7 +558,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "Create &amp; deploy</button></div></div></div><!-- EDIT --><div id=\"edit-modal\" class=\"z-modal-backdrop\" onclick=\"closeEdit()\"><div class=\"z-modal\" style=\"width:min(1180px,96vw);height:min(90vh,940px);display:flex;flex-direction:column\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "Create &amp; deploy</button></div></div></div><!-- EDIT --><div id=\"edit-modal\" class=\"z-modal-backdrop\" onclick=\"closeEdit()\"><div class=\"z-modal\" style=\"width:min(1180px,96vw);height:min(90vh,940px);display:flex;flex-direction:column\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -494,7 +566,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"z-modal-title\">Edit function</span><div class=\"z-mode-toggle\" style=\"margin-left:auto\"><button id=\"edit-mode-sync\" onclick=\"setEditMode('sync')\" class=\"z-mode-btn\">Sync</button> <button id=\"edit-mode-async\" onclick=\"setEditMode('async')\" class=\"z-mode-btn\">Async</button></div><label class=\"z-check\" style=\"margin-left:10px\"><input id=\"edit-vim-toggle\" type=\"checkbox\" checked> Vim</label> <button class=\"z-icon-btn\" style=\"margin-left:4px\" onclick=\"closeEdit()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<span class=\"z-modal-title\">Edit function</span><div class=\"z-mode-toggle\" style=\"margin-left:auto\"><button id=\"edit-mode-sync\" onclick=\"setEditMode('sync')\" class=\"z-mode-btn\">Sync</button> <button id=\"edit-mode-async\" onclick=\"setEditMode('async')\" class=\"z-mode-btn\">Async</button></div><label class=\"z-check\" style=\"margin-left:10px\"><input id=\"edit-vim-toggle\" type=\"checkbox\" checked> Vim</label> <button class=\"z-icon-btn\" style=\"margin-left:4px\" onclick=\"closeEdit()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -502,7 +574,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</button></div><div class=\"z-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto\"><div class=\"z-editor-layout\"><aside class=\"z-file-tree\" id=\"edit-file-tree\"></aside><section class=\"z-editor-pane\"><div class=\"z-editor-breadcrumb\"><span id=\"edit-editor-path\" class=\"z-mono\">function/</span> <span style=\"margin-left:auto;display:flex;gap:2px\"><button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search files (space space in vim)\" onclick=\"openTelescope('edit','files')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</button></div><div class=\"z-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:auto\"><div class=\"z-editor-layout\"><aside class=\"z-file-tree\" id=\"edit-file-tree\"></aside><section class=\"z-editor-pane\"><div class=\"z-editor-breadcrumb\"><span id=\"edit-editor-path\" class=\"z-mono\">function/</span> <span style=\"margin-left:auto;display:flex;gap:2px\"><button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search files (space space in vim)\" onclick=\"openTelescope('edit','files')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -510,7 +582,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</button> <button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search content (space / in vim)\" onclick=\"openTelescope('edit','content')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</button> <button class=\"z-icon-btn\" style=\"width:22px;height:22px\" title=\"Search content (space / in vim)\" onclick=\"openTelescope('edit','content')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -518,7 +590,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</button></span></div><div class=\"z-editor-shell\" style=\"display:flex;flex-direction:column\"><div id=\"edit-ace\" style=\"flex:1\"></div></div><div class=\"z-editor-hint\">Vim: <span class=\"z-kbd\">space</span><span class=\"z-kbd\">space</span> files · <span class=\"z-kbd\">space</span><span class=\"z-kbd\">/</span> content · only the main file is persisted in this preview.</div></section></div></div><div class=\"z-modal-foot\"><span class=\"z-help\" style=\"margin-right:auto\">The file tree is a UI preview; multi-file persistence is tracked in #84.</span> <button class=\"z-btn\" onclick=\"closeEdit()\">Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"saveEdit(true)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</button></span></div><div class=\"z-editor-shell\" style=\"display:flex;flex-direction:column\"><div id=\"edit-ace\" style=\"flex:1\"></div></div><div class=\"z-editor-hint\">Vim: <span class=\"z-kbd\">space</span><span class=\"z-kbd\">space</span> files · <span class=\"z-kbd\">space</span><span class=\"z-kbd\">/</span> content · only the main file is persisted in this preview.</div></section></div></div><div class=\"z-modal-foot\"><span class=\"z-help\" style=\"margin-right:auto\">The file tree is a UI preview; multi-file persistence is tracked in #84.</span> <button class=\"z-btn\" onclick=\"closeEdit()\">Cancel</button> <button class=\"z-btn z-btn-primary\" onclick=\"saveEdit(true)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -526,7 +598,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "Save changes</button></div></div></div><!-- DELETE CONFIRM MODAL --><div id=\"delete-modal\" class=\"z-modal-backdrop\" onclick=\"closeDelete()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "Save changes</button></div></div></div><!-- DELETE CONFIRM MODAL --><div id=\"delete-modal\" class=\"z-modal-backdrop\" onclick=\"closeDelete()\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -534,7 +606,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<span class=\"z-modal-title\">Delete function?</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" onclick=\"closeDelete()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<span class=\"z-modal-title\">Delete function?</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" onclick=\"closeDelete()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -542,7 +614,23 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin:0\">This removes the function from the repository and deletes its generated endpoint. This action cannot be undone.</p></div><div class=\"z-modal-foot\"><button class=\"z-btn\" onclick=\"closeDelete()\">Cancel</button> <button class=\"z-btn z-btn-danger\" onclick=\"confirmDelete()\">Delete function</button></div></div></div><!-- TELESCOPE --><div id=\"z-telescope\" class=\"z-telescope\" onclick=\"closeTelescope()\"><div class=\"z-telescope-box\" onclick=\"event.stopPropagation()\"><div class=\"z-telescope-input-row\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</button></div><div class=\"z-modal-body\"><p class=\"z-help\" style=\"margin:0\">This removes the function from the repository and deletes its generated endpoint. This action cannot be undone.</p></div><div class=\"z-modal-foot\"><button class=\"z-btn\" onclick=\"closeDelete()\">Cancel</button> <button class=\"z-btn z-btn-danger\" onclick=\"confirmDelete()\">Delete function</button></div></div></div><!-- LOG FULLSCREEN --><div id=\"log-fullscreen-modal\" class=\"z-modal-backdrop z-log-fullscreen\" onclick=\"closeLogFullscreen()\"><div class=\"z-log-fullscreen-panel\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("terminal", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<span class=\"z-modal-title\">Live logs <span id=\"log-fullscreen-name\" class=\"z-badge z-badge-muted\"></span></span> <span id=\"log-fullscreen-status\" class=\"z-badge z-badge-muted\">idle</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" onclick=\"closeLogFullscreen()\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</button></div><div id=\"log-fullscreen-stream\" class=\"z-log\"></div><div class=\"z-modal-foot\"><span class=\"z-help\">Runtime + ingestor output streamed from Loki.</span> <button class=\"z-btn z-btn-sm\" onclick=\"clearActiveFnLogs()\">Clear</button> <button id=\"log-fullscreen-toggle\" class=\"z-btn z-btn-sm\" onclick=\"toggleActiveFnLog()\">Pause</button> <button class=\"z-btn z-btn-sm z-btn-primary\" onclick=\"closeLogFullscreen()\">Close</button></div></div></div><!-- TELESCOPE --><div id=\"z-telescope\" class=\"z-telescope\" onclick=\"closeTelescope()\"><div class=\"z-telescope-box\" onclick=\"event.stopPropagation()\"><div class=\"z-telescope-input-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -550,7 +638,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<input id=\"z-telescope-input\" class=\"z-telescope-input\" placeholder=\"Search files…\" oninput=\"updateTelescope()\"> <span id=\"z-telescope-kind\" class=\"z-badge z-badge-muted\">files</span></div><div id=\"z-telescope-results\" class=\"z-telescope-results\"></div><div class=\"z-telescope-foot\"><span><span class=\"z-kbd\">↑</span><span class=\"z-kbd\">↓</span> navigate</span> <span><span class=\"z-kbd\">↵</span> open</span> <span><span class=\"z-kbd\">esc</span> close</span></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<input id=\"z-telescope-input\" class=\"z-telescope-input\" placeholder=\"Search files…\" oninput=\"updateTelescope()\"> <span id=\"z-telescope-kind\" class=\"z-badge z-badge-muted\">files</span></div><div id=\"z-telescope-results\" class=\"z-telescope-results\"></div><div class=\"z-telescope-foot\"><span><span class=\"z-kbd\">↑</span><span class=\"z-kbd\">↓</span> navigate</span> <span><span class=\"z-kbd\">↵</span> open</span> <span><span class=\"z-kbd\">esc</span> close</span></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -558,7 +646,7 @@ func FunctionContent(functions []Function, langs []Lang, activeProjectID string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<!-- ACE from CDN (fallback to local if needed) --><script>\n\t(function(){\n\t\tconst cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n\t\tconst s1 = document.createElement('script');\n\t\ts1.src = cdn + 'ace.js';\n\t\ts1.onload = () => {\n            ace.config.set('basePath', cdn);\n            ace.config.set('modePath', cdn);\n            ace.config.set('themePath', cdn);\n\t\t\t// load optional ext and keybinding after ace\n\t\t\tconst s2 = document.createElement('script');\n\t\t\ts2.src = cdn + 'ext-language_tools.js';\n\t\t\tdocument.head.appendChild(s2);\n\t\t\tconst s3 = document.createElement('script');\n\t\t\ts3.src = cdn + 'keybinding-vim.js';\n            s3.onload = () => {\n                // Periodically check for Vim global to ensure it's ready\n                const check = () => {\n                    if (ace.require && ace.require(\"ace/keyboard/vim\")) {\n                        defineVimEx();\n                    } else {\n                        setTimeout(check, 100);\n                    }\n                };\n                check();\n            };\n\t\t\tdocument.head.appendChild(s3);\n\t\t};\n\t\tdocument.head.appendChild(s1);\n\t})();\n\t</script><script>\nwindow.ACE_MODES = {\n    python: \"python\",\n    ts: \"typescript\",\n    go: \"golang\",\n    rust: \"rust\",\n    lua: \"lua\"\n};\n\nwindow.__activeProjectID = \"{ activeProjectID }\";\n\nlet createEditor = null;\nlet editEditor = null;\nlet selectedLang = \"python\";\nlet selectedCreateMode = \"sync\";\nlet selectedEditMode = \"sync\";\n\n\n\nconst modeMap = window.ACE_MODES;\n\n/* --- Helpers for project id resolution (use cookie fallback) --- */\nfunction getCookie(name) {\n  const v = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');\n  return v ? decodeURIComponent(v.pop()) : '';\n}\n\nfunction getActiveProjectID() {\n  const raw = (window.__activeProjectID || '').trim();\n  // treat templ placeholder or empty as \"not provided\"\n  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;\n  // fallback to cookie\n  return getCookie('lws_project') || '';\n}\n\nfunction projectUrl(pathSuffix) {\n  const pid = getActiveProjectID();\n  if (!pid) {\n    console.warn('no active project id set (lws_project cookie missing and server didn\\'t provide one)');\n    return pathSuffix || '';\n  }\n  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;\n  // NOTE: prepend /api here so we call server routes under /api\n  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;\n}\n\n/* --- Ace + Vim ex helpers --- */\nwindow.__isCreateEditor = false;\nwindow.__isEditEditor = false;\n\nfunction defineVimEx(){\n  try {\n    const vimMod = ace.require(\"ace/keyboard/vim\") || window.Vim;\n    if (!vimMod) return;\n    const Vim = vimMod.CodeMirror ? vimMod.CodeMirror.Vim : (vimMod.Vim || vimMod);\n    if (!Vim || !Vim.defineEx) return;\n    \n    const writeHandler = function() {\n        if (window.__isCreateEditor) saveCreate(false);\n        else if (window.__isEditEditor) saveEdit(false);\n    };\n    const saveAndQuitHandler = function() {\n        if (window.__isCreateEditor) saveCreate(true);\n        else if (window.__isEditEditor) saveEdit(true);\n    };\n    const quitHandler = function() {\n        if (window.__isCreateEditor) closeCreate();\n        else if (window.__isEditEditor) closeEdit();\n    };\n\n    Vim.defineEx(\"w\", \"\", writeHandler);\n    Vim.defineEx(\"write\", \"\", writeHandler);\n    Vim.defineEx(\"wq\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"x\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"q\", \"\", quitHandler);\n    Vim.defineEx(\"quit\", \"\", quitHandler);\n    Vim.defineEx(\"q!\", \"\", quitHandler);\n    Vim.defineEx(\"quit!\", \"\", quitHandler);\n    \n    console.log(\"LWS: Vim Ex commands registered\");\n    Vim.__lws_ex_defined = true;\n  } catch (e) {\n    console.error(\"LWS: Error in defineVimEx\", e);\n  }\n}\n\n/* --- UI functions --- */\nfunction copyFn(id){\n  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;\n  navigator.clipboard.writeText(curl);\n}\n\nfunction getTemplate(lang, mode) {\n  const el = document.getElementById(\"function-samples\");\n  if (!el) return \"\";\n  let samples = {};\n  try {\n    samples = JSON.parse(el.textContent || \"{}\");\n  } catch (e) {\n    console.error(\"failed to parse function samples\", e);\n    return \"\";\n  }\n  const entry = samples[lang];\n  if (!entry) return \"\";\n  if (typeof entry === \"string\") return entry;\n  return entry[mode] || entry.sync || \"\";\n}\n\nfunction replaceMainBuffer(mode, content) {\n  const state = window[\"__\" + mode + \"Files\"];\n  const ed = activeEditor(mode);\n  if (!state || !ed) {\n    if (ed) ed.setValue(content || \"\", -1);\n    return;\n  }\n  syncEditorBuffer(mode);\n  const main = mainFile(mode);\n  if (!main) return;\n  state.contents[main.path] = content || \"\";\n  window[\"__\" + mode + \"ActiveFile\"] = main.path;\n  ed.setValue(content || \"\", -1);\n  ed.focus();\n  document.querySelectorAll(\"#\" + mode + \"-file-tree .z-tree-file\").forEach(btn => {\n    btn.classList.toggle(\"active\", btn.getAttribute(\"data-path\") === main.path);\n  });\n  document.getElementById(mode + \"-tree-children\")?.classList.remove(\"hidden\");\n  updateEditorPath(mode);\n}\n\nfunction setCreateMode(mode) {\n  if (!mode || mode === selectedCreateMode) {\n    updateCreateModeButtons();\n    return;\n  }\n  const template = getTemplate(selectedLang, mode) || \"\";\n  if (createEditor) {\n    const current = createEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateCreateModeButtons();\n      return;\n    }\n  }\n  selectedCreateMode = mode;\n  replaceMainBuffer(\"create\", template);\n  updateCreateModeButtons();\n}\n\nfunction setEditMode(mode) {\n  if (!mode || mode === selectedEditMode) {\n    updateEditModeButtons();\n    return;\n  }\n  const lang = window.__editFnLang || \"python\";\n  const template = getTemplate(lang, mode) || \"\";\n  if (editEditor) {\n    const current = editEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateEditModeButtons();\n      return;\n    }\n  }\n  selectedEditMode = mode;\n  replaceMainBuffer(\"edit\", template);\n  updateEditModeButtons();\n}\n\nfunction updateCreateModeButtons() {\n  const syncBtn = document.getElementById(\"create-mode-sync\");\n  const asyncBtn = document.getElementById(\"create-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedCreateMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction updateEditModeButtons() {\n  const syncBtn = document.getElementById(\"edit-mode-sync\");\n  const asyncBtn = document.getElementById(\"edit-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedEditMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction setDynRuntime(btn, mode) {\n  const group = btn.closest(\".z-mode-toggle\");\n  if (!group) return;\n  group.querySelectorAll(\".z-mode-btn\").forEach((b, i) => {\n    b.classList.toggle(\"selected\", mode === \"dedicated\" ? i === 1 : i === 0);\n  });\n}\n\nfunction toggleFnConfig(id) {\n  const panel = document.getElementById(\"fn-config-\" + id);\n  if (!panel) return;\n  const willOpen = panel.classList.contains(\"hidden\");\n  document.querySelectorAll(\"[data-fn-config]\").forEach(p => p.classList.add(\"hidden\"));\n  document.querySelectorAll('[id^=\"fn-config-btn-\"]').forEach(b => b.classList.remove(\"active\"));\n  if (willOpen) {\n    panel.classList.remove(\"hidden\");\n    document.getElementById(\"fn-config-btn-\" + id)?.classList.add(\"active\");\n  }\n}\n\nconst FILE_MANIFESTS = {\n  go: [\n    { path: \"main.go\", main: true },\n    { path: \"types.go\" },\n    { path: \"go.mod\" },\n    { path: \"README.md\" }\n  ],\n  rust: [\n    { path: \"main.rs\", main: true },\n    { path: \"Cargo.toml\" },\n    { path: \"README.md\" }\n  ],\n  python: [\n    { path: \"handler.py\", main: true },\n    { path: \"requirements.txt\" },\n    { path: \"README.md\" }\n  ],\n  ts: [\n    { path: \"index.ts\", main: true },\n    { path: \"package.json\" },\n    { path: \"tsconfig.json\" }\n  ],\n  lua: [\n    { path: \"main.lua\", main: true },\n    { path: \"README.md\" }\n  ]\n};\n\nlet lastVimSpace = 0;\nlet teleState = { mode: \"create\", type: \"files\", results: [], index: -1 };\n\nfunction activeEditor(mode) {\n  return mode === \"create\" ? createEditor : editEditor;\n}\n\nfunction vimEnabled(mode) {\n  return !!document.getElementById(mode + \"-vim-toggle\")?.checked;\n}\n\nfunction applyEditorVim(mode) {\n  const ed = activeEditor(mode);\n  if (!ed) return;\n  try {\n    ed.setKeyboardHandler(vimEnabled(mode) ? \"ace/keyboard/vim\" : null);\n    if (vimEnabled(mode)) defineVimEx();\n  } catch (e) { /* ignore */ }\n}\n\nfunction functionDirName(mode) {\n  if (mode === \"create\") {\n    const value = document.getElementById(\"fn-name-input\")?.value?.trim();\n    return value || \"function\";\n  }\n  return window.__editFnName || (window.__editFnID ? window.__editFnID.slice(0, 10) : \"function\");\n}\n\nfunction stubContent(lang, path, dirName) {\n  if (path.endsWith(\".md\")) {\n    return \"# \" + (dirName || \"function\") + \"\\n\\nPlaceholder package file. Multi-file editing is tracked in #84.\\n\";\n  }\n  if (path.endsWith(\"go.mod\")) return \"module example.com/\" + (dirName || \"function\") + \"\\n\\ngo 1.26\\n\";\n  if (path.endsWith(\"Cargo.toml\")) return '[package]\\nname = \"' + (dirName || \"function\") + '\"\\nversion = \"0.1.0\"\\nedition = \"2021\"\\n';\n  if (path.endsWith(\"package.json\")) return '{\\n  \"name\": \"' + (dirName || \"function\") + '\",\\n  \"private\": true\\n}\\n';\n  if (path.endsWith(\"tsconfig.json\")) return '{\\n  \"compilerOptions\": { \"strict\": true }\\n}\\n';\n  if (path.endsWith(\"requirements.txt\")) return \"# add dependencies here\\n\";\n  return \"// Placeholder file. Multi-file editing is tracked in #84.\\n\";\n}\n\nfunction initEditorFiles(mode, lang, mainContent) {\n  const manifest = FILE_MANIFESTS[lang] || FILE_MANIFESTS.python;\n  const contents = {};\n  const dirName = functionDirName(mode);\n  manifest.forEach(file => {\n    contents[file.path] = file.main ? (mainContent || \"\") : stubContent(lang, file.path, dirName);\n  });\n  window[\"__\" + mode + \"Files\"] = { lang: lang, manifest: manifest, contents: contents };\n  window[\"__\" + mode + \"ActiveFile\"] = (manifest.find(f => f.main) || manifest[0]).path;\n  renderFileTree(mode);\n  updateEditorPath(mode);\n}\n\nfunction renderFileTree(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  const el = document.getElementById(mode + \"-file-tree\");\n  if (!state || !el) return;\n  const dirName = functionDirName(mode);\n  const active = window[\"__\" + mode + \"ActiveFile\"];\n  const files = state.manifest.map(file => {\n    const isActive = file.path === active;\n    return '<button class=\"z-tree-file' + (isActive ? \" active\" : \"\") + '\" data-path=\"' + escapeFnHtml(file.path) + '\" onclick=\"selectEditorFile(\\'' + mode + '\\',\\'' + escapeFnHtml(file.path) + '\\')\" title=\"' + escapeFnHtml(file.path) + '\">' +\n      zIcon(\"file\") + '<span class=\"z-tree-name\">' + escapeFnHtml(file.path) + '</span>' +\n      (file.main ? \"\" : '<span class=\"z-badge z-badge-amber\">stub</span>') +\n      '</button>';\n  }).join(\"\");\n  el.innerHTML =\n    '<div class=\"z-tree-root-row\">' +\n      '<button class=\"z-tree-root\" id=\"' + mode + '-tree-root\" onclick=\"toggleFileTree(\\'' + mode + '\\')\">' +\n        '<span class=\"z-tree-caret\">' + zIcon(\"chevron-right\") + '</span>' +\n        '<span class=\"z-mono\">' + escapeFnHtml(dirName) + '/</span>' +\n        '<span class=\"z-badge z-badge-muted\">' + state.manifest.length + '</span>' +\n      '</button>' +\n    '</div>' +\n    '<div class=\"z-tree-children hidden\" id=\"' + mode + '-tree-children\">' + files + '</div>' +\n    '<div class=\"z-tree-foot\"><span class=\"z-kbd\">space</span><span class=\"z-kbd\">space</span> files · <span class=\"z-kbd\">space</span><span class=\"z-kbd\">/</span> content</div>';\n}\n\nfunction toggleFileTree(mode) {\n  const children = document.getElementById(mode + \"-tree-children\");\n  if (!children) return;\n  children.classList.toggle(\"hidden\");\n  const caret = document.querySelector(\"#\" + mode + \"-tree-root .z-tree-caret svg\");\n  if (caret) caret.style.transform = children.classList.contains(\"hidden\") ? \"\" : \"rotate(90deg)\";\n}\n\nfunction updateEditorPath(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  const el = document.getElementById(mode + \"-editor-path\");\n  if (!state || !el) return;\n  const active = window[\"__\" + mode + \"ActiveFile\"];\n  const main = (state.manifest.find(f => f.main) || {}).path;\n  el.innerHTML = escapeFnHtml(functionDirName(mode)) + '/ <span style=\"color:var(--text)\">' + escapeFnHtml(active) + '</span>' +\n    (active !== main ? ' <span class=\"z-badge z-badge-amber\">stub</span>' : '');\n}\n\nfunction renameFunctionDir(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  if (!state) return;\n  const dirName = functionDirName(mode);\n  state.manifest.forEach(file => {\n    if (!file.main) state.contents[file.path] = stubContent(state.lang, file.path, dirName);\n  });\n  renderFileTree(mode);\n  updateEditorPath(mode);\n}\n\nfunction syncEditorBuffer(mode) {\n  const ed = activeEditor(mode);\n  const state = window[\"__\" + mode + \"Files\"];\n  if (!ed || !state) return;\n  const active = window[\"__\" + mode + \"ActiveFile\"];\n  if (active) state.contents[active] = ed.getValue();\n}\n\nfunction mainFile(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  return state ? (state.manifest.find(f => f.main) || state.manifest[0]) : null;\n}\n\nfunction mainFileContent(mode) {\n  syncEditorBuffer(mode);\n  const main = mainFile(mode);\n  const state = window[\"__\" + mode + \"Files\"];\n  return main && state ? (state.contents[main.path] || \"\") : \"\";\n}\n\nfunction selectEditorFile(mode, path) {\n  const state = window[\"__\" + mode + \"Files\"];\n  if (!state || state.contents[path] === undefined) return;\n  syncEditorBuffer(mode);\n  window[\"__\" + mode + \"ActiveFile\"] = path;\n  const ed = activeEditor(mode);\n  if (ed) {\n    ed.session.setMode(\"ace/mode/\" + modeMap[state.lang]);\n    ed.setValue(state.contents[path] || \"\", -1);\n    ed.focus();\n  }\n  document.querySelectorAll(\"#\" + mode + \"-file-tree .z-tree-file\").forEach(btn => {\n    btn.classList.toggle(\"active\", btn.getAttribute(\"data-path\") === path);\n  });\n  document.getElementById(mode + \"-tree-children\")?.classList.remove(\"hidden\");\n  const caret = document.querySelector(\"#\" + mode + \"-tree-root .z-tree-caret svg\");\n  if (caret) caret.style.transform = \"rotate(90deg)\";\n  updateEditorPath(mode);\n}\n\nfunction openCreate(){\n  window.__isCreateEditor = true;\n  window.__isEditEditor = false;\n  zOpenModal(\"create-modal\");\n\n  if (!createEditor && window.ace) {\n    createEditor = ace.edit(\"create-ace\");\n    createEditor.setTheme(\"ace/theme/dracula\");\n    applyEditorVim(\"create\");\n  }\n\n  const mainContent = getTemplate(selectedLang, selectedCreateMode) || \"\";\n  initEditorFiles(\"create\", selectedLang, mainContent);\n  if (createEditor) {\n    createEditor.session.setMode(\"ace/mode/\" + modeMap[selectedLang]);\n    createEditor.setValue(mainContent, -1);\n    setTimeout(() => createEditor.focus(), 120);\n  }\n  updateCreateModeButtons();\n}\n\nfunction selectLang(lang){\n  selectedLang = lang;\n  document.querySelectorAll('.z-lang-tile').forEach(b=>b.classList.remove('selected'));\n  const el = document.getElementById('lang-' + lang);\n  if(el) el.classList.add('selected');\n  if(createEditor){\n    const mainContent = getTemplate(lang, selectedCreateMode) || \"\";\n    initEditorFiles(\"create\", lang, mainContent);\n    createEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    createEditor.setValue(mainContent, -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction closeCreate(){\n  window.__isCreateEditor = false;\n  closeTelescope();\n  zCloseModal('create-modal');\n}\n\nfunction saveCreate(exit){\n  const name = document.getElementById('fn-name-input')?.value?.trim();\n  if(!name){\n    const el = document.getElementById('fn-name-input');\n    el.classList.add('shake');\n    setTimeout(()=>el.classList.remove('shake'),400);\n    el.focus();\n    return;\n  }\n  if (!exit) {\n    toast(\"Draft saving is not supported; use Create & deploy\", \"info\");\n    return;\n  }\n  const main = mainFile(\"create\");\n  if (window.__createActiveFile && main && window.__createActiveFile !== main.path) {\n    toast(\"Stub files are read-only in this preview; saving the main file only\", \"info\");\n  }\n  const description = document.getElementById('fn-desc-input')?.value?.trim();\n  const payload = {\n    name: name,\n    language: selectedLang,\n    description: description,\n    code: mainFileContent(\"create\"),\n    is_async: selectedCreateMode === \"async\"\n  };\n  fetch(`/api/functions/`,{\n    method:'POST',\n    headers:{'Content-Type':'application/json'},\n    body:JSON.stringify(payload)\n  }).then(()=>{\n    if(exit) closeCreate();\n    refreshList()\n  });\n}\n\nfunction openEdit(id, lang){\n  window.__isCreateEditor = false;\n  window.__isEditEditor = true;\n  window.__editFnID = id;\n  window.__editFnLang = lang;\n  window.__editFnName = \"\";\n  zOpenModal('edit-modal');\n  if(!editEditor && window.ace){\n    editEditor = ace.edit('edit-ace');\n    editEditor.setTheme('ace/theme/dracula');\n    applyEditorVim(\"edit\");\n  }\n\n  if(editEditor){\n    editEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    editEditor.setValue('Loading...', -1);\n    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{\n      selectedEditMode = data?.is_async ? \"async\" : \"sync\";\n      updateEditModeButtons();\n      window.__editFnName = data?.name || data?.Name || id.slice(0, 10);\n      const mainContent = data.content || getTemplate(lang, selectedEditMode) || '';\n      initEditorFiles(\"edit\", lang, mainContent);\n      editEditor.setValue(mainContent, -1);\n      applyEditorVim(\"edit\");\n      editEditor.focus();\n      setTimeout(() => editEditor.focus(), 50);\n    }).catch(()=>{\n      window.__editFnName = id.slice(0, 10);\n      const mainContent = getTemplate(lang, selectedEditMode) || '';\n      initEditorFiles(\"edit\", lang, mainContent);\n      editEditor.setValue(mainContent, -1);\n      editEditor.focus();\n    });\n    editEditor.focus();\n  }\n  updateEditModeButtons();\n}\n\nfunction closeEdit(){\n  window.__isEditEditor = false;\n  closeTelescope();\n  zCloseModal('edit-modal');\n}\n\nfunction saveEdit(exit){\n  if(!window.__editFnID) return;\n  const main = mainFile(\"edit\");\n  if (window.__editActiveFile && main && window.__editActiveFile !== main.path) {\n    toast(\"Stub files are read-only in this preview; saving the main file only\", \"info\");\n  }\n  const body = mainFileContent(\"edit\");\n  fetch(`/api/functions/${window.__editFnID}/`,{\n    method:'PUT',\n    headers:{'Content-Type':'application/json'},\n    body: JSON.stringify({\n      code: body,\n      is_async: selectedEditMode === \"async\"\n    })\n  }).then(()=>{\n    if(exit) closeEdit();\n    refreshList()\n  });\n}\n\n/* --- telescope-like file/content search --- */\nfunction openTelescope(mode, type) {\n  syncEditorBuffer(mode);\n  teleState = { mode: mode, type: type, results: [], index: -1 };\n  const modal = document.getElementById(\"z-telescope\");\n  const input = document.getElementById(\"z-telescope-input\");\n  const kind = document.getElementById(\"z-telescope-kind\");\n  if (!modal || !input) return;\n  input.value = \"\";\n  input.placeholder = type === \"files\" ? \"Search files…\" : \"Search current file…\";\n  if (kind) kind.textContent = type === \"files\" ? \"files\" : \"content\";\n  modal.classList.add(\"open\");\n  updateTelescope();\n  setTimeout(() => input.focus(), 30);\n}\n\nfunction closeTelescope() {\n  document.getElementById(\"z-telescope\")?.classList.remove(\"open\");\n}\n\nfunction telescopeItems() {\n  const state = window[\"__\" + teleState.mode + \"Files\"];\n  const query = (document.getElementById(\"z-telescope-input\")?.value || \"\").trim().toLowerCase();\n  if (!state) return [];\n  if (teleState.type === \"files\") {\n    return state.manifest\n      .filter(file => !query || file.path.toLowerCase().includes(query))\n      .map(file => ({ label: file.path, path: file.path, main: file.main }));\n  }\n  const active = window[\"__\" + teleState.mode + \"ActiveFile\"];\n  const content = state.contents[active] || \"\";\n  return content.split(\"\\n\").map((line, i) => ({\n    label: line.trim() || \"(blank line)\",\n    line: i + 1\n  })).filter(item => !query || item.label.toLowerCase().includes(query));\n}\n\nfunction updateTelescope() {\n  teleState.results = telescopeItems();\n  teleState.index = teleState.results.length ? 0 : -1;\n  renderTelescopeResults();\n}\n\nfunction renderTelescopeResults() {\n  const container = document.getElementById(\"z-telescope-results\");\n  if (!container) return;\n  if (!teleState.results.length) {\n    container.innerHTML = '<div class=\"z-empty\" style=\"padding:22px\"><div class=\"z-empty-title\">No matches</div><div class=\"z-empty-sub\">Try a different query.</div></div>';\n    return;\n  }\n  container.innerHTML = teleState.results.map((item, i) => {\n    const active = i === teleState.index ? \" active\" : \"\";\n    const right = teleState.type === \"files\"\n      ? (item.main ? '<span class=\"z-badge z-badge-green\">main</span>' : '<span class=\"z-badge z-badge-amber\">stub</span>')\n      : '<span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">L' + item.line + '</span>';\n    return '<button class=\"z-telescope-result' + active + '\" onclick=\"chooseTelescope(' + i + ')\">' +\n      zIcon(teleState.type === \"files\" ? \"file\" : \"search\") +\n      '<span class=\"z-telescope-label\">' + escapeFnHtml(item.label) + '</span>' + right + '</button>';\n  }).join(\"\");\n  container.querySelectorAll(\".z-telescope-result\")[teleState.index]?.scrollIntoView({ block: \"nearest\" });\n}\n\nfunction chooseTelescope(index) {\n  const item = teleState.results[index];\n  if (!item) return;\n  if (teleState.type === \"files\") {\n    selectEditorFile(teleState.mode, item.path);\n  } else {\n    const ed = activeEditor(teleState.mode);\n    if (ed) {\n      ed.gotoLine(item.line, 0, true);\n      ed.focus();\n    }\n  }\n  closeTelescope();\n}\n\ndocument.addEventListener(\"keydown\", function (e) {\n  const tele = document.getElementById(\"z-telescope\");\n  if (tele?.classList.contains(\"open\")) {\n    if (e.key === \"Escape\") { e.preventDefault(); closeTelescope(); return; }\n    if (e.key === \"ArrowDown\") { e.preventDefault(); teleState.index = Math.min(teleState.index + 1, teleState.results.length - 1); renderTelescopeResults(); return; }\n    if (e.key === \"ArrowUp\") { e.preventDefault(); teleState.index = Math.max(teleState.index - 1, 0); renderTelescopeResults(); return; }\n    if (e.key === \"Enter\") { e.preventDefault(); chooseTelescope(teleState.index); return; }\n    return;\n  }\n\n  const editOpen = document.getElementById(\"edit-modal\")?.classList.contains(\"open\");\n  const createOpen = document.getElementById(\"create-modal\")?.classList.contains(\"open\");\n  const mode = editOpen ? \"edit\" : (createOpen ? \"create\" : null);\n  if (!mode || !vimEnabled(mode)) return;\n  const ed = activeEditor(mode);\n  if (!ed || !ed.container || !ed.container.contains(e.target)) return;\n\n  // Best-effort guard so insert-mode spaces still type normally.\n  const vimState = ed.state && ed.state.cm && ed.state.cm.state && ed.state.cm.state.vim;\n  if (vimState && vimState.insertMode) return;\n\n  const now = Date.now();\n  if (e.code === \"Space\" || e.key === \" \") {\n    if (now - lastVimSpace < 600) {\n      e.preventDefault();\n      lastVimSpace = 0;\n      openTelescope(mode, \"files\");\n    } else {\n      lastVimSpace = now;\n    }\n    return;\n  }\n  if (e.key === \"/\" && now - lastVimSpace < 600) {\n    e.preventDefault();\n    lastVimSpace = 0;\n    openTelescope(mode, \"content\");\n    return;\n  }\n  lastVimSpace = 0;\n}, true);\n\n/* --- bind language tiles and other DOM wiring after load --- */\ndocument.addEventListener('DOMContentLoaded', () => {\n  document.querySelectorAll('.z-lang-tile[data-lang]').forEach(btn=>{\n    btn.addEventListener('click', ()=> {\n      const lang = btn.getAttribute('data-lang');\n      selectLang(lang);\n    });\n  });\n\n  window.__activeProjectID = getActiveProjectID();\n  selectLang(selectedLang);\n  updateCreateModeButtons();\n  updateEditModeButtons();\n\n  [\"create\", \"edit\"].forEach(mode => {\n    document.getElementById(mode + \"-vim-toggle\")?.addEventListener(\"change\", () => applyEditorVim(mode));\n  });\n\n  const params = new URLSearchParams(window.location.search);\n  const editId = params.get(\"edit\");\n  if (editId) {\n    fetch(`/api/functions/${editId}/`)\n      .then(r => r.json())\n      .then(f => openEdit(f.id, f.language))\n      .catch(err => console.error(\"Failed to auto-open edit modal\", err));\n  }\n});\n\nwindow.__deleteFnID = null;\n\nfunction deleteFn(id) {\n    window.__deleteFnID = id;\n    zOpenModal(\"delete-modal\");\n}\n\nfunction closeDelete() {\n    window.__deleteFnID = null;\n    zCloseModal(\"delete-modal\");\n}\n\nfunction confirmDelete() {\n    if (!window.__deleteFnID) return;\n\n    fetch(`/api/functions/${window.__deleteFnID}/`, {\n        method: \"DELETE\"\n    })\n    .then(() => {\n        closeDelete();\n        refreshList(); // refresh UI\n    });\n}\n\n\nfunction fnIcon(name) {\n    const paths = {\n        code: '<path d=\"m8 6-6 6 6 6\"/><path d=\"m16 6 6 6-6 6\"/>',\n        copy: '<rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\"/><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"/>',\n        edit: '<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"/>',\n        route: '<circle cx=\"6\" cy=\"19\" r=\"3\"/><path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\"/><circle cx=\"18\" cy=\"5\" r=\"3\"/>',\n        sliders: '<line x1=\"4\" y1=\"21\" x2=\"4\" y2=\"14\"/><line x1=\"4\" y1=\"10\" x2=\"4\" y2=\"3\"/><line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"12\"/><line x1=\"12\" y1=\"8\" x2=\"12\" y2=\"3\"/><line x1=\"20\" y1=\"21\" x2=\"20\" y2=\"16\"/><line x1=\"20\" y1=\"12\" x2=\"20\" y2=\"3\"/><line x1=\"1\" y1=\"14\" x2=\"7\" y2=\"14\"/><line x1=\"9\" y1=\"8\" x2=\"15\" y2=\"8\"/><line x1=\"17\" y1=\"16\" x2=\"23\" y2=\"16\"/>',\n        github: '<path d=\"M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4\"/><path d=\"M9 18c-4.51 2-5-2-7-2\"/>',\n        trash: '<path d=\"M3 6h18\"/><path d=\"M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2\"/><path d=\"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6\"/>'\n    };\n    return '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\">' + (paths[name] || \"\") + '</svg>';\n}\n\nfunction escapeFnHtml(s) {\n    return String(s == null ? \"\" : s).replace(/[&<>\"']/g, c => ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\",\"'\":\"&#39;\"}[c]));\n}\n\nfunction filterFunctions(q) {\n    const needle = String(q || \"\").trim().toLowerCase();\n    document.querySelectorAll(\"#fn-list-container .z-fn-row\").forEach(row => {\n        const name = String(row.getAttribute(\"data-fn-name\") || \"\").toLowerCase();\n        row.style.display = (!needle || name.includes(needle)) ? \"\" : \"none\";\n    });\n}\n\nfunction functionConfigPanelHtml(id, name, lang) {\n    const isDynamic = [\"python\", \"ts\", \"lua\"].includes(lang);\n    const dynamicField = isDynamic ? `<div class=\"z-field\">\n                <span class=\"z-label\">Dynamic runtime</span>\n                <div class=\"z-mode-toggle\">\n                    <button class=\"z-mode-btn selected\" onclick=\"setDynRuntime(this,'shared')\">Shared</button>\n                    <button class=\"z-mode-btn\" onclick=\"setDynRuntime(this,'dedicated')\">Dedicated</button>\n                </div>\n                <span class=\"z-help\">Python, TypeScript and Lua only.</span>\n            </div>` : \"\";\n    return `<div id=\"fn-config-${id}\" class=\"z-fn-config hidden\" data-fn-config>\n        <div class=\"z-fn-config-head\">\n            <span class=\"z-panel-title\">Function config</span>\n            <span class=\"z-badge z-badge-muted\">${name}</span>\n            <span class=\"z-badge z-badge-amber\">dummy data</span>\n            <span class=\"z-help\">Runtime, isolation and rate limits scoped to this function.</span>\n        </div>\n        <div class=\"z-fn-config-grid\">\n            <div class=\"z-field\">\n                <label class=\"z-label\">Runtime interface</label>\n                <select class=\"z-select\">\n                    <option selected>containerd · runc (default)</option>\n                    <option>gVisor · runsc</option>\n                    <option>Kata Containers · microVM</option>\n                    <option>WASM / WASI · wasmtime</option>\n                    <option>Firecracker · microVM</option>\n                </select>\n                <span class=\"z-help\">Containerd by default; stronger isolation is opt-in.</span>\n            </div>\n            ${dynamicField}\n            <div class=\"z-field\">\n                <span class=\"z-label\">Rate limit</span>\n                <div class=\"z-input-group\">\n                    <input class=\"z-input z-mono\" style=\"width:92px\" value=\"120\" aria-label=\"requests per minute\"/>\n                    <span class=\"z-help\">req/min</span>\n                </div>\n                <span class=\"z-help\">Burst <span class=\"z-code-inline\">40</span> · per function at the gateway.</span>\n            </div>\n            <div class=\"z-field\">\n                <span class=\"z-label\">Dedicated resources</span>\n                <div class=\"z-grid z-grid-2\" style=\"gap:7px\">\n                    <select class=\"z-select\" aria-label=\"vCPU\"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>\n                    <select class=\"z-select\" aria-label=\"Memory\"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>\n                </div>\n                <span class=\"z-help\">Applied when dedicated runtime is selected.</span>\n            </div>\n        </div>\n        <div class=\"z-fn-config-foot\">\n            <a class=\"z-btn z-btn-sm\" href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\">${fnIcon(\"github\")} Repo</a>\n            <span class=\"z-help\">Config is stored with this function package.</span>\n            <button class=\"z-btn z-btn-sm z-btn-primary\" style=\"margin-left:auto\" onclick=\"toast('Function config saved (placeholder)','success')\">Save config</button>\n        </div>\n    </div>`;\n}\n\nfunction refreshList() {\n    fetch(`/api/functions/`)\n        .then(r => r.json())\n        .then(obj => {\n            const list = Object.values(obj || {});\n            const container = document.querySelector(\"#fn-list-container\");\n            if (!container) return;\n\n            if (list.length === 0) {\n                container.innerHTML = `\n                    <div class=\"z-empty\" style=\"padding:40px 16px\">\n                        <div class=\"z-empty-icon\">${fnIcon(\"code\")}</div>\n                        <div class=\"z-empty-title\">No functions yet</div>\n                        <div class=\"z-empty-sub\">Create your first function to start deploying.</div>\n                        <button class=\"z-btn z-btn-primary z-btn-sm\" onclick=\"openCreate()\">New function</button>\n                    </div>`;\n                return;\n            }\n\n            container.innerHTML = list.map(fn => {\n                const id = escapeFnHtml(fn.id);\n                const name = escapeFnHtml(fn.name);\n                const lang = escapeFnHtml(fn.language);\n                const endpointId = fn.endpoint_id || \"\";\n                const icon = `/static/imgs/${encodeURIComponent(lang)}-svgrepo-com.svg`;\n                const endpointBtn = endpointId\n                    ? `<a class=\"z-btn z-btn-sm\" href=\"/traffic/?expand=${encodeURIComponent(endpointId)}\" title=\"Endpoint\">${fnIcon(\"route\")} Test</a>`\n                    : `<span class=\"z-btn z-btn-sm\" style=\"opacity:.45\" title=\"No endpoint\">${fnIcon(\"route\")} Test</span>`;\n                return `\n                    <div class=\"z-fn-row\" data-fn-name=\"${name.toLowerCase()}\">\n                        <span class=\"z-fn-icon\"><img src=\"${icon}\" alt=\"\"/></span>\n                        <div class=\"z-fn-main\">\n                            <div class=\"z-fn-name\">${name}</div>\n                            <div class=\"z-fn-meta\">\n                                <span class=\"z-badge z-badge-muted\">${lang}</span>\n                                <span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">${id.slice(0, 10)}</span>\n                            </div>\n                        </div>\n                        <div class=\"z-fn-actions\">\n                            <button class=\"z-icon-btn\" title=\"Copy curl\" onclick=\"copyFn('${id}')\">${fnIcon(\"copy\")}</button>\n                            <button class=\"z-icon-btn\" id=\"fn-config-btn-${id}\" title=\"Function config\" onclick=\"toggleFnConfig('${id}')\">${fnIcon(\"sliders\")}</button>\n                            <button class=\"z-btn z-btn-sm\" onclick=\"openEdit('${id}', '${lang}')\">${fnIcon(\"edit\")} Edit</button>\n                            ${endpointBtn}\n                            <button class=\"z-icon-btn\" title=\"Delete\" onclick=\"deleteFn('${id}')\">${fnIcon(\"trash\")}</button>\n                        </div>\n                    </div>` + functionConfigPanelHtml(id, name, lang);\n            }).join(\"\");\n\n            filterFunctions(document.getElementById(\"fn-filter\")?.value || \"\");\n        })\n        .catch(() => toast(\"Could not refresh functions\", \"error\"));\n}\n\t</script><style>\n\t.ace_editor,\n\t.ace_scroller,\n\t.ace_content { background: #0b0b0c !important; color: #eee !important; }\n\t.shake { animation: shake .3s linear; }\n\t@keyframes shake { 0%{transform:translateX(0)} 25%{transform:translateX(-6px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-6px)} 100%{transform:translateX(0)} }\n\t</style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<!-- ACE from CDN (fallback to local if needed) --><script>\n\t(function(){\n\t\tconst cdn = \"https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/\";\n\t\tconst s1 = document.createElement('script');\n\t\ts1.src = cdn + 'ace.js';\n\t\ts1.onload = () => {\n            ace.config.set('basePath', cdn);\n            ace.config.set('modePath', cdn);\n            ace.config.set('themePath', cdn);\n\t\t\t// load optional ext and keybinding after ace\n\t\t\tconst s2 = document.createElement('script');\n\t\t\ts2.src = cdn + 'ext-language_tools.js';\n\t\t\tdocument.head.appendChild(s2);\n\t\t\tconst s3 = document.createElement('script');\n\t\t\ts3.src = cdn + 'keybinding-vim.js';\n            s3.onload = () => {\n                // Periodically check for Vim global to ensure it's ready\n                const check = () => {\n                    if (ace.require && ace.require(\"ace/keyboard/vim\")) {\n                        defineVimEx();\n                    } else {\n                        setTimeout(check, 100);\n                    }\n                };\n                check();\n            };\n\t\t\tdocument.head.appendChild(s3);\n\t\t};\n\t\tdocument.head.appendChild(s1);\n\t})();\n\t</script><script>\nwindow.ACE_MODES = {\n    python: \"python\",\n    ts: \"typescript\",\n    go: \"golang\",\n    rust: \"rust\",\n    lua: \"lua\"\n};\n\nwindow.__activeProjectID = \"{ activeProjectID }\";\n\nlet createEditor = null;\nlet editEditor = null;\nlet selectedLang = \"python\";\nlet selectedCreateMode = \"sync\";\nlet selectedEditMode = \"sync\";\n\n\n\nconst modeMap = window.ACE_MODES;\n\n/* --- Helpers for project id resolution (use cookie fallback) --- */\nfunction getCookie(name) {\n  const v = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');\n  return v ? decodeURIComponent(v.pop()) : '';\n}\n\nfunction getActiveProjectID() {\n  const raw = (window.__activeProjectID || '').trim();\n  // treat templ placeholder or empty as \"not provided\"\n  if (raw && raw !== '{ activeProjectID }' && raw !== '') return raw;\n  // fallback to cookie\n  return getCookie('lws_project') || '';\n}\n\nfunction projectUrl(pathSuffix) {\n  const pid = getActiveProjectID();\n  if (!pid) {\n    console.warn('no active project id set (lws_project cookie missing and server didn\\'t provide one)');\n    return pathSuffix || '';\n  }\n  if (pathSuffix && pathSuffix[0] !== '/') pathSuffix = '/' + pathSuffix;\n  // NOTE: prepend /api here so we call server routes under /api\n  return `/api/projects/${encodeURIComponent(pid)}${pathSuffix || ''}`;\n}\n\n/* --- Ace + Vim ex helpers --- */\nwindow.__isCreateEditor = false;\nwindow.__isEditEditor = false;\n\nfunction defineVimEx(){\n  try {\n    const vimMod = ace.require(\"ace/keyboard/vim\") || window.Vim;\n    if (!vimMod) return;\n    const Vim = vimMod.CodeMirror ? vimMod.CodeMirror.Vim : (vimMod.Vim || vimMod);\n    if (!Vim || !Vim.defineEx) return;\n    \n    const writeHandler = function() {\n        if (window.__isCreateEditor) saveCreate(false);\n        else if (window.__isEditEditor) saveEdit(false);\n    };\n    const saveAndQuitHandler = function() {\n        if (window.__isCreateEditor) saveCreate(true);\n        else if (window.__isEditEditor) saveEdit(true);\n    };\n    const quitHandler = function() {\n        if (window.__isCreateEditor) closeCreate();\n        else if (window.__isEditEditor) closeEdit();\n    };\n\n    Vim.defineEx(\"w\", \"\", writeHandler);\n    Vim.defineEx(\"write\", \"\", writeHandler);\n    Vim.defineEx(\"wq\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"x\", \"\", saveAndQuitHandler);\n    Vim.defineEx(\"q\", \"\", quitHandler);\n    Vim.defineEx(\"quit\", \"\", quitHandler);\n    Vim.defineEx(\"q!\", \"\", quitHandler);\n    Vim.defineEx(\"quit!\", \"\", quitHandler);\n    \n    console.log(\"LWS: Vim Ex commands registered\");\n    Vim.__lws_ex_defined = true;\n  } catch (e) {\n    console.error(\"LWS: Error in defineVimEx\", e);\n  }\n}\n\n/* --- live function logs --- */\nconst fnLogStreams = new Map();\nlet activeLogFnID = \"\";\n\nfunction fnLogState(id) {\n  if (!fnLogStreams.has(id)) fnLogStreams.set(id, { id: id, source: null, paused: false, lines: [] });\n  return fnLogStreams.get(id);\n}\n\nfunction setFnLogStatus(id, text, tone) {\n  const toneClass = \"z-badge z-badge-\" + (tone || \"muted\");\n  const inline = document.getElementById(\"fn-logs-status-\" + id);\n  if (inline) { inline.textContent = text; inline.className = toneClass; }\n  if (activeLogFnID === id) {\n    const full = document.getElementById(\"log-fullscreen-status\");\n    if (full) { full.textContent = text; full.className = toneClass; }\n  }\n}\n\nfunction closeFnLog(id) {\n  const st = fnLogStreams.get(id);\n  if (st && st.source) { st.source.close(); st.source = null; }\n}\n\nfunction startFnLog(id) {\n  if (!id) return;\n  const st = fnLogState(id);\n  if (st.source) return;\n  setFnLogStatus(id, \"connecting\", \"amber\");\n  try {\n    const es = new EventSource(`/api/functions/${encodeURIComponent(id)}/logs/`);\n    es.addEventListener(\"logs\", (event) => {\n      let payload;\n      try { payload = JSON.parse(event.data || \"{}\"); } catch (e) { return; }\n      ingestFnLog(st, payload);\n      setFnLogStatus(id, \"live\", \"green\");\n    });\n    es.onerror = () => setFnLogStatus(id, \"reconnecting\", \"amber\");\n    st.source = es;\n  } catch (e) {\n    setFnLogStatus(id, \"error\", \"red\");\n  }\n}\n\nfunction ingestFnLog(st, payload) {\n  const streams = payload.streams || payload.result || (payload.data && payload.data.result) || [];\n  if (!Array.isArray(streams)) return;\n  streams.forEach(stream => {\n    const labels = stream.stream || {};\n    (stream.values || []).forEach(value => {\n      if (!Array.isArray(value) || value.length < 2) return;\n      const ms = Number(value[0]) / 1e6;\n      appendFnLogLine(st, {\n        time: (isNaN(ms) ? new Date() : new Date(ms)).toLocaleTimeString(),\n        app: labels.app || \"\",\n        fn: labels.function || \"\",\n        line: String(value[1])\n      });\n    });\n  });\n}\n\nfunction fnLogLineNode(entry) {\n  const row = document.createElement(\"div\");\n  row.className = \"z-log-line\";\n  const time = document.createElement(\"span\");\n  time.className = \"z-log-time\";\n  time.textContent = entry.time;\n  row.appendChild(time);\n  if (entry.app) {\n    const app = document.createElement(\"span\");\n    app.className = \"z-badge z-badge-muted\";\n    app.textContent = entry.app;\n    row.appendChild(app);\n  }\n  if (entry.fn) {\n    const fn = document.createElement(\"span\");\n    fn.className = \"z-badge z-badge-blue\";\n    fn.textContent = entry.fn;\n    row.appendChild(fn);\n  }\n  const text = document.createElement(\"span\");\n  text.className = \"z-log-text\";\n  text.textContent = entry.line;\n  row.appendChild(text);\n  return row;\n}\n\nfunction appendFnLogLine(st, entry) {\n  st.lines.push(entry);\n  if (st.lines.length > 1000) st.lines.shift();\n  const inline = document.getElementById(\"fn-logs-\" + st.id);\n  if (inline) {\n    inline.appendChild(fnLogLineNode(entry));\n    while (inline.childElementCount > 1000) inline.removeChild(inline.firstChild);\n    if (inline.offsetParent !== null) inline.scrollTop = inline.scrollHeight;\n  }\n  if (activeLogFnID === st.id) {\n    const full = document.getElementById(\"log-fullscreen-stream\");\n    if (full) {\n      full.appendChild(fnLogLineNode(entry));\n      while (full.childElementCount > 1000) full.removeChild(full.firstChild);\n      full.scrollTop = full.scrollHeight;\n    }\n  }\n}\n\nfunction clearFnLogs(id) {\n  const st = fnLogState(id);\n  st.lines = [];\n  const inline = document.getElementById(\"fn-logs-\" + id);\n  if (inline) inline.innerHTML = \"\";\n  if (activeLogFnID === id) {\n    const full = document.getElementById(\"log-fullscreen-stream\");\n    if (full) full.innerHTML = \"\";\n  }\n}\n\nfunction toggleFnLogStream(id) {\n  const st = fnLogState(id);\n  st.paused = !st.paused;\n  const label = st.paused ? \"Resume\" : \"Pause\";\n  const inlineBtn = document.getElementById(\"fn-logs-toggle-\" + id);\n  if (inlineBtn) inlineBtn.textContent = label;\n  if (activeLogFnID === id) {\n    const fullBtn = document.getElementById(\"log-fullscreen-toggle\");\n    if (fullBtn) fullBtn.textContent = label;\n  }\n  if (st.paused) closeFnLog(id);\n  else startFnLog(id);\n  setFnLogStatus(id, st.paused ? \"paused\" : \"live\", st.paused ? \"amber\" : \"green\");\n}\n\nfunction openFnLogFullscreen(id) {\n  activeLogFnID = id;\n  const st = fnLogState(id);\n  const row = document.querySelector('[data-fn-id=\"' + CSS.escape(id) + '\"]');\n  const name = row?.querySelector(\".z-fn-name\")?.textContent || id;\n  const nameEl = document.getElementById(\"log-fullscreen-name\");\n  if (nameEl) nameEl.textContent = name;\n  const full = document.getElementById(\"log-fullscreen-stream\");\n  if (full) {\n    full.innerHTML = \"\";\n    st.lines.forEach(entry => full.appendChild(fnLogLineNode(entry)));\n    full.scrollTop = full.scrollHeight;\n  }\n  const fullBtn = document.getElementById(\"log-fullscreen-toggle\");\n  if (fullBtn) fullBtn.textContent = st.paused ? \"Resume\" : \"Pause\";\n  setFnLogStatus(id, st.paused ? \"paused\" : \"live\", st.paused ? \"amber\" : \"green\");\n  if (window.zOpenModal) window.zOpenModal(\"log-fullscreen-modal\");\n  else document.getElementById(\"log-fullscreen-modal\")?.classList.add(\"open\");\n  startFnLog(id);\n}\n\nfunction closeLogFullscreen() {\n  if (window.zCloseModal) window.zCloseModal(\"log-fullscreen-modal\");\n  else document.getElementById(\"log-fullscreen-modal\")?.classList.remove(\"open\");\n  activeLogFnID = \"\";\n}\n\nfunction clearActiveFnLogs() { if (activeLogFnID) clearFnLogs(activeLogFnID); }\nfunction toggleActiveFnLog() { if (activeLogFnID) toggleFnLogStream(activeLogFnID); }\n\nfunction openFnFromQuery() {\n  const params = new URLSearchParams(window.location.search);\n  const fnID = params.get(\"fn\");\n  if (fnID) {\n    toggleFnTraffic(fnID);\n    if (params.get(\"fullscreen\") === \"1\") openFnLogFullscreen(fnID);\n    return;\n  }\n  const expand = params.get(\"expand\");\n  if (expand) {\n    const row = document.querySelector('[data-endpoint-id=\"' + CSS.escape(expand) + '\"]');\n    const id = row?.getAttribute(\"data-fn-id\");\n    if (id) {\n      toggleFnTraffic(id);\n      setTimeout(() => row.scrollIntoView({ behavior: \"smooth\", block: \"center\" }), 100);\n    }\n  }\n}\n\n/* --- UI functions --- */\nfunction copyFn(id){\n  const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;\n  navigator.clipboard.writeText(curl);\n}\n\nfunction getTemplate(lang, mode) {\n  const el = document.getElementById(\"function-samples\");\n  if (!el) return \"\";\n  let samples = {};\n  try {\n    samples = JSON.parse(el.textContent || \"{}\");\n  } catch (e) {\n    console.error(\"failed to parse function samples\", e);\n    return \"\";\n  }\n  const entry = samples[lang];\n  if (!entry) return \"\";\n  if (typeof entry === \"string\") return entry;\n  return entry[mode] || entry.sync || \"\";\n}\n\nfunction replaceMainBuffer(mode, content) {\n  const state = window[\"__\" + mode + \"Files\"];\n  const ed = activeEditor(mode);\n  if (!state || !ed) {\n    if (ed) ed.setValue(content || \"\", -1);\n    return;\n  }\n  syncEditorBuffer(mode);\n  const main = mainFile(mode);\n  if (!main) return;\n  state.contents[main.path] = content || \"\";\n  window[\"__\" + mode + \"ActiveFile\"] = main.path;\n  ed.setValue(content || \"\", -1);\n  ed.focus();\n  document.querySelectorAll(\"#\" + mode + \"-file-tree .z-tree-file\").forEach(btn => {\n    btn.classList.toggle(\"active\", btn.getAttribute(\"data-path\") === main.path);\n  });\n  document.getElementById(mode + \"-tree-children\")?.classList.remove(\"hidden\");\n  updateEditorPath(mode);\n}\n\nfunction setCreateMode(mode) {\n  if (!mode || mode === selectedCreateMode) {\n    updateCreateModeButtons();\n    return;\n  }\n  const template = getTemplate(selectedLang, mode) || \"\";\n  if (createEditor) {\n    const current = createEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateCreateModeButtons();\n      return;\n    }\n  }\n  selectedCreateMode = mode;\n  replaceMainBuffer(\"create\", template);\n  updateCreateModeButtons();\n}\n\nfunction setEditMode(mode) {\n  if (!mode || mode === selectedEditMode) {\n    updateEditModeButtons();\n    return;\n  }\n  const lang = window.__editFnLang || \"python\";\n  const template = getTemplate(lang, mode) || \"\";\n  if (editEditor) {\n    const current = editEditor.getValue();\n    if (current && current.trim() && !confirm(\"Switching mode will replace the editor content. Continue?\")) {\n      updateEditModeButtons();\n      return;\n    }\n  }\n  selectedEditMode = mode;\n  replaceMainBuffer(\"edit\", template);\n  updateEditModeButtons();\n}\n\nfunction updateCreateModeButtons() {\n  const syncBtn = document.getElementById(\"create-mode-sync\");\n  const asyncBtn = document.getElementById(\"create-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedCreateMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction updateEditModeButtons() {\n  const syncBtn = document.getElementById(\"edit-mode-sync\");\n  const asyncBtn = document.getElementById(\"edit-mode-async\");\n  [syncBtn, asyncBtn].forEach(b => b?.classList.remove(\"selected\"));\n  if (selectedEditMode === \"async\") asyncBtn?.classList.add(\"selected\");\n  else syncBtn?.classList.add(\"selected\");\n}\n\nfunction setDynRuntime(btn, mode) {\n  const group = btn.closest(\".z-mode-toggle\");\n  if (!group) return;\n  group.querySelectorAll(\".z-mode-btn\").forEach((b, i) => {\n    b.classList.toggle(\"selected\", mode === \"dedicated\" ? i === 1 : i === 0);\n  });\n}\n\nfunction toggleFnConfig(id) {\n  const panel = document.getElementById(\"fn-config-\" + id);\n  if (!panel) return;\n  const willOpen = panel.classList.contains(\"hidden\");\n  document.querySelectorAll(\"[data-fn-config]\").forEach(p => p.classList.add(\"hidden\"));\n  document.querySelectorAll('[id^=\"fn-config-btn-\"]').forEach(b => b.classList.remove(\"active\"));\n  if (willOpen) {\n    document.querySelectorAll(\"[data-fn-traffic]\").forEach(p => {\n      p.classList.add(\"hidden\");\n      closeFnLog(p.id.replace(\"fn-traffic-\", \"\"));\n    });\n    document.querySelectorAll('[id^=\"fn-traffic-btn-\"]').forEach(b => b.classList.remove(\"active\"));\n    panel.classList.remove(\"hidden\");\n    document.getElementById(\"fn-config-btn-\" + id)?.classList.add(\"active\");\n  }\n}\n\nfunction toggleFnTraffic(id) {\n  const panel = document.getElementById(\"fn-traffic-\" + id);\n  if (!panel) return;\n  const willOpen = panel.classList.contains(\"hidden\");\n  document.querySelectorAll(\"[data-fn-traffic]\").forEach(p => {\n    p.classList.add(\"hidden\");\n    closeFnLog(p.id.replace(\"fn-traffic-\", \"\"));\n  });\n  document.querySelectorAll('[id^=\"fn-traffic-btn-\"]').forEach(b => b.classList.remove(\"active\"));\n  document.querySelectorAll(\"[data-fn-config]\").forEach(p => p.classList.add(\"hidden\"));\n  document.querySelectorAll('[id^=\"fn-config-btn-\"]').forEach(b => b.classList.remove(\"active\"));\n  if (willOpen) {\n    panel.classList.remove(\"hidden\");\n    document.getElementById(\"fn-traffic-btn-\" + id)?.classList.add(\"active\");\n    startFnLog(id);\n  }\n}\n\nconst FILE_MANIFESTS = {\n  go: [\n    { path: \"main.go\", main: true },\n    { path: \"types.go\" },\n    { path: \"go.mod\" },\n    { path: \"README.md\" }\n  ],\n  rust: [\n    { path: \"main.rs\", main: true },\n    { path: \"Cargo.toml\" },\n    { path: \"README.md\" }\n  ],\n  python: [\n    { path: \"handler.py\", main: true },\n    { path: \"requirements.txt\" },\n    { path: \"README.md\" }\n  ],\n  ts: [\n    { path: \"index.ts\", main: true },\n    { path: \"package.json\" },\n    { path: \"tsconfig.json\" }\n  ],\n  lua: [\n    { path: \"main.lua\", main: true },\n    { path: \"README.md\" }\n  ]\n};\n\nlet lastVimSpace = 0;\nlet teleState = { mode: \"create\", type: \"files\", results: [], index: -1 };\n\nfunction activeEditor(mode) {\n  return mode === \"create\" ? createEditor : editEditor;\n}\n\nfunction vimEnabled(mode) {\n  return !!document.getElementById(mode + \"-vim-toggle\")?.checked;\n}\n\nfunction applyEditorVim(mode) {\n  const ed = activeEditor(mode);\n  if (!ed) return;\n  try {\n    ed.setKeyboardHandler(vimEnabled(mode) ? \"ace/keyboard/vim\" : null);\n    if (vimEnabled(mode)) defineVimEx();\n  } catch (e) { /* ignore */ }\n}\n\nfunction functionDirName(mode) {\n  if (mode === \"create\") {\n    const value = document.getElementById(\"fn-name-input\")?.value?.trim();\n    return value || \"function\";\n  }\n  return window.__editFnName || (window.__editFnID ? window.__editFnID.slice(0, 10) : \"function\");\n}\n\nfunction stubContent(lang, path, dirName) {\n  if (path.endsWith(\".md\")) {\n    return \"# \" + (dirName || \"function\") + \"\\n\\nPlaceholder package file. Multi-file editing is tracked in #84.\\n\";\n  }\n  if (path.endsWith(\"go.mod\")) return \"module example.com/\" + (dirName || \"function\") + \"\\n\\ngo 1.26\\n\";\n  if (path.endsWith(\"Cargo.toml\")) return '[package]\\nname = \"' + (dirName || \"function\") + '\"\\nversion = \"0.1.0\"\\nedition = \"2021\"\\n';\n  if (path.endsWith(\"package.json\")) return '{\\n  \"name\": \"' + (dirName || \"function\") + '\",\\n  \"private\": true\\n}\\n';\n  if (path.endsWith(\"tsconfig.json\")) return '{\\n  \"compilerOptions\": { \"strict\": true }\\n}\\n';\n  if (path.endsWith(\"requirements.txt\")) return \"# add dependencies here\\n\";\n  return \"// Placeholder file. Multi-file editing is tracked in #84.\\n\";\n}\n\nfunction initEditorFiles(mode, lang, mainContent) {\n  const manifest = FILE_MANIFESTS[lang] || FILE_MANIFESTS.python;\n  const contents = {};\n  const dirName = functionDirName(mode);\n  manifest.forEach(file => {\n    contents[file.path] = file.main ? (mainContent || \"\") : stubContent(lang, file.path, dirName);\n  });\n  window[\"__\" + mode + \"Files\"] = { lang: lang, manifest: manifest, contents: contents };\n  window[\"__\" + mode + \"ActiveFile\"] = (manifest.find(f => f.main) || manifest[0]).path;\n  renderFileTree(mode);\n  updateEditorPath(mode);\n}\n\nfunction renderFileTree(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  const el = document.getElementById(mode + \"-file-tree\");\n  if (!state || !el) return;\n  const dirName = functionDirName(mode);\n  const active = window[\"__\" + mode + \"ActiveFile\"];\n  const files = state.manifest.map(file => {\n    const isActive = file.path === active;\n    return '<button class=\"z-tree-file' + (isActive ? \" active\" : \"\") + '\" data-path=\"' + escapeFnHtml(file.path) + '\" onclick=\"selectEditorFile(\\'' + mode + '\\',\\'' + escapeFnHtml(file.path) + '\\')\" title=\"' + escapeFnHtml(file.path) + '\">' +\n      zIcon(\"file\") + '<span class=\"z-tree-name\">' + escapeFnHtml(file.path) + '</span>' +\n      (file.main ? \"\" : '<span class=\"z-badge z-badge-amber\">stub</span>') +\n      '</button>';\n  }).join(\"\");\n  el.innerHTML =\n    '<div class=\"z-tree-root-row\">' +\n      '<button class=\"z-tree-root\" id=\"' + mode + '-tree-root\" onclick=\"toggleFileTree(\\'' + mode + '\\')\">' +\n        '<span class=\"z-tree-caret\">' + zIcon(\"chevron-right\") + '</span>' +\n        '<span class=\"z-mono\">' + escapeFnHtml(dirName) + '/</span>' +\n        '<span class=\"z-badge z-badge-muted\">' + state.manifest.length + '</span>' +\n      '</button>' +\n    '</div>' +\n    '<div class=\"z-tree-children hidden\" id=\"' + mode + '-tree-children\">' + files + '</div>' +\n    '<div class=\"z-tree-foot\"><span class=\"z-kbd\">space</span><span class=\"z-kbd\">space</span> files · <span class=\"z-kbd\">space</span><span class=\"z-kbd\">/</span> content</div>';\n}\n\nfunction toggleFileTree(mode) {\n  const children = document.getElementById(mode + \"-tree-children\");\n  if (!children) return;\n  children.classList.toggle(\"hidden\");\n  const caret = document.querySelector(\"#\" + mode + \"-tree-root .z-tree-caret svg\");\n  if (caret) caret.style.transform = children.classList.contains(\"hidden\") ? \"\" : \"rotate(90deg)\";\n}\n\nfunction updateEditorPath(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  const el = document.getElementById(mode + \"-editor-path\");\n  if (!state || !el) return;\n  const active = window[\"__\" + mode + \"ActiveFile\"];\n  const main = (state.manifest.find(f => f.main) || {}).path;\n  el.innerHTML = escapeFnHtml(functionDirName(mode)) + '/ <span style=\"color:var(--text)\">' + escapeFnHtml(active) + '</span>' +\n    (active !== main ? ' <span class=\"z-badge z-badge-amber\">stub</span>' : '');\n}\n\nfunction renameFunctionDir(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  if (!state) return;\n  const dirName = functionDirName(mode);\n  state.manifest.forEach(file => {\n    if (!file.main) state.contents[file.path] = stubContent(state.lang, file.path, dirName);\n  });\n  renderFileTree(mode);\n  updateEditorPath(mode);\n}\n\nfunction syncEditorBuffer(mode) {\n  const ed = activeEditor(mode);\n  const state = window[\"__\" + mode + \"Files\"];\n  if (!ed || !state) return;\n  const active = window[\"__\" + mode + \"ActiveFile\"];\n  if (active) state.contents[active] = ed.getValue();\n}\n\nfunction mainFile(mode) {\n  const state = window[\"__\" + mode + \"Files\"];\n  return state ? (state.manifest.find(f => f.main) || state.manifest[0]) : null;\n}\n\nfunction mainFileContent(mode) {\n  syncEditorBuffer(mode);\n  const main = mainFile(mode);\n  const state = window[\"__\" + mode + \"Files\"];\n  return main && state ? (state.contents[main.path] || \"\") : \"\";\n}\n\nfunction selectEditorFile(mode, path) {\n  const state = window[\"__\" + mode + \"Files\"];\n  if (!state || state.contents[path] === undefined) return;\n  syncEditorBuffer(mode);\n  window[\"__\" + mode + \"ActiveFile\"] = path;\n  const ed = activeEditor(mode);\n  if (ed) {\n    ed.session.setMode(\"ace/mode/\" + modeMap[state.lang]);\n    ed.setValue(state.contents[path] || \"\", -1);\n    ed.focus();\n  }\n  document.querySelectorAll(\"#\" + mode + \"-file-tree .z-tree-file\").forEach(btn => {\n    btn.classList.toggle(\"active\", btn.getAttribute(\"data-path\") === path);\n  });\n  document.getElementById(mode + \"-tree-children\")?.classList.remove(\"hidden\");\n  const caret = document.querySelector(\"#\" + mode + \"-tree-root .z-tree-caret svg\");\n  if (caret) caret.style.transform = \"rotate(90deg)\";\n  updateEditorPath(mode);\n}\n\nfunction openCreate(){\n  window.__isCreateEditor = true;\n  window.__isEditEditor = false;\n  zOpenModal(\"create-modal\");\n\n  if (!createEditor && window.ace) {\n    createEditor = ace.edit(\"create-ace\");\n    createEditor.setTheme(\"ace/theme/dracula\");\n    applyEditorVim(\"create\");\n  }\n\n  const mainContent = getTemplate(selectedLang, selectedCreateMode) || \"\";\n  initEditorFiles(\"create\", selectedLang, mainContent);\n  if (createEditor) {\n    createEditor.session.setMode(\"ace/mode/\" + modeMap[selectedLang]);\n    createEditor.setValue(mainContent, -1);\n    setTimeout(() => createEditor.focus(), 120);\n  }\n  updateCreateModeButtons();\n}\n\nfunction selectLang(lang){\n  selectedLang = lang;\n  document.querySelectorAll('.z-lang-tile').forEach(b=>b.classList.remove('selected'));\n  const el = document.getElementById('lang-' + lang);\n  if(el) el.classList.add('selected');\n  if(createEditor){\n    const mainContent = getTemplate(lang, selectedCreateMode) || \"\";\n    initEditorFiles(\"create\", lang, mainContent);\n    createEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    createEditor.setValue(mainContent, -1);\n    setTimeout(()=>createEditor.focus(),120);\n  }\n}\n\nfunction closeCreate(){\n  window.__isCreateEditor = false;\n  closeTelescope();\n  zCloseModal('create-modal');\n}\n\nfunction saveCreate(exit){\n  const name = document.getElementById('fn-name-input')?.value?.trim();\n  if(!name){\n    const el = document.getElementById('fn-name-input');\n    el.classList.add('shake');\n    setTimeout(()=>el.classList.remove('shake'),400);\n    el.focus();\n    return;\n  }\n  if (!exit) {\n    toast(\"Draft saving is not supported; use Create & deploy\", \"info\");\n    return;\n  }\n  const main = mainFile(\"create\");\n  if (window.__createActiveFile && main && window.__createActiveFile !== main.path) {\n    toast(\"Stub files are read-only in this preview; saving the main file only\", \"info\");\n  }\n  const description = document.getElementById('fn-desc-input')?.value?.trim();\n  const payload = {\n    name: name,\n    language: selectedLang,\n    description: description,\n    code: mainFileContent(\"create\"),\n    is_async: selectedCreateMode === \"async\"\n  };\n  fetch(`/api/functions/`,{\n    method:'POST',\n    headers:{'Content-Type':'application/json'},\n    body:JSON.stringify(payload)\n  }).then(()=>{\n    if(exit) closeCreate();\n    refreshList()\n  });\n}\n\nfunction openEdit(id, lang){\n  window.__isCreateEditor = false;\n  window.__isEditEditor = true;\n  window.__editFnID = id;\n  window.__editFnLang = lang;\n  window.__editFnName = \"\";\n  zOpenModal('edit-modal');\n  if(!editEditor && window.ace){\n    editEditor = ace.edit('edit-ace');\n    editEditor.setTheme('ace/theme/dracula');\n    applyEditorVim(\"edit\");\n  }\n\n  if(editEditor){\n    editEditor.session.setMode('ace/mode/' + modeMap[lang]);\n    editEditor.setValue('Loading...', -1);\n    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{\n      selectedEditMode = data?.is_async ? \"async\" : \"sync\";\n      updateEditModeButtons();\n      window.__editFnName = data?.name || data?.Name || id.slice(0, 10);\n      const mainContent = data.content || getTemplate(lang, selectedEditMode) || '';\n      initEditorFiles(\"edit\", lang, mainContent);\n      editEditor.setValue(mainContent, -1);\n      applyEditorVim(\"edit\");\n      editEditor.focus();\n      setTimeout(() => editEditor.focus(), 50);\n    }).catch(()=>{\n      window.__editFnName = id.slice(0, 10);\n      const mainContent = getTemplate(lang, selectedEditMode) || '';\n      initEditorFiles(\"edit\", lang, mainContent);\n      editEditor.setValue(mainContent, -1);\n      editEditor.focus();\n    });\n    editEditor.focus();\n  }\n  updateEditModeButtons();\n}\n\nfunction closeEdit(){\n  window.__isEditEditor = false;\n  closeTelescope();\n  zCloseModal('edit-modal');\n}\n\nfunction saveEdit(exit){\n  if(!window.__editFnID) return;\n  const main = mainFile(\"edit\");\n  if (window.__editActiveFile && main && window.__editActiveFile !== main.path) {\n    toast(\"Stub files are read-only in this preview; saving the main file only\", \"info\");\n  }\n  const body = mainFileContent(\"edit\");\n  fetch(`/api/functions/${window.__editFnID}/`,{\n    method:'PUT',\n    headers:{'Content-Type':'application/json'},\n    body: JSON.stringify({\n      code: body,\n      is_async: selectedEditMode === \"async\"\n    })\n  }).then(()=>{\n    if(exit) closeEdit();\n    refreshList()\n  });\n}\n\n/* --- telescope-like file/content search --- */\nfunction openTelescope(mode, type) {\n  syncEditorBuffer(mode);\n  teleState = { mode: mode, type: type, results: [], index: -1 };\n  const modal = document.getElementById(\"z-telescope\");\n  const input = document.getElementById(\"z-telescope-input\");\n  const kind = document.getElementById(\"z-telescope-kind\");\n  if (!modal || !input) return;\n  input.value = \"\";\n  input.placeholder = type === \"files\" ? \"Search files…\" : \"Search current file…\";\n  if (kind) kind.textContent = type === \"files\" ? \"files\" : \"content\";\n  modal.classList.add(\"open\");\n  updateTelescope();\n  setTimeout(() => input.focus(), 30);\n}\n\nfunction closeTelescope() {\n  document.getElementById(\"z-telescope\")?.classList.remove(\"open\");\n}\n\nfunction telescopeItems() {\n  const state = window[\"__\" + teleState.mode + \"Files\"];\n  const query = (document.getElementById(\"z-telescope-input\")?.value || \"\").trim().toLowerCase();\n  if (!state) return [];\n  if (teleState.type === \"files\") {\n    return state.manifest\n      .filter(file => !query || file.path.toLowerCase().includes(query))\n      .map(file => ({ label: file.path, path: file.path, main: file.main }));\n  }\n  const active = window[\"__\" + teleState.mode + \"ActiveFile\"];\n  const content = state.contents[active] || \"\";\n  return content.split(\"\\n\").map((line, i) => ({\n    label: line.trim() || \"(blank line)\",\n    line: i + 1\n  })).filter(item => !query || item.label.toLowerCase().includes(query));\n}\n\nfunction updateTelescope() {\n  teleState.results = telescopeItems();\n  teleState.index = teleState.results.length ? 0 : -1;\n  renderTelescopeResults();\n}\n\nfunction renderTelescopeResults() {\n  const container = document.getElementById(\"z-telescope-results\");\n  if (!container) return;\n  if (!teleState.results.length) {\n    container.innerHTML = '<div class=\"z-empty\" style=\"padding:22px\"><div class=\"z-empty-title\">No matches</div><div class=\"z-empty-sub\">Try a different query.</div></div>';\n    return;\n  }\n  container.innerHTML = teleState.results.map((item, i) => {\n    const active = i === teleState.index ? \" active\" : \"\";\n    const right = teleState.type === \"files\"\n      ? (item.main ? '<span class=\"z-badge z-badge-green\">main</span>' : '<span class=\"z-badge z-badge-amber\">stub</span>')\n      : '<span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">L' + item.line + '</span>';\n    return '<button class=\"z-telescope-result' + active + '\" onclick=\"chooseTelescope(' + i + ')\">' +\n      zIcon(teleState.type === \"files\" ? \"file\" : \"search\") +\n      '<span class=\"z-telescope-label\">' + escapeFnHtml(item.label) + '</span>' + right + '</button>';\n  }).join(\"\");\n  container.querySelectorAll(\".z-telescope-result\")[teleState.index]?.scrollIntoView({ block: \"nearest\" });\n}\n\nfunction chooseTelescope(index) {\n  const item = teleState.results[index];\n  if (!item) return;\n  if (teleState.type === \"files\") {\n    selectEditorFile(teleState.mode, item.path);\n  } else {\n    const ed = activeEditor(teleState.mode);\n    if (ed) {\n      ed.gotoLine(item.line, 0, true);\n      ed.focus();\n    }\n  }\n  closeTelescope();\n}\n\ndocument.addEventListener(\"keydown\", function (e) {\n  const tele = document.getElementById(\"z-telescope\");\n  if (tele?.classList.contains(\"open\")) {\n    if (e.key === \"Escape\") { e.preventDefault(); closeTelescope(); return; }\n    if (e.key === \"ArrowDown\") { e.preventDefault(); teleState.index = Math.min(teleState.index + 1, teleState.results.length - 1); renderTelescopeResults(); return; }\n    if (e.key === \"ArrowUp\") { e.preventDefault(); teleState.index = Math.max(teleState.index - 1, 0); renderTelescopeResults(); return; }\n    if (e.key === \"Enter\") { e.preventDefault(); chooseTelescope(teleState.index); return; }\n    return;\n  }\n\n  const editOpen = document.getElementById(\"edit-modal\")?.classList.contains(\"open\");\n  const createOpen = document.getElementById(\"create-modal\")?.classList.contains(\"open\");\n  const mode = editOpen ? \"edit\" : (createOpen ? \"create\" : null);\n  if (!mode || !vimEnabled(mode)) return;\n  const ed = activeEditor(mode);\n  if (!ed || !ed.container || !ed.container.contains(e.target)) return;\n\n  // Best-effort guard so insert-mode spaces still type normally.\n  const vimState = ed.state && ed.state.cm && ed.state.cm.state && ed.state.cm.state.vim;\n  if (vimState && vimState.insertMode) return;\n\n  const now = Date.now();\n  if (e.code === \"Space\" || e.key === \" \") {\n    if (now - lastVimSpace < 600) {\n      e.preventDefault();\n      lastVimSpace = 0;\n      openTelescope(mode, \"files\");\n    } else {\n      lastVimSpace = now;\n    }\n    return;\n  }\n  if (e.key === \"/\" && now - lastVimSpace < 600) {\n    e.preventDefault();\n    lastVimSpace = 0;\n    openTelescope(mode, \"content\");\n    return;\n  }\n  lastVimSpace = 0;\n}, true);\n\n/* --- bind language tiles and other DOM wiring after load --- */\ndocument.addEventListener('DOMContentLoaded', () => {\n  document.querySelectorAll('.z-lang-tile[data-lang]').forEach(btn=>{\n    btn.addEventListener('click', ()=> {\n      const lang = btn.getAttribute('data-lang');\n      selectLang(lang);\n    });\n  });\n\n  window.__activeProjectID = getActiveProjectID();\n  selectLang(selectedLang);\n  updateCreateModeButtons();\n  updateEditModeButtons();\n\n  [\"create\", \"edit\"].forEach(mode => {\n    document.getElementById(mode + \"-vim-toggle\")?.addEventListener(\"change\", () => applyEditorVim(mode));\n  });\n\n  const params = new URLSearchParams(window.location.search);\n  const editId = params.get(\"edit\");\n  if (editId) {\n    fetch(`/api/functions/${editId}/`)\n      .then(r => r.json())\n      .then(f => openEdit(f.id, f.language))\n      .catch(err => console.error(\"Failed to auto-open edit modal\", err));\n  }\n  openFnFromQuery();\n});\n\nwindow.__deleteFnID = null;\n\nfunction deleteFn(id) {\n    window.__deleteFnID = id;\n    zOpenModal(\"delete-modal\");\n}\n\nfunction closeDelete() {\n    window.__deleteFnID = null;\n    zCloseModal(\"delete-modal\");\n}\n\nfunction confirmDelete() {\n    if (!window.__deleteFnID) return;\n\n    fetch(`/api/functions/${window.__deleteFnID}/`, {\n        method: \"DELETE\"\n    })\n    .then(() => {\n        closeDelete();\n        refreshList(); // refresh UI\n    });\n}\n\n\nfunction fnIcon(name) {\n    const paths = {\n        code: '<path d=\"m8 6-6 6 6 6\"/><path d=\"m16 6 6 6-6 6\"/>',\n        copy: '<rect x=\"9\" y=\"9\" width=\"13\" height=\"13\" rx=\"2\"/><path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"/>',\n        edit: '<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"/>',\n        route: '<circle cx=\"6\" cy=\"19\" r=\"3\"/><path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\"/><circle cx=\"18\" cy=\"5\" r=\"3\"/>',\n        sliders: '<line x1=\"4\" y1=\"21\" x2=\"4\" y2=\"14\"/><line x1=\"4\" y1=\"10\" x2=\"4\" y2=\"3\"/><line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"12\"/><line x1=\"12\" y1=\"8\" x2=\"12\" y2=\"3\"/><line x1=\"20\" y1=\"21\" x2=\"20\" y2=\"16\"/><line x1=\"20\" y1=\"12\" x2=\"20\" y2=\"3\"/><line x1=\"1\" y1=\"14\" x2=\"7\" y2=\"14\"/><line x1=\"9\" y1=\"8\" x2=\"15\" y2=\"8\"/><line x1=\"17\" y1=\"16\" x2=\"23\" y2=\"16\"/>',\n        activity: '<path d=\"M22 12h-4l-3 9L9 3l-3 9H2\"/>',\n        maximize: '<path d=\"M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3\"/>',\n        github: '<path d=\"M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4\"/><path d=\"M9 18c-4.51 2-5-2-7-2\"/>',\n        trash: '<path d=\"M3 6h18\"/><path d=\"M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2\"/><path d=\"M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6\"/>'\n    };\n    return '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\">' + (paths[name] || \"\") + '</svg>';\n}\n\nfunction escapeFnHtml(s) {\n    return String(s == null ? \"\" : s).replace(/[&<>\"']/g, c => ({\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",'\"':\"&quot;\",\"'\":\"&#39;\"}[c]));\n}\n\nfunction filterFunctions(q) {\n    const needle = String(q || \"\").trim().toLowerCase();\n    document.querySelectorAll(\"#fn-list-container .z-fn-row\").forEach(row => {\n        const name = String(row.getAttribute(\"data-fn-name\") || \"\").toLowerCase();\n        row.style.display = (!needle || name.includes(needle)) ? \"\" : \"none\";\n    });\n}\n\nfunction functionConfigPanelHtml(id, name, lang) {\n    const isDynamic = [\"python\", \"ts\", \"lua\"].includes(lang);\n    const dynamicField = isDynamic ? `<div class=\"z-field\">\n                <span class=\"z-label\">Dynamic runtime</span>\n                <div class=\"z-mode-toggle\">\n                    <button class=\"z-mode-btn selected\" onclick=\"setDynRuntime(this,'shared')\">Shared</button>\n                    <button class=\"z-mode-btn\" onclick=\"setDynRuntime(this,'dedicated')\">Dedicated</button>\n                </div>\n                <span class=\"z-help\">Python, TypeScript and Lua only.</span>\n            </div>` : \"\";\n    return `<div id=\"fn-config-${id}\" class=\"z-fn-config hidden\" data-fn-config>\n        <div class=\"z-fn-config-head\">\n            <span class=\"z-panel-title\">Function config</span>\n            <span class=\"z-badge z-badge-muted\">${name}</span>\n            <span class=\"z-badge z-badge-amber\">dummy data</span>\n            <span class=\"z-help\">Runtime, isolation and rate limits scoped to this function.</span>\n        </div>\n        <div class=\"z-fn-config-grid\">\n            <div class=\"z-field\">\n                <label class=\"z-label\">Runtime interface</label>\n                <select class=\"z-select\">\n                    <option selected>containerd · runc (default)</option>\n                    <option>gVisor · runsc</option>\n                    <option>Kata Containers · microVM</option>\n                    <option>WASM / WASI · wasmtime</option>\n                    <option>Firecracker · microVM</option>\n                </select>\n                <span class=\"z-help\">Containerd by default; stronger isolation is opt-in.</span>\n            </div>\n            ${dynamicField}\n            <div class=\"z-field\">\n                <span class=\"z-label\">Rate limit</span>\n                <div class=\"z-input-group\">\n                    <input class=\"z-input z-mono\" style=\"width:92px\" value=\"120\" aria-label=\"requests per minute\"/>\n                    <span class=\"z-help\">req/min</span>\n                </div>\n                <span class=\"z-help\">Burst <span class=\"z-code-inline\">40</span> · per function at the gateway.</span>\n            </div>\n            <div class=\"z-field\">\n                <span class=\"z-label\">Dedicated resources</span>\n                <div class=\"z-grid z-grid-2\" style=\"gap:7px\">\n                    <select class=\"z-select\" aria-label=\"vCPU\"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select>\n                    <select class=\"z-select\" aria-label=\"Memory\"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select>\n                </div>\n                <span class=\"z-help\">Applied when dedicated runtime is selected.</span>\n            </div>\n        </div>\n        <div class=\"z-fn-config-foot\">\n            <a class=\"z-btn z-btn-sm\" href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\">${fnIcon(\"github\")} Repo</a>\n            <span class=\"z-help\">Config is stored with this function package.</span>\n            <button class=\"z-btn z-btn-sm z-btn-primary\" style=\"margin-left:auto\" onclick=\"toast('Function config saved (placeholder)','success')\">Save config</button>\n        </div>\n    </div>`;\n}\n\nfunction functionTrafficPanelHtml(id, name, endpointId) {\n    const hasEndpoint = !!endpointId;\n    const endpointHtml = hasEndpoint\n        ? '<span class=\"z-help z-mono\">' + escapeFnHtml(endpointId) + '</span>'\n        : '<span class=\"z-help\">No endpoint is mapped to this function yet.</span>';\n    return `<div id=\"fn-traffic-${id}\" class=\"z-fn-config hidden\" data-fn-traffic>\n        <div class=\"z-fn-config-head\">\n            <span class=\"z-panel-title\">${fnIcon(\"activity\")} Traffic</span>\n            <span class=\"z-badge z-badge-muted\">${name}</span>\n            <span class=\"z-badge z-badge-${hasEndpoint ? \"green\" : \"amber\"}\">${hasEndpoint ? \"endpoint live\" : \"no endpoint\"}</span>\n        </div>\n        <div class=\"z-fn-traffic-grid\">\n            <div class=\"z-field\">\n                <span class=\"z-label\">Endpoint</span>\n                ${endpointHtml}\n                <div class=\"z-help\" style=\"margin-top:10px\">Live runtime + ingestor output for this function, streamed from Loki.</div>\n            </div>\n            <div class=\"z-field\">\n                <div class=\"z-log-toolbar\">\n                    <span class=\"z-label\">Live logs</span>\n                    <span id=\"fn-logs-status-${id}\" class=\"z-badge z-badge-muted\">idle</span>\n                    <button id=\"fn-logs-toggle-${id}\" class=\"z-btn z-btn-sm\" onclick=\"toggleFnLogStream('${id}')\">Pause</button>\n                    <button class=\"z-btn z-btn-sm\" onclick=\"clearFnLogs('${id}')\">Clear</button>\n                    <button class=\"z-btn z-btn-sm z-btn-primary\" onclick=\"openFnLogFullscreen('${id}')\">${fnIcon(\"maximize\")} Fullscreen</button>\n                </div>\n                <div id=\"fn-logs-${id}\" class=\"z-log z-fn-log\"></div>\n            </div>\n        </div>\n    </div>`;\n}\n\nfunction refreshList() {\n    fetch(`/api/functions/`)\n        .then(r => r.json())\n        .then(obj => {\n            const list = Object.values(obj || {});\n            const container = document.querySelector(\"#fn-list-container\");\n            if (!container) return;\n            fnLogStreams.forEach((st, id) => closeFnLog(id));\n            activeLogFnID = \"\";\n\n            if (list.length === 0) {\n                container.innerHTML = `\n                    <div class=\"z-empty\" style=\"padding:40px 16px\">\n                        <div class=\"z-empty-icon\">${fnIcon(\"code\")}</div>\n                        <div class=\"z-empty-title\">No functions yet</div>\n                        <div class=\"z-empty-sub\">Create your first function to start deploying.</div>\n                        <button class=\"z-btn z-btn-primary z-btn-sm\" onclick=\"openCreate()\">New function</button>\n                    </div>`;\n                return;\n            }\n\n            container.innerHTML = list.map(fn => {\n                const id = escapeFnHtml(fn.id);\n                const name = escapeFnHtml(fn.name);\n                const lang = escapeFnHtml(fn.language);\n                const endpointId = fn.endpoint_id || \"\";\n                const icon = `/static/imgs/${encodeURIComponent(lang)}-svgrepo-com.svg`;\n                const endpointBtn = endpointId\n                    ? `<button class=\"z-btn z-btn-sm\" title=\"Endpoint & logs\" onclick=\"toggleFnTraffic('${id}')\">${fnIcon(\"route\")} Test</button>`\n                    : `<span class=\"z-btn z-btn-sm\" style=\"opacity:.45\" title=\"No endpoint\">${fnIcon(\"route\")} Test</span>`;\n                return `\n                    <div class=\"z-fn-row\" data-fn-name=\"${name.toLowerCase()}\" data-fn-id=\"${id}\" data-endpoint-id=\"${escapeFnHtml(endpointId)}\">\n                        <span class=\"z-fn-icon\"><img src=\"${icon}\" alt=\"\"/></span>\n                        <div class=\"z-fn-main\">\n                            <div class=\"z-fn-name\">${name}</div>\n                            <div class=\"z-fn-meta\">\n                                <span class=\"z-badge z-badge-muted\">${lang}</span>\n                                <span class=\"z-mono\" style=\"font-size:9px;color:var(--text-4)\">${id.slice(0, 10)}</span>\n                            </div>\n                        </div>\n                        <div class=\"z-fn-actions\">\n                            <button class=\"z-icon-btn\" title=\"Copy curl\" onclick=\"copyFn('${id}')\">${fnIcon(\"copy\")}</button>\n                            <button class=\"z-icon-btn\" id=\"fn-config-btn-${id}\" title=\"Function config\" onclick=\"toggleFnConfig('${id}')\">${fnIcon(\"sliders\")}</button>\n                            <button class=\"z-icon-btn\" id=\"fn-traffic-btn-${id}\" title=\"Traffic & logs\" onclick=\"toggleFnTraffic('${id}')\">${fnIcon(\"activity\")}</button>\n                            <button class=\"z-btn z-btn-sm\" onclick=\"openEdit('${id}', '${lang}')\">${fnIcon(\"edit\")} Edit</button>\n                            ${endpointBtn}\n                            <button class=\"z-icon-btn\" title=\"Delete\" onclick=\"deleteFn('${id}')\">${fnIcon(\"trash\")}</button>\n                        </div>\n                    </div>` + functionConfigPanelHtml(id, name, lang) + functionTrafficPanelHtml(id, name, endpointId);\n            }).join(\"\");\n\n            filterFunctions(document.getElementById(\"fn-filter\")?.value || \"\");\n        })\n        .catch(() => toast(\"Could not refresh functions\", \"error\"));\n}\n\t</script><style>\n\t.ace_editor,\n\t.ace_scroller,\n\t.ace_content { background: #0b0b0c !important; color: #eee !important; }\n\t.shake { animation: shake .3s linear; }\n\t@keyframes shake { 0%{transform:translateX(0)} 25%{transform:translateX(-6px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-6px)} 100%{transform:translateX(0)} }\n\t</style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -582,48 +670,48 @@ func functionConfigPanel(fn Function) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var18 == nil {
-			templ_7745c5c3_Var18 = templ.NopComponent
+		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var22 == nil {
+			templ_7745c5c3_Var22 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var19 string
-		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("fn-config-" + fn.ID)
+		var templ_7745c5c3_Var23 string
+		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("fn-config-" + fn.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 1074, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 1337, Col: 31}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" class=\"z-fn-config hidden\" data-fn-config><div class=\"z-fn-config-head\"><span class=\"z-panel-title\">Function config</span> <span class=\"z-badge z-badge-muted\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var20 string
-		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 1077, Col: 48}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "\" class=\"z-fn-config hidden\" data-fn-config><div class=\"z-fn-config-head\"><span class=\"z-panel-title\">Function config</span> <span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</span> <span class=\"z-badge z-badge-amber\">dummy data</span> <span class=\"z-help\">Runtime, isolation and rate limits scoped to this function.</span></div><div class=\"z-fn-config-grid\"><div class=\"z-field\"><label class=\"z-label\">Runtime interface</label> <select class=\"z-select\"><option selected>containerd · runc (default)</option> <option>gVisor · runsc</option> <option>Kata Containers · microVM</option> <option>WASM / WASI · wasmtime</option> <option>Firecracker · microVM</option></select> <span class=\"z-help\">Containerd by default; stronger isolation is opt-in.</span></div>")
+		var templ_7745c5c3_Var24 string
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/functions.templ`, Line: 1340, Col: 48}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</span> <span class=\"z-badge z-badge-amber\">dummy data</span> <span class=\"z-help\">Runtime, isolation and rate limits scoped to this function.</span></div><div class=\"z-fn-config-grid\"><div class=\"z-field\"><label class=\"z-label\">Runtime interface</label> <select class=\"z-select\"><option selected>containerd · runc (default)</option> <option>gVisor · runsc</option> <option>Kata Containers · microVM</option> <option>WASM / WASI · wasmtime</option> <option>Firecracker · microVM</option></select> <span class=\"z-help\">Containerd by default; stronger isolation is opt-in.</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if fn.Language == "python" || fn.Language == "ts" || fn.Language == "lua" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div class=\"z-field\"><span class=\"z-label\">Dynamic runtime</span><div class=\"z-mode-toggle\"><button class=\"z-mode-btn selected\" onclick=\"setDynRuntime(this,'shared')\">Shared</button> <button class=\"z-mode-btn\" onclick=\"setDynRuntime(this,'dedicated')\">Dedicated</button></div><span class=\"z-help\">Python, TypeScript and Lua only.</span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div class=\"z-field\"><span class=\"z-label\">Dynamic runtime</span><div class=\"z-mode-toggle\"><button class=\"z-mode-btn selected\" onclick=\"setDynRuntime(this,'shared')\">Shared</button> <button class=\"z-mode-btn\" onclick=\"setDynRuntime(this,'dedicated')\">Dedicated</button></div><span class=\"z-help\">Python, TypeScript and Lua only.</span></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<div class=\"z-field\"><span class=\"z-label\">Rate limit</span><div class=\"z-input-group\"><input class=\"z-input z-mono\" style=\"width:92px\" value=\"120\" aria-label=\"requests per minute\"> <span class=\"z-help\">req/min</span></div><span class=\"z-help\">Burst <span class=\"z-code-inline\">40</span> · per function at the gateway.</span></div><div class=\"z-field\"><span class=\"z-label\">Dedicated resources</span><div class=\"z-grid z-grid-2\" style=\"gap:7px\"><select class=\"z-select\" aria-label=\"vCPU\"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select> <select class=\"z-select\" aria-label=\"Memory\"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select></div><span class=\"z-help\">Applied when dedicated runtime is selected.</span></div></div><div class=\"z-fn-config-foot\"><a class=\"z-btn z-btn-sm\" href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<div class=\"z-field\"><span class=\"z-label\">Rate limit</span><div class=\"z-input-group\"><input class=\"z-input z-mono\" style=\"width:92px\" value=\"120\" aria-label=\"requests per minute\"> <span class=\"z-help\">req/min</span></div><span class=\"z-help\">Burst <span class=\"z-code-inline\">40</span> · per function at the gateway.</span></div><div class=\"z-field\"><span class=\"z-label\">Dedicated resources</span><div class=\"z-grid z-grid-2\" style=\"gap:7px\"><select class=\"z-select\" aria-label=\"vCPU\"><option>0.5 vCPU</option><option selected>1 vCPU</option><option>2 vCPU</option></select> <select class=\"z-select\" aria-label=\"Memory\"><option>256 MiB</option><option selected>512 MiB</option><option>1 GiB</option></select></div><span class=\"z-help\">Applied when dedicated runtime is selected.</span></div></div><div class=\"z-fn-config-foot\"><a class=\"z-btn z-btn-sm\" href=\"https://github.com/ashupednekar/litefunctions\" target=\"_blank\" rel=\"noopener\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -631,7 +719,7 @@ func functionConfigPanel(fn Function) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "Repo</a> <span class=\"z-help\">Config is stored with this function package.</span> <button class=\"z-btn z-btn-sm z-btn-primary\" style=\"margin-left:auto\" onclick=\"toast('Function config saved (placeholder)','success')\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "Repo</a> <span class=\"z-help\">Config is stored with this function package.</span> <button class=\"z-btn z-btn-sm z-btn-primary\" style=\"margin-left:auto\" onclick=\"toast('Function config saved (placeholder)','success')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -639,7 +727,7 @@ func functionConfigPanel(fn Function) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "Save config</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "Save config</button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

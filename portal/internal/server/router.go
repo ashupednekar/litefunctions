@@ -54,14 +54,12 @@ func (s *Server) BuildRoutes() {
 	{
 		protected.GET("/configuration/", ui.Configuration)
 		protected.GET("/functions/", ui.Functions)
-		protected.GET("/endpoints/", ui.Endpoints)
 		protected.GET("/data/", ui.Data)
 		protected.GET("/dependencies/", ui.Dependencies)
 		protected.GET("/data-model/", ui.DataModel)
 		protected.GET("/queries/", ui.Queries)
 		protected.GET("/agent/", ui.Agent)
 		protected.GET("/pubsub/", ui.PubSub)
-		protected.GET("/traffic/", ui.Traffic)
 		protected.GET("/access/", ui.Access)
 		protected.GET("/audit/", ui.Audit)
 	}
@@ -100,7 +98,7 @@ func (s *Server) BuildRoutes() {
 		api.POST("/functions/", manager, functionHandlers.CreateFunction)
 		api.GET("/functions/", functionHandlers.ListFunctions)
 		api.GET("/functions/:fnID/", functionHandlers.GetFunction)
-		api.GET("/functions/:fnID/logs/", functionHandlers.StremLogs)
+		api.GET("/functions/:fnID/logs/", functionHandlers.StreamLogs)
 		api.PUT("/functions/:fnID/", manager, functionHandlers.UpdateFunction)
 		api.DELETE("/functions/:fnID/", manager, functionHandlers.DeleteFunction)
 

@@ -293,3 +293,12 @@ type CodeSample struct {
 	Sync  string `json:"sync"`
 	Async string `json:"async"`
 }
+
+func endpointForFunction(endpoints []Endpoint, fnID string) Endpoint {
+	for _, ep := range endpoints {
+		if ep.ID == fnID {
+			return ep
+		}
+	}
+	return Endpoint{}
+}

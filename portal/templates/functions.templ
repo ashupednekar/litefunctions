@@ -19,7 +19,7 @@ script saveCreate(exit bool) {
 script saveEdit(exit bool) {
 }
 
-templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample) {
+templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample, endpoints []Endpoint) {
 
 @PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
 	<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
@@ -47,7 +47,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 			</div>
 		}
 		for _, fn := range functions {
-			<div class="z-fn-row" data-fn-name={ fn.Name }>
+			<div class="z-fn-row" data-fn-name={ fn.Name } data-fn-id={ fn.ID } data-endpoint-id={ fn.EndpointID }>
 				<span class="z-fn-icon"><img src={ fn.Icon } alt=""/></span>
 				<div class="z-fn-main">
 					<div class="z-fn-name">{ fn.Name }</div>
@@ -59,9 +59,10 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 				<div class="z-fn-actions">
 					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
 					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
+					<button class="z-icon-btn" id={ "fn-traffic-btn-" + fn.ID } title="Traffic &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("activity", "")</button>
 					<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "") Edit</button>
 					if fn.EndpointID != "" {
-						<a class="z-btn z-btn-sm" title="Endpoint" href={ templ.SafeURL("/traffic/?expand=" + fn.EndpointID) }>@Icon("route", "") Test</a>
+						<button class="z-btn z-btn-sm" title="Endpoint &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("route", "") Test</button>
 					} else {
 						<span class="z-btn z-btn-sm" style="opacity:.45" title="No endpoint">@Icon("route", "") Test</span>
 					}
@@ -69,6 +70,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 				</div>
 			</div>
 			@functionConfigPanel(fn)
+			@FunctionTrafficPanel(fn, endpointForFunction(endpoints, fn.ID))
 		}
 	</div>
 </div>
@@ -182,6 +184,25 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 		<div class="z-modal-foot">
 			<button class="z-btn" onclick="closeDelete()">Cancel</button>
 			<button class="z-btn z-btn-danger" onclick="confirmDelete()">Delete function</button>
+		</div>
+	</div>
+</div>
+
+<!-- LOG FULLSCREEN -->
+<div id="log-fullscreen-modal" class="z-modal-backdrop z-log-fullscreen" onclick="closeLogFullscreen()">
+	<div class="z-log-fullscreen-panel" onclick="event.stopPropagation()">
+		<div class="z-modal-header">
+			@Icon("terminal", "")
+			<span class="z-modal-title">Live logs <span id="log-fullscreen-name" class="z-badge z-badge-muted"></span></span>
+			<span id="log-fullscreen-status" class="z-badge z-badge-muted">idle</span>
+			<button class="z-icon-btn" style="margin-left:auto" onclick="closeLogFullscreen()">@Icon("close", "")</button>
+		</div>
+		<div id="log-fullscreen-stream" class="z-log"></div>
+		<div class="z-modal-foot">
+			<span class="z-help">Runtime + ingestor output streamed from Loki.</span>
+			<button class="z-btn z-btn-sm" onclick="clearActiveFnLogs()">Clear</button>
+			<button id="log-fullscreen-toggle" class="z-btn z-btn-sm" onclick="toggleActiveFnLog()">Pause</button>
+			<button class="z-btn z-btn-sm z-btn-primary" onclick="closeLogFullscreen()">Close</button>
 		</div>
 	</div>
 </div>
@@ -324,6 +345,188 @@ function defineVimEx(){
   }
 }
 
+/* --- live function logs --- */
+const fnLogStreams = new Map();
+let activeLogFnID = "";
+
+function fnLogState(id) {
+  if (!fnLogStreams.has(id)) fnLogStreams.set(id, { id: id, source: null, paused: false, lines: [] });
+  return fnLogStreams.get(id);
+}
+
+function setFnLogStatus(id, text, tone) {
+  const toneClass = "z-badge z-badge-" + (tone || "muted");
+  const inline = document.getElementById("fn-logs-status-" + id);
+  if (inline) { inline.textContent = text; inline.className = toneClass; }
+  if (activeLogFnID === id) {
+    const full = document.getElementById("log-fullscreen-status");
+    if (full) { full.textContent = text; full.className = toneClass; }
+  }
+}
+
+function closeFnLog(id) {
+  const st = fnLogStreams.get(id);
+  if (st && st.source) { st.source.close(); st.source = null; }
+}
+
+function startFnLog(id) {
+  if (!id) return;
+  const st = fnLogState(id);
+  if (st.source) return;
+  setFnLogStatus(id, "connecting", "amber");
+  try {
+    const es = new EventSource(`/api/functions/${encodeURIComponent(id)}/logs/`);
+    es.addEventListener("logs", (event) => {
+      let payload;
+      try { payload = JSON.parse(event.data || "{}"); } catch (e) { return; }
+      ingestFnLog(st, payload);
+      setFnLogStatus(id, "live", "green");
+    });
+    es.onerror = () => setFnLogStatus(id, "reconnecting", "amber");
+    st.source = es;
+  } catch (e) {
+    setFnLogStatus(id, "error", "red");
+  }
+}
+
+function ingestFnLog(st, payload) {
+  const streams = payload.streams || payload.result || (payload.data && payload.data.result) || [];
+  if (!Array.isArray(streams)) return;
+  streams.forEach(stream => {
+    const labels = stream.stream || {};
+    (stream.values || []).forEach(value => {
+      if (!Array.isArray(value) || value.length < 2) return;
+      const ms = Number(value[0]) / 1e6;
+      appendFnLogLine(st, {
+        time: (isNaN(ms) ? new Date() : new Date(ms)).toLocaleTimeString(),
+        app: labels.app || "",
+        fn: labels.function || "",
+        line: String(value[1])
+      });
+    });
+  });
+}
+
+function fnLogLineNode(entry) {
+  const row = document.createElement("div");
+  row.className = "z-log-line";
+  const time = document.createElement("span");
+  time.className = "z-log-time";
+  time.textContent = entry.time;
+  row.appendChild(time);
+  if (entry.app) {
+    const app = document.createElement("span");
+    app.className = "z-badge z-badge-muted";
+    app.textContent = entry.app;
+    row.appendChild(app);
+  }
+  if (entry.fn) {
+    const fn = document.createElement("span");
+    fn.className = "z-badge z-badge-blue";
+    fn.textContent = entry.fn;
+    row.appendChild(fn);
+  }
+  const text = document.createElement("span");
+  text.className = "z-log-text";
+  text.textContent = entry.line;
+  row.appendChild(text);
+  return row;
+}
+
+function appendFnLogLine(st, entry) {
+  st.lines.push(entry);
+  if (st.lines.length > 1000) st.lines.shift();
+  const inline = document.getElementById("fn-logs-" + st.id);
+  if (inline) {
+    inline.appendChild(fnLogLineNode(entry));
+    while (inline.childElementCount > 1000) inline.removeChild(inline.firstChild);
+    if (inline.offsetParent !== null) inline.scrollTop = inline.scrollHeight;
+  }
+  if (activeLogFnID === st.id) {
+    const full = document.getElementById("log-fullscreen-stream");
+    if (full) {
+      full.appendChild(fnLogLineNode(entry));
+      while (full.childElementCount > 1000) full.removeChild(full.firstChild);
+      full.scrollTop = full.scrollHeight;
+    }
+  }
+}
+
+function clearFnLogs(id) {
+  const st = fnLogState(id);
+  st.lines = [];
+  const inline = document.getElementById("fn-logs-" + id);
+  if (inline) inline.innerHTML = "";
+  if (activeLogFnID === id) {
+    const full = document.getElementById("log-fullscreen-stream");
+    if (full) full.innerHTML = "";
+  }
+}
+
+function toggleFnLogStream(id) {
+  const st = fnLogState(id);
+  st.paused = !st.paused;
+  const label = st.paused ? "Resume" : "Pause";
+  const inlineBtn = document.getElementById("fn-logs-toggle-" + id);
+  if (inlineBtn) inlineBtn.textContent = label;
+  if (activeLogFnID === id) {
+    const fullBtn = document.getElementById("log-fullscreen-toggle");
+    if (fullBtn) fullBtn.textContent = label;
+  }
+  if (st.paused) closeFnLog(id);
+  else startFnLog(id);
+  setFnLogStatus(id, st.paused ? "paused" : "live", st.paused ? "amber" : "green");
+}
+
+function openFnLogFullscreen(id) {
+  activeLogFnID = id;
+  const st = fnLogState(id);
+  const row = document.querySelector('[data-fn-id="' + CSS.escape(id) + '"]');
+  const name = row?.querySelector(".z-fn-name")?.textContent || id;
+  const nameEl = document.getElementById("log-fullscreen-name");
+  if (nameEl) nameEl.textContent = name;
+  const full = document.getElementById("log-fullscreen-stream");
+  if (full) {
+    full.innerHTML = "";
+    st.lines.forEach(entry => full.appendChild(fnLogLineNode(entry)));
+    full.scrollTop = full.scrollHeight;
+  }
+  const fullBtn = document.getElementById("log-fullscreen-toggle");
+  if (fullBtn) fullBtn.textContent = st.paused ? "Resume" : "Pause";
+  setFnLogStatus(id, st.paused ? "paused" : "live", st.paused ? "amber" : "green");
+  if (window.zOpenModal) window.zOpenModal("log-fullscreen-modal");
+  else document.getElementById("log-fullscreen-modal")?.classList.add("open");
+  startFnLog(id);
+}
+
+function closeLogFullscreen() {
+  if (window.zCloseModal) window.zCloseModal("log-fullscreen-modal");
+  else document.getElementById("log-fullscreen-modal")?.classList.remove("open");
+  activeLogFnID = "";
+}
+
+function clearActiveFnLogs() { if (activeLogFnID) clearFnLogs(activeLogFnID); }
+function toggleActiveFnLog() { if (activeLogFnID) toggleFnLogStream(activeLogFnID); }
+
+function openFnFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const fnID = params.get("fn");
+  if (fnID) {
+    toggleFnTraffic(fnID);
+    if (params.get("fullscreen") === "1") openFnLogFullscreen(fnID);
+    return;
+  }
+  const expand = params.get("expand");
+  if (expand) {
+    const row = document.querySelector('[data-endpoint-id="' + CSS.escape(expand) + '"]');
+    const id = row?.getAttribute("data-fn-id");
+    if (id) {
+      toggleFnTraffic(id);
+      setTimeout(() => row.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+    }
+  }
+}
+
 /* --- UI functions --- */
 function copyFn(id){
   const curl = `curl -X POST ${projectUrl(`/api/functions/`)}${id ? id : ''}`;
@@ -435,8 +638,31 @@ function toggleFnConfig(id) {
   document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
   document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
   if (willOpen) {
+    document.querySelectorAll("[data-fn-traffic]").forEach(p => {
+      p.classList.add("hidden");
+      closeFnLog(p.id.replace("fn-traffic-", ""));
+    });
+    document.querySelectorAll('[id^="fn-traffic-btn-"]').forEach(b => b.classList.remove("active"));
     panel.classList.remove("hidden");
     document.getElementById("fn-config-btn-" + id)?.classList.add("active");
+  }
+}
+
+function toggleFnTraffic(id) {
+  const panel = document.getElementById("fn-traffic-" + id);
+  if (!panel) return;
+  const willOpen = panel.classList.contains("hidden");
+  document.querySelectorAll("[data-fn-traffic]").forEach(p => {
+    p.classList.add("hidden");
+    closeFnLog(p.id.replace("fn-traffic-", ""));
+  });
+  document.querySelectorAll('[id^="fn-traffic-btn-"]').forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
+  document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
+  if (willOpen) {
+    panel.classList.remove("hidden");
+    document.getElementById("fn-traffic-btn-" + id)?.classList.add("active");
+    startFnLog(id);
   }
 }
 
@@ -899,6 +1125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(f => openEdit(f.id, f.language))
       .catch(err => console.error("Failed to auto-open edit modal", err));
   }
+  openFnFromQuery();
 });
 
 window.__deleteFnID = null;
@@ -933,6 +1160,8 @@ function fnIcon(name) {
         edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
         route: '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
         sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+        activity: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+        maximize: '<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>',
         github: '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>',
         trash: '<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'
     };
@@ -1006,6 +1235,37 @@ function functionConfigPanelHtml(id, name, lang) {
     </div>`;
 }
 
+function functionTrafficPanelHtml(id, name, endpointId) {
+    const hasEndpoint = !!endpointId;
+    const endpointHtml = hasEndpoint
+        ? '<span class="z-help z-mono">' + escapeFnHtml(endpointId) + '</span>'
+        : '<span class="z-help">No endpoint is mapped to this function yet.</span>';
+    return `<div id="fn-traffic-${id}" class="z-fn-config hidden" data-fn-traffic>
+        <div class="z-fn-config-head">
+            <span class="z-panel-title">${fnIcon("activity")} Traffic</span>
+            <span class="z-badge z-badge-muted">${name}</span>
+            <span class="z-badge z-badge-${hasEndpoint ? "green" : "amber"}">${hasEndpoint ? "endpoint live" : "no endpoint"}</span>
+        </div>
+        <div class="z-fn-traffic-grid">
+            <div class="z-field">
+                <span class="z-label">Endpoint</span>
+                ${endpointHtml}
+                <div class="z-help" style="margin-top:10px">Live runtime + ingestor output for this function, streamed from Loki.</div>
+            </div>
+            <div class="z-field">
+                <div class="z-log-toolbar">
+                    <span class="z-label">Live logs</span>
+                    <span id="fn-logs-status-${id}" class="z-badge z-badge-muted">idle</span>
+                    <button id="fn-logs-toggle-${id}" class="z-btn z-btn-sm" onclick="toggleFnLogStream('${id}')">Pause</button>
+                    <button class="z-btn z-btn-sm" onclick="clearFnLogs('${id}')">Clear</button>
+                    <button class="z-btn z-btn-sm z-btn-primary" onclick="openFnLogFullscreen('${id}')">${fnIcon("maximize")} Fullscreen</button>
+                </div>
+                <div id="fn-logs-${id}" class="z-log z-fn-log"></div>
+            </div>
+        </div>
+    </div>`;
+}
+
 function refreshList() {
     fetch(`/api/functions/`)
         .then(r => r.json())
@@ -1013,6 +1273,8 @@ function refreshList() {
             const list = Object.values(obj || {});
             const container = document.querySelector("#fn-list-container");
             if (!container) return;
+            fnLogStreams.forEach((st, id) => closeFnLog(id));
+            activeLogFnID = "";
 
             if (list.length === 0) {
                 container.innerHTML = `
@@ -1032,10 +1294,10 @@ function refreshList() {
                 const endpointId = fn.endpoint_id || "";
                 const icon = `/static/imgs/${encodeURIComponent(lang)}-svgrepo-com.svg`;
                 const endpointBtn = endpointId
-                    ? `<a class="z-btn z-btn-sm" href="/traffic/?expand=${encodeURIComponent(endpointId)}" title="Endpoint">${fnIcon("route")} Test</a>`
+                    ? `<button class="z-btn z-btn-sm" title="Endpoint & logs" onclick="toggleFnTraffic('${id}')">${fnIcon("route")} Test</button>`
                     : `<span class="z-btn z-btn-sm" style="opacity:.45" title="No endpoint">${fnIcon("route")} Test</span>`;
                 return `
-                    <div class="z-fn-row" data-fn-name="${name.toLowerCase()}">
+                    <div class="z-fn-row" data-fn-name="${name.toLowerCase()}" data-fn-id="${id}" data-endpoint-id="${escapeFnHtml(endpointId)}">
                         <span class="z-fn-icon"><img src="${icon}" alt=""/></span>
                         <div class="z-fn-main">
                             <div class="z-fn-name">${name}</div>
@@ -1047,11 +1309,12 @@ function refreshList() {
                         <div class="z-fn-actions">
                             <button class="z-icon-btn" title="Copy curl" onclick="copyFn('${id}')">${fnIcon("copy")}</button>
                             <button class="z-icon-btn" id="fn-config-btn-${id}" title="Function config" onclick="toggleFnConfig('${id}')">${fnIcon("sliders")}</button>
+                            <button class="z-icon-btn" id="fn-traffic-btn-${id}" title="Traffic & logs" onclick="toggleFnTraffic('${id}')">${fnIcon("activity")}</button>
                             <button class="z-btn z-btn-sm" onclick="openEdit('${id}', '${lang}')">${fnIcon("edit")} Edit</button>
                             ${endpointBtn}
                             <button class="z-icon-btn" title="Delete" onclick="deleteFn('${id}')">${fnIcon("trash")}</button>
                         </div>
-                    </div>` + functionConfigPanelHtml(id, name, lang);
+                    </div>` + functionConfigPanelHtml(id, name, lang) + functionTrafficPanelHtml(id, name, endpointId);
             }).join("");
 
             filterFunctions(document.getElementById("fn-filter")?.value || "");

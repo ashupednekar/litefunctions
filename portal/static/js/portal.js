@@ -310,12 +310,12 @@
 
   window.selectEndpointFromSpotlight = function (epId) {
     closeSpotlight();
-    if (window.location.pathname === "/traffic/") {
-      if (typeof expandEndpointById === "function") expandEndpointById(epId);
-      const target = document.getElementById("endpoint-" + epId);
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+    const target = document.querySelector('[data-endpoint-id="' + CSS.escape(epId) + '"]');
+    if (target && typeof window.toggleFnTraffic === "function") {
+      window.toggleFnTraffic(target.getAttribute("data-fn-id"));
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
-      window.location.href = "/traffic/?expand=" + encodeURIComponent(epId);
+      window.location.href = "/functions/?expand=" + encodeURIComponent(epId);
     }
   };
 

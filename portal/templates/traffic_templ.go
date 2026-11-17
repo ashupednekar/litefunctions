@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func TrafficContent(endpoints []Endpoint) templ.Component {
+func FunctionTrafficPanel(fn Function, ep Endpoint) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,35 +29,20 @@ func TrafficContent(endpoints []Endpoint) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Traffic", "Endpoints, gateway routes, rate limits, auth and resilience policies at the edge. Own the API without editing YAML by hand.", "Workspace", templ.Raw(`
-		<button class="z-btn" onclick="toast('Policy templates are a placeholder','info')">`+svgShield()+` Policy templates</button>
-		<button class="z-btn z-btn-primary" onclick="zOpenModal('route-modal')">`+svgPlus()+` New route</button>
-	`)).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"z-grid z-grid-4\" style=\"margin-bottom:14px\"><div class=\"z-stat\"><div class=\"z-stat-label\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("route", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Endpoints</div><div class=\"z-stat-value\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(len(endpoints)))
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("fn-traffic-" + fn.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 10, Col: 130}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 4, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"z-stat-delta\">auto-generated <span class=\"z-faint\">·</span> HTTP + WS</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"z-fn-config hidden\" data-fn-traffic><div class=\"z-fn-config-head\"><span class=\"z-panel-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -65,404 +50,187 @@ func TrafficContent(endpoints []Endpoint) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Requests · 24h</div><div class=\"z-stat-value\">284<small>k</small></div><div class=\"z-stat-delta\"><span class=\"z-delta-up\">▲ 9.2%</span> vs yesterday</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("shield", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Rate limited</div><div class=\"z-stat-value\">1,842</div><div class=\"z-stat-delta\">0.65% of traffic <span class=\"z-faint\">·</span> 12 keys</div></div><div class=\"z-stat\"><div class=\"z-stat-label\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("gauge", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "P95 latency</div><div class=\"z-stat-value\">48<small>ms</small></div><div class=\"z-stat-delta\">edge + function <span class=\"z-faint\">·</span> SLO 120ms</div></div></div><div class=\"z-tabs\" data-tab-group><button class=\"z-tab active\" data-tab=\"endpoints\">Endpoints <span class=\"z-badge z-badge-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Traffic</span> <span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(len(endpoints)))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fn.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 17, Col: 120}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 7, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span></button> <button class=\"z-tab\" data-tab=\"routes\">Gateway routes <span class=\"z-badge z-badge-muted\">6</span></button> <button class=\"z-tab\" data-tab=\"policies\">Policies</button> <button class=\"z-tab\" data-tab=\"analytics\">Analytics</button></div><div data-tab-panel=\"endpoints\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Endpoints</span> <span class=\"z-badge z-badge-green\">live</span> <span class=\"z-panel-sub\">auto-mapped from deployed functions · writes real endpoint settings</span><div class=\"z-panel-actions\"><a class=\"z-btn z-btn-sm\" href=\"/functions/\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
+		if ep.ID != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"z-badge z-badge-green\">endpoint live</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"z-badge z-badge-amber\">no endpoint</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div class=\"z-fn-traffic-grid\"><div class=\"z-field\"><span class=\"z-label\">Endpoint</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "New from function</a></div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		if ep.ID != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<input class=\"z-input z-mono\" readonly value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ep.URL)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 18, Col: 58}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"> <span class=\"z-help\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Method)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 19, Col: 37}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <span class=\"z-faint\">·</span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ep.Scope)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 19, Col: 82}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <span class=\"z-faint\">·</span> auto-mapped route</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span class=\"z-help\">No endpoint is mapped to this function yet.</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = EndpointsContent(endpoints, false).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><div data-tab-panel=\"routes\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Gateway routes</span> <span class=\"z-badge z-badge-amber\">dummy data</span> <span class=\"z-panel-sub\">istio · litefunctions-gateway</span><div class=\"z-panel-actions\"><div class=\"z-search\" style=\"width:190px\"><input class=\"z-input\" style=\"height:25px;font-size:10.5px\" placeholder=\"Filter paths…\"></div><button class=\"z-btn z-btn-sm\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("filter", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</button></div></div><div class=\"z-table-wrap\"><table class=\"z-table\"><thead><tr><th>Method</th><th>Path</th><th>Upstream</th><th>Auth</th><th>Rate limit</th><th>Requests</th><th>Status</th><th></th></tr></thead> <tbody>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = routeRow("POST", "/lambda/create-order", "create-order", "api key", "120 / min", "48.2k", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = routeRow("GET", "/lambda/list-orders", "list-orders", "api key", "300 / min", "122k", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = routeRow("GET", "/lambda/orders/:id", "get-order", "api key", "300 / min", "64k", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = routeRow("POST", "/lambda/pay-order", "pay-order", "jwt", "60 / min", "18k", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = routeRow("WS", "/lambda/ws/presence", "presence", "api key", "20 conn", "1.2k", "healthy").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = routeRow("POST", "/lambda/stripe-webhook", "stripe-webhook", "signature", "600 / min", "22k", "degraded").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</tbody></table></div><div class=\"z-panel-foot\"><span class=\"z-help\">Routes are generated from function endpoints. Edits here become gateway policy overrides.</span> <span class=\"z-badge z-badge-green\" style=\"margin-left:auto\"><span class=\"z-dot z-dot-green\"></span> synced</span></div></div></div><div data-tab-panel=\"policies\" style=\"display:none\"><div class=\"z-grid z-grid-2\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Resilience</span><span class=\"z-badge z-badge-amber\">dummy data</span><span class=\"z-badge z-badge-muted\" style=\"margin-left:auto\">defaults</span></div><div class=\"z-panel-body\"><div style=\"display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)\"><div><div style=\"font-size:11.5px;color:var(--text)\">Retries</div><div class=\"z-help\">2 retries on 5xx, idempotent methods only</div></div><span class=\"z-toggle on\"></span></div><div style=\"display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)\"><div><div style=\"font-size:11.5px;color:var(--text)\">Circuit breaker</div><div class=\"z-help\">open after 20 consecutive failures · 30s cooldown</div></div><span class=\"z-toggle on\"></span></div><div style=\"display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)\"><div><div style=\"font-size:11.5px;color:var(--text)\">Timeout</div><div class=\"z-help\">30s upstream timeout · 60s async</div></div><span class=\"z-mono z-muted\">30s</span></div><div style=\"display:flex;align-items:center;justify-content:space-between;padding:8px 0\"><div><div style=\"font-size:11.5px;color:var(--text)\">Canary splitting</div><div class=\"z-help\">route 10% of traffic to a preview function</div></div><span class=\"z-toggle\"></span></div></div></div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Auth policies</span><span class=\"z-badge z-badge-amber\">dummy data</span><span class=\"z-badge z-badge-muted\" style=\"margin-left:auto\">3 attached</span></div><div class=\"z-panel-body tight\"><div class=\"z-list\"><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("key", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span><div class=\"z-list-main\"><div class=\"z-list-title\">API key</div><div class=\"z-list-sub\">header <span class=\"z-code-inline\">X-API-Key</span> · project scoped</div></div><span class=\"z-badge z-badge-green\">active</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("lock", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span><div class=\"z-list-main\"><div class=\"z-list-title\">JWT</div><div class=\"z-list-sub\">RS256 · issuer litefunctions</div></div><span class=\"z-badge z-badge-green\">active</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("shield", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span><div class=\"z-list-main\"><div class=\"z-list-title\">Stripe signature</div><div class=\"z-list-sub\">HMAC · 5 minute skew</div></div><span class=\"z-badge z-badge-green\">active</span></div><div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("globe", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span><div class=\"z-list-main\"><div class=\"z-list-title\">IP allowlist</div><div class=\"z-list-sub\">not configured</div></div><span class=\"z-badge z-badge-muted\">off</span></div></div></div><div class=\"z-panel-foot\"><button class=\"z-btn z-btn-sm z-btn-accent\" style=\"margin-left:auto\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("plus", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "Add policy</button></div></div></div></div><div data-tab-panel=\"analytics\" style=\"display:none\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Traffic · last 24h</span><span class=\"z-badge z-badge-amber\">dummy data</span><div class=\"z-panel-actions\"><div class=\"z-pill-group\"><button class=\"z-pill\">1h</button><button class=\"z-pill active\">24h</button><button class=\"z-pill\">7d</button></div></div></div><div class=\"z-panel-body\"><svg class=\"z-chart\" style=\"height:220px\" viewBox=\"0 0 900 220\" preserveAspectRatio=\"none\"><defs><linearGradient id=\"z-area\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"#8ab4ff\" stop-opacity=\".25\"></stop><stop offset=\"100%\" stop-color=\"#8ab4ff\" stop-opacity=\"0\"></stop></linearGradient></defs> <g class=\"z-chart-grid\"><line x1=\"0\" y1=\"55\" x2=\"900\" y2=\"55\"></line><line x1=\"0\" y1=\"110\" x2=\"900\" y2=\"110\"></line><line x1=\"0\" y1=\"165\" x2=\"900\" y2=\"165\"></line></g> <path class=\"z-chart-area\" d=\"M0 170 C40 158 70 138 110 144 S170 112 220 120 S290 90 340 96 S410 70 460 78 S530 52 580 60 S650 40 700 48 S780 26 830 34 S870 22 900 26 L900 220 L0 220 Z\"></path> <path class=\"z-chart-line\" d=\"M0 170 C40 158 70 138 110 144 S170 112 220 120 S290 90 340 96 S410 70 460 78 S530 52 580 60 S650 40 700 48 S780 26 830 34 S870 22 900 26\"></path> <text class=\"z-chart-label\" x=\"4\" y=\"14\">16k req/h</text><text class=\"z-chart-label\" x=\"4\" y=\"212\">0</text></svg></div></div><div class=\"z-grid z-grid-3\" style=\"margin-top:14px\"><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Status codes</span></div><div class=\"z-panel-body\"><dl class=\"z-kv\"><dt>2xx</dt><dd>283,402</dd><dt>3xx</dt><dd>12</dd><dt>4xx</dt><dd>472</dd><dt>5xx</dt><dd>114</dd><dt>429</dt><dd>1,842</dd></dl></div></div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Top routes</span></div><div class=\"z-panel-body\" style=\"display:flex;flex-direction:column;gap:9px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = topRoute("list-orders", 122, 100).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = topRoute("orders/:id", 64, 52).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = topRoute("create-order", 48, 39).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = topRoute("stripe-webhook", 22, 18).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">SLO</span><span class=\"z-badge z-badge-green\" style=\"margin-left:auto\">met</span></div><div class=\"z-panel-body\"><div style=\"font-size:26px;font-weight:600;letter-spacing:-.04em\">99.96%</div><div class=\"z-help\">availability · target 99.9%</div><div class=\"z-divider\"></div><div style=\"font-size:18px;font-weight:600\">42ms</div><div class=\"z-help\">p95 latency · target 120ms</div></div></div></div></div><div id=\"route-modal\" class=\"z-modal-backdrop\" onclick=\"zCloseModal('route-modal')\"><div class=\"z-modal\" onclick=\"event.stopPropagation()\"><div class=\"z-modal-header\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("shield", "w-4 h-4").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span class=\"z-modal-title\">New gateway route</span><button class=\"z-icon-btn\" style=\"margin-left:auto\" data-close-modal>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("close", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</button></div><div class=\"z-modal-body\"><div class=\"z-grid z-grid-2\"><div class=\"z-field\"><label class=\"z-label\">Method</label><select class=\"z-select\"><option>POST</option><option>GET</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>WS</option></select></div><div class=\"z-field\"><label class=\"z-label\">Path</label><input class=\"z-input z-mono\" placeholder=\"/lambda/my-function\"></div></div><div class=\"z-field\" style=\"margin-top:11px\"><label class=\"z-label\">Upstream function</label><select class=\"z-select\"><option>create-order</option><option>list-orders</option><option>pay-order</option></select></div><div class=\"z-grid z-grid-2\" style=\"margin-top:11px\"><div class=\"z-field\"><label class=\"z-label\">Auth</label><select class=\"z-select\"><option>API key</option><option>JWT</option><option>Public</option></select></div><div class=\"z-field\"><label class=\"z-label\">Rate limit</label><input class=\"z-input z-mono\" value=\"120 / min\"></div></div></div><div class=\"z-modal-foot\"><button class=\"z-btn\" data-close-modal>Cancel</button><button class=\"z-btn z-btn-primary\" onclick=\"zCloseModal('route-modal'); toast('Route creation is a placeholder','success')\">Create route</button></div></div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func routeRow(method string, path string, upstream string, auth string, limit string, requests string, status string) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<tr><td>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 = []any{"z-badge", templ.KV("z-badge-green", method == "POST"), templ.KV("z-badge-blue", method == "GET"), templ.KV("z-badge-purple", method == "WS"), templ.KV("z-badge-amber", method == "PUT" || method == "PATCH"), templ.KV("z-badge-red", method == "DELETE")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"z-help\" style=\"margin-top:10px\">Live runtime + ingestor output for this function, streamed from Loki.</div></div><div class=\"z-field\"><div class=\"z-log-toolbar\"><span class=\"z-label\">Live logs</span> <span id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(method)
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("fn-logs-status-" + fn.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 135, Col: 282}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 28, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span></td><td class=\"z-cell-main z-mono\" style=\"font-size:10.5px\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"z-badge z-badge-muted\">idle</span> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("toggleFnLogStream", fn.ID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(path)
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("fn-logs-toggle-" + fn.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 136, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 29, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</td><td class=\"z-cell-mono\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"z-btn z-btn-sm\" onclick=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(upstream)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 137, Col: 36}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		var templ_7745c5c3_Var9 templ.ComponentScript = templ.JSFuncCall("toggleFnLogStream", fn.ID)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9.Call)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</td><td><span class=\"z-badge z-badge-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\">Pause</button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(auth)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 138, Col: 48}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("clearFnLogs", fn.ID))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span></td><td class=\"z-cell-mono\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<button class=\"z-btn z-btn-sm\" onclick=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(limit)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 139, Col: 33}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		var templ_7745c5c3_Var10 templ.ComponentScript = templ.JSFuncCall("clearFnLogs", fn.ID)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10.Call)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</td><td class=\"z-cell-mono\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\">Clear</button> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.JSFuncCall("openFnLogFullscreen", fn.ID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<button class=\"z-btn z-btn-sm z-btn-primary\" onclick=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 templ.ComponentScript = templ.JSFuncCall("openFnLogFullscreen", fn.ID)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11.Call)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("maximize", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "Fullscreen</button></div><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(requests)
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("fn-logs-" + fn.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 140, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 33, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</td><td>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var13 = []any{"z-badge", templ.KV("z-badge-green", status == "healthy"), templ.KV("z-badge-amber", status != "healthy")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var14 string
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var13).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(status)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 141, Col: 136}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</span></td><td class=\"z-cell-actions\"><button class=\"z-btn z-btn-sm z-btn-ghost\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("edit", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</button></td></tr>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func topRoute(name string, count int, pct int) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var16 == nil {
-			templ_7745c5c3_Var16 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div><div style=\"display:flex;justify-content:space-between;margin-bottom:4px\"><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var17 string
-		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(name)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 148, Col: 147}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</span><span class=\"z-mono\" style=\"font-size:9.5px;color:var(--text-3)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var18 string
-		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(count))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 148, Col: 234}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "k</span></div><div class=\"z-progress\"><span style=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var19 string
-		templ_7745c5c3_Var19, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("width:" + itoa(pct) + "%")
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/traffic.templ`, Line: 149, Col: 66}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\"></span></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" class=\"z-log z-fn-log\"></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

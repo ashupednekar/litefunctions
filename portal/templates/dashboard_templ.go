@@ -414,7 +414,7 @@ func DashboardContent(data DashboardData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</a> <a href=\"/traffic/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#e8b96a;border-color:rgba(232,185,106,.25);background:rgba(232,185,106,.08)\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</a> <a href=\"/functions/\" class=\"z-action-card\"><span class=\"z-list-icon\" style=\"color:#e8b96a;border-color:rgba(232,185,106,.25);background:rgba(232,185,106,.08)\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

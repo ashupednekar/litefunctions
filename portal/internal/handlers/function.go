@@ -300,6 +300,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
+	q := functionadaptors.New(h.state.DBPool)
 	r := c.MustGet("repo").(vcs.Repo)
 
 	if c.ContentType() == "text/plain" {
@@ -351,7 +352,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		upd, err := q.UpdateFunctionIsAsync(
 			c.Request.Context(),
 			functionadaptors.UpdateFunctionIsAsyncParams{
-				ID:      pgtype.UUID{Bytes: [16]byte(fnID)},
+				ID:      f.ID,
 				IsAsync: *req.IsAsync,
 			},
 		)
@@ -385,7 +386,6 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		resp["status"] = "saved"
 	}
 
-	q := functionadaptors.New(h.state.DBPool)
 	if req.Path != "" {
 		upd, err := q.UpdateFunctionPath(
 			c.Request.Context(),
