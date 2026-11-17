@@ -294,6 +294,13 @@ type CodeSample struct {
 	Async string `json:"async"`
 }
 
+func boolString(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
 func endpointForFunction(endpoints []Endpoint, fnID string) Endpoint {
 	for _, ep := range endpoints {
 		if ep.ID == fnID {

@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ashupednekar/litefunctions/common"
 	"github.com/ashupednekar/litefunctions/common/sample"
@@ -480,33 +482,55 @@ func (h *FunctionHandlers) StreamLogs(c *gin.Context) {
 		return
 	}
 
-	baseURL, err := url.Parse(fmt.Sprintf(
-		"ws://%s/loki/api/v1/tail",
-		config.Cfg.LokiHost,
-	))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "misconfigured loki endpoint",
-		})
+	scheme := "ws"
+	lokiHost := strings.TrimSpace(config.Cfg.LokiHost)
+	switch {
+	case strings.HasPrefix(lokiHost, "http://"):
+		lokiHost = strings.TrimPrefix(lokiHost, "http://")
+	case strings.HasPrefix(lokiHost, "https://"):
+		lokiHost = strings.TrimPrefix(lokiHost, "https://")
+		scheme = "wss"
+	}
+	lokiHost = strings.TrimRight(lokiHost, "/")
+	if lokiHost == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "misconfigured loki endpoint"})
 		return
 	}
 
-	params := baseURL.Query()
-	query := fmt.Sprintf(
-		`{app="runtime", function="%s"} or {app="litefunctions-ingestor"}`,
-		f.Name,
-	)
-	params.Set("query", query)
-	baseURL.RawQuery = params.Encode()
+	tailURL := url.URL{
+		Scheme: scheme,
+		Host:   lokiHost,
+		Path:   "/loki/api/v1/tail",
+	}
+	params := tailURL.Query()
+	// Loki's tail endpoint parses the query as a single LogQL selector; a
+	// binary "or" expression is rejected before the websocket upgrade.
+	params.Set("query", fmt.Sprintf(
+		`{app=~"runtime|litefunctions-ingestor", function=~"%s|"}`,
+		regexp.QuoteMeta(f.Name),
+	))
+	params.Set("limit", "200")
+	params.Set("delay_for", "0")
+	tailURL.RawQuery = params.Encode()
 
 	conn, res, err := (&websocket.Dialer{
-		Proxy: http.ProxyFromEnvironment,
-	}).DialContext(c.Request.Context(), baseURL.String(), nil)
+		Proxy:            http.ProxyFromEnvironment,
+		HandshakeTimeout: 10 * time.Second,
+	}).DialContext(c.Request.Context(), tailURL.String(), nil)
 
 	if err != nil {
 		status := http.StatusBadGateway
 		if res != nil {
 			status = res.StatusCode
+			body, _ := io.ReadAll(io.LimitReader(res.Body, 2048))
+			slog.Error("loki tail dial failed",
+				"url", tailURL.String(),
+				"status", res.Status,
+				"body", strings.TrimSpace(string(body)),
+				"error", err,
+			)
+		} else {
+			slog.Error("loki tail dial failed", "url", tailURL.String(), "error", err)
 		}
 		c.JSON(status, gin.H{"error": "failed to connect to Loki"})
 		return
