@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/url"
 	"path"
 	"strconv"
 	"strings"
@@ -255,18 +256,7 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) GetFunction(c *gin.Context) {
-	fnHex := c.Param("fnID")
-	fnID, err := hex.DecodeString(fnHex)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid function id"})
-		return
-	}
-	pgFnId := pgtype.UUID{Valid: true}
-	copy(pgFnId.Bytes[:], fnID)
-
-	q := functionadaptors.New(h.state.DBPool)
-
-	f, err := q.GetFunctionByID(c.Request.Context(), pgFnId)
+	f, err := functionadaptors.FunctionFromCtx(c)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
@@ -302,18 +292,8 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
-	fnHex := c.Param("fnID")
-	fnID, err := hex.DecodeString(fnHex)
-	if err != nil || len(fnID) != 16 {
-		c.JSON(400, gin.H{"error": "invalid function id"})
-		return
-	}
-	pgFnId := pgtype.UUID{Valid: true}
-	copy(pgFnId.Bytes[:], fnID)
 
-	q := functionadaptors.New(h.state.DBPool)
-
-	f, err := q.GetFunctionByID(c.Request.Context(), pgFnId)
+	f, err := functionadaptors.FunctionFromCtx(c)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "function not found"})
 		return
@@ -498,4 +478,17 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"status": "deleted"})
+}
+
+func (h *FunctionHandlers) StreamLogs(c *gin.Context) {
+	baseUrl, err := url.Parse(fmt.Sprintf("ws://%s/loki/api/v1/tail", config.Cfg.LokiHost)) //TODO: support external log server
+	if err != nil {
+		c.JSON(500, gin.H{"error": "misconfigured loki endpoint"})
+	}
+	params := baseUrl.Query()
+	query := fmt.Sprintf(
+    `{app="runtime", function="%s"} or {app="litefunctions-ingestor"}`,
+    ,
+	)
+
 }

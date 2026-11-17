@@ -234,7 +234,7 @@ ui:
     secret: litefunctions-admin-token
     key: token
   domain: litefunctions.portal
-  lokiBaseUrl: http://litefunctions-loki-gateway
+  lokiHost: litefunctions-loki-gateway
 
 # Loki stores logs in RustFS. Credentials are injected from the RustFS Secret
 # and expanded by Loki because global.extraArgs enables config expansion.

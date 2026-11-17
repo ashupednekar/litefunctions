@@ -28,7 +28,7 @@ type Settings struct {
 	PodNamespace            string `env:"POD_NAMESPACE" default:"default"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
 
-	LokiBaseUrl string `env:"LOKI_BASE_URL" default:"litefunctions-loki-gateway"`
+	LokiHost string `env:"LOKI_HOST" default:"litefunctions-loki-gateway"`
 	vcs         vcs.Config
 }
 
