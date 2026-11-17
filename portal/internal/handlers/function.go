@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"path"
 	"strconv"
@@ -20,6 +21,7 @@ import (
 	"github.com/ashupednekar/litefunctions/portal/internal/state"
 	"github.com/gin-gonic/gin"
 	"github.com/go-git/go-git/v6"
+	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -256,7 +258,7 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) GetFunction(c *gin.Context) {
-	f, err := functionadaptors.FunctionFromCtx(c)
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
@@ -292,8 +294,7 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
-
-	f, err := functionadaptors.FunctionFromCtx(c)
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "function not found"})
 		return
@@ -384,11 +385,12 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		resp["status"] = "saved"
 	}
 
+	q := functionadaptors.New(h.state.DBPool)
 	if req.Path != "" {
 		upd, err := q.UpdateFunctionPath(
 			c.Request.Context(),
 			functionadaptors.UpdateFunctionPathParams{
-				ID:   pgtype.UUID{Bytes: [16]byte(fnID)},
+				ID:   f.ID,
 				Path: req.Path,
 			},
 		)
@@ -401,24 +403,15 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
-	fnHex := c.Param("fnID")
-	fnID, err := hex.DecodeString(fnHex)
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid function id"})
+		c.JSON(404, gin.H{"error": "function not found"})
 		return
 	}
-	pgFnId := pgtype.UUID{Valid: true}
-	copy(pgFnId.Bytes[:], fnID)
 
 	q := functionadaptors.New(h.state.DBPool)
 
-	f, err := q.GetFunctionByID(c.Request.Context(), pgFnId)
-	if err != nil {
-		c.JSON(404, gin.H{"error": "not found"})
-		return
-	}
-
-	if err := q.DeleteFunction(c.Request.Context(), pgFnId); err != nil {
+	if err := q.DeleteFunction(c.Request.Context(), f.ID); err != nil {
 		slog.Error("db delete failed", "error", err)
 		c.JSON(500, gin.H{"error": "db delete error"})
 		return
@@ -481,14 +474,85 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) StreamLogs(c *gin.Context) {
-	baseUrl, err := url.Parse(fmt.Sprintf("ws://%s/loki/api/v1/tail", config.Cfg.LokiHost)) //TODO: support external log server
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "misconfigured loki endpoint"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
 	}
-	params := baseUrl.Query()
-	query := fmt.Sprintf(
-    `{app="runtime", function="%s"} or {app="litefunctions-ingestor"}`,
-    ,
-	)
 
+	baseURL, err := url.Parse(fmt.Sprintf(
+		"ws://%s/loki/api/v1/tail",
+		config.Cfg.LokiHost,
+	))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "misconfigured loki endpoint",
+		})
+		return
+	}
+
+	params := baseURL.Query()
+	query := fmt.Sprintf(
+		`{app="runtime", function="%s"} or {app="litefunctions-ingestor"}`,
+		f.Name,
+	)
+	params.Set("query", query)
+	baseURL.RawQuery = params.Encode()
+
+	conn, res, err := (&websocket.Dialer{
+		Proxy: http.ProxyFromEnvironment,
+	}).DialContext(c.Request.Context(), baseURL.String(), nil)
+
+	if err != nil {
+		status := http.StatusBadGateway
+		if res != nil {
+			status = res.StatusCode
+		}
+		c.JSON(status, gin.H{"error": "failed to connect to Loki"})
+		return
+	}
+	defer conn.Close()
+
+	ctx := c.Request.Context()
+
+	// Close Loki connection when the client disconnects.
+	go func() {
+		<-ctx.Done()
+		conn.Close()
+	}()
+
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache, no-transform")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	c.Status(http.StatusOK)
+
+	fmt.Fprint(c.Writer, "retry: 3000\n\n")
+	c.Writer.Flush()
+
+	for {
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			if ctx.Err() == nil {
+				// Upstream connection failed.
+				return
+			}
+			return
+		}
+
+		if messageType != websocket.TextMessage {
+			continue
+		}
+
+		if _, err := fmt.Fprintf(
+			c.Writer,
+			"event: logs\ndata: %s\n\n",
+			message,
+		); err != nil {
+			return
+		}
+
+		c.Writer.Flush()
+	}
 }

@@ -29,7 +29,7 @@ type Settings struct {
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
 
 	LokiHost string `env:"LOKI_HOST" default:"litefunctions-loki-gateway"`
-	vcs         vcs.Config
+	vcs      vcs.Config
 }
 
 var (

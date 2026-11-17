@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func FunctionFromCtx(c *gin.Context, pool DBTX) (*Function, error){
+func FunctionFromCtx(c *gin.Context, pool DBTX) (*Function, error) {
 	fnHex := c.Param("fnID")
 	fnID, err := hex.DecodeString(fnHex)
 	if err != nil || len(fnID) != 16 {
