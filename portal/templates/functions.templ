@@ -65,14 +65,8 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 				<div class="z-fn-actions">
 					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
 					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
-					<button class="z-icon-btn" id={ "fn-traffic-btn-" + fn.ID } title="Traffic" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("activity", "")</button>
-					<button class="z-icon-btn" title="Logs" onclick={ templ.JSFuncCall("openFnLogFullscreen", fn.ID) }>@Icon("terminal", "")</button>
 					<button class="z-icon-btn" title="Edit" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "")</button>
-					if fn.EndpointID != "" {
-						<button class="z-btn z-btn-sm" title="Test endpoint" onclick={ testFnEndpoint(fn.EndpointID) }>@Icon("play", "") Test</button>
-					} else {
-						<span class="z-btn z-btn-sm" style="opacity:.45" title="No endpoint">@Icon("play", "") Test</span>
-					}
+					<button class="z-btn z-btn-sm" id={ "fn-test-btn-" + fn.ID } title="Test &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "") Test</button>
 					<button class="z-icon-btn" title="Delete" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>@Icon("trash", "")</button>
 				</div>
 			</div>
@@ -660,7 +654,7 @@ function toggleFnConfig(id) {
       p.classList.add("hidden");
       closeFnLog(p.id.replace("fn-traffic-", ""));
     });
-    document.querySelectorAll('[id^="fn-traffic-btn-"]').forEach(b => b.classList.remove("active"));
+    document.querySelectorAll('[id^="fn-test-btn-"]').forEach(b => b.classList.remove("active"));
     panel.classList.remove("hidden");
     document.getElementById("fn-config-btn-" + id)?.classList.add("active");
   }
@@ -674,12 +668,12 @@ function toggleFnTraffic(id) {
     p.classList.add("hidden");
     closeFnLog(p.id.replace("fn-traffic-", ""));
   });
-  document.querySelectorAll('[id^="fn-traffic-btn-"]').forEach(b => b.classList.remove("active"));
+  document.querySelectorAll('[id^="fn-test-btn-"]').forEach(b => b.classList.remove("active"));
   document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
   document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
   if (willOpen) {
     panel.classList.remove("hidden");
-    document.getElementById("fn-traffic-btn-" + id)?.classList.add("active");
+    document.getElementById("fn-test-btn-" + id)?.classList.add("active");
     startFnLog(id);
   }
 }
@@ -1313,9 +1307,7 @@ function refreshList() {
                 const lang = escapeFnHtml(fn.language);
                 const endpointId = fn.endpoint_id || "";
                 const icon = `/static/imgs/${encodeURIComponent(lang)}-svgrepo-com.svg`;
-                const endpointBtn = endpointId
-                    ? `<button class="z-btn z-btn-sm" title="Test endpoint" onclick="testFnEndpoint('${endpointId}')">${fnIcon("play")} Test</button>`
-                    : `<span class="z-btn z-btn-sm" style="opacity:.45" title="No endpoint">${fnIcon("play")} Test</span>`;
+
                 return `
                     <div class="z-fn-row" data-fn-name="${name.toLowerCase()}" data-fn-id="${id}" data-fn-endpoint-id="${escapeFnHtml(endpointId)}">
                         <span class="z-fn-icon"><img src="${icon}" alt=""/></span>
@@ -1329,10 +1321,8 @@ function refreshList() {
                         <div class="z-fn-actions">
                             <button class="z-icon-btn" title="Copy curl" onclick="copyFn('${id}')">${fnIcon("copy")}</button>
                             <button class="z-icon-btn" id="fn-config-btn-${id}" title="Function config" onclick="toggleFnConfig('${id}')">${fnIcon("sliders")}</button>
-                            <button class="z-icon-btn" id="fn-traffic-btn-${id}" title="Traffic" onclick="toggleFnTraffic('${id}')">${fnIcon("activity")}</button>
-                            <button class="z-icon-btn" title="Logs" onclick="openFnLogFullscreen('${id}')">${fnIcon("terminal")}</button>
                             <button class="z-icon-btn" title="Edit" onclick="openEdit('${id}', '${lang}')">${fnIcon("edit")}</button>
-                            ${endpointBtn}
+                            <button class="z-btn z-btn-sm" id="fn-test-btn-${id}" title="Test & logs" onclick="toggleFnTraffic('${id}')">${fnIcon("play")} Test</button>
                             <button class="z-icon-btn" title="Delete" onclick="deleteFn('${id}')">${fnIcon("trash")}</button>
                         </div>
                     </div>` + functionConfigPanelHtml(id, name, lang) + functionTrafficPanelHtml(id, name, endpointId);

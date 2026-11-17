@@ -10,7 +10,7 @@ script testTrafficWsEndpoint(id string) {
 templ FunctionTrafficPanel(fn Function, ep Endpoint) {
 	<div id={ "fn-traffic-" + fn.ID } class="z-fn-config hidden" data-fn-traffic>
 		<div class="z-fn-config-head">
-			<span class="z-panel-title">@Icon("activity", "") Traffic</span>
+			<span class="z-panel-title">@Icon("activity", "") Test &amp; logs</span>
 			<span class="z-badge z-badge-muted">{ fn.Name }</span>
 			if ep.ID != "" {
 				<span class="z-badge z-badge-green">endpoint live</span>
