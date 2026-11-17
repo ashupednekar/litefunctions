@@ -27,7 +27,9 @@ type Settings struct {
 	OperatorUrl             string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
 	PodNamespace            string `env:"POD_NAMESPACE" default:"default"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
-	vcs                     vcs.Config
+
+	LokiBaseUrl string `env:"LOKI_BASE_URL" default:"litefunctions-loki-gateway"`
+	vcs         vcs.Config
 }
 
 var (

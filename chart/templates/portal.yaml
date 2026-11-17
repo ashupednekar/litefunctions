@@ -73,6 +73,8 @@ spec:
           value: {{ .Values.gitea.gitea.admin.username | quote }}
         - name: VCS_VENDOR
           value: gitea
+        - name: LOKI_BASE_URL
+          value: {{ .Values.ui.lokiBaseUrl | quote }}
         - name: VCS_BASE_URL
           value: {{ .Values.ui.vcs.baseUrl | quote }}
         - name: VCS_PUBLIC_BASE_URL
