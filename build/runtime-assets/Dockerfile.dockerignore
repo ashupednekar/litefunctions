@@ -1,0 +1,5 @@
+# Keep the runtime-assets image context limited to the sources it bundles.
+**
+!build/
+!build/runtimes/**
+!runtimes/**

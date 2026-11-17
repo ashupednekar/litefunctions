@@ -3,7 +3,7 @@ name: litefunctions
 description: A Helm chart for Kubernetes
 icon: https://github.com/user-attachments/assets/8451ab69-19dd-4c83-893c-1e98593d3f4e
 type: application
-version: 0.1.4
+version: 0.2.0
 appVersion: "1.16.0"
 home: https://ashupednekar.github.io/litefunctions/docs/
 sources:
@@ -50,3 +50,27 @@ dependencies:
   repository: oci://quay.io/jetstack/charts
   version: v1.20.0
   condition: gatewayApi.tls.certManager.enabled
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 7.6.0
+  condition: olly.logs.enabled
+- name: mimir-distributed
+  repository: https://grafana.github.io/helm-charts
+  version: 6.2.2
+  condition: olly.metrics.enabled
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 29.47.2
+  condition: olly.metrics.enabled
+- name: tempo
+  repository: https://grafana.github.io/helm-charts
+  version: 1.24.4
+  condition: olly.traces.enabled
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 10.5.15
+  condition: olly.grafana.enabled
+- name: alloy
+  repository: https://grafana.github.io/helm-charts
+  version: 1.15.0
+  condition: olly.alloy.enabled

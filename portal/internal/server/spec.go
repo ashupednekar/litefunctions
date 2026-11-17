@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/ashupednekar/litefunctions/portal/internal/function"
@@ -27,6 +28,19 @@ func NewServer() (*Server, error) {
 		router: gin.Default(),
 		state:  state,
 	}
+
+	// Never trust X-Forwarded-* headers by default. Set TRUSTED_PROXIES to the
+	// ingress/gateway CIDR when the portal is behind a reverse proxy.
+	var trustedProxies []string
+	for _, proxy := range strings.Split(config.Cfg.TrustedProxies, ",") {
+		if proxy = strings.TrimSpace(proxy); proxy != "" {
+			trustedProxies = append(trustedProxies, proxy)
+		}
+	}
+	if err := s.router.SetTrustedProxies(trustedProxies); err != nil {
+		return nil, fmt.Errorf("configure trusted proxies: %w", err)
+	}
+
 	s.BuildRoutes()
 	return s, nil
 }

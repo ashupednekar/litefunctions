@@ -16,7 +16,7 @@ GATEWAY_API_CRD_FILE="${TMPDIR:-/tmp}/litefunctions-gateway-api-standard-install
 GATEWAY_API_CRD_URL="https://github.com/kubernetes-sigs/gateway-api/releases/latest/download/standard-install.yaml"
 HTTPS_PORT="${HTTPS_PORT:-443}"
 CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
-ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.1.4}"
+ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.2.0}"
 ARGOCD_HELM_VERSION="${ARGOCD_HELM_VERSION:-10.10.5}"
 USE_HEAD_CHART=true
 ACTION=default
@@ -58,6 +58,7 @@ done
 
 PORTAL_HOST="${PORTAL_HOST:-litefunctions.portal}"
 GITEA_HOST="${GITEA_HOST:-litefunctions.gitea}"
+GRAFANA_HOST="${GRAFANA_HOST:-litefunctions.grafana}"
 ARGO_NODE_PORT="${ARGO_NODE_PORT:-30080}"
 
 is_running() {
@@ -218,7 +219,7 @@ mkcert_setup() {
       sudo chown "$(id -u):$(id -g)" "$file"
     fi
   done
-  cert_hosts="$PORTAL_HOST $GITEA_HOST"
+  cert_hosts="$PORTAL_HOST $GITEA_HOST $GRAFANA_HOST"
   # Intentional word splitting: mkcert accepts each hostname as a separate argument.
   mkcert -cert-file "$CERT_FILE" -key-file "$KEY_FILE" $cert_hosts
   kubectl -n "$NAMESPACE" create secret tls "$TLS_SECRET" \
@@ -230,6 +231,7 @@ mkcert_setup() {
   echo "add these to /etc/hosts if not already present:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
+  echo "127.0.0.1 $GRAFANA_HOST"
 }
 
 install() {
@@ -441,6 +443,10 @@ start() {
     -o jsonpath='{range .items[*]}{.spec.hostnames[*]}{"\n"}{end}' | grep -F -q "$GITEA_HOST"; then
     check_https "$GITEA_HOST"
   fi
+  if kubectl -n "$NAMESPACE" get httproutes.gateway.networking.k8s.io \
+    -o jsonpath='{range .items[*]}{.spec.hostnames[*]}{"\n"}{end}' | grep -F -q "$GRAFANA_HOST"; then
+    check_https "$GRAFANA_HOST"
+  fi
   status
 }
 
@@ -477,6 +483,7 @@ status() {
   echo "hosts:"
   echo "127.0.0.1 $PORTAL_HOST"
   echo "127.0.0.1 $GITEA_HOST"
+  echo "127.0.0.1 $GRAFANA_HOST"
   echo
   echo "mkcert:"
   echo "sh install.sh mkcert"
@@ -490,6 +497,7 @@ status() {
   echo "browser:"
   echo "https://$PORTAL_HOST"
   echo "https://$GITEA_HOST"
+  echo "https://$GRAFANA_HOST"
 }
 
 open_argo() {

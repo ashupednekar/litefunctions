@@ -13,6 +13,7 @@ pub struct Output {
 
 pub async fn handle(Json(input): Json<Input>) -> (StatusCode, Json<Output>) {
     let name = input.name.unwrap_or("stranger".into());
+    println!("INFO handling request name={}", name);
     (
         StatusCode::OK,
         Json(Output {

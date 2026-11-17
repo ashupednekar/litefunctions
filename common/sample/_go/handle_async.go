@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"log"
 	"math/rand"
 )
 
@@ -24,6 +25,8 @@ func StreamHandler(input <-chan []byte) <-chan []byte {
 			data := Payload{
 				Word: randomWord(),
 			}
+
+			log.Printf("[INFO] streaming word=%s", data.Word)
 
 			jsonBytes, err := json.Marshal(data)
 			if err != nil {

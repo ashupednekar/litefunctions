@@ -2,7 +2,7 @@
 {{- $hosts := include "litefunctions.gatewayHosts" . | fromYaml }}
 {{- $selfSignedEnabled := .Values.gatewayApi.tls.certManager.selfSigned.enabled }}
 {{- $letsencryptEnabled := .Values.gatewayApi.tls.certManager.letsencrypt.enabled }}
-{{- $dnsNames := concat $hosts.portal $hosts.gitea $hosts.rustfs $hosts.rustfsConsole | uniq }}
+{{- $dnsNames := concat $hosts.portal $hosts.gitea $hosts.grafana $hosts.rustfs $hosts.rustfsConsole | uniq }}
 {{- if and $selfSignedEnabled $letsencryptEnabled }}
 {{- fail "Only one of gatewayApi.tls.certManager.selfSigned.enabled or .letsencrypt.enabled can be true" }}
 {{- end }}

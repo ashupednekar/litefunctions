@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"runtimes/go/functions/{{name}}/internal/types"
@@ -18,6 +19,8 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	if input.Name != nil && *input.Name != "" {
 		name = *input.Name
 	}
+
+	log.Printf("[INFO] handling request name=%s", name)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(types.Output{

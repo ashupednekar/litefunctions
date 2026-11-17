@@ -10,13 +10,27 @@ build:
 	$(MAKE) runtime-python
 	$(MAKE) runtime-ts
 	$(MAKE) runtime-lua
+	$(MAKE) runtime-assets
 	$(MAKE) gitea-setup
+
+.PHONY: local-images
+local-images: local-image-operator local-image-ingestor local-image-portal
+
+.PHONY: local-image-operator
+local-image-operator:
+	$(MAKE) -C operator local-build-push
+
+.PHONY: local-image-ingestor
+local-image-ingestor:
+	$(MAKE) -C ingestor local-build-push
+
+.PHONY: local-image-portal
+local-image-portal:
+	$(MAKE) -C portal local-build-push
 
 .PHONY: local-push
 local-push:
-	$(MAKE) -C operator local-build-push
-	$(MAKE) -C ingestor local-build-push
-	$(MAKE) -C portal local-build-push
+	$(MAKE) -j3 local-images
 	$(MAKE) -C operator helm-sync
 	helm upgrade --install litefunctions ./chart --namespace litefunctions --create-namespace \
 		--set-string images.operator=$(LOCAL_REGISTRY)/litefunctions-operator:latest \
@@ -41,12 +55,17 @@ runtime-ts:
 runtime-lua:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-runtime-lua -f build/runtimes/Dockerfile.lua runtimes/lua && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-runtime-lua
 
+.PHONY: runtime-assets
+runtime-assets:
+	$(CONTAINER_TOOL) build -t $(RUNTIME_ASSETS_IMAGE):latest -f build/runtime-assets/Dockerfile . && $(CONTAINER_TOOL) push $(RUNTIME_ASSETS_IMAGE):latest
+
 .PHONY: gitea-setup
 gitea-setup:
 	$(CONTAINER_TOOL) build -t ashupednekar535/litefunctions-gitea-setup -f build/gitea-setup/Dockerfile build/gitea-setup && $(CONTAINER_TOOL) push ashupednekar535/litefunctions-gitea-setup
 
 include build/images.mk
 LOCAL_REGISTRY ?= localhost:30050
+RUNTIME_ASSETS_IMAGE ?= ashupednekar535/litefunctions-runtime-assets
 
 .PHONY: build-multiarch
 build-multiarch:
@@ -54,11 +73,15 @@ build-multiarch:
 	$(MAKE) -C operator helm-sync
 	$(MAKE) -C ingestor docker-buildx
 	$(MAKE) -C portal docker-buildx
-	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx gitea-setup-buildx
+	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx runtime-assets-buildx gitea-setup-buildx
 
 .PHONY: gitea-setup-buildx
 gitea-setup-buildx: docker-builder
 	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t ashupednekar535/litefunctions-gitea-setup -f build/gitea-setup/Dockerfile build/gitea-setup
+
+.PHONY: runtime-assets-buildx
+runtime-assets-buildx: docker-builder
+	$(CONTAINER_TOOL) buildx build --builder "$(BUILDER)" --platform "$(PLATFORMS)" --push -t $(RUNTIME_ASSETS_IMAGE):latest -f build/runtime-assets/Dockerfile .
 
 .PHONY: runtime-python-buildx
 runtime-python-buildx: docker-builder

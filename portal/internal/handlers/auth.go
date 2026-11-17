@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ashupednekar/litefunctions/portal/internal/auth"
@@ -38,6 +40,10 @@ func (h *AuthHandlers) BeginRegistration(ctx *gin.Context) {
 	if err != nil {
 		slog.Error("can't get user name", "error", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "internal error"})
+		return
+	}
+	if auth.IsSystemUser(username) {
+		ctx.JSON(http.StatusForbidden, gin.H{"msg": "the system admin account does not use passkeys"})
 		return
 	}
 	user, err := h.store.GetOrCreateUser(username)
@@ -79,6 +85,10 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 		return
 	}
 	slog.Debug("finishing registration for session")
+	if auth.IsSystemUser(string(session.UserID)) {
+		ctx.JSON(http.StatusForbidden, gin.H{"msg": "the system admin account does not use passkeys"})
+		return
+	}
 
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
@@ -108,41 +118,11 @@ func (h *AuthHandlers) FinishRegistration(ctx *gin.Context) {
 		slog.Warn("error clearing webauthn session", "error", err)
 	}
 
-	// Create a persistent user session
-	sessionID, err := auth.GenerateSessionID()
-	if err != nil {
-		slog.Error("failed to generate session ID", "error", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
-		return
-	}
-
-	expiresAt, err := auth.GetSessionExpiry()
-	if err != nil {
-		slog.Error("failed to get session expiry", "error", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
-		return
-	}
-
-	userAgent := ctx.Request.UserAgent()
-	ipAddress := ctx.ClientIP()
-
-	if err := h.store.CreateUserSession(user.WebAuthnID(), sessionID, expiresAt, userAgent, ipAddress); err != nil {
+	if err := h.createUserSession(ctx, user.WebAuthnID()); err != nil {
 		slog.Error("failed to create user session", "error", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
 		return
 	}
-
-	// Set secure cookie
-	maxAge := int(time.Until(expiresAt).Seconds())
-	ctx.SetCookie(
-		auth.SessionCookieName, // name
-		sessionID,              // value
-		maxAge,                 // maxAge in seconds
-		"/",                    // path
-		"",                     // domain (empty = current domain)
-		false,                  // secure (set to true in production with HTTPS)
-		true,                   // httpOnly
-	)
 
 	slog.Info("Finish registration successful", "user", user.WebAuthnName())
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Registration Success"})
@@ -155,6 +135,10 @@ func (h *AuthHandlers) BeginLogin(ctx *gin.Context) {
 	if err != nil {
 		slog.Error("can't get user name for login", "error", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "invalid request"})
+		return
+	}
+	if auth.IsSystemUser(username) {
+		ctx.JSON(http.StatusForbidden, gin.H{"msg": "the system admin account uses password login"})
 		return
 	}
 
@@ -188,6 +172,10 @@ func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "invalid or expired session"})
 		return
 	}
+	if auth.IsSystemUser(string(session.UserID)) {
+		ctx.JSON(http.StatusForbidden, gin.H{"msg": "the system admin account uses password login"})
+		return
+	}
 
 	user, err := h.store.GetOrCreateUser(string(session.UserID))
 	if err != nil {
@@ -217,44 +205,97 @@ func (h *AuthHandlers) FinishLogin(ctx *gin.Context) {
 		log.Printf("[WARN] error clearing webauthn session: %s", err)
 	}
 
-	// Create a persistent user session
-	sessionID, err := auth.GenerateSessionID()
-	if err != nil {
-		slog.Error("failed to generate session ID", "error", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
-		return
-	}
-
-	expiresAt, err := auth.GetSessionExpiry()
-	if err != nil {
-		slog.Error("failed to get session expiry", "error", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
-		return
-	}
-
-	userAgent := ctx.Request.UserAgent()
-	ipAddress := ctx.ClientIP()
-
-	if err := h.store.CreateUserSession(user.WebAuthnID(), sessionID, expiresAt, userAgent, ipAddress); err != nil {
+	if err := h.createUserSession(ctx, user.WebAuthnID()); err != nil {
 		slog.Error("failed to create user session", "error", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
 		return
 	}
 
-	// Set secure cookie
-	maxAge := int(time.Until(expiresAt).Seconds())
-	ctx.SetCookie(
-		auth.SessionCookieName, // name
-		sessionID,              // value
-		maxAge,                 // maxAge in seconds
-		"/",                    // path
-		"",                     // domain (empty = current domain)
-		false,                  // secure (set to true in production with HTTPS)
-		true,                   // httpOnly
-	)
-
 	slog.Info("Finish login successful", "user", user.WebAuthnName())
 	ctx.JSON(http.StatusOK, gin.H{"msg": "Login Success"})
+}
+
+// AdminLogin authenticates only the internal system user. The password is
+// configuration, never persisted in the database, and the regular passkey
+// flows explicitly reject this username.
+func (h *AuthHandlers) AdminLogin(ctx *gin.Context) {
+	if !config.Cfg.AdminLoginEnabled || config.Cfg.AdminPassword == "" {
+		ctx.JSON(http.StatusNotFound, gin.H{"msg": "admin login is disabled"})
+		return
+	}
+
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "invalid request"})
+		return
+	}
+
+	userOK := auth.IsSystemUser(req.Username)
+	passOK := subtle.ConstantTimeCompare([]byte(req.Password), []byte(config.Cfg.AdminPassword)) == 1
+	if !userOK || !passOK {
+		slog.Warn("admin login failed", "user", req.Username, "ip", ctx.ClientIP())
+		ctx.JSON(http.StatusUnauthorized, gin.H{"msg": "invalid credentials"})
+		return
+	}
+
+	user, err := h.store.GetOrCreateUser(auth.SystemUserName)
+	if err != nil {
+		slog.Error("failed to ensure system user", "error", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+	if err := h.createUserSession(ctx, user.WebAuthnID()); err != nil {
+		slog.Error("failed to create admin session", "error", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "failed to create session"})
+		return
+	}
+
+	slog.Info("admin login successful", "ip", ctx.ClientIP())
+	ctx.JSON(http.StatusOK, gin.H{"msg": "Login Success"})
+}
+
+func (h *AuthHandlers) createUserSession(ctx *gin.Context, userID []byte) error {
+	sessionID, err := auth.GenerateSessionID()
+	if err != nil {
+		return fmt.Errorf("generate session ID: %w", err)
+	}
+
+	expiresAt, err := auth.GetSessionExpiry()
+	if err != nil {
+		return fmt.Errorf("get session expiry: %w", err)
+	}
+
+	if err := h.store.CreateUserSession(userID, sessionID, expiresAt, ctx.Request.UserAgent(), ctx.ClientIP()); err != nil {
+		return fmt.Errorf("create user session: %w", err)
+	}
+
+	maxAge := int(time.Until(expiresAt).Seconds())
+	ctx.SetSameSite(http.SameSiteLaxMode)
+	ctx.SetCookie(
+		auth.SessionCookieName,
+		sessionID,
+		maxAge,
+		"/",
+		"",
+		requestIsHTTPS(ctx),
+		true,
+	)
+	return nil
+}
+
+func requestIsHTTPS(ctx *gin.Context) bool {
+	if config.Cfg.CookieSecure || ctx.Request.TLS != nil {
+		return true
+	}
+	// X-Forwarded-Proto is only meaningful when an operator has explicitly
+	// configured trusted proxy CIDRs.
+	if config.Cfg.TrustedProxies == "" {
+		return false
+	}
+	return strings.EqualFold(ctx.GetHeader("X-Forwarded-Proto"), "https")
 }
 
 func (h *AuthHandlers) Logout(ctx *gin.Context) {
@@ -268,13 +309,14 @@ func (h *AuthHandlers) Logout(ctx *gin.Context) {
 	}
 
 	// Clear cookie
+	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
 		auth.SessionCookieName, // name
 		"",                     // value
 		-1,                     // maxAge (negative = delete)
 		"/",                    // path
 		"",                     // domain
-		false,                  // secure
+		requestIsHTTPS(ctx),    // secure
 		true,                   // httpOnly
 	)
 

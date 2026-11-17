@@ -20,6 +20,10 @@ type Settings struct {
 	DatabaseMaxConnLifetime string `env:"DATABASE_MAX_CONN_LIFETIME" default:"1h"`
 	DatabaseMaxConnIdleTime string `env:"DATABASE_MAX_CONN_IDLETIME" default:"10m"`
 	SessionExpiry           string `env:"SESSION_EXPIRY" default:"1h"`
+	AdminLoginEnabled       bool   `env:"ADMIN_LOGIN_ENABLED" default:"true"`
+	AdminPassword           string `env:"ADMIN_PASSWORD" default:"lfadmin@123"`
+	TrustedProxies          string `env:"TRUSTED_PROXIES" default:""`
+	CookieSecure            bool   `env:"COOKIE_SECURE" default:"false"`
 	OperatorUrl             string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
 	PodNamespace            string `env:"POD_NAMESPACE" default:"default"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`

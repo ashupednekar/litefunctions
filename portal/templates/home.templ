@@ -1,8 +1,75 @@
 package templates
 
-templ HomeContent() {
+import "fmt"
+
+templ HomeContent(adminLoginEnabled bool) {
 	<script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
 	<script>
+		const adminUsername = "litefunctions-system";
+
+		function isAdminLoginEnabled() {
+			const form = document.getElementById("login-form");
+			return form !== null && form.dataset.adminEnabled === "true";
+		}
+
+		function postLoginRedirect() {
+			const redirect = new URLSearchParams(window.location.search).get("redirect");
+			if (redirect && redirect.startsWith("/") && !redirect.startsWith("//")) { return redirect; }
+			return "/dashboard/";
+		}
+
+		window.syncLoginMode = function () {
+			const username = document.getElementById("username").value.trim();
+			const isAdmin = isAdminLoginEnabled() && username === adminUsername;
+			const passwordField = document.getElementById("admin-password-field");
+			const registerButton = document.getElementById("register-device-button");
+			const submitLabel = document.getElementById("login-submit-label");
+			const hint = document.getElementById("auth-mode-hint");
+
+			passwordField.style.display = isAdmin ? "" : "none";
+			registerButton.style.display = isAdmin ? "none" : "";
+			submitLabel.textContent = isAdmin ? "Sign in as admin" : "Continue with passkey";
+			hint.textContent = isAdmin
+				? "The system admin signs in with the admin password configured by the operator."
+				: "Use a passkey stored on this device. No passwords, no resets — the private key never leaves your authenticator.";
+
+			if (isAdmin) { document.getElementById("admin-password").focus(); }
+		};
+
+		window.login = async function () {
+			const username = document.getElementById("username").value.trim();
+			if (!username) { toast("Please enter your username first.", "info"); return; }
+			if (username === adminUsername) {
+				if (!isAdminLoginEnabled()) { toast("Admin login is disabled.", "error"); return; }
+				return loginAdmin();
+			}
+			return loginPasskey();
+		};
+
+		window.loginAdmin = async function () {
+			try {
+				const username = document.getElementById("username").value.trim();
+				const password = document.getElementById("admin-password").value;
+				if (!password) { toast("Please enter the admin password.", "info"); return; }
+
+				const resp = await fetch("/admin/login/", {
+					method: "POST",
+					headers: {"Content-Type": "application/json"},
+					body: JSON.stringify({username, password}),
+				});
+				if (!resp.ok) {
+					toast("Login failed: " + await resp.text(), "error");
+					return;
+				}
+				window.location.href = postLoginRedirect();
+			} catch (err) {
+				console.error(err);
+				toast("Login error: " + err, "error");
+			}
+		};
+
+		document.addEventListener("DOMContentLoaded", syncLoginMode);
+
 		function extractPublicKey(opts) {
 			if (opts.publicKey) { return opts.publicKey; }
 			if (opts.response) { return opts.response; }
@@ -72,8 +139,7 @@ templ HomeContent() {
 					body: JSON.stringify(assertionResp),
 				});
 				if (finishResp.ok) {
-					const redirect = new URLSearchParams(window.location.search).get("redirect");
-					window.location.href = redirect || "/dashboard/";
+					window.location.href = postLoginRedirect();
 				} else {
 					toast("Login failed: " + await finishResp.text(), "error");
 				}
@@ -127,19 +193,23 @@ templ HomeContent() {
 			<span class="z-badge z-badge-muted">passwordless</span>
 		</div>
 		<h2>Sign in to your workspace</h2>
-		<p>Use a passkey stored on this device. No passwords, no resets — the private key never leaves your authenticator.</p>
-		<form onsubmit="event.preventDefault(); loginPasskey();">
+		<p id="auth-mode-hint">Use a passkey stored on this device. No passwords, no resets — the private key never leaves your authenticator.</p>
+		<form id="login-form" data-admin-enabled={ fmt.Sprint(adminLoginEnabled) } onsubmit="event.preventDefault(); login();">
 			<div class="z-field">
 				<label class="z-label" for="username">Username</label>
-				<input id="username" type="text" class="z-input" placeholder="e.g. ashu" autocomplete="username webauthn" autofocus/>
+				<input id="username" type="text" class="z-input" placeholder="e.g. ashu" autocomplete="username webauthn" autofocus oninput="syncLoginMode()"/>
+			</div>
+			<div id="admin-password-field" class="z-field" style="display:none">
+				<label class="z-label" for="admin-password">Admin password</label>
+				<input id="admin-password" type="password" class="z-input" autocomplete="current-password"/>
 			</div>
 			<button type="submit" class="z-btn z-btn-primary" style="height:34px;margin-top:2px">
 				@Icon("key", "")
-				Continue with passkey
+				<span id="login-submit-label">Continue with passkey</span>
 				@Icon("arrow-right", "")
 			</button>
 			<div style="display:flex;gap:7px">
-				<button type="button" onclick="registerPasskey()" class="z-btn" style="flex:1;height:32px">Register device</button>
+				<button id="register-device-button" type="button" onclick="registerPasskey()" class="z-btn" style="flex:1;height:32px">Register device</button>
 				<a href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener" class="z-btn z-btn-ghost" style="height:32px">Docs</a>
 			</div>
 		</form>

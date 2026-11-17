@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"log/slog"
-	"math/rand"
 	"strings"
 	"time"
 
 	vcs "github.com/ashupednekar/litefunctions/common/vcs/pkg"
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/internal/auth"
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/ashupednekar/litefunctions/portal/internal/project/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/state"
@@ -26,13 +27,18 @@ func NewProjectHandlers(s *state.AppState) *ProjectHandlers {
 	return &ProjectHandlers{state: s}
 }
 
-func generateInviteCode() string {
+func generateInviteCode() (string, error) {
 	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 	b := make([]byte, 8)
-	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
+	if _, err := rand.Read(b); err != nil {
+		return "", err
 	}
-	return string(b)
+	for i := range b {
+		// len(chars) is 32, so the byte range is evenly divisible and this
+		// does not introduce modulo bias.
+		b[i] = chars[int(b[i])%len(chars)]
+	}
+	return string(b), nil
 }
 
 func (h *ProjectHandlers) CreateProject(c *gin.Context) {
@@ -188,16 +194,16 @@ func (h *ProjectHandlers) CreateProjectInvite(c *gin.Context) {
 
 	accessQ := accessAdaptors.New(h.state.DBPool).WithTx(tx)
 
-	role, err := accessQ.GetUserProjectRole(ctx, accessAdaptors.GetUserProjectRoleParams{
-		UserID:    user,
-		ProjectID: project,
-	})
-	if err != nil || role != "owner" {
+	if c.GetString("projectRole") != "owner" {
 		c.AbortWithStatusJSON(403, gin.H{"error": "only owners can invite"})
 		return
 	}
 
-	code := generateInviteCode()
+	code, err := generateInviteCode()
+	if err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"error": "failed to generate invite"})
+		return
+	}
 
 	invite, err := accessQ.CreateProjectInvite(ctx, accessAdaptors.CreateProjectInviteParams{
 		ProjectID:  project,
@@ -297,6 +303,11 @@ func (h *ProjectHandlers) ListProjectAccess(c *gin.Context) {
 }
 
 func (h *ProjectHandlers) UpdateProjectAccess(c *gin.Context) {
+	if c.GetString("projectRole") != "owner" {
+		c.AbortWithStatusJSON(403, gin.H{"error": "only owners can update access"})
+		return
+	}
+
 	project := c.MustGet("projectUUID").(pgtype.UUID)
 	uidStr := c.Param("id")
 	// Convert hex string to []byte
@@ -323,6 +334,11 @@ func (h *ProjectHandlers) UpdateProjectAccess(c *gin.Context) {
 }
 
 func (h *ProjectHandlers) RevokeProjectAccess(c *gin.Context) {
+	if c.GetString("projectRole") != "owner" {
+		c.AbortWithStatusJSON(403, gin.H{"error": "only owners can revoke access"})
+		return
+	}
+
 	project := c.MustGet("projectUUID").(pgtype.UUID)
 	uidStr := c.Param("id")
 	var uid []byte
@@ -342,7 +358,7 @@ func (h *ProjectHandlers) RevokeProjectAccess(c *gin.Context) {
 func (h *ProjectHandlers) ListProjects(c *gin.Context) {
 	user := c.MustGet("userID").([]byte)
 	q := accessAdaptors.New(h.state.DBPool)
-	rows, err := q.ListProjectsForUser(c.Request.Context(), user)
+	rows, err := q.ListProjectsForUserOrAdmin(c.Request.Context(), user, auth.IsSystemUserID(user))
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to list projects"})
 		return

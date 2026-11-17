@@ -35,9 +35,11 @@ class GatewayTests(unittest.TestCase):
     def test_default_routes(self):
         docs = render()
         routes = resources(docs, "HTTPRoute")
-        self.assertEqual(set(routes), {"litefunctions-portal", "litefunctions-ingestor", "litefunctions-gitea"})
+        self.assertEqual(set(routes), {"litefunctions-portal", "litefunctions-ingestor", "litefunctions-gitea", "litefunctions-grafana", "litefunctions-rustfs", "litefunctions-rustfs-console"})
         self.assertEqual(routes["litefunctions-ingestor"]["spec"]["rules"][0]["matches"][0]["path"]["value"], "/lambda")
         self.assertEqual(routes["litefunctions-portal"]["spec"]["rules"][0]["backendRefs"], [{"name": "litefunctions-portal", "port": 3000}])
+        self.assertEqual(routes["litefunctions-grafana"]["spec"]["hostnames"], ["litefunctions.grafana"])
+        self.assertEqual(routes["litefunctions-grafana"]["spec"]["rules"][0]["backendRefs"], [{"name": "litefunctions-grafana", "port": 80}])
 
     def test_disabled_gateway(self):
         docs = render("gatewayApi.enabled=false")
@@ -45,10 +47,11 @@ class GatewayTests(unittest.TestCase):
             self.assertFalse(resources(docs, kind))
 
     def test_disabled_components(self):
-        docs = render("ui.enabled=false", "gitea.enabled=false")
+        docs = render("ui.enabled=false", "gitea.enabled=false", "olly.grafana.enabled=false", "rustfs.enabled=false")
         self.assertEqual(set(resources(docs, "HTTPRoute")), {"litefunctions-ingestor"})
         gateway = next(iter(resources(docs, "Gateway").values()))
         self.assertFalse(any("gitea" in listener["hostname"] for listener in gateway["spec"]["listeners"]))
+        self.assertFalse(any("grafana" in listener["hostname"] for listener in gateway["spec"]["listeners"]))
 
     def test_rustfs_backends_and_tls(self):
         docs = render("rustfs.enabled=true", "rustfs.fullnameOverride=storage", "rustfs.service.endpoint.port=9100", "rustfs.service.console.port=9101", "gitea.fullnameOverride=git", "gitea.service.http.port=3100", "gatewayApi.hosts.rustfsConsole[0]=console.example.com", release="custom")
@@ -83,7 +86,7 @@ class GatewayTests(unittest.TestCase):
 
     def test_acme(self):
         settings = ["gatewayApi.tls.certManager.selfSigned.enabled=false", "gatewayApi.tls.certManager.letsencrypt.enabled=true", "gatewayApi.tls.certManager.letsencrypt.email=admin@example.com", "gatewayApi.hosts.portal[0]=portal.example.com", "gatewayApi.hosts.gitea[0]=git.example.com"]
-        self.assertIn("port=80", render(*settings, success=False))
+        self.assertIn("port=80", render(*settings, "gatewayApi.http.port=8080", success=False))
         docs = render(*settings, "gatewayApi.http.port=80")
         issuer = next(iter(resources(docs, "ClusterIssuer").values()))
         self.assertEqual(issuer["spec"]["acme"]["solvers"][0]["http01"]["gatewayHTTPRoute"]["parentRefs"][0]["name"], "litefunctions-gateway")
@@ -91,8 +94,66 @@ class GatewayTests(unittest.TestCase):
         config = yaml.safe_load(configs["litefunctions-cert-manager"]["data"]["config.yaml"])
         self.assertTrue(config["enableGatewayAPI"])
 
+    def test_olly_defaults(self):
+        docs = render()
+        configs = resources(docs, "ConfigMap")
+        alloy = configs["litefunctions-alloy"]["data"]["config.alloy"]
+        self.assertIn('label = "app in (runtime,litefunctions-ingestor)"', alloy)
+        self.assertIn('source_labels = ["__meta_kubernetes_pod_label_app"]', alloy)
+        self.assertIn('target_label  = "app"', alloy)
+        self.assertIn('url = "http://litefunctions-loki-gateway/loki/api/v1/push"', alloy)
+
+        buckets = resources(docs, "Job")["litefunctions-olly-buckets"]["spec"]["template"]["spec"]["containers"][0]["args"][0]
+        for bucket in ["litefunctions-loki-chunks", "litefunctions-loki-ruler", "litefunctions-mimir-tsdb"]:
+            self.assertIn(bucket, buckets)
+        self.assertNotIn("litefunctions-tempo-traces", buckets)
+
+        prometheus = configs["litefunctions-prometheus-server"]["data"]["prometheus.yml"]
+        self.assertIn("http://litefunctions-mimir-gateway/api/v1/push", prometheus)
+        datasources = configs["litefunctions-grafana"]["data"]["datasources.yaml"]
+        self.assertIn("http://litefunctions-loki-gateway", datasources)
+        self.assertIn("http://litefunctions-mimir-gateway/prometheus", datasources)
+
+    def test_portal_admin_login(self):
+        docs = render()
+        secret = resources(docs, "Secret")["litefunctions-portal-admin"]
+        self.assertEqual(secret["stringData"]["password"], "lfadmin@123")
+        containers = resources(docs, "Deployment")["litefunctions-portal"]["spec"]["template"]["spec"]["containers"]
+        env = {item["name"]: item for item in containers[0]["env"]}
+        self.assertEqual(env["ADMIN_LOGIN_ENABLED"]["value"], "true")
+        self.assertEqual(
+            env["ADMIN_PASSWORD"]["valueFrom"]["secretKeyRef"],
+            {"name": "litefunctions-portal-admin", "key": "password"},
+        )
+        self.assertEqual(env["TRUSTED_PROXIES"]["value"], "")
+        self.assertEqual(env["COOKIE_SECURE"]["value"], "true")
+
+        docs = render("ui.admin.enabled=false", "gatewayApi.tls.enabled=false")
+        self.assertNotIn("litefunctions-portal-admin", resources(docs, "Secret"))
+        containers = resources(docs, "Deployment")["litefunctions-portal"]["spec"]["template"]["spec"]["containers"]
+        env = {item["name"]: item for item in containers[0]["env"]}
+        self.assertEqual(env["ADMIN_LOGIN_ENABLED"]["value"], "false")
+        self.assertNotIn("ADMIN_PASSWORD", env)
+        self.assertEqual(env["COOKIE_SECURE"]["value"], "false")
+
+    def test_olly_disabled_backends(self):
+        docs = render("olly.logs.enabled=false", "olly.metrics.enabled=false")
+        self.assertNotIn("litefunctions-olly-buckets", resources(docs, "Job"))
+        configs = resources(docs, "ConfigMap")
+        self.assertNotIn("loki", configs)
+        self.assertNotIn("litefunctions-mimir-config", configs)
+        self.assertNotIn("litefunctions-prometheus-server", configs)
+
+    def test_olly_traces(self):
+        docs = render("olly.traces.enabled=true")
+        buckets = resources(docs, "Job")["litefunctions-olly-buckets"]["spec"]["template"]["spec"]["containers"][0]["args"][0]
+        self.assertIn("litefunctions-tempo-traces", buckets)
+        services = resources(docs, "Service")
+        self.assertIn("litefunctions-tempo", services)
+
     def test_ngrok(self):
         docs = render("ngrok.enabled=true")
         deployment = resources(docs, "Deployment")["litefunctions-ngrok"]
-        self.assertIn("istio-ingressgateway.istio-system.svc:80", deployment["spec"]["template"]["spec"]["containers"]["args"])
+        container = deployment["spec"]["template"]["spec"]["containers"][0]
+        self.assertIn("istio-ingressgateway.istio-system.svc:80", container["args"])
         self.assertIn("requires gatewayApi.enabled", render("ngrok.enabled=true", "gatewayApi.enabled=false", success=False))

@@ -20,9 +20,9 @@ pub fn stream_handler(mut input: Receiver<Vec<u8>>) -> Receiver<Vec<u8>> {
 
     tokio::spawn(async move {
         while input.recv().await.is_some() {
-            let payload = Payload {
-                word: random_word(),
-            };
+            let word = random_word();
+            println!("INFO streaming word={}", word);
+            let payload = Payload { word };
             if let Ok(json_bytes) = serde_json::to_vec(&payload) {
                 if tx.send(json_bytes).await.is_err() {
                     break;

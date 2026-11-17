@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
@@ -151,7 +152,12 @@ func runManager(cmd *cobra.Command) error {
 	}
 
 	var nc *nats.Conn
-	nc, err = nats.Connect(os.Getenv("NATS_URL"))
+	nc, err = nats.Connect(
+		os.Getenv("NATS_URL"),
+		nats.RetryOnFailedConnect(true),
+		nats.MaxReconnects(-1),
+		nats.ReconnectWait(5*time.Second),
+	)
 	if err != nil {
 		setupLog.Info("nats server unavailable", "error", err)
 	}

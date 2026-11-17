@@ -10,6 +10,7 @@ import (
 
 	"github.com/ashupednekar/litefunctions/common/sample"
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
+	"github.com/ashupednekar/litefunctions/portal/internal/auth"
 	authAdaptors "github.com/ashupednekar/litefunctions/portal/internal/auth/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	endpointAdaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
@@ -43,13 +44,14 @@ func shellData(ctx *gin.Context, title string, section string, active string) te
 		}
 	}
 	projectID, _ := ctx.Cookie("lws_project")
+	role := ctx.GetString("projectRole")
 
 	return templates.ShellData{
 		Title:       title,
 		Section:     section,
 		Active:      active,
 		Username:    username,
-		Role:        "owner",
+		Role:        role,
 		ProjectID:   projectID,
 		ProjectName: projectName,
 		Dummy:       templates.PageUsesDummyData(active),
@@ -63,7 +65,7 @@ func (h *UIHandlers) Home(ctx *gin.Context) {
 		return
 	}
 	page := templates.AuthLayout(
-		templates.HomeContent(),
+		templates.HomeContent(config.Cfg.AdminLoginEnabled),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
@@ -80,7 +82,11 @@ func (h *UIHandlers) Dashboard(ctx *gin.Context) {
 
 	if userID != nil {
 		q := accessAdaptors.New(h.state.DBPool)
-		dbProjects, err := q.ListProjectsForUser(ctx.Request.Context(), userID.([]byte))
+		dbProjects, err := q.ListProjectsForUserOrAdmin(
+			ctx.Request.Context(),
+			userID.([]byte),
+			auth.IsSystemUserID(userID.([]byte)),
+		)
 		if err == nil {
 			for _, p := range dbProjects {
 				projects = append(projects, templates.Project{
