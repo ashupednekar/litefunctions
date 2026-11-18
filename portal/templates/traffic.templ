@@ -43,6 +43,7 @@ templ FunctionBuildPanel(fn Function) {
 				<span id={ "fn-build-status-" + fn.ID } class="z-badge z-badge-muted">idle</span>
 				<button id={ "fn-build-toggle-" + fn.ID } class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("toggleFnBuildStream", fn.ID) }>Pause</button>
 				<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("clearFnBuildLogs", fn.ID) }>Clear</button>
+				<button class="z-btn z-btn-sm z-btn-primary" onclick={ templ.JSFuncCall("openFnBuildFullscreen", fn.ID) }>@Icon("maximize", "") Fullscreen</button>
 			</div>
 			<div id={ "fn-build-logs-" + fn.ID } class="z-log z-fn-log"></div>
 		</div>

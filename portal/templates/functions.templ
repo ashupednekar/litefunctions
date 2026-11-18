@@ -14,8 +14,6 @@ script selectFnMethod(id string, method string) {
 	if (input) input.value = selectedMethods.join(",");
 }
 
-script copyFn(id string) {
-}
 script openCreate() {
 }
 script closeCreate() {
@@ -75,7 +73,6 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 				</div>
 				<div class="z-fn-actions">
 					<a id={ "fn-row-build-" + fn.ID } class="z-badge z-badge-muted hidden" target="_blank" rel="noopener" title="Latest Actions run">No Actions</a>
-					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
 					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
 					<button class="z-icon-btn" title="Edit" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "")</button>
 					<button class="z-icon-btn" id={ "fn-test-btn-" + fn.ID } title="Test &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "")</button>
@@ -217,7 +214,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 		</div>
 		<div id="log-fullscreen-stream" class="z-log"></div>
 		<div class="z-modal-foot">
-			<span class="z-help">Runtime + ingestor output streamed from Loki.</span>
+			<span id="log-fullscreen-hint" class="z-help">Runtime + ingestor output streamed from Loki.</span>
 			<button class="z-btn z-btn-sm" onclick="clearActiveFnLogs()">Clear</button>
 			<button id="log-fullscreen-toggle" class="z-btn z-btn-sm" onclick="toggleActiveFnLog()">Pause</button>
 			<button class="z-btn z-btn-sm z-btn-primary" onclick="closeLogFullscreen()">Close</button>
@@ -364,6 +361,7 @@ function defineVimEx(){
 /* --- live function logs --- */
 const fnLogStreams = new Map();
 let activeLogFnID = "";
+let activeLogKind = "runtime";
 
 function fnLogState(id) {
   if (!fnLogStreams.has(id)) fnLogStreams.set(id, { id: id, source: null, paused: false, lines: [] });
@@ -374,7 +372,7 @@ function setFnLogStatus(id, text, tone) {
   const toneClass = "z-badge z-badge-" + (tone || "muted");
   const inline = document.getElementById("fn-logs-status-" + id);
   if (inline) { inline.textContent = text; inline.className = toneClass; }
-  if (activeLogFnID === id) {
+  if (activeLogKind === "runtime" && activeLogFnID === id) {
     const full = document.getElementById("log-fullscreen-status");
     if (full) { full.textContent = text; full.className = toneClass; }
   }
@@ -495,7 +493,9 @@ function toggleFnLogStream(id) {
 }
 
 function openFnLogFullscreen(id) {
+  activeLogKind = "runtime";
   activeLogFnID = id;
+  setLogFullscreenHint("Runtime + ingestor output streamed from Loki.");
   const st = fnLogState(id);
   const row = document.querySelector('[data-fn-id="' + CSS.escape(id) + '"]');
   const name = row?.querySelector(".z-fn-name")?.textContent || id;
@@ -515,14 +515,29 @@ function openFnLogFullscreen(id) {
   startFnLog(id);
 }
 
+function setLogFullscreenHint(text) {
+  const hint = document.getElementById("log-fullscreen-hint");
+  if (hint) hint.textContent = text;
+}
+
 function closeLogFullscreen() {
   if (window.zCloseModal) window.zCloseModal("log-fullscreen-modal");
   else document.getElementById("log-fullscreen-modal")?.classList.remove("open");
   activeLogFnID = "";
+  activeLogKind = "runtime";
 }
 
-function clearActiveFnLogs() { if (activeLogFnID) clearFnLogs(activeLogFnID); }
-function toggleActiveFnLog() { if (activeLogFnID) toggleFnLogStream(activeLogFnID); }
+function clearActiveFnLogs() {
+  if (!activeLogFnID) return;
+  if (activeLogKind === "build") clearFnBuildLogs(activeLogFnID);
+  else clearFnLogs(activeLogFnID);
+}
+
+function toggleActiveFnLog() {
+  if (!activeLogFnID) return;
+  if (activeLogKind === "build") toggleFnBuildStream(activeLogFnID);
+  else toggleFnLogStream(activeLogFnID);
+}
 
 /* --- live build logs --- */
 const fnBuildStreams = new Map();
@@ -533,8 +548,13 @@ function fnBuildState(id) {
 }
 
 function setFnBuildStatus(id, text, tone) {
+  const toneClass = "z-badge z-badge-" + (tone || "muted");
   const el = document.getElementById("fn-build-status-" + id);
-  if (el) { el.textContent = text; el.className = "z-badge z-badge-" + (tone || "muted"); }
+  if (el) { el.textContent = text; el.className = toneClass; }
+  if (activeLogKind === "build" && activeLogFnID === id) {
+    const full = document.getElementById("log-fullscreen-status");
+    if (full) { full.textContent = text; full.className = toneClass; }
+  }
 }
 
 function closeFnBuild(id) {
@@ -589,6 +609,14 @@ function appendFnBuildLine(st, entry) {
     while (inline.childElementCount > 1000) inline.removeChild(inline.firstChild);
     if (inline.offsetParent !== null) inline.scrollTop = inline.scrollHeight;
   }
+  if (activeLogKind === "build" && activeLogFnID === st.id) {
+    const full = document.getElementById("log-fullscreen-stream");
+    if (full) {
+      full.appendChild(fnLogLineNode(entry));
+      while (full.childElementCount > 1000) full.removeChild(full.firstChild);
+      full.scrollTop = full.scrollHeight;
+    }
+  }
 }
 
 function clearFnBuildLogs(id) {
@@ -596,6 +624,10 @@ function clearFnBuildLogs(id) {
   st.lines = [];
   const inline = document.getElementById("fn-build-logs-" + id);
   if (inline) inline.innerHTML = "";
+  if (activeLogKind === "build" && activeLogFnID === id) {
+    const full = document.getElementById("log-fullscreen-stream");
+    if (full) full.innerHTML = "";
+  }
 }
 
 function toggleFnBuildStream(id) {
@@ -604,9 +636,36 @@ function toggleFnBuildStream(id) {
   const label = st.paused ? "Resume" : "Pause";
   const btn = document.getElementById("fn-build-toggle-" + id);
   if (btn) btn.textContent = label;
+  if (activeLogKind === "build" && activeLogFnID === id) {
+    const fullBtn = document.getElementById("log-fullscreen-toggle");
+    if (fullBtn) fullBtn.textContent = label;
+  }
   if (st.paused) closeFnBuild(id);
   else startFnBuild(id);
   setFnBuildStatus(id, st.paused ? "paused" : "live", st.paused ? "amber" : "green");
+}
+
+function openFnBuildFullscreen(id) {
+  activeLogKind = "build";
+  activeLogFnID = id;
+  setLogFullscreenHint("Gitea Actions runner output streamed from Loki.");
+  const st = fnBuildState(id);
+  const row = document.querySelector('[data-fn-id="' + CSS.escape(id) + '"]');
+  const name = row?.querySelector(".z-fn-name")?.textContent || id;
+  const nameEl = document.getElementById("log-fullscreen-name");
+  if (nameEl) nameEl.textContent = name;
+  const full = document.getElementById("log-fullscreen-stream");
+  if (full) {
+    full.innerHTML = "";
+    st.lines.forEach(entry => full.appendChild(fnLogLineNode(entry)));
+    full.scrollTop = full.scrollHeight;
+  }
+  const fullBtn = document.getElementById("log-fullscreen-toggle");
+  if (fullBtn) fullBtn.textContent = st.paused ? "Resume" : "Pause";
+  setFnBuildStatus(id, st.paused ? "paused" : "live", st.paused ? "amber" : "green");
+  if (window.zOpenModal) window.zOpenModal("log-fullscreen-modal");
+  else document.getElementById("log-fullscreen-modal")?.classList.add("open");
+  startFnBuild(id);
 }
 
 function toggleFnBuild(id) {
@@ -659,7 +718,7 @@ function fnGetRunName(run) {
 function fnExtractFunctionName(run) {
   const title = String(run?.DisplayTitle || run?.display_title || "").toLowerCase();
   if (!title) return "";
-  const m = title.match(/functions\/(?:go|rs|rust|py|python|ts|typescript|lua)\/([^.\s\/]+)\./);
+  const m = title.match(/functions\/(?:go|rs|rust|py|python|ts|typescript|lua)\/([^\/\s]+)/);
   return m ? m[1] : "";
 }
 
