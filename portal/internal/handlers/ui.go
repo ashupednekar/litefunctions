@@ -187,12 +187,16 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
 			fnID := hex.EncodeToString(f.ID.Bytes[:])
 
+			projectName, _ := ctx.Get("projectName")
+			projectNameStr, _ := projectName.(string)
 			functions = append(functions, templates.Function{
-				ID:         fnID,
-				Name:       f.Name,
-				Language:   lang,
-				Icon:       icon,
-				EndpointID: endpointByFn[fnID],
+				ID:           fnID,
+				Name:         f.Name,
+				Language:     lang,
+				Icon:         icon,
+				EndpointID:   endpointByFn[fnID],
+				EndpointName: fmt.Sprintf("/%s/%s", projectNameStr, f.Name),
+				IsAsync:      f.IsAsync,
 			})
 		}
 	}

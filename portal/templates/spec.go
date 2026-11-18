@@ -275,11 +275,34 @@ type AccessUser struct {
 }
 
 type Function struct {
-	ID         string
-	Name       string
-	Language   string
-	Icon       string
-	EndpointID string
+	ID           string
+	Name         string
+	Language     string
+	Icon         string
+	EndpointID   string
+	EndpointName string
+	IsAsync      bool
+}
+
+func trafficEndpointName(fn Function, ep Endpoint) string {
+	if ep.Name != "" {
+		return ep.Name
+	}
+	return fn.EndpointName
+}
+
+func trafficIsAsync(fn Function, ep Endpoint) bool {
+	if ep.ID != "" {
+		return ep.IsAsync
+	}
+	return fn.IsAsync
+}
+
+func trafficMethod(fn Function, ep Endpoint) string {
+	if ep.Method != "" {
+		return ep.Method
+	}
+	return "GET"
 }
 
 type Lang struct {

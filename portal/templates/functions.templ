@@ -22,6 +22,7 @@ script saveEdit(exit bool) {
 templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample, endpoints []Endpoint) {
 
 @templ.JSONScript("function-samples", samples)
+@templ.JSONScript("endpoint-list", endpoints)
 
 @PageHead("Functions", "Write, edit and deploy functions in Go, Rust, Python, TypeScript or Lua.", "Workspace", templ.Raw(`
 	<button class="z-btn" onclick="openSpotlight()">`+svgSearch()+` Search</button>
@@ -184,6 +185,9 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 		</div>
 	</div>
 </div>
+
+<!-- ENDPOINT TEST UI (from endpoints screen, mounted inline) -->
+@EndpointTestModals()
 
 <!-- LOG FULLSCREEN -->
 <div id="log-fullscreen-modal" class="z-modal-backdrop z-log-fullscreen" onclick="closeLogFullscreen()">
@@ -522,111 +526,30 @@ function openFnFromQuery() {
   }
 }
 
-/* --- inline endpoint runner --- */
-const fnWsConns = {};
-
-function fnWsUrl(id) {
-  const name = document.getElementById("fn-traffic-" + id)?.getAttribute("data-endpoint-name") || "";
-  let path = name;
-  if (path.startsWith("/lambda/ws/")) { /* already a ws path */ }
-  else if (path.startsWith("/lambda/")) path = "/lambda/ws/" + path.replace("/lambda/", "");
-  else path = "/lambda/ws" + path;
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return proto + "//" + window.location.host + path;
-}
-
-function fnWsLog(id, kind, message) {
-  const box = document.getElementById("fn-ws-log-" + id);
-  if (!box) return;
-  const line = document.createElement("div");
-  const color = kind === "sent" ? "#67e8f9" : (kind === "recv" ? "#86efac" : "#fbbf24");
-  line.innerHTML = '<span style="color:#5b5b65">[' + new Date().toLocaleTimeString() + ']</span> ';
-  const text = document.createElement("span");
-  text.style.color = color;
-  text.textContent = kind.toUpperCase() + " " + message;
-  line.appendChild(text);
-  box.appendChild(line);
-  box.scrollTop = box.scrollHeight;
-}
-
-window.addFnHeader = function (id) {
-  const host = document.getElementById("fn-headers-" + id);
-  if (!host) return;
-  const row = document.createElement("div");
-  row.className = "z-input-group";
-  row.style.marginBottom = "6px";
-  row.innerHTML = '<input class="z-input z-mono" placeholder="Header"/><input class="z-input z-mono" placeholder="Value"/>' +
-    '<button class="z-icon-btn" title="Remove" onclick="this.parentElement.remove()">' + fnIcon("close") + '</button>';
-  host.appendChild(row);
-};
-
-window.sendFnRequest = function (id) {
-  const panel = document.getElementById("fn-traffic-" + id);
-  const name = panel?.getAttribute("data-endpoint-name") || "";
-  const method = document.getElementById("fn-method-" + id)?.value || "GET";
-  const body = document.getElementById("fn-body-" + id)?.value || "";
-  const headers = {};
-  document.querySelectorAll("#fn-headers-" + id + " .z-input-group").forEach(row => {
-    const inputs = row.querySelectorAll("input");
-    const key = inputs[0]?.value?.trim();
-    if (key) headers[key] = inputs[1]?.value || "";
+/* --- endpoint test UI (original endpoints-screen runner) --- */
+window.__endpointList = (() => {
+  let list = [];
+  try { list = JSON.parse(document.getElementById("endpoint-list")?.textContent || "[]"); } catch (e) { /* ignore */ }
+  document.querySelectorAll("[data-fn-traffic]").forEach(panel => {
+    const id = panel.id.replace("fn-traffic-", "");
+    const endpointID = panel.getAttribute("data-endpoint-id") || id;
+    const name = panel.getAttribute("data-endpoint-name") || "";
+    const method = panel.getAttribute("data-endpoint-method") || "GET";
+    if (name && !list.some(ep => ep.id === endpointID)) list.push({ id: endpointID, name: name, method: method });
   });
-  const status = document.getElementById("fn-status-" + id);
-  const response = document.getElementById("fn-response-" + id);
-  if (!name || !status || !response) return;
-  status.textContent = "sending";
-  status.className = "z-badge z-badge-amber";
-  const options = { method: method, headers: headers };
-  if (!["GET", "HEAD"].includes(method) && body.trim()) options.body = body;
-  fetch("/lambda" + name, options)
-    .then(async res => {
-      const text = await res.text();
-      status.textContent = "HTTP " + res.status;
-      status.className = "z-badge z-badge-" + (res.ok ? "green" : "red");
-      response.value = text;
-    })
-    .catch(err => {
-      status.textContent = "error";
-      status.className = "z-badge z-badge-red";
-      response.value = String(err);
-    });
-};
+  return list;
+})();
 
-window.connectFnWs = function (id) {
-  window.disconnectFnWs(id);
-  const status = document.getElementById("fn-ws-status-" + id);
-  if (status) { status.textContent = "Connecting…"; status.className = "z-badge z-badge-amber"; }
-  try {
-    const ws = new WebSocket(fnWsUrl(id));
-    ws.binaryType = "arraybuffer";
-    ws.onopen = () => { if (status) { status.textContent = "Connected"; status.className = "z-badge z-badge-green"; } };
-    ws.onclose = () => { if (status) { status.textContent = "Disconnected"; status.className = "z-badge z-badge-muted"; } };
-    ws.onerror = () => { if (status) { status.textContent = "Error"; status.className = "z-badge z-badge-red"; } };
-    ws.onmessage = ev => {
-      const data = typeof ev.data === "string" ? ev.data : new TextDecoder().decode(ev.data);
-      fnWsLog(id, "recv", data);
-    };
-    fnWsConns[id] = ws;
-  } catch (err) {
-    if (status) { status.textContent = "Error"; status.className = "z-badge z-badge-red"; }
-  }
-};
-
-window.disconnectFnWs = function (id) {
-  if (fnWsConns[id]) {
-    try { fnWsConns[id].close(); } catch (e) { /* ignore */ }
-    delete fnWsConns[id];
-  }
-};
-
-window.sendFnWsMessage = function (id) {
-  const ws = fnWsConns[id];
-  const input = document.getElementById("fn-ws-message-" + id);
-  const message = input?.value || "";
-  if (!ws || ws.readyState !== WebSocket.OPEN) { fnWsLog(id, "info", "Not connected."); return; }
-  ws.send(message);
-  fnWsLog(id, "sent", message);
-};
+function mountTestUI(nodeID, host) {
+  const node = document.getElementById(nodeID);
+  if (!node || !host) return;
+  node.classList.remove("hidden", "fixed", "inset-0", "bg-black/80", "backdrop-blur-md", "z-50",
+    "flex", "items-center", "justify-center", "p-4", "z-modal-backdrop", "open");
+  node.classList.add("z-test-inline");
+  node.removeAttribute("onclick");
+  node.style.display = "";
+  host.appendChild(node);
+}
 
 /* --- UI functions --- */
 function copyFn(id){
@@ -763,9 +686,14 @@ function toggleFnTraffic(id) {
   if (willOpen) {
     panel.classList.remove("hidden");
     document.getElementById("fn-test-btn-" + id)?.classList.add("active");
+    const host = document.getElementById("fn-test-host-" + id);
+    const endpointID = panel.getAttribute("data-endpoint-id") || id;
     if (panel.getAttribute("data-endpoint-async") === "true") {
-      const wsUrl = document.getElementById("fn-ws-url-" + id);
-      if (wsUrl) wsUrl.value = fnWsUrl(id);
+      window.openWsTestModalForEndpoint?.(endpointID);
+      mountTestUI("ws-test-modal", host);
+    } else {
+      window.openTestModalForEndpoint?.(endpointID);
+      mountTestUI("test-modal", host);
     }
     startFnLog(id);
   }

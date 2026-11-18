@@ -1,96 +1,21 @@
 package templates
 
-script addFnHeader(id string) {
-	window.addFnHeader(id);
-}
-script sendFnRequest(id string) {
-	window.sendFnRequest(id);
-}
-script connectFnWs(id string) {
-	window.connectFnWs(id);
-}
-script disconnectFnWs(id string) {
-	window.disconnectFnWs(id);
-}
-script sendFnWsMessage(id string) {
-	window.sendFnWsMessage(id);
-}
-
 templ FunctionTrafficPanel(fn Function, ep Endpoint) {
-	<div id={ "fn-traffic-" + fn.ID } class="z-fn-config hidden" data-fn-traffic data-endpoint-name={ ep.Name } data-endpoint-method={ ep.Method } data-endpoint-async={ boolString(ep.IsAsync) }>
+	<div id={ "fn-traffic-" + fn.ID } class="z-fn-config hidden" data-fn-traffic
+		data-endpoint-name={ trafficEndpointName(fn, ep) }
+		data-endpoint-method={ trafficMethod(fn, ep) }
+		data-endpoint-async={ boolString(trafficIsAsync(fn, ep)) }
+		data-endpoint-id={ ep.ID }>
 		<div class="z-fn-config-head">
 			<span class="z-panel-title">@Icon("play", "") Test &amp; logs</span>
 			<span class="z-badge z-badge-muted">{ fn.Name }</span>
-			if ep.ID != "" {
-				<span class="z-badge z-badge-green z-mono">{ ep.Method } { ep.Name }</span>
-			} else {
-				<span class="z-badge z-badge-amber">no endpoint</span>
+			<span class="z-badge z-badge-green z-mono">{ trafficMethod(fn, ep) } { trafficEndpointName(fn, ep) }</span>
+			if trafficIsAsync(fn, ep) {
+				<span class="z-badge z-badge-purple">websocket</span>
 			}
 		</div>
 
-		<div class="z-fn-test-layout">
-			<div class="z-fn-test-settings">
-				if ep.IsAsync {
-					<div class="z-field">
-						<span class="z-label">WebSocket URL</span>
-						<input id={ "fn-ws-url-" + fn.ID } class="z-input z-mono" readonly value={ fn.Name }/>
-						<span class="z-help">Derived from the endpoint path.</span>
-					</div>
-					<div class="z-field">
-						<span class="z-label">Connection</span>
-						<div style="display:flex;gap:6px">
-							<button class="z-btn z-btn-sm z-btn-primary" onclick={ connectFnWs(fn.ID) }>Connect</button>
-							<button class="z-btn z-btn-sm" onclick={ disconnectFnWs(fn.ID) }>Disconnect</button>
-							<span id={ "fn-ws-status-" + fn.ID } class="z-badge z-badge-muted">Disconnected</span>
-						</div>
-					</div>
-					<div class="z-field">
-						<span class="z-label">Message</span>
-						<div class="z-input-group">
-							<input id={ "fn-ws-message-" + fn.ID } class="z-input z-mono" placeholder="Message to send…"/>
-							<button class="z-btn z-btn-sm z-btn-primary" onclick={ sendFnWsMessage(fn.ID) }>Send</button>
-						</div>
-					</div>
-					<div id={ "fn-ws-log-" + fn.ID } class="z-ws-log z-mono"></div>
-				} else {
-					<div class="z-field">
-						<span class="z-label">Method</span>
-						<input id={ "fn-method-" + fn.ID } class="z-input z-mono" readonly value={ ep.Method }/>
-					</div>
-					<div class="z-field">
-						<span class="z-label">Headers</span>
-						<div id={ "fn-headers-" + fn.ID }>
-							<div class="z-input-group" style="margin-bottom:6px">
-								<input class="z-input z-mono" placeholder="Header" value="Content-Type"/>
-								<input class="z-input z-mono" placeholder="Value" value="application/json"/>
-								<button class="z-icon-btn" title="Remove" onclick="this.parentElement.remove()">@Icon("close", "")</button>
-							</div>
-						</div>
-						<button class="z-btn z-btn-sm" onclick={ addFnHeader(fn.ID) }>@Icon("plus", "") Add header</button>
-					</div>
-				}
-			</div>
-
-			<div class="z-field">
-				<div class="z-log-toolbar">
-					<span class="z-label">Request body</span>
-					if ep.IsAsync {
-						<span class="z-badge z-badge-muted">JSON</span>
-					} else {
-						<button class="z-btn z-btn-sm z-btn-primary" onclick={ sendFnRequest(fn.ID) }>@Icon("play", "") Send request</button>
-					}
-				</div>
-				<textarea id={ "fn-body-" + fn.ID } class="z-fn-test-editor z-mono" spellcheck="false" placeholder='{ "key": "value" }'>{ "{\n  \"key\": \"value\"\n}" }</textarea>
-			</div>
-
-			<div class="z-field">
-				<div class="z-log-toolbar">
-					<span class="z-label">Response</span>
-					<span id={ "fn-status-" + fn.ID } class="z-badge z-badge-muted">waiting</span>
-				</div>
-				<textarea id={ "fn-response-" + fn.ID } class="z-fn-test-editor z-mono" readonly spellcheck="false" placeholder="Response will appear here…"></textarea>
-			</div>
-		</div>
+		<div id={ "fn-test-host-" + fn.ID } class="fn-test-host"></div>
 
 		<div class="z-fn-traffic-logs">
 			<div class="z-log-toolbar">

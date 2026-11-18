@@ -1123,6 +1123,15 @@ button, input, select, textarea { font: inherit; }
 }
 .z-fn-test-editor:focus { border-color: rgba(138,180,255,.4); }
 .z-fn-traffic-logs { border-top: 1px solid var(--border); padding-top: 12px; }
+.fn-test-host:empty { display: none; }
+.z-test-inline {
+  position: static !important; display: block !important; background: transparent !important;
+  backdrop-filter: none !important; padding: 0 !important; z-index: auto !important;
+  inset: auto !important;
+}
+.z-test-inline > div { max-width: none !important; height: 460px !important; border-radius: 6px; }
+.z-test-inline button[onclick*="closeTestModal"],
+.z-test-inline button[onclick*="closeWsTestModal"] { display: none !important; }
 .z-log-toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
 .z-log-toolbar .z-label { margin-right: auto; }
 .z-fn-log { max-height: 230px; }
