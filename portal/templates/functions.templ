@@ -549,6 +549,24 @@ function mountTestUI(nodeID, host) {
   node.removeAttribute("onclick");
   node.style.display = "";
   host.appendChild(node);
+  if (nodeID === "ws-test-modal") initWsMessageEditor();
+}
+
+function initWsMessageEditor() {
+  if (!window.ace) {
+    setTimeout(initWsMessageEditor, 200);
+    return;
+  }
+  const el = document.getElementById("ws-message-ace");
+  if (!el) return;
+  if (!window.__wsMessageEditor) {
+    window.__wsMessageEditor = ace.edit(el);
+    window.__wsMessageEditor.setTheme("ace/theme/dracula");
+    window.__wsMessageEditor.session.setMode("ace/mode/json");
+    window.__wsMessageEditor.session.setUseWorker(false);
+    window.__wsMessageEditor.setValue('{ "message": "hello" }', -1);
+  }
+  setTimeout(() => window.__wsMessageEditor?.resize(), 60);
 }
 
 /* --- UI functions --- */
@@ -600,13 +618,6 @@ function setCreateMode(mode) {
     return;
   }
   const template = getTemplate(selectedLang, mode) || "";
-  if (createEditor) {
-    const current = createEditor.getValue();
-    if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
-      updateCreateModeButtons();
-      return;
-    }
-  }
   selectedCreateMode = mode;
   replaceMainBuffer("create", template);
   updateCreateModeButtons();
@@ -619,13 +630,6 @@ function setEditMode(mode) {
   }
   const lang = window.__editFnLang || "python";
   const template = getTemplate(lang, mode) || "";
-  if (editEditor) {
-    const current = editEditor.getValue();
-    if (current && current.trim() && !confirm("Switching mode will replace the editor content. Continue?")) {
-      updateEditModeButtons();
-      return;
-    }
-  }
   selectedEditMode = mode;
   replaceMainBuffer("edit", template);
   updateEditModeButtons();

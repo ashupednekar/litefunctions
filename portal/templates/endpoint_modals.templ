@@ -120,8 +120,12 @@ templ EndpointTestModals() {
           <button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto" onclick="clearWsLog()">Clear log</button>
         </div>
         <div id="ws-log" class="z-ws-log z-mono" style="margin-top:10px"></div>
-        <div class="z-input-group" style="margin-top:10px">
-          <input id="ws-message" class="z-input z-mono" placeholder="Message to send…"/>
+        <div style="display:flex;align-items:flex-end;gap:8px;margin-top:10px">
+          <div style="flex:1;min-width:0">
+            <label class="z-label" for="ws-message-ace">Message to send</label>
+            <div id="ws-message-ace" class="z-ws-message-ace"></div>
+            <textarea id="ws-message" class="hidden"></textarea>
+          </div>
           <button class="z-btn z-btn-sm z-btn-primary" onclick="sendWsMessage()">Send</button>
         </div>
       </div>
@@ -528,7 +532,7 @@ templ EndpointTestModals() {
 
       window.sendWsMessage = function () {
         const ws = window.__wsConn;
-        const msg = document.getElementById("ws-message")?.value || "";
+        const msg = window.__wsMessageEditor ? window.__wsMessageEditor.getValue() : (document.getElementById("ws-message")?.value || "");
         if (!ws || ws.readyState !== WebSocket.OPEN) {
           logWsMessage("info", "Not connected.");
           return;
