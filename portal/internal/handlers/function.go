@@ -263,6 +263,65 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 	c.JSON(200, out)
 }
 
+func (h *FunctionHandlers) ListFunctionFiles(c *gin.Context) {
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	r := c.MustGet("repo").(vcs.Repo)
+	fs := r.Filesystem()
+	dir := path.Dir(f.Path)
+
+	type file struct {
+		Path    string `json:"path"`
+		Content string `json:"content"`
+	}
+	files := []file{}
+
+	var walk func(string) error
+	walk = func(current string) error {
+		entries, err := fs.ReadDir(current)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			full := path.Join(current, entry.Name())
+			if entry.IsDir() {
+				if err := walk(full); err != nil {
+					return err
+				}
+				continue
+			}
+			fh, err := fs.Open(full)
+			if err != nil {
+				return err
+			}
+			data, err := io.ReadAll(fh)
+			fh.Close()
+			if err != nil {
+				return err
+			}
+			rel := strings.TrimPrefix(strings.TrimPrefix(full, dir), "/")
+			files = append(files, file{Path: rel, Content: string(data)})
+		}
+		return nil
+	}
+
+	if err := walk(dir); err != nil {
+		slog.Error("failed to read function package", "path", dir, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read function files"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"dir":        dir,
+		"entrypoint": strings.TrimPrefix(f.Path, dir+"/"),
+		"files":      files,
+	})
+}
+
 func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
@@ -290,12 +349,13 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 
 	//TODO: read file contents
 	c.JSON(200, gin.H{
-		"id":       hex.EncodeToString(f.ID.Bytes[:]),
-		"name":     f.Name,
-		"language": f.Language,
-		"path":     f.Path,
-		"is_async": f.IsAsync,
-		"content":  string(data),
+		"id":         hex.EncodeToString(f.ID.Bytes[:]),
+		"name":       f.Name,
+		"language":   f.Language,
+		"path":       f.Path,
+		"entrypoint": path.Base(f.Path),
+		"is_async":   f.IsAsync,
+		"content":    string(data),
 	})
 }
 
@@ -341,10 +401,15 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
-	var req struct {
+	type reqFile struct {
 		Path    string `json:"path"`
-		Code    string `json:"code"`
-		IsAsync *bool  `json:"is_async"`
+		Content string `json:"content"`
+	}
+	var req struct {
+		Path    string    `json:"path"`
+		Code    string    `json:"code"`
+		IsAsync *bool     `json:"is_async"`
+		Files   []reqFile `json:"files"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -367,8 +432,51 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		}
 	}
 
-	if req.Code != "" {
-		fh, err := r.Filesystem().Create(f.Path)
+	fs := r.Filesystem()
+	dir := path.Dir(f.Path)
+
+	if len(req.Files) > 0 {
+		for _, file := range req.Files {
+			clean := path.Clean(path.Join(dir, file.Path))
+			if clean != dir && !strings.HasPrefix(clean, dir+"/") {
+				c.JSON(400, gin.H{"error": "invalid file path"})
+				return
+			}
+			if d := path.Dir(clean); d != dir {
+				if err := fs.MkdirAll(d, 0755); err != nil {
+					c.JSON(500, gin.H{"error": "directory create error"})
+					return
+				}
+			}
+			fh, err := fs.Create(clean)
+			if err != nil {
+				c.JSON(500, gin.H{"error": "write error"})
+				return
+			}
+			if _, err := fh.Write([]byte(file.Content)); err != nil {
+				fh.Close()
+				c.JSON(500, gin.H{"error": "write error"})
+				return
+			}
+			fh.Close()
+		}
+
+		slog.Info("commiting function package", "path", dir)
+		err = r.Commit(dir)
+		if err != nil && !errors.Is(err, git.ErrEmptyCommit) {
+			slog.Error("error commiting package", "path", dir, "error", err)
+			c.JSON(500, gin.H{"error": "commit error"})
+			return
+		}
+
+		if err := r.Push(); err != nil {
+			c.JSON(500, gin.H{"error": "push error"})
+			return
+		}
+
+		resp["status"] = "saved"
+	} else if req.Code != "" {
+		fh, err := fs.Create(f.Path)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "write error"})
 			return

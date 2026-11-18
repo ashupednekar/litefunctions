@@ -209,7 +209,6 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 		<div class="z-modal-header">
 			@Icon("terminal", "")
 			<span class="z-modal-title">Live logs <span id="log-fullscreen-name" class="z-badge z-badge-muted"></span></span>
-			<span id="log-fullscreen-status" class="z-badge z-badge-muted">idle</span>
 			<button class="z-icon-btn" style="margin-left:auto" onclick="closeLogFullscreen()">@Icon("close", "")</button>
 		</div>
 		<div id="log-fullscreen-stream" class="z-log"></div>
@@ -1147,13 +1146,28 @@ function stubContent(lang, path, dirName) {
   return "// Placeholder file. Multi-file editing is tracked in #84.\n";
 }
 
-function initEditorFiles(mode, lang, mainContent) {
-  const manifest = FILE_MANIFESTS[lang] || FILE_MANIFESTS.python;
+function initEditorFiles(mode, lang, mainContent, files, entrypoint) {
   const contents = {};
-  const dirName = functionDirName(mode);
-  manifest.forEach(file => {
-    contents[file.path] = file.main ? (mainContent || "") : stubContent(lang, file.path, dirName);
-  });
+  const manifest = [];
+  if (Array.isArray(files) && files.length) {
+    files.forEach(file => {
+      manifest.push({ path: file.path, main: file.path === entrypoint });
+      contents[file.path] = file.content || "";
+    });
+    if (!manifest.some(f => f.main)) manifest[0].main = true;
+    const main = manifest.find(f => f.main) || manifest[0];
+    if (mainContent) contents[main.path] = mainContent;
+  } else if (entrypoint) {
+    manifest.push({ path: entrypoint, main: true });
+    contents[entrypoint] = mainContent || "";
+  } else {
+    const fallback = FILE_MANIFESTS[lang] || FILE_MANIFESTS.python;
+    const dirName = functionDirName(mode);
+    fallback.forEach(file => {
+      manifest.push({ path: file.path, main: !!file.main, stub: !file.main });
+      contents[file.path] = file.main ? (mainContent || "") : stubContent(lang, file.path, dirName);
+    });
+  }
   window["__" + mode + "Files"] = { lang: lang, manifest: manifest, contents: contents };
   window["__" + mode + "ActiveFile"] = (manifest.find(f => f.main) || manifest[0]).path;
   renderFileTree(mode);
@@ -1170,7 +1184,7 @@ function renderFileTree(mode) {
     const isActive = file.path === active;
     return '<button class="z-tree-file' + (isActive ? " active" : "") + '" data-path="' + escapeFnHtml(file.path) + '" onclick="selectEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')" title="' + escapeFnHtml(file.path) + '">' +
       zIcon("file") + '<span class="z-tree-name">' + escapeFnHtml(file.path) + '</span>' +
-      (file.main ? "" : '<span class="z-badge z-badge-amber">stub</span>') +
+      (file.stub ? '<span class="z-badge z-badge-amber">stub</span>' : "") +
       '</button>';
   }).join("");
   el.innerHTML =
@@ -1198,9 +1212,9 @@ function updateEditorPath(mode) {
   const el = document.getElementById(mode + "-editor-path");
   if (!state || !el) return;
   const active = window["__" + mode + "ActiveFile"];
-  const main = (state.manifest.find(f => f.main) || {}).path;
+  const activeFile = state.manifest.find(f => f.path === active);
   el.innerHTML = escapeFnHtml(functionDirName(mode)) + '/ <span style="color:var(--text)">' + escapeFnHtml(active) + '</span>' +
-    (active !== main ? ' <span class="z-badge z-badge-amber">stub</span>' : '');
+    (activeFile?.stub ? ' <span class="z-badge z-badge-amber">stub</span>' : '');
 }
 
 function renameFunctionDir(mode) {
@@ -1208,7 +1222,7 @@ function renameFunctionDir(mode) {
   if (!state) return;
   const dirName = functionDirName(mode);
   state.manifest.forEach(file => {
-    if (!file.main) state.contents[file.path] = stubContent(state.lang, file.path, dirName);
+    if (file.stub) state.contents[file.path] = stubContent(state.lang, file.path, dirName);
   });
   renderFileTree(mode);
   updateEditorPath(mode);

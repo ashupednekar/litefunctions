@@ -20,7 +20,6 @@ templ FunctionTrafficPanel(fn Function, ep Endpoint) {
 		<div class="z-fn-traffic-logs">
 			<div class="z-log-toolbar">
 				<span class="z-label">@Icon("terminal", "") Live logs</span>
-				<span id={ "fn-logs-status-" + fn.ID } class="z-badge z-badge-muted">idle</span>
 				<button id={ "fn-logs-toggle-" + fn.ID } class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("toggleFnLogStream", fn.ID) }>Pause</button>
 				<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("clearFnLogs", fn.ID) }>Clear</button>
 				<button class="z-btn z-btn-sm z-btn-primary" onclick={ templ.JSFuncCall("openFnLogFullscreen", fn.ID) }>@Icon("maximize", "") Fullscreen</button>
@@ -40,7 +39,6 @@ templ FunctionBuildPanel(fn Function) {
 		<div class="z-fn-traffic-logs">
 			<div class="z-log-toolbar">
 				<span class="z-label">@Icon("terminal", "") Live build logs</span>
-				<span id={ "fn-build-status-" + fn.ID } class="z-badge z-badge-muted">idle</span>
 				<button id={ "fn-build-toggle-" + fn.ID } class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("toggleFnBuildStream", fn.ID) }>Pause</button>
 				<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("clearFnBuildLogs", fn.ID) }>Clear</button>
 				<button class="z-btn z-btn-sm z-btn-primary" onclick={ templ.JSFuncCall("openFnBuildFullscreen", fn.ID) }>@Icon("maximize", "") Fullscreen</button>

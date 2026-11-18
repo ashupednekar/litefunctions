@@ -98,6 +98,7 @@ func (s *Server) BuildRoutes() {
 		api.POST("/functions/", manager, functionHandlers.CreateFunction)
 		api.GET("/functions/", functionHandlers.ListFunctions)
 		api.GET("/functions/:fnID/", functionHandlers.GetFunction)
+		api.GET("/functions/:fnID/files/", functionHandlers.ListFunctionFiles)
 		api.GET("/functions/:fnID/logs/", functionHandlers.StreamLogs)
 		api.PUT("/functions/:fnID/", manager, functionHandlers.UpdateFunction)
 		api.DELETE("/functions/:fnID/", manager, functionHandlers.DeleteFunction)
