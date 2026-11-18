@@ -282,6 +282,7 @@ type Function struct {
 	EndpointID   string
 	EndpointName string
 	IsAsync      bool
+	Method       string
 }
 
 func trafficEndpointName(fn Function, ep Endpoint) string {
@@ -302,7 +303,7 @@ func trafficMethod(fn Function, ep Endpoint) string {
 	if ep.Method != "" {
 		return ep.Method
 	}
-	return "GET"
+	return "POST"
 }
 
 type Lang struct {

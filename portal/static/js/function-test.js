@@ -19,13 +19,13 @@
 
   function endpointMethods(value) {
     const seen = new Set();
-    const methods = String(value || "GET").split(",").map(method => method.trim().toUpperCase())
+    const methods = String(value || "POST").split(",").map(method => method.trim().toUpperCase())
       .filter(method => {
         if (!httpMethods.includes(method) || seen.has(method)) return false;
         seen.add(method);
         return true;
       });
-    return methods.length ? methods : ["GET"];
+    return methods.length ? methods : ["POST"];
   }
 
   function methodOptions(value) {
@@ -293,7 +293,7 @@
   window.runFunctionTest = async function (id) {
     const panel = panelFor(id);
     if (!panel) return;
-    const method = document.getElementById("fn-test-method-" + id)?.value || "GET";
+    const method = document.getElementById("fn-test-method-" + id)?.value || "POST";
     const body = document.getElementById("fn-test-body-" + id)?.value || "";
     const headersInput = document.getElementById("fn-test-headers-" + id)?.value || "";
     const button = document.getElementById("fn-test-send-" + id);

@@ -171,6 +171,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 
 	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
 	endpointByFn := map[string]string{}
+	endpointMethodByFn := map[string]string{}
 	if eps, err := epQ.ListEndpointsForProject(ctx.Request.Context(), projUUID); err == nil {
 		for _, ep := range eps {
 			fnID := hex.EncodeToString(ep.FunctionID.Bytes[:])
@@ -178,6 +179,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 				continue
 			}
 			endpointByFn[fnID] = hex.EncodeToString(ep.ID.Bytes[:])
+			endpointMethodByFn[fnID] = ep.Method
 		}
 	}
 
@@ -187,6 +189,10 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
 			fnID := hex.EncodeToString(f.ID.Bytes[:])
 
+			method := endpointMethodByFn[fnID]
+			if method == "" {
+				method = "POST"
+			}
 			projectName, _ := ctx.Get("projectName")
 			projectNameStr, _ := projectName.(string)
 			functions = append(functions, templates.Function{
@@ -197,6 +203,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 				EndpointID:   endpointByFn[fnID],
 				EndpointName: fmt.Sprintf("/%s/%s", projectNameStr, f.Name),
 				IsAsync:      f.IsAsync,
+				Method:       method,
 			})
 		}
 	}

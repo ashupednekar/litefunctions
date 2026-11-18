@@ -181,7 +181,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
 		ProjectID:  projectUUID,
 		Name:       epPath,
-		Method:     "GET",
+		Method:     "POST",
 		Scope:      "public",
 		FunctionID: fn.ID,
 	})

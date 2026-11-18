@@ -278,10 +278,10 @@ templ EndpointTestModals() {
 
     const allowedHttpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
     function methodsForEndpoint(endpoint) {
-      const methods = String(endpoint?.method || "GET").split(",")
+      const methods = String(endpoint?.method || "POST").split(",")
         .map(method => method.trim().toUpperCase())
         .filter(method => allowedHttpMethods.includes(method));
-      return [...new Set(methods.length ? methods : ["GET"])];
+      return [...new Set(methods.length ? methods : ["POST"])];
     }
     function renderEndpointMethods(endpoint) {
       const endpointName = document.getElementById("test-endpoint-name");
@@ -370,7 +370,7 @@ templ EndpointTestModals() {
       };
 
       select?.addEventListener("change", syncMethodFromEndpoint);
-      methodSelect?.addEventListener("change", () => setTestBodyEnabled(String(methodSelect.value || "GET").toUpperCase()));
+      methodSelect?.addEventListener("change", () => setTestBodyEnabled(String(methodSelect.value || "POST").toUpperCase()));
       syncMethodFromEndpoint();
     });
   </script>

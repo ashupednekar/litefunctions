@@ -534,7 +534,7 @@ window.__endpointList = (() => {
     const id = panel.id.replace("fn-traffic-", "");
     const endpointID = panel.getAttribute("data-endpoint-id") || id;
     const name = panel.getAttribute("data-endpoint-name") || "";
-    const method = panel.getAttribute("data-endpoint-method") || "GET";
+    const method = panel.getAttribute("data-endpoint-method") || "POST";
     if (name && !list.some(ep => ep.id === endpointID)) list.push({ id: endpointID, name: name, method: method });
   });
   return list;
@@ -1242,6 +1242,17 @@ templ functionConfigPanel(fn Function) {
 			<span class="z-help">Runtime, isolation and rate limits scoped to this function.</span>
 		</div>
 		<div class="z-fn-config-grid">
+			<div class="z-field">
+				<label class="z-label" for={ "fn-config-method-" + fn.ID }>HTTP method</label>
+				<select id={ "fn-config-method-" + fn.ID } class="z-select z-mono">
+					<option value="GET" selected?={ fn.Method == "GET" }>GET</option>
+					<option value="POST" selected?={ fn.Method == "POST" }>POST</option>
+					<option value="PUT" selected?={ fn.Method == "PUT" }>PUT</option>
+					<option value="PATCH" selected?={ fn.Method == "PATCH" }>PATCH</option>
+					<option value="DELETE" selected?={ fn.Method == "DELETE" }>DELETE</option>
+				</select>
+				<span class="z-help">Method for the generated endpoint. Defaults to POST.</span>
+			</div>
 			<div class="z-field">
 				<label class="z-label">Runtime interface</label>
 				<select class="z-select">
