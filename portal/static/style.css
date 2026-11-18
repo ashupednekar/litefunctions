@@ -931,6 +931,8 @@ button, input, select, textarea { font: inherit; }
   background: rgba(255,255,255,.012);
 }
 .z-fn-config-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.z-fn-config-head .z-panel-title { font-size: 10px; color: var(--text-2); }
+.z-fn-config-head .z-panel-title svg { width: 10px; height: 10px; }
 .z-fn-config-head .z-help { margin-left: auto; }
 .z-fn-config-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 14px; }
 .z-fn-config-foot {
