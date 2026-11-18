@@ -29,3 +29,22 @@ templ FunctionTrafficPanel(fn Function, ep Endpoint) {
 		</div>
 	</div>
 }
+
+templ FunctionBuildPanel(fn Function) {
+	<div id={ "fn-build-" + fn.ID } class="z-fn-config hidden" data-fn-build>
+		<div class="z-fn-config-head">
+			<span class="z-panel-title">@Icon("package", "") Build logs</span>
+			<span class="z-badge z-badge-muted">{ fn.Name }</span>
+			<span class="z-help">Gitea Actions runner output for this project.</span>
+		</div>
+		<div class="z-fn-traffic-logs">
+			<div class="z-log-toolbar">
+				<span class="z-label">@Icon("terminal", "") Live build logs</span>
+				<span id={ "fn-build-status-" + fn.ID } class="z-badge z-badge-muted">idle</span>
+				<button id={ "fn-build-toggle-" + fn.ID } class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("toggleFnBuildStream", fn.ID) }>Pause</button>
+				<button class="z-btn z-btn-sm" onclick={ templ.JSFuncCall("clearFnBuildLogs", fn.ID) }>Clear</button>
+			</div>
+			<div id={ "fn-build-logs-" + fn.ID } class="z-log z-fn-log"></div>
+		</div>
+	</div>
+}

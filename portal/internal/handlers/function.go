@@ -509,10 +509,14 @@ func (h *FunctionHandlers) StreamLogs(c *gin.Context) {
 	params := tailURL.Query()
 	// Loki's tail endpoint parses the query as a single LogQL selector; a
 	// binary "or" expression is rejected before the websocket upgrade.
-	params.Set("query", fmt.Sprintf(
-		`{app=~"runtime|litefunctions-ingestor", function=~"%s|"}`,
-		regexp.QuoteMeta(f.Name),
-	))
+	if c.Query("source") == "build" {
+		params.Set("query", `{app="actions-act-runner"}`)
+	} else {
+		params.Set("query", fmt.Sprintf(
+			`{app=~"runtime|litefunctions-ingestor", function=~"%s|"}`,
+			regexp.QuoteMeta(f.Name),
+		))
+	}
 	params.Set("limit", "200")
 	params.Set("delay_for", "0")
 	tailURL.RawQuery = params.Encode()

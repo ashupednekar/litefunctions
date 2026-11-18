@@ -29,6 +29,19 @@ func NewUIHandlers(s *state.AppState) *UIHandlers {
 	return &UIHandlers{state: s}
 }
 
+// projectRepoURL builds the public web URL for a project's VCS repository.
+func projectRepoURL(projectName string) string {
+	if strings.TrimSpace(projectName) == "" {
+		return ""
+	}
+	vc := config.Cfg.VCSConfig()
+	base := strings.TrimSpace(vc.PublicBaseUrl)
+	if base == "" {
+		base = "https://" + config.Cfg.Fqdn
+	}
+	return strings.TrimRight(base, "/") + "/" + vc.User + "/" + projectName
+}
+
 // shellData builds the persistent application chrome for a page.
 func shellData(ctx *gin.Context, title string, section string, active string) templates.ShellData {
 	username := "User"
@@ -170,6 +183,9 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	epQ := endpointAdaptors.New(h.state.DBPool)
 
 	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
+	projectName, _ := ctx.Get("projectName")
+	projectNameStr, _ := projectName.(string)
+	repoURL := projectRepoURL(projectNameStr)
 	endpointByFn := map[string]string{}
 	endpointMethodByFn := map[string]string{}
 	if eps, err := epQ.ListEndpointsForProject(ctx.Request.Context(), projUUID); err == nil {
@@ -195,8 +211,6 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			} else if method == "" {
 				method = "POST"
 			}
-			projectName, _ := ctx.Get("projectName")
-			projectNameStr, _ := projectName.(string)
 			functions = append(functions, templates.Function{
 				ID:           fnID,
 				Name:         f.Name,
@@ -241,7 +255,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 
 	page := templates.BaseLayout(
 		shellData(ctx, "Functions", "Workspace", "functions"),
-		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples, h.loadEndpoints(ctx)),
+		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples, h.loadEndpoints(ctx), repoURL),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {

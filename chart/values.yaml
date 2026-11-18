@@ -481,7 +481,7 @@ alloy:
 
           selectors {
             role  = "pod"
-            label = "app in (runtime,litefunctions-ingestor)"
+            label = "app in (runtime,litefunctions-ingestor,actions-act-runner)"
             field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
           }
         }
@@ -491,7 +491,7 @@ alloy:
 
           rule {
             source_labels = ["__meta_kubernetes_pod_label_app"]
-            regex         = "runtime|litefunctions-ingestor"
+            regex         = "runtime|litefunctions-ingestor|actions-act-runner"
             action        = "keep"
           }
 

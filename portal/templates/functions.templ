@@ -1,5 +1,19 @@
 package templates
 
+import "strings"
+
+script selectFnMethod(id string, method string) {
+	const input = document.getElementById("fn-config-methods-" + id);
+	const methods = new Set((input?.value || "").split(",").filter(Boolean));
+	if (methods.has(method)) methods.delete(method); else methods.add(method);
+	const selectedMethods = [...methods];
+	["GET", "POST", "PUT", "PATCH", "DELETE"].forEach(m => {
+		const btn = document.getElementById("fn-method-" + m + "-" + id);
+		if (btn) btn.classList.toggle("selected", methods.has(m));
+	});
+	if (input) input.value = selectedMethods.join(",");
+}
+
 script copyFn(id string) {
 }
 script openCreate() {
@@ -19,7 +33,7 @@ script saveCreate(exit bool) {
 script saveEdit(exit bool) {
 }
 
-templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample, endpoints []Endpoint) {
+templ FunctionContent(functions []Function, langs []Lang, activeProjectID string, username string, samples map[string]CodeSample, endpoints []Endpoint, repoURL string) {
 
 @templ.JSONScript("function-samples", samples)
 @templ.JSONScript("endpoint-list", endpoints)
@@ -50,7 +64,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 			</div>
 		}
 		for _, fn := range functions {
-			<div class="z-fn-row" data-fn-name={ fn.Name } data-fn-id={ fn.ID } data-fn-endpoint-id={ fn.EndpointID }>
+			<div class="z-fn-row" data-fn-name={ fn.Name } data-fn-id={ fn.ID } data-fn-endpoint-id={ fn.EndpointID } data-fn-language={ fn.Language } data-fn-async={ boolString(fn.IsAsync) }>
 				<span class="z-fn-icon"><img src={ fn.Icon } alt=""/></span>
 				<div class="z-fn-main">
 					<div class="z-fn-name">{ fn.Name }</div>
@@ -60,15 +74,18 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					</div>
 				</div>
 				<div class="z-fn-actions">
+					<a id={ "fn-row-build-" + fn.ID } class="z-badge z-badge-muted hidden" target="_blank" rel="noopener" title="Latest Actions run">No Actions</a>
 					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
 					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
 					<button class="z-icon-btn" title="Edit" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "")</button>
 					<button class="z-icon-btn" id={ "fn-test-btn-" + fn.ID } title="Test &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "")</button>
+					<button class="z-icon-btn" id={ "fn-build-btn-" + fn.ID } title="Build logs" onclick={ templ.JSFuncCall("toggleFnBuild", fn.ID) }>@Icon("package", "")</button>
 					<button class="z-icon-btn" title="Delete" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>@Icon("trash", "")</button>
 				</div>
 			</div>
-			@functionConfigPanel(fn)
+			@functionConfigPanel(fn, repoURL)
 			@FunctionTrafficPanel(fn, endpointForFunction(endpoints, fn.ID))
+			@FunctionBuildPanel(fn)
 		}
 	</div>
 </div>
@@ -507,6 +524,272 @@ function closeLogFullscreen() {
 function clearActiveFnLogs() { if (activeLogFnID) clearFnLogs(activeLogFnID); }
 function toggleActiveFnLog() { if (activeLogFnID) toggleFnLogStream(activeLogFnID); }
 
+/* --- live build logs --- */
+const fnBuildStreams = new Map();
+
+function fnBuildState(id) {
+  if (!fnBuildStreams.has(id)) fnBuildStreams.set(id, { id: id, source: null, paused: false, lines: [] });
+  return fnBuildStreams.get(id);
+}
+
+function setFnBuildStatus(id, text, tone) {
+  const el = document.getElementById("fn-build-status-" + id);
+  if (el) { el.textContent = text; el.className = "z-badge z-badge-" + (tone || "muted"); }
+}
+
+function closeFnBuild(id) {
+  const st = fnBuildStreams.get(id);
+  if (st && st.source) { st.source.close(); st.source = null; }
+}
+
+function startFnBuild(id) {
+  if (!id) return;
+  const st = fnBuildState(id);
+  if (st.source) return;
+  setFnBuildStatus(id, "connecting", "amber");
+  try {
+    const es = new EventSource(`/api/functions/${encodeURIComponent(id)}/logs/?source=build`);
+    es.addEventListener("logs", (event) => {
+      let payload;
+      try { payload = JSON.parse(event.data || "{}"); } catch (e) { return; }
+      ingestFnBuildLog(st, payload);
+      setFnBuildStatus(id, "live", "green");
+    });
+    es.onerror = () => setFnBuildStatus(id, "reconnecting", "amber");
+    st.source = es;
+  } catch (e) {
+    setFnBuildStatus(id, "error", "red");
+  }
+}
+
+function ingestFnBuildLog(st, payload) {
+  const streams = payload.streams || payload.result || (payload.data && payload.data.result) || [];
+  if (!Array.isArray(streams)) return;
+  streams.forEach(stream => {
+    const labels = stream.stream || {};
+    (stream.values || []).forEach(value => {
+      if (!Array.isArray(value) || value.length < 2) return;
+      const ms = Number(value[0]) / 1e6;
+      appendFnBuildLine(st, {
+        time: (isNaN(ms) ? new Date() : new Date(ms)).toLocaleTimeString(),
+        app: labels.app || "",
+        fn: labels.function || "",
+        line: String(value[1])
+      });
+    });
+  });
+}
+
+function appendFnBuildLine(st, entry) {
+  st.lines.push(entry);
+  if (st.lines.length > 1000) st.lines.shift();
+  const inline = document.getElementById("fn-build-logs-" + st.id);
+  if (inline) {
+    inline.appendChild(fnLogLineNode(entry));
+    while (inline.childElementCount > 1000) inline.removeChild(inline.firstChild);
+    if (inline.offsetParent !== null) inline.scrollTop = inline.scrollHeight;
+  }
+}
+
+function clearFnBuildLogs(id) {
+  const st = fnBuildState(id);
+  st.lines = [];
+  const inline = document.getElementById("fn-build-logs-" + id);
+  if (inline) inline.innerHTML = "";
+}
+
+function toggleFnBuildStream(id) {
+  const st = fnBuildState(id);
+  st.paused = !st.paused;
+  const label = st.paused ? "Resume" : "Pause";
+  const btn = document.getElementById("fn-build-toggle-" + id);
+  if (btn) btn.textContent = label;
+  if (st.paused) closeFnBuild(id);
+  else startFnBuild(id);
+  setFnBuildStatus(id, st.paused ? "paused" : "live", st.paused ? "amber" : "green");
+}
+
+function toggleFnBuild(id) {
+  const panel = document.getElementById("fn-build-" + id);
+  if (!panel) return;
+  const willOpen = panel.classList.contains("hidden");
+  document.querySelectorAll("[data-fn-build]").forEach(p => {
+    p.classList.add("hidden");
+    closeFnBuild(p.id.replace("fn-build-", ""));
+  });
+  document.querySelectorAll('[id^="fn-build-btn-"]').forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("[data-fn-traffic]").forEach(p => {
+    p.classList.add("hidden");
+    closeFnLog(p.id.replace("fn-traffic-", ""));
+  });
+  document.querySelectorAll('[id^="fn-test-btn-"]').forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
+  document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
+  if (willOpen) {
+    panel.classList.remove("hidden");
+    document.getElementById("fn-build-btn-" + id)?.classList.add("active");
+    startFnBuild(id);
+  }
+}
+
+/* --- Actions build status pill --- */
+function fnIsInProgress(run) {
+  if (!run) return false;
+  const raw = run.status || run.Status;
+  if (!raw) return false;
+  const status = String(raw).toLowerCase();
+  return status === "in_progress" || status === "queued" || status === "waiting" || status === "running";
+}
+
+function fnGetRuns(progress) {
+  if (!progress) return [];
+  if (Array.isArray(progress.Runs)) return progress.Runs;
+  if (Array.isArray(progress.runs)) return progress.runs;
+  return [];
+}
+
+function fnNormalizeName(val) {
+  return String(val || "").trim().toLowerCase();
+}
+
+function fnGetRunName(run) {
+  return fnNormalizeName(run?.FunctionName || run?.function_name || run?.WorkflowName || run?.workflow_name || run?.Name || run?.name || "");
+}
+
+function fnExtractFunctionName(run) {
+  const title = String(run?.DisplayTitle || run?.display_title || "").toLowerCase();
+  if (!title) return "";
+  const m = title.match(/functions\/(?:go|rs|rust|py|python|ts|typescript|lua)\/([^.\s\/]+)\./);
+  return m ? m[1] : "";
+}
+
+function fnNormalizeStatus(run) {
+  if (!run) return {status: "", conclusion: ""};
+  return {
+    status: String(run.status || run.Status || "").toLowerCase(),
+    conclusion: String(run.conclusion || run.Conclusion || "").toLowerCase()
+  };
+}
+
+function fnIsRunSuccess(run) {
+  const {status, conclusion} = fnNormalizeStatus(run);
+  if (conclusion === "success" || status === "success") return true;
+  return status === "completed" && !conclusion;
+}
+
+function fnIsFailure(run) {
+  const {status, conclusion} = fnNormalizeStatus(run);
+  const bad = ["failure", "failed", "cancelled", "canceled", "error", "timed_out"];
+  return bad.includes(conclusion) || bad.includes(status);
+}
+
+function fnRelevantJobs(language) {
+  switch (fnNormalizeName(language)) {
+    case "go": return ["build-go"];
+    case "rust": case "rs": return ["build-rust"];
+    case "python": case "py": return ["hook-python"];
+    case "ts": case "typescript": return ["hook-ts"];
+    case "lua": return ["hook-lua"];
+    default: return [];
+  }
+}
+
+function fnJobName(run) {
+  return fnNormalizeName(run?.CurrentJob || run?.current_job || run?.Name || run?.name || "");
+}
+
+function fnIsRelevantRun(run, language) {
+  const relevant = fnRelevantJobs(language);
+  if (!relevant.length) return true;
+  const job = fnJobName(run);
+  if (!job) return false;
+  return relevant.some(r => job.includes(r));
+}
+
+function fnIsRelevantCurrentJob(language, currentJob) {
+  const relevant = fnRelevantJobs(language);
+  if (!relevant.length) return true;
+  const job = fnNormalizeName(currentJob);
+  if (!job) return true;
+  return relevant.some(r => job.includes(r));
+}
+
+function fnPickRun(runs, functionName, language) {
+  const target = fnNormalizeName(functionName);
+  if (!target) return null;
+  const matching = runs.filter(r => fnGetRunName(r) === target || fnExtractFunctionName(r) === target);
+  if (!matching.length) return null;
+  const activeRelevant = matching.find(r => fnIsInProgress(r) && fnIsRelevantRun(r, language));
+  if (activeRelevant) return activeRelevant;
+  const successRelevant = matching.find(r => fnIsRunSuccess(r) && fnIsRelevantRun(r, language));
+  if (successRelevant) return successRelevant;
+  return matching.find(fnIsInProgress) || matching[0];
+}
+
+function fnStatusClass(status, conclusion, running) {
+  if (running) return "z-badge-amber";
+  if (conclusion === "success" || status === "success") return "z-badge-green";
+  const bad = ["failure", "failed", "cancelled", "canceled", "error", "timed_out"];
+  if (bad.includes(conclusion) || bad.includes(status)) return "z-badge-red";
+  return "z-badge-muted";
+}
+
+function fnStatusLabel(run, running) {
+  const name = run?.Name || run?.name || "Build";
+  if (running) return `Running: ${name}`;
+  const {status, conclusion} = fnNormalizeStatus(run);
+  if (conclusion === "success" || status === "success") return `Success: ${name}`;
+  const bad = ["failure", "failed", "cancelled", "canceled", "error", "timed_out"];
+  if (bad.includes(conclusion) || bad.includes(status)) return `Failed: ${name}`;
+  if (status) return `${status}: ${name}`;
+  return name;
+}
+
+function fnUpdateRowBuildStatus(progress) {
+  const runs = fnGetRuns(progress);
+  document.querySelectorAll(".z-fn-row[data-fn-id]").forEach(row => {
+    const id = row.getAttribute("data-fn-id");
+    const fnName = row.getAttribute("data-fn-name") || "";
+    const language = row.getAttribute("data-fn-language") || "";
+    const pill = document.getElementById("fn-row-build-" + id);
+    if (!pill) return;
+    const display = fnPickRun(runs, fnName, language);
+    const baseRunning = display ? fnIsInProgress(display) : false;
+    const url = (display && (display.HTMLURL || display.htmlurl)) || "";
+    const jobName = display?.CurrentJob || display?.current_job || "";
+    const relevantRunning = baseRunning && fnIsRelevantCurrentJob(language, jobName);
+    const effectiveStatus = (baseRunning && !relevantRunning) ? "success" : (display?.status || display?.Status);
+    const effectiveConclusion = (baseRunning && !relevantRunning) ? "success" : (display?.conclusion || display?.Conclusion);
+    const cls = fnStatusClass(effectiveStatus, effectiveConclusion, relevantRunning);
+    const label = display
+      ? (baseRunning && !relevantRunning
+        ? `Success: ${jobName || (display?.Name || display?.name || "Build")}`
+        : fnStatusLabel(display, relevantRunning))
+      : "No Actions";
+    if (url) {
+      pill.setAttribute("href", url);
+      pill.classList.remove("pointer-events-none", "opacity-70");
+    } else {
+      pill.setAttribute("href", "#");
+      pill.classList.add("pointer-events-none", "opacity-70");
+    }
+    pill.className = `z-badge ${cls}`;
+    pill.textContent = label;
+    pill.classList.remove("hidden");
+  });
+}
+
+function fnStartActionsSSE() {
+  if (!window.EventSource) return;
+  const es = new EventSource("/api/actions/status/");
+  es.addEventListener("status", (ev) => {
+    try {
+      fnUpdateRowBuildStatus(JSON.parse(ev.data || "{}"));
+    } catch (e) {}
+  });
+  es.addEventListener("error", () => fnUpdateRowBuildStatus(null));
+}
+
 function openFnFromQuery() {
   const params = new URLSearchParams(window.location.search);
   const fnID = params.get("fn");
@@ -656,6 +939,11 @@ function toggleFnConfig(id) {
       closeFnLog(p.id.replace("fn-traffic-", ""));
     });
     document.querySelectorAll('[id^="fn-test-btn-"]').forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("[data-fn-build]").forEach(p => {
+      p.classList.add("hidden");
+      closeFnBuild(p.id.replace("fn-build-", ""));
+    });
+    document.querySelectorAll('[id^="fn-build-btn-"]').forEach(b => b.classList.remove("active"));
     panel.classList.remove("hidden");
     document.getElementById("fn-config-btn-" + id)?.classList.add("active");
   }
@@ -672,6 +960,11 @@ function toggleFnTraffic(id) {
   document.querySelectorAll('[id^="fn-test-btn-"]').forEach(b => b.classList.remove("active"));
   document.querySelectorAll("[data-fn-config]").forEach(p => p.classList.add("hidden"));
   document.querySelectorAll('[id^="fn-config-btn-"]').forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("[data-fn-build]").forEach(p => {
+    p.classList.add("hidden");
+    closeFnBuild(p.id.replace("fn-build-", ""));
+  });
+  document.querySelectorAll('[id^="fn-build-btn-"]').forEach(b => b.classList.remove("active"));
   if (willOpen) {
     panel.classList.remove("hidden");
     document.getElementById("fn-test-btn-" + id)?.classList.add("active");
@@ -1131,6 +1424,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   window.__activeProjectID = getActiveProjectID();
+  fnStartActionsSSE();
   selectLang(selectedLang);
   updateCreateModeButtons();
   updateEditModeButtons();
@@ -1222,7 +1516,7 @@ function refreshList() {
 
 }
 
-templ functionConfigPanel(fn Function) {
+templ functionConfigPanel(fn Function, repoURL string) {
 	<div id={ "fn-config-" + fn.ID } class="z-fn-config hidden" data-fn-config>
 		<div class="z-fn-config-head">
 			<span class="z-panel-title">Function config</span>
@@ -1232,15 +1526,18 @@ templ functionConfigPanel(fn Function) {
 		</div>
 		<div class="z-fn-config-grid">
 			<div class="z-field">
-				<label class="z-label" for={ "fn-config-method-" + fn.ID }>HTTP method</label>
-				<select id={ "fn-config-method-" + fn.ID } class="z-select z-mono">
-					<option value="GET" selected?={ fn.Method == "GET" }>GET</option>
-					<option value="POST" selected?={ fn.Method == "POST" }>POST</option>
-					<option value="PUT" selected?={ fn.Method == "PUT" }>PUT</option>
-					<option value="PATCH" selected?={ fn.Method == "PATCH" }>PATCH</option>
-					<option value="DELETE" selected?={ fn.Method == "DELETE" }>DELETE</option>
-				</select>
-				<span class="z-help">Method for the generated endpoint. Defaults to POST.</span>
+				<span class="z-label">HTTP methods</span>
+				if fn.IsAsync {
+					<div style="margin-top:7px"><span class="z-badge z-badge-purple">WebSocket · GET</span></div>
+				} else {
+					<input type="hidden" id={ "fn-config-methods-" + fn.ID } value={ fn.Method }/>
+					<div class="z-method-row">
+						for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+							<button type="button" onclick={ selectFnMethod(fn.ID, m) } id={ "fn-method-" + m + "-" + fn.ID } class={ "z-method-btn", templ.KV("selected", strings.Contains(fn.Method, m)) }>{ m }</button>
+						}
+					</div>
+				}
+				<span class="z-help">Methods for the generated endpoint. Defaults to POST.</span>
 			</div>
 			<div class="z-field">
 				<label class="z-label">Runtime interface</label>
@@ -1281,7 +1578,9 @@ templ functionConfigPanel(fn Function) {
 			</div>
 		</div>
 		<div class="z-fn-config-foot">
-			<a class="z-btn z-btn-sm" href="https://github.com/ashupednekar/litefunctions" target="_blank" rel="noopener">@Icon("github", "") Repo</a>
+			if repoURL != "" {
+				<a class="z-btn z-btn-sm" href={ repoURL } target="_blank" rel="noopener" aria-label="Open repository in Gitea" title="Open repository in Gitea">@Icon("github", "")</a>
+			}
 			<span class="z-help">Config is stored with this function package.</span>
 			<button class="z-btn z-btn-sm z-btn-primary" style="margin-left:auto" onclick="toast('Function config saved (placeholder)','success')">@Icon("save", "") Save config</button>
 		</div>
