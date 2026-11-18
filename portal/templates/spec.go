@@ -275,11 +275,41 @@ type AccessUser struct {
 }
 
 type Function struct {
-	ID         string
-	Name       string
-	Language   string
-	Icon       string
-	EndpointID string
+	ID           string
+	Name         string
+	Language     string
+	Icon         string
+	EndpointID   string
+	EndpointName string
+	IsAsync      bool
+	Method       string
+}
+
+func trafficEndpointName(fn Function, ep Endpoint) string {
+	if ep.Name != "" {
+		return ep.Name
+	}
+	return fn.EndpointName
+}
+
+func trafficIsAsync(fn Function, ep Endpoint) bool {
+	if ep.ID != "" {
+		return ep.IsAsync
+	}
+	return fn.IsAsync
+}
+
+func trafficMethod(fn Function, ep Endpoint) string {
+	if trafficIsAsync(fn, ep) {
+		return "GET"
+	}
+	if ep.Method != "" {
+		return ep.Method
+	}
+	if fn.Method != "" {
+		return fn.Method
+	}
+	return "POST"
 }
 
 type Lang struct {
@@ -292,4 +322,20 @@ type Lang struct {
 type CodeSample struct {
 	Sync  string `json:"sync"`
 	Async string `json:"async"`
+}
+
+func boolString(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+func endpointForFunction(endpoints []Endpoint, fnID string) Endpoint {
+	for _, ep := range endpoints {
+		if ep.ID == fnID {
+			return ep
+		}
+	}
+	return Endpoint{}
 }

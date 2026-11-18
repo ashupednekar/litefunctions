@@ -121,7 +121,7 @@ func applyBootstrapEvent(ctx context.Context, s *state.AppState, event events.Fu
 	}
 	endpointName := fmt.Sprintf("/%s/%s", event.Project, event.Name)
 	for _, endpoint := range existingEndpoints {
-		if endpoint.FunctionID == fn.ID && endpoint.Method == "GET" && endpoint.Name == endpointName {
+		if endpoint.FunctionID == fn.ID && endpoint.Method == "POST" && endpoint.Name == endpointName {
 			return nil
 		}
 	}
@@ -129,7 +129,7 @@ func applyBootstrapEvent(ctx context.Context, s *state.AppState, event events.Fu
 	if _, err := endpoints.CreateEndpoint(ctx, endpointadaptors.CreateEndpointParams{
 		ProjectID:  project.ID,
 		Name:       endpointName,
-		Method:     "GET",
+		Method:     "POST",
 		Scope:      "public",
 		FunctionID: fn.ID,
 	}); err != nil {

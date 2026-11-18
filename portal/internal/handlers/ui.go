@@ -29,6 +29,19 @@ func NewUIHandlers(s *state.AppState) *UIHandlers {
 	return &UIHandlers{state: s}
 }
 
+// projectRepoURL builds the public web URL for a project's VCS repository.
+func projectRepoURL(projectName string) string {
+	if strings.TrimSpace(projectName) == "" {
+		return ""
+	}
+	vc := config.Cfg.VCSConfig()
+	base := strings.TrimSpace(vc.PublicBaseUrl)
+	if base == "" {
+		base = "https://" + config.Cfg.Fqdn
+	}
+	return strings.TrimRight(base, "/") + "/" + vc.User + "/" + projectName
+}
+
 // shellData builds the persistent application chrome for a page.
 func shellData(ctx *gin.Context, title string, section string, active string) templates.ShellData {
 	username := "User"
@@ -170,7 +183,11 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	epQ := endpointAdaptors.New(h.state.DBPool)
 
 	projUUID := ctx.MustGet("projectUUID").(pgtype.UUID)
+	projectName, _ := ctx.Get("projectName")
+	projectNameStr, _ := projectName.(string)
+	repoURL := projectRepoURL(projectNameStr)
 	endpointByFn := map[string]string{}
+	endpointMethodByFn := map[string]string{}
 	if eps, err := epQ.ListEndpointsForProject(ctx.Request.Context(), projUUID); err == nil {
 		for _, ep := range eps {
 			fnID := hex.EncodeToString(ep.FunctionID.Bytes[:])
@@ -178,6 +195,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 				continue
 			}
 			endpointByFn[fnID] = hex.EncodeToString(ep.ID.Bytes[:])
+			endpointMethodByFn[fnID] = ep.Method
 		}
 	}
 
@@ -187,12 +205,21 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			icon := fmt.Sprintf("/static/imgs/%s-svgrepo-com.svg", lang)
 			fnID := hex.EncodeToString(f.ID.Bytes[:])
 
+			method := endpointMethodByFn[fnID]
+			if f.IsAsync {
+				method = "GET"
+			} else if method == "" {
+				method = "POST"
+			}
 			functions = append(functions, templates.Function{
-				ID:         fnID,
-				Name:       f.Name,
-				Language:   lang,
-				Icon:       icon,
-				EndpointID: endpointByFn[fnID],
+				ID:           fnID,
+				Name:         f.Name,
+				Language:     lang,
+				Icon:         icon,
+				EndpointID:   endpointByFn[fnID],
+				EndpointName: fmt.Sprintf("/%s/%s", projectNameStr, f.Name),
+				IsAsync:      f.IsAsync,
+				Method:       method,
 			})
 		}
 	}
@@ -228,7 +255,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 
 	page := templates.BaseLayout(
 		shellData(ctx, "Functions", "Workspace", "functions"),
-		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples),
+		templates.FunctionContent(functions, langs, activeProjectID, usernameStr, samples, h.loadEndpoints(ctx), repoURL),
 	)
 
 	if err := page.Render(ctx, ctx.Writer); err != nil {
@@ -271,15 +298,6 @@ func (h *UIHandlers) loadEndpoints(ctx *gin.Context) []templates.Endpoint {
 		slog.Error("failed to list endpoints", "project", projUUID, "error", err)
 	}
 	return endpoints
-}
-
-func (h *UIHandlers) Endpoints(ctx *gin.Context) {
-	// Endpoints now live inside Traffic. Keep the old path as an alias.
-	target := "/traffic/"
-	if q := ctx.Request.URL.RawQuery; q != "" {
-		target += "?" + q
-	}
-	ctx.Redirect(http.StatusFound, target)
 }
 
 func (h *UIHandlers) Configuration(ctx *gin.Context) {
@@ -337,16 +355,6 @@ func (h *UIHandlers) PubSub(ctx *gin.Context) {
 	page := templates.BaseLayout(
 		shellData(ctx, "Pub/Sub", "Data", "pubsub"),
 		templates.PubSubContent(),
-	)
-	if err := page.Render(ctx, ctx.Writer); err != nil {
-		slog.Error("page render failed", "error", err)
-	}
-}
-
-func (h *UIHandlers) Traffic(ctx *gin.Context) {
-	page := templates.BaseLayout(
-		shellData(ctx, "Traffic", "Workspace", "traffic"),
-		templates.TrafficContent(h.loadEndpoints(ctx)),
 	)
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		slog.Error("page render failed", "error", err)

@@ -14,7 +14,7 @@ docker-push:
 
 .PHONY: local-build-push
 local-build-push:
-	$(CONTAINER_TOOL) build -t $(LOCAL_IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
+	DOCKER_BUILDKIT=1 $(CONTAINER_TOOL) build -t $(LOCAL_IMG) -f $(DOCKERFILE) $(DOCKER_CONTEXT)
 	$(CONTAINER_TOOL) push $(LOCAL_IMG)
 
 .PHONY: local-push

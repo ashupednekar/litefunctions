@@ -931,6 +931,8 @@ button, input, select, textarea { font: inherit; }
   background: rgba(255,255,255,.012);
 }
 .z-fn-config-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.z-fn-config-head .z-panel-title { font-size: 10px; color: var(--text-2); }
+.z-fn-config-head .z-panel-title svg { width: 10px; height: 10px; }
 .z-fn-config-head .z-help { margin-left: auto; }
 .z-fn-config-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 14px; }
 .z-fn-config-foot {
@@ -1085,6 +1087,10 @@ button, input, select, textarea { font: inherit; }
 }
 .z-query-editor:focus { box-shadow: inset 0 0 0 1px rgba(138,180,255,.25); }
 
+.z-ws-message-ace {
+  width: 100%; height: 120px; overflow: hidden; margin-top: 6px;
+  border: 1px solid var(--border-2); border-radius: 6px; background: #0b0b0c;
+}
 .z-ws-log {
   min-height: 160px; max-height: 280px; overflow: auto;
   padding: 10px; background: #0b0b0c; border: 1px solid var(--border);
@@ -1111,6 +1117,40 @@ button, input, select, textarea { font: inherit; }
 .z-log-line:hover { background: rgba(255,255,255,.03); }
 .z-log-time { color: var(--text-4); flex-shrink: 0; }
 .z-log-line .z-badge { font-size: 8px; padding: 0 4px; }
+.z-log-text { white-space: pre-wrap; word-break: break-word; }
+
+.z-fn-traffic-grid { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 14px; padding: 12px 14px; }
+.z-fn-test-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr) minmax(0, 1fr); gap: 14px; padding: 4px 0 14px; }
+.z-fn-test-settings { display: flex; flex-direction: column; gap: 12px; }
+.z-fn-test-editor {
+  width: 100%; height: 230px; display: block; resize: vertical;
+  background: #0b0b0c; border: 1px solid var(--border-2); border-radius: 6px; outline: 0;
+  color: #e6e6eb; padding: 10px 12px; font-family: var(--font-mono); font-size: 11px; line-height: 1.6;
+}
+.z-fn-test-editor:focus { border-color: rgba(138,180,255,.4); }
+.z-fn-traffic-logs { border-top: 1px solid var(--border); padding-top: 12px; }
+.fn-test-host:empty { display: none; }
+.z-test-inline {
+  position: static !important; display: block !important; background: transparent !important;
+  backdrop-filter: none !important; padding: 0 !important; z-index: auto !important;
+  inset: auto !important;
+}
+.z-test-inline > div { max-width: none !important; height: 460px !important; border-radius: 6px; }
+.z-test-inline button[onclick*="closeTestModal"],
+.z-test-inline button[onclick*="closeWsTestModal"] { display: none !important; }
+.z-log-toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.z-log-toolbar .z-label { margin-right: auto; }
+.z-fn-log { max-height: 230px; }
+.z-log-fullscreen { padding: 24px; }
+.z-log-fullscreen-panel {
+  width: min(1500px, 100%); height: min(92vh, 100%); display: flex; flex-direction: column;
+  background: #111114; border: 1px solid var(--border-3); border-radius: 9px;
+  box-shadow: var(--shadow); overflow: hidden; animation: z-pop .14s ease-out;
+}
+.z-log-fullscreen-panel .z-log { flex: 1; max-height: none; border: 0; border-radius: 0; }
+@media (max-width: 900px) {
+  .z-fn-traffic-grid { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* trace waterfall */
 .z-trace { display: flex; flex-direction: column; gap: 6px; }

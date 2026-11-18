@@ -35,8 +35,6 @@ cert-manager:
     enableGatewayAPI: true
   crds:
     enabled: true
-ngrok:
-  enabled: false
 
 images:
   ingestor: ashupednekar535/litefunctions-ingestor:latest
@@ -236,9 +234,7 @@ ui:
     secret: litefunctions-admin-token
     key: token
   domain: litefunctions.portal
-  ngrok:
-    secret: litefunctions-ngrok-secret
-    key: token
+  lokiHost: litefunctions-loki-gateway
 
 # Loki stores logs in RustFS. Credentials are injected from the RustFS Secret
 # and expanded by Loki because global.extraArgs enables config expansion.
@@ -473,6 +469,11 @@ grafana:
 # The runtime label is applied by the operator to every function Deployment.
 alloy:
   alloy:
+    # Alloy runs as a DaemonSet, so only discover pods scheduled on its own
+    # node. Without this every Alloy instance tries to watch logs for pods on
+    # other nodes, exhausting inotify watches and spamming
+    # "failed to create fsnotify watcher: too many open files".
+    # HOSTNAME is injected by the Alloy chart from spec.nodeName.
     configMap:
       content: |
         discovery.kubernetes "runtime_pods" {
@@ -480,7 +481,8 @@ alloy:
 
           selectors {
             role  = "pod"
-            label = "app in (runtime,litefunctions-ingestor)"
+            label = "app in (runtime,litefunctions-ingestor,actions-act-runner)"
+            field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
           }
         }
 
@@ -489,7 +491,7 @@ alloy:
 
           rule {
             source_labels = ["__meta_kubernetes_pod_label_app"]
-            regex         = "runtime|litefunctions-ingestor"
+            regex         = "runtime|litefunctions-ingestor|actions-act-runner"
             action        = "keep"
           }
 

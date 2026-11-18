@@ -257,6 +257,8 @@ install() {
     helm repo update argo
     helm upgrade --install argocd argo/argo-cd \
       --version "$ARGOCD_HELM_VERSION" \
+      --server-side=true \
+      --force-conflicts \
       --namespace argocd --create-namespace --take-ownership --wait --timeout 10m \
       --hide-notes \
       --set configs.params.server.insecure=true \
@@ -338,6 +340,8 @@ EOF
     fi
     helm upgrade --install "$RELEASE" "$chart_source" --namespace "$NAMESPACE" \
       --create-namespace --debug \
+      --server-side=true \
+      --force-conflicts \
       --set gatewayApi.tls.certManager.enabled=false
   fi
   if [ "$INSTALL_ARGO" != true ]; then

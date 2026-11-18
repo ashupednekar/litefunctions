@@ -1,0 +1,569 @@
+package templates
+
+templ EndpointTestModals() {
+  <!-- TEST MODAL -->
+  <div id="test-modal"
+    class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+    onclick="closeTestModal()">
+    <div class="w-full max-w-6xl h-[85vh] bg-[#0f0f10] border border-neutral-800 rounded-2xl flex flex-col shadow-2xl"
+      onclick="event.stopPropagation()">
+      <!-- MODAL HEADER -->
+      <div class="flex items-center justify-between p-4 border-b border-neutral-800">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <button onclick="closeTestModal()"
+          class="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <!-- MODAL CONTENT -->
+      <div
+        class="flex-1 grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-neutral-800 overflow-hidden">
+        <!-- LEFT COLUMN: SETTINGS -->
+        <div class="p-4 space-y-4 overflow-y-auto bg-[#0b0b0c]/50">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Endpoint</label>
+              <label for="test-method-select" class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Method</label>
+            </div>
+            <div class="flex items-center gap-2">
+              <div id="test-endpoint-name" class="flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm font-mono truncate"></div>
+              <select id="test-method-select" aria-label="HTTP method"
+                class="bg-[#151516] border border-neutral-800 text-white rounded-lg p-3 text-sm font-mono outline-none focus:border-blue-500"></select>
+            </div>
+            <select id="test-endpoint-select" class="hidden" aria-hidden="true" tabindex="-1"></select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 block">Headers</label>
+            <div class="space-y-2">
+              <div class="grid grid-cols-2 gap-2 text-[10px] text-neutral-600 uppercase tracking-wider">
+                <span>Key</span>
+                <span>Value</span>
+              </div>
+              <div id="test-headers-list" class="space-y-2"></div>
+              <button onclick="addHeaderRow('', '')"
+                class="w-full px-3 py-2 rounded-lg border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-600 transition text-xs font-semibold">
+                + Add Header
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- RIGHT COLUMN: BODY & RESPONSE -->
+        <div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
+          <!-- REQUEST BODY -->
+          <div class="flex-1 p-4 border-b border-neutral-800 flex flex-col min-h-0">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Request Body</label>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-neutral-600 font-mono">JSON</span>
+                <button onclick="runEndpointTest()"
+                  class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                  Send Request
+                </button>
+              </div>
+            </div>
+            <div id="test-body-ace" class="w-full flex-1 rounded-lg border border-neutral-800"></div>
+            <textarea id="test-body" class="hidden" placeholder='{&#10;  "key": "value"&#10;}'></textarea>
+          </div>
+          <!-- RESPONSE -->
+          <div class="flex-1 p-4 flex flex-col min-h-0 bg-[#0b0b0c]/30">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Response</label>
+              <div id="test-status"
+                class="text-xs font-mono font-bold text-neutral-400 bg-neutral-900 px-2 py-1 rounded">Waiting...</div>
+            </div>
+            <textarea id="test-response"
+              class="w-full flex-1 bg-[#0e0e0f] border border-neutral-800 text-green-400 rounded-lg p-3 font-mono text-xs outline-none resize-none"
+              readonly placeholder="Response will appear here..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ws-test-modal" class="z-modal-backdrop" onclick="closeWsTestModal()">
+    <div class="z-modal wide" onclick="event.stopPropagation()">
+      <div class="z-modal-header">
+        @Icon("network", "")
+        <span class="z-modal-title">Test WebSocket</span>
+        <button class="z-icon-btn" style="margin-left:auto" onclick="closeWsTestModal()">@Icon("close", "")</button>
+      </div>
+      <div class="z-modal-body">
+        <div class="z-grid z-grid-2" style="gap:12px">
+          <div class="z-field">
+            <label class="z-label" for="ws-endpoint-select">Endpoint</label>
+            <select id="ws-endpoint-select" class="z-select"></select>
+          </div>
+          <div class="z-field">
+            <label class="z-label" for="ws-url">WebSocket URL</label>
+            <div class="z-input-group">
+              <input id="ws-url" class="z-input z-mono" readonly/>
+              <button class="z-btn z-btn-sm" onclick="copyWsUrl()">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <span id="ws-status" class="z-badge z-badge-muted">Disconnected</span>
+          <button class="z-btn z-btn-sm z-btn-primary" onclick="connectWs()">Connect</button>
+          <button class="z-btn z-btn-sm" onclick="disconnectWs()">Disconnect</button>
+          <button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto" onclick="clearWsLog()">Clear log</button>
+        </div>
+        <div id="ws-log" class="z-ws-log z-mono" style="margin-top:10px"></div>
+        <div style="margin-top:10px">
+          <label class="z-label" for="ws-message-ace">Message to send</label>
+          <div id="ws-message-ace" class="z-ws-message-ace"></div>
+          <textarea id="ws-message" class="hidden"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="z-btn z-btn-sm z-btn-primary" onclick="sendWsMessage()">@Icon("play", "") Send</button>
+          </div>
+        </div>
+      </div>
+      <div class="z-modal-foot"><button class="z-btn" onclick="closeWsTestModal()">Close</button></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const params = new URLSearchParams(window.location.search);
+      const expandId = params.get('expand');
+      if (expandId) {
+        document.querySelectorAll('[id^="endpoint-"]').forEach(el => el.classList.add('hidden'));
+        let target = document.getElementById("endpoint-" + expandId);
+        if (target) {
+          target.classList.remove('hidden');
+          setTimeout(() => target.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);
+        }
+      }
+    });
+  </script>
+  <script>
+    (function () {
+      const cdn = "https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/";
+      const loadAce = (cb) => {
+        if (window.ace) return cb();
+        const s1 = document.createElement("script");
+        s1.src = cdn + "ace.js";
+        s1.onload = () => {
+          ace.config.set("basePath", cdn);
+          ace.config.set("modePath", cdn);
+          ace.config.set("themePath", cdn);
+          cb();
+        };
+        document.head.appendChild(s1);
+      };
+
+      function initTestBodyEditor() {
+        if (window.__testBodyEditor || !window.ace) return;
+        const el = document.getElementById("test-body-ace");
+        if (!el) return;
+        window.__testBodyEditor = ace.edit(el);
+        window.__testBodyEditor.setTheme("ace/theme/dracula");
+        window.__testBodyEditor.session.setMode("ace/mode/json");
+        window.__testBodyEditor.setValue('{\n  "key": "value"\n}', -1);
+        window.__testBodyEditor.session.setUseWorker(false);
+      }
+
+      window.__initTestBodyEditor = initTestBodyEditor;
+
+      function initWsMessageEditor() {
+        if (window.__wsMessageEditor || !window.ace) return;
+        const el = document.getElementById("ws-message-ace");
+        if (!el) return;
+        window.__wsMessageEditor = ace.edit(el);
+        window.__wsMessageEditor.setTheme("ace/theme/dracula");
+        window.__wsMessageEditor.session.setMode("ace/mode/json");
+        window.__wsMessageEditor.setValue('{\n  "message": "hello"\n}', -1);
+        window.__wsMessageEditor.session.setUseWorker(false);
+        window.__wsMessageEditor.setOptions({minLines: 5, maxLines: 8, showPrintMargin: false});
+      }
+
+      window.__initWsMessageEditor = initWsMessageEditor;
+      window.__ensureWsMessageEditor = () => loadAce(() => {
+        initWsMessageEditor();
+        if (window.__wsMessageEditor) setTimeout(() => window.__wsMessageEditor.resize(true), 60);
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const list = document.getElementById("test-headers-list");
+        if (list && list.children.length === 0) {
+          addHeaderRow("Content-Type", "application/json");
+          addHeaderRow("Authorization", "Bearer ...");
+        }
+        loadAce(initTestBodyEditor);
+      });
+    })();
+  </script>
+  <script>
+    window.ensureTestModalOptions = function () {
+      const select = document.getElementById("test-endpoint-select");
+      if (!select) return null;
+      let list = [];
+      if (window.__endpointList && window.__endpointList.length > 0) {
+        list = window.__endpointList;
+      } else {
+        list = Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+          id: el.dataset.endpointId,
+          name: el.dataset.endpointName,
+          method: el.dataset.endpointMethod,
+        }));
+      }
+      if (list.length > 0 && select.options.length === 0) {
+        list.forEach(ep => {
+          const opt = document.createElement("option");
+          opt.value = ep.id;
+          opt.textContent = ep.name;
+          select.appendChild(opt);
+        });
+      }
+      return select;
+    };
+
+    window.openTestModal = function () {
+      const modal = document.getElementById("test-modal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      const select = window.ensureTestModalOptions();
+      if (select) select.dispatchEvent(new Event("change"));
+      if (window.__initTestBodyEditor) window.__initTestBodyEditor();
+      if (window.__testBodyEditor) setTimeout(() => window.__testBodyEditor.resize(), 60);
+    };
+
+    window.openTestModalForEndpoint = function (id) {
+      window.openTestModal();
+      const select = window.ensureTestModalOptions();
+      if (!select) return;
+      select.value = id;
+      select.dispatchEvent(new Event("change"));
+    };
+
+    window.closeTestModal = function () {
+      const modal = document.getElementById("test-modal");
+      if (modal) modal.classList.add("hidden");
+    };
+
+    window.addHeaderRow = function (key, val) {
+      const list = document.getElementById("test-headers-list");
+      if (!list) return;
+      const row = document.createElement("div");
+      row.className = "header-row flex items-center gap-2";
+      row.innerHTML = `
+					<input class="header-key flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition" placeholder="Header" value="${key || ""}">
+					<span class="text-neutral-600 text-xs">:</span>
+					<input class="header-val flex-1 min-w-0 bg-[#151516] border border-neutral-800 text-white rounded-lg px-2.5 py-2 text-xs font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition" placeholder="Value" value="${val || ""}">
+					<button class="remove-header px-2 py-2 rounded-lg border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-600 transition" title="Remove header">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+				`;
+      row.querySelector(".remove-header")?.addEventListener("click", () => {
+        row.remove();
+        if (list.querySelectorAll(".header-row").length === 0) {
+          window.addHeaderRow("", "");
+        }
+      });
+      list.appendChild(row);
+    };
+
+    window.getHeadersFromUI = function () {
+      const headers = {};
+      document.querySelectorAll("#test-headers-list .header-row").forEach(row => {
+        const key = row.querySelector(".header-key")?.value?.trim();
+        const val = row.querySelector(".header-val")?.value?.trim();
+        if (key) headers[key] = val || "";
+      });
+      return headers;
+    };
+
+    function setTestBodyEnabled(method) {
+      const isGetLike = method === "GET" || method === "HEAD";
+      const aceWrap = document.getElementById("test-body-ace");
+      if (window.__testBodyEditor) {
+        window.__testBodyEditor.setReadOnly(isGetLike);
+      }
+      if (aceWrap) {
+        if (isGetLike) aceWrap.classList.add("opacity-60");
+        else aceWrap.classList.remove("opacity-60");
+      }
+    }
+
+    const allowedHttpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
+    function methodsForEndpoint(endpoint) {
+      const methods = String(endpoint?.method || "POST").split(",")
+        .map(method => method.trim().toUpperCase())
+        .filter(method => allowedHttpMethods.includes(method));
+      return [...new Set(methods.length ? methods : ["POST"])];
+    }
+    function renderEndpointMethods(endpoint) {
+      const endpointName = document.getElementById("test-endpoint-name");
+      if (endpointName) endpointName.textContent = endpoint?.name || "";
+    }
+
+    window.runEndpointTest = function () {
+      const select = document.getElementById("test-endpoint-select");
+      const epId = select?.value;
+      if (!epId) return;
+      const endpointList = (window.__endpointList && window.__endpointList.length > 0)
+        ? window.__endpointList
+        : Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+          id: el.dataset.endpointId,
+          name: el.dataset.endpointName,
+          method: el.dataset.endpointMethod,
+        }));
+      const endpoint = endpointList.find(ep => ep.id === epId);
+      if (!endpoint || !endpoint.name) return;
+
+      const methodSelect = document.getElementById("test-method-select");
+      const methodInput = document.getElementById("selected-method-" + epId);
+      const allowedMethods = methodsForEndpoint(endpoint);
+      let method = String(methodSelect?.value || methodInput?.value || allowedMethods[0]).toUpperCase();
+      if (!allowedMethods.includes(method)) method = allowedMethods[0];
+
+      const url = `/lambda${endpoint.name}`;
+      const bodyRaw = window.__testBodyEditor ? window.__testBodyEditor.getValue() : (document.getElementById("test-body")?.value || "");
+      const headers = window.getHeadersFromUI();
+
+      const resEl = document.getElementById("test-response");
+      const statusEl = document.getElementById("test-status");
+      if (resEl) resEl.value = "Sending...";
+      if (statusEl) statusEl.textContent = "";
+
+      (async () => {
+        try {
+          const request = {method, headers};
+          if (method !== "GET" && method !== "HEAD" && bodyRaw.trim() !== "") {
+            request.body = bodyRaw;
+          }
+          const resp = await fetch(url, request);
+          const contentType = resp.headers.get("Content-Type") || "";
+          const textBody = await resp.text();
+          if (statusEl) statusEl.textContent = `Status: ${resp.status}`;
+
+          let bodyStr = textBody || "";
+          if (contentType.includes("application/json")) {
+            try {
+              const jsonBody = JSON.parse(bodyStr);
+              bodyStr = JSON.stringify(jsonBody, null, 2);
+            } catch (e) { }
+          }
+
+          if (resEl) resEl.value = bodyStr;
+        } catch (e) {
+          if (statusEl) statusEl.textContent = "Status: error";
+          if (resEl) resEl.value = String(e);
+        }
+      })();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const select = document.getElementById("test-endpoint-select");
+      const methodSelect = document.getElementById("test-method-select");
+      const syncMethodFromEndpoint = () => {
+        if (!select || !methodSelect) return;
+        const endpointList = (window.__endpointList && window.__endpointList.length > 0)
+          ? window.__endpointList
+          : Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+            id: el.dataset.endpointId,
+            name: el.dataset.endpointName,
+            method: el.dataset.endpointMethod,
+          }));
+        const endpoint = endpointList.find(ep => ep.id === select.value);
+        const methods = methodsForEndpoint(endpoint);
+        methodSelect.replaceChildren(...methods.map(method => {
+          const option = document.createElement("option");
+          option.value = method;
+          option.textContent = method;
+          return option;
+        }));
+        methodSelect.value = methods[0];
+        renderEndpointMethods(endpoint);
+        setTestBodyEnabled(methodSelect.value);
+      };
+
+      select?.addEventListener("change", syncMethodFromEndpoint);
+      methodSelect?.addEventListener("change", () => setTestBodyEnabled(String(methodSelect.value || "POST").toUpperCase()));
+      syncMethodFromEndpoint();
+    });
+  </script>
+  <script>
+    (function () {
+      function ensureWsModalOptions() {
+        const select = document.getElementById("ws-endpoint-select");
+        if (!select) return null;
+        let list = [];
+        if (window.__endpointList && window.__endpointList.length > 0) {
+          list = window.__endpointList;
+        } else {
+          list = Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+            id: el.dataset.endpointId,
+            name: el.dataset.endpointName,
+            method: el.dataset.endpointMethod,
+          }));
+        }
+        if (list.length > 0 && select.options.length === 0) {
+          list.forEach(ep => {
+            const opt = document.createElement("option");
+            opt.value = ep.id;
+            opt.textContent = `${ep.method} ${ep.name}`;
+            select.appendChild(opt);
+          });
+        }
+        return select;
+      }
+
+      function wsBaseUrl() {
+        const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+        return proto + "//" + window.location.host;
+      }
+
+      function toWsPath(path) {
+        if (!path) return "";
+        if (path.startsWith("/lambda/ws/")) return path;
+        if (path.startsWith("/lambda/")) {
+          return "/lambda/ws/" + path.replace("/lambda/", "");
+        }
+        if (path.startsWith("/")) return "/lambda/ws" + path;
+        return "/lambda/ws/" + path;
+      }
+
+      function setWsUrl() {
+        const select = document.getElementById("ws-endpoint-select");
+        const urlEl = document.getElementById("ws-url");
+        if (!select || !urlEl) return;
+        const epId = select.value;
+        const endpointList = (window.__endpointList && window.__endpointList.length > 0)
+          ? window.__endpointList
+          : Array.from(document.querySelectorAll("[data-endpoint-id]")).map(el => ({
+            id: el.dataset.endpointId,
+            name: el.dataset.endpointName,
+            method: el.dataset.endpointMethod,
+          }));
+        const endpoint = endpointList.find(ep => ep.id === epId);
+        const path = endpoint?.name || "";
+        const wsUrl = wsBaseUrl() + toWsPath(path);
+        urlEl.value = wsUrl;
+      }
+
+      function setWsStatus(text, cls) {
+        const el = document.getElementById("ws-status");
+        if (!el) return;
+        el.textContent = text;
+        el.className = "text-xs font-mono bg-neutral-900 px-2 py-1 rounded " + (cls || "text-neutral-400");
+      }
+
+      function logWsMessage(kind, payload) {
+        const log = document.getElementById("ws-log");
+        if (!log) return;
+        const ts = new Date().toLocaleTimeString();
+        const color = kind === "sent" ? "text-cyan-300" : (kind === "recv" ? "text-green-400" : "text-yellow-400");
+        const line = document.createElement("div");
+        line.className = "mb-2";
+        line.innerHTML = `<span class="text-neutral-500">[${ts}]</span> <span class="${color}">${kind.toUpperCase()}</span> <span class="text-neutral-300">•</span> <span class="text-neutral-200 whitespace-pre-wrap break-words"></span>`;
+        line.querySelector("span:last-child").textContent = payload;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function closeWs() {
+        if (window.__wsConn) {
+          try {window.__wsConn.close();} catch (e) { }
+          window.__wsConn = null;
+        }
+      }
+
+      window.openWsTestModal = function () {
+        const modal = document.getElementById("ws-test-modal");
+        if (!modal) return;
+        if (window.zOpenModal) window.zOpenModal("ws-test-modal");
+        else modal.classList.add("open");
+        if (window.__ensureWsMessageEditor) window.__ensureWsMessageEditor();
+        const select = ensureWsModalOptions();
+        if (select) {
+          select.removeEventListener("change", setWsUrl);
+          select.addEventListener("change", setWsUrl);
+          setWsUrl();
+        }
+      };
+
+      window.openWsTestModalForEndpoint = function (id) {
+        window.openWsTestModal();
+        const select = ensureWsModalOptions();
+        if (!select) return;
+        select.value = id;
+        setWsUrl();
+      };
+
+      window.closeWsTestModal = function () {
+        closeWs();
+        if (window.zCloseModal) window.zCloseModal("ws-test-modal");
+        else document.getElementById("ws-test-modal")?.classList.remove("open");
+        setWsStatus("Disconnected");
+      };
+
+      window.copyWsUrl = function () {
+        const url = document.getElementById("ws-url")?.value || "";
+        if (!url) return;
+        navigator.clipboard.writeText(url);
+      };
+
+      window.connectWs = function () {
+        const url = document.getElementById("ws-url")?.value;
+        if (!url) return;
+        closeWs();
+        setWsStatus("Connecting...", "text-cyan-300");
+        try {
+          const ws = new WebSocket(url);
+          ws.binaryType = "arraybuffer";
+          ws.onopen = () => setWsStatus("Connected", "text-green-400");
+          ws.onclose = () => setWsStatus("Disconnected", "text-neutral-400");
+          ws.onerror = () => setWsStatus("Error", "text-red-400");
+          ws.onmessage = (ev) => {
+            if (typeof ev.data === "string") {
+              logWsMessage("recv", ev.data);
+            } else {
+              const view = new Uint8Array(ev.data);
+              const text = new TextDecoder().decode(view);
+              logWsMessage("recv", text || "[binary]");
+            }
+          };
+          window.__wsConn = ws;
+        } catch (e) {
+          setWsStatus("Error", "text-red-400");
+          logWsMessage("info", String(e));
+        }
+      };
+
+      window.disconnectWs = function () {
+        closeWs();
+        setWsStatus("Disconnected", "text-neutral-400");
+      };
+
+      window.sendWsMessage = function () {
+        const ws = window.__wsConn;
+        const msg = window.__wsMessageEditor ? window.__wsMessageEditor.getValue() : (document.getElementById("ws-message")?.value || "");
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          logWsMessage("info", "Not connected.");
+          return;
+        }
+        ws.send(msg);
+        logWsMessage("sent", msg);
+      };
+
+      window.clearWsLog = function () {
+        const log = document.getElementById("ws-log");
+        if (log) log.innerHTML = "";
+      };
+    })();
+  </script>
+}

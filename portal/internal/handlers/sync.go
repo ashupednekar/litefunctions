@@ -91,13 +91,13 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 			createdFn = true
 		}
 
-		// Ensure automatic endpoint: /project/name (GET)
-		if methods, ok := existingFnEps[fnID]; !ok || !methods["GET"] {
+		// Ensure automatic endpoint: /project/name (POST)
+		if methods, ok := existingFnEps[fnID]; !ok || !methods["POST"] {
 			epPath := fmt.Sprintf("/%s/%s", projectName, fnName)
 			_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
 				ProjectID:  projectUUID,
 				Name:       epPath,
-				Method:     "GET",
+				Method:     "POST",
 				Scope:      "public",
 				FunctionID: fnID,
 			})

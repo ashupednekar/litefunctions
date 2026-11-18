@@ -6,9 +6,13 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
+	"net/url"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ashupednekar/litefunctions/common"
 	"github.com/ashupednekar/litefunctions/common/sample"
@@ -19,6 +23,7 @@ import (
 	"github.com/ashupednekar/litefunctions/portal/internal/state"
 	"github.com/gin-gonic/gin"
 	"github.com/go-git/go-git/v6"
+	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -173,10 +178,14 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	}
 
 	epPath := fmt.Sprintf("/%s/%s", projectName, req.Name)
+	method := "POST"
+	if req.IsAsync {
+		method = "GET"
+	}
 	_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
 		ProjectID:  projectUUID,
 		Name:       epPath,
-		Method:     "GET",
+		Method:     method,
 		Scope:      "public",
 		FunctionID: fn.ID,
 	})
@@ -254,19 +263,67 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 	c.JSON(200, out)
 }
 
-func (h *FunctionHandlers) GetFunction(c *gin.Context) {
-	fnHex := c.Param("fnID")
-	fnID, err := hex.DecodeString(fnHex)
+func (h *FunctionHandlers) ListFunctionFiles(c *gin.Context) {
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid function id"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
-	pgFnId := pgtype.UUID{Valid: true}
-	copy(pgFnId.Bytes[:], fnID)
 
-	q := functionadaptors.New(h.state.DBPool)
+	r := c.MustGet("repo").(vcs.Repo)
+	fs := r.Filesystem()
+	dir := path.Dir(f.Path)
 
-	f, err := q.GetFunctionByID(c.Request.Context(), pgFnId)
+	type file struct {
+		Path    string `json:"path"`
+		Content string `json:"content"`
+	}
+	files := []file{}
+
+	var walk func(string) error
+	walk = func(current string) error {
+		entries, err := fs.ReadDir(current)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			full := path.Join(current, entry.Name())
+			if entry.IsDir() {
+				if err := walk(full); err != nil {
+					return err
+				}
+				continue
+			}
+			fh, err := fs.Open(full)
+			if err != nil {
+				return err
+			}
+			data, err := io.ReadAll(fh)
+			fh.Close()
+			if err != nil {
+				return err
+			}
+			rel := strings.TrimPrefix(strings.TrimPrefix(full, dir), "/")
+			files = append(files, file{Path: rel, Content: string(data)})
+		}
+		return nil
+	}
+
+	if err := walk(dir); err != nil {
+		slog.Error("failed to read function package", "path", dir, "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read function files"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"dir":        dir,
+		"entrypoint": strings.TrimPrefix(f.Path, dir+"/"),
+		"files":      files,
+	})
+}
+
+func (h *FunctionHandlers) GetFunction(c *gin.Context) {
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "not found"})
 		return
@@ -292,33 +349,24 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 
 	//TODO: read file contents
 	c.JSON(200, gin.H{
-		"id":       hex.EncodeToString(f.ID.Bytes[:]),
-		"name":     f.Name,
-		"language": f.Language,
-		"path":     f.Path,
-		"is_async": f.IsAsync,
-		"content":  string(data),
+		"id":         hex.EncodeToString(f.ID.Bytes[:]),
+		"name":       f.Name,
+		"language":   f.Language,
+		"path":       f.Path,
+		"entrypoint": path.Base(f.Path),
+		"is_async":   f.IsAsync,
+		"content":    string(data),
 	})
 }
 
 func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
-	fnHex := c.Param("fnID")
-	fnID, err := hex.DecodeString(fnHex)
-	if err != nil || len(fnID) != 16 {
-		c.JSON(400, gin.H{"error": "invalid function id"})
-		return
-	}
-	pgFnId := pgtype.UUID{Valid: true}
-	copy(pgFnId.Bytes[:], fnID)
-
-	q := functionadaptors.New(h.state.DBPool)
-
-	f, err := q.GetFunctionByID(c.Request.Context(), pgFnId)
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "function not found"})
 		return
 	}
 
+	q := functionadaptors.New(h.state.DBPool)
 	r := c.MustGet("repo").(vcs.Repo)
 
 	if c.ContentType() == "text/plain" {
@@ -353,10 +401,15 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
-	var req struct {
+	type reqFile struct {
 		Path    string `json:"path"`
-		Code    string `json:"code"`
-		IsAsync *bool  `json:"is_async"`
+		Content string `json:"content"`
+	}
+	var req struct {
+		Path    string    `json:"path"`
+		Code    string    `json:"code"`
+		IsAsync *bool     `json:"is_async"`
+		Files   []reqFile `json:"files"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -370,7 +423,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		upd, err := q.UpdateFunctionIsAsync(
 			c.Request.Context(),
 			functionadaptors.UpdateFunctionIsAsyncParams{
-				ID:      pgtype.UUID{Bytes: [16]byte(fnID)},
+				ID:      f.ID,
 				IsAsync: *req.IsAsync,
 			},
 		)
@@ -379,8 +432,51 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		}
 	}
 
-	if req.Code != "" {
-		fh, err := r.Filesystem().Create(f.Path)
+	fs := r.Filesystem()
+	dir := path.Dir(f.Path)
+
+	if len(req.Files) > 0 {
+		for _, file := range req.Files {
+			clean := path.Clean(path.Join(dir, file.Path))
+			if clean != dir && !strings.HasPrefix(clean, dir+"/") {
+				c.JSON(400, gin.H{"error": "invalid file path"})
+				return
+			}
+			if d := path.Dir(clean); d != dir {
+				if err := fs.MkdirAll(d, 0755); err != nil {
+					c.JSON(500, gin.H{"error": "directory create error"})
+					return
+				}
+			}
+			fh, err := fs.Create(clean)
+			if err != nil {
+				c.JSON(500, gin.H{"error": "write error"})
+				return
+			}
+			if _, err := fh.Write([]byte(file.Content)); err != nil {
+				fh.Close()
+				c.JSON(500, gin.H{"error": "write error"})
+				return
+			}
+			fh.Close()
+		}
+
+		slog.Info("commiting function package", "path", dir)
+		err = r.Commit(dir)
+		if err != nil && !errors.Is(err, git.ErrEmptyCommit) {
+			slog.Error("error commiting package", "path", dir, "error", err)
+			c.JSON(500, gin.H{"error": "commit error"})
+			return
+		}
+
+		if err := r.Push(); err != nil {
+			c.JSON(500, gin.H{"error": "push error"})
+			return
+		}
+
+		resp["status"] = "saved"
+	} else if req.Code != "" {
+		fh, err := fs.Create(f.Path)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "write error"})
 			return
@@ -408,7 +504,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		upd, err := q.UpdateFunctionPath(
 			c.Request.Context(),
 			functionadaptors.UpdateFunctionPathParams{
-				ID:   pgtype.UUID{Bytes: [16]byte(fnID)},
+				ID:   f.ID,
 				Path: req.Path,
 			},
 		)
@@ -421,24 +517,15 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 }
 
 func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
-	fnHex := c.Param("fnID")
-	fnID, err := hex.DecodeString(fnHex)
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid function id"})
+		c.JSON(404, gin.H{"error": "function not found"})
 		return
 	}
-	pgFnId := pgtype.UUID{Valid: true}
-	copy(pgFnId.Bytes[:], fnID)
 
 	q := functionadaptors.New(h.state.DBPool)
 
-	f, err := q.GetFunctionByID(c.Request.Context(), pgFnId)
-	if err != nil {
-		c.JSON(404, gin.H{"error": "not found"})
-		return
-	}
-
-	if err := q.DeleteFunction(c.Request.Context(), pgFnId); err != nil {
+	if err := q.DeleteFunction(c.Request.Context(), f.ID); err != nil {
 		slog.Error("db delete failed", "error", err)
 		c.JSON(500, gin.H{"error": "db delete error"})
 		return
@@ -498,4 +585,114 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"status": "deleted"})
+}
+
+func (h *FunctionHandlers) StreamLogs(c *gin.Context) {
+	f, err := functionadaptors.FunctionFromCtx(c, h.state.DBPool)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	scheme := "ws"
+	lokiHost := strings.TrimSpace(config.Cfg.LokiHost)
+	switch {
+	case strings.HasPrefix(lokiHost, "http://"):
+		lokiHost = strings.TrimPrefix(lokiHost, "http://")
+	case strings.HasPrefix(lokiHost, "https://"):
+		lokiHost = strings.TrimPrefix(lokiHost, "https://")
+		scheme = "wss"
+	}
+	lokiHost = strings.TrimRight(lokiHost, "/")
+	if lokiHost == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "misconfigured loki endpoint"})
+		return
+	}
+
+	tailURL := url.URL{
+		Scheme: scheme,
+		Host:   lokiHost,
+		Path:   "/loki/api/v1/tail",
+	}
+	params := tailURL.Query()
+	// Loki's tail endpoint parses the query as a single LogQL selector; a
+	// binary "or" expression is rejected before the websocket upgrade.
+	if c.Query("source") == "build" {
+		params.Set("query", `{app="actions-act-runner"}`)
+	} else {
+		params.Set("query", fmt.Sprintf(
+			`{app=~"runtime|litefunctions-ingestor", function=~"%s|"}`,
+			regexp.QuoteMeta(f.Name),
+		))
+	}
+	params.Set("limit", "200")
+	params.Set("delay_for", "0")
+	tailURL.RawQuery = params.Encode()
+
+	conn, res, err := (&websocket.Dialer{
+		Proxy:            http.ProxyFromEnvironment,
+		HandshakeTimeout: 10 * time.Second,
+	}).DialContext(c.Request.Context(), tailURL.String(), nil)
+
+	if err != nil {
+		status := http.StatusBadGateway
+		if res != nil {
+			status = res.StatusCode
+			body, _ := io.ReadAll(io.LimitReader(res.Body, 2048))
+			slog.Error("loki tail dial failed",
+				"url", tailURL.String(),
+				"status", res.Status,
+				"body", strings.TrimSpace(string(body)),
+				"error", err,
+			)
+		} else {
+			slog.Error("loki tail dial failed", "url", tailURL.String(), "error", err)
+		}
+		c.JSON(status, gin.H{"error": "failed to connect to Loki"})
+		return
+	}
+	defer conn.Close()
+
+	ctx := c.Request.Context()
+
+	// Close Loki connection when the client disconnects.
+	go func() {
+		<-ctx.Done()
+		conn.Close()
+	}()
+
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache, no-transform")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	c.Status(http.StatusOK)
+
+	fmt.Fprint(c.Writer, "retry: 3000\n\n")
+	c.Writer.Flush()
+
+	for {
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			if ctx.Err() == nil {
+				// Upstream connection failed.
+				return
+			}
+			return
+		}
+
+		if messageType != websocket.TextMessage {
+			continue
+		}
+
+		if _, err := fmt.Fprintf(
+			c.Writer,
+			"event: logs\ndata: %s\n\n",
+			message,
+		); err != nil {
+			return
+		}
+
+		c.Writer.Flush()
+	}
 }
