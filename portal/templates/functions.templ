@@ -421,6 +421,45 @@ function ingestFnLog(st, payload) {
   });
 }
 
+const ANSI_COLORS = {
+  30: "#6b7280", 31: "#f87171", 32: "#4ade80", 33: "#fbbf24", 34: "#60a5fa",
+  35: "#e879f9", 36: "#22d3ee", 37: "#e5e7eb",
+  90: "#9ca3af", 91: "#fca5a5", 92: "#86efac", 93: "#fde68a", 94: "#93c5fd",
+  95: "#f0abfc", 96: "#67e8f9", 97: "#ffffff"
+};
+
+function ansiFragment(text) {
+  const frag = document.createDocumentFragment();
+  let color = "", bold = false, dim = false;
+  const re = /\x1b\[([0-9;]*)m/g;
+  const emit = (chunk) => {
+    if (!chunk) return;
+    const span = document.createElement("span");
+    span.textContent = chunk;
+    if (color) span.style.color = color;
+    if (bold) span.style.fontWeight = "600";
+    if (dim) span.style.opacity = "0.7";
+    frag.appendChild(span);
+  };
+  let last = 0, m;
+  while ((m = re.exec(text)) !== null) {
+    emit(text.slice(last, m.index));
+    const codes = (m[1] || "0").split(";").filter(c => c !== "").map(Number);
+    if (!codes.length) codes.push(0);
+    codes.forEach(code => {
+      if (code === 0) { color = ""; bold = false; dim = false; }
+      else if (code === 1) bold = true;
+      else if (code === 2) dim = true;
+      else if (code === 22) { bold = false; dim = false; }
+      else if (code === 39) color = "";
+      else if (ANSI_COLORS[code]) color = ANSI_COLORS[code];
+    });
+    last = re.lastIndex;
+  }
+  emit(text.slice(last));
+  return frag;
+}
+
 function fnLogLineNode(entry) {
   const row = document.createElement("div");
   row.className = "z-log-line";
@@ -442,7 +481,7 @@ function fnLogLineNode(entry) {
   }
   const text = document.createElement("span");
   text.className = "z-log-text";
-  text.textContent = entry.line;
+  text.appendChild(ansiFragment(String(entry.line || "")));
   row.appendChild(text);
   return row;
 }
