@@ -300,8 +300,14 @@ func trafficIsAsync(fn Function, ep Endpoint) bool {
 }
 
 func trafficMethod(fn Function, ep Endpoint) string {
+	if trafficIsAsync(fn, ep) {
+		return "GET"
+	}
 	if ep.Method != "" {
 		return ep.Method
+	}
+	if fn.Method != "" {
+		return fn.Method
 	}
 	return "POST"
 }

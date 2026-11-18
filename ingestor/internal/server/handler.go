@@ -1,9 +1,13 @@
 package server
 
 import (
+	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,6 +16,11 @@ import (
 	settings "github.com/ashupednekar/litefunctions/ingestor/internal"
 	"github.com/ashupednekar/litefunctions/ingestor/internal/broker"
 	"github.com/gorilla/websocket"
+)
+
+const (
+	runtimeReadyTimeout  = 10 * time.Second
+	runtimeRetryInterval = 250 * time.Millisecond
 )
 
 type IngestHandler struct {
@@ -94,17 +103,41 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 	u.Path = runtimePath
 	u.RawQuery = r.URL.RawQuery
 
-	req, err := http.NewRequestWithContext(r.Context(), r.Method, u.String(), r.Body)
-	if err != nil {
-		return err
+	var body []byte
+	if r.Body != nil {
+		body, err = io.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
 	}
-	req.Header = r.Header.Clone()
-	req.Header.Set("X-Litefunction-Name", name)
-	req.Header.Set("X-Litefunction-Project", project)
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
+	deadline := time.Now().Add(runtimeReadyTimeout)
+	var resp *http.Response
+	for {
+		req, reqErr := http.NewRequestWithContext(r.Context(), r.Method, u.String(), bytes.NewReader(body))
+		if reqErr != nil {
+			return reqErr
+		}
+		req.Header = r.Header.Clone()
+		req.Header.Set("X-Litefunction-Name", name)
+		req.Header.Set("X-Litefunction-Project", project)
+
+		resp, err = http.DefaultClient.Do(req)
+		if err == nil {
+			break
+		}
+		if !isDialError(err) {
+			return err
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("runtime %s unreachable after %s: %w", u.Host, runtimeReadyTimeout, err)
+		}
+		slog.Info("runtime not reachable yet, retrying", "project", project, "name", name, "upstream", u.Host, "error", err)
+		select {
+		case <-r.Context().Done():
+			return r.Context().Err()
+		case <-time.After(runtimeRetryInterval):
+		}
 	}
 	defer resp.Body.Close()
 
@@ -147,6 +180,43 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 		slog.Info("runtime proxy completed", attrs...)
 	}
 	return nil
+}
+
+// isDialError reports whether the request failed before it could reach the
+// upstream, so retrying cannot duplicate side effects.
+func isDialError(err error) bool {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+	var opErr *net.OpError
+	if errors.As(err, &opErr) {
+		return opErr.Op == "dial"
+	}
+	var dnsErr *net.DNSError
+	return errors.As(err, &dnsErr)
+}
+
+func waitForRuntime(ctx context.Context, namespace, service string, port int) error {
+	addr := fmt.Sprintf("%s.%s.svc.cluster.local:%d", service, namespace, port)
+	deadline := time.Now().Add(runtimeReadyTimeout)
+	var lastErr error
+	for {
+		conn, err := net.DialTimeout("tcp", addr, time.Second)
+		if err == nil {
+			_ = conn.Close()
+			return nil
+		}
+		lastErr = err
+		if time.Now().After(deadline) {
+			return fmt.Errorf("runtime %s unreachable after %s: %w", addr, runtimeReadyTimeout, lastErr)
+		}
+		slog.Info("runtime not reachable yet, retrying", "upstream", addr, "error", err)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(runtimeRetryInterval):
+		}
+	}
 }
 
 func (h *IngestHandler) RuntimeHook(w http.ResponseWriter, r *http.Request) {
@@ -244,6 +314,14 @@ func (h *IngestHandler) WS(w http.ResponseWriter, r *http.Request) {
 	}
 	if !h.validateMethod(w, r, info.Method, project, name) {
 		return
+	}
+
+	if info.ServiceName != "" && info.ServicePort > 0 {
+		if err := waitForRuntime(r.Context(), settings.Settings.PodNamespace, info.ServiceName, int(info.ServicePort)); err != nil {
+			h.logger.Error("runtime not reachable", "project", project, "name", name, "error", err)
+			http.Error(w, "runtime unavailable", http.StatusServiceUnavailable)
+			return
+		}
 	}
 
 	conn, req, err := broker.Produce(h.server.nc, w, r, info.Language)

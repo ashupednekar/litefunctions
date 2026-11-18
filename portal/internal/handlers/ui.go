@@ -190,7 +190,9 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			fnID := hex.EncodeToString(f.ID.Bytes[:])
 
 			method := endpointMethodByFn[fnID]
-			if method == "" {
+			if f.IsAsync {
+				method = "GET"
+			} else if method == "" {
 				method = "POST"
 			}
 			projectName, _ := ctx.Get("projectName")

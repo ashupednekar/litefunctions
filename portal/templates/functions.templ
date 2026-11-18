@@ -63,7 +63,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<button class="z-icon-btn" title="Copy curl" onclick={ copyFn(fn.ID) }>@Icon("copy", "")</button>
 					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
 					<button class="z-icon-btn" title="Edit" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "")</button>
-					<button class="z-btn z-btn-sm" id={ "fn-test-btn-" + fn.ID } title="Test &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "") Test</button>
+					<button class="z-icon-btn" id={ "fn-test-btn-" + fn.ID } title="Test &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "")</button>
 					<button class="z-icon-btn" title="Delete" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>@Icon("trash", "")</button>
 				</div>
 			</div>
@@ -549,24 +549,9 @@ function mountTestUI(nodeID, host) {
   node.removeAttribute("onclick");
   node.style.display = "";
   host.appendChild(node);
-  if (nodeID === "ws-test-modal") initWsMessageEditor();
-}
-
-function initWsMessageEditor() {
-  if (!window.ace) {
-    setTimeout(initWsMessageEditor, 200);
-    return;
+  if (nodeID === "ws-test-modal" && window.__wsMessageEditor) {
+    setTimeout(() => window.__wsMessageEditor.resize(true), 60);
   }
-  const el = document.getElementById("ws-message-ace");
-  if (!el) return;
-  if (!window.__wsMessageEditor) {
-    window.__wsMessageEditor = ace.edit(el);
-    window.__wsMessageEditor.setTheme("ace/theme/dracula");
-    window.__wsMessageEditor.session.setMode("ace/mode/json");
-    window.__wsMessageEditor.session.setUseWorker(false);
-    window.__wsMessageEditor.setValue('{ "message": "hello" }', -1);
-  }
-  setTimeout(() => window.__wsMessageEditor?.resize(), 60);
 }
 
 /* --- UI functions --- */

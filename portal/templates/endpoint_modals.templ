@@ -120,13 +120,13 @@ templ EndpointTestModals() {
           <button class="z-btn z-btn-sm z-btn-ghost" style="margin-left:auto" onclick="clearWsLog()">Clear log</button>
         </div>
         <div id="ws-log" class="z-ws-log z-mono" style="margin-top:10px"></div>
-        <div style="display:flex;align-items:flex-end;gap:8px;margin-top:10px">
-          <div style="flex:1;min-width:0">
-            <label class="z-label" for="ws-message-ace">Message to send</label>
-            <div id="ws-message-ace" class="z-ws-message-ace"></div>
-            <textarea id="ws-message" class="hidden"></textarea>
+        <div style="margin-top:10px">
+          <label class="z-label" for="ws-message-ace">Message to send</label>
+          <div id="ws-message-ace" class="z-ws-message-ace"></div>
+          <textarea id="ws-message" class="hidden"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="z-btn z-btn-sm z-btn-primary" onclick="sendWsMessage()">@Icon("play", "") Send</button>
           </div>
-          <button class="z-btn z-btn-sm z-btn-primary" onclick="sendWsMessage()">Send</button>
         </div>
       </div>
       <div class="z-modal-foot"><button class="z-btn" onclick="closeWsTestModal()">Close</button></div>
@@ -175,6 +175,24 @@ templ EndpointTestModals() {
       }
 
       window.__initTestBodyEditor = initTestBodyEditor;
+
+      function initWsMessageEditor() {
+        if (window.__wsMessageEditor || !window.ace) return;
+        const el = document.getElementById("ws-message-ace");
+        if (!el) return;
+        window.__wsMessageEditor = ace.edit(el);
+        window.__wsMessageEditor.setTheme("ace/theme/dracula");
+        window.__wsMessageEditor.session.setMode("ace/mode/json");
+        window.__wsMessageEditor.setValue('{\n  "message": "hello"\n}', -1);
+        window.__wsMessageEditor.session.setUseWorker(false);
+        window.__wsMessageEditor.setOptions({minLines: 5, maxLines: 8, showPrintMargin: false});
+      }
+
+      window.__initWsMessageEditor = initWsMessageEditor;
+      window.__ensureWsMessageEditor = () => loadAce(() => {
+        initWsMessageEditor();
+        if (window.__wsMessageEditor) setTimeout(() => window.__wsMessageEditor.resize(true), 60);
+      });
 
       document.addEventListener("DOMContentLoaded", () => {
         const list = document.getElementById("test-headers-list");
@@ -469,6 +487,7 @@ templ EndpointTestModals() {
         if (!modal) return;
         if (window.zOpenModal) window.zOpenModal("ws-test-modal");
         else modal.classList.add("open");
+        if (window.__ensureWsMessageEditor) window.__ensureWsMessageEditor();
         const select = ensureWsModalOptions();
         if (select) {
           select.removeEventListener("change", setWsUrl);

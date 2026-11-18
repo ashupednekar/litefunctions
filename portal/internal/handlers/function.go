@@ -178,10 +178,14 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	}
 
 	epPath := fmt.Sprintf("/%s/%s", projectName, req.Name)
+	method := "POST"
+	if req.IsAsync {
+		method = "GET"
+	}
 	_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
 		ProjectID:  projectUUID,
 		Name:       epPath,
-		Method:     "POST",
+		Method:     method,
 		Scope:      "public",
 		FunctionID: fn.ID,
 	})
