@@ -469,6 +469,11 @@ grafana:
 # The runtime label is applied by the operator to every function Deployment.
 alloy:
   alloy:
+    # Alloy runs as a DaemonSet, so only discover pods scheduled on its own
+    # node. Without this every Alloy instance tries to watch logs for pods on
+    # other nodes, exhausting inotify watches and spamming
+    # "failed to create fsnotify watcher: too many open files".
+    # HOSTNAME is injected by the Alloy chart from spec.nodeName.
     configMap:
       content: |
         discovery.kubernetes "runtime_pods" {
@@ -477,6 +482,7 @@ alloy:
           selectors {
             role  = "pod"
             label = "app in (runtime,litefunctions-ingestor)"
+            field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
           }
         }
 
