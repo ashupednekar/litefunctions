@@ -986,7 +986,8 @@ function setCreateMode(mode) {
   }
   const template = getTemplate(selectedLang, mode) || "";
   selectedCreateMode = mode;
-  replaceMainBuffer("create", template);
+  replaceMainBuffer("create", renderCreateSample(template, functionDirName("create")));
+  setCreateSampleRaw(template);
   updateCreateModeButtons();
 }
 
@@ -1212,6 +1213,12 @@ function renderFileTree(mode) {
   const active = window["__" + mode + "ActiveFile"];
   const tree = buildEditorTree(state.manifest);
   const files = renderTreeBranch(tree, mode, 0, active);
+  const newFileRow = state.newFile
+    ? '<div class="z-tree-newfile">' +
+        '<input id="' + mode + '-newfile-input" class="z-input" placeholder="path/to/file.ext" onkeydown="handleNewFileKey(event,\'' + mode + '\')" onblur="cancelNewFile(\'' + mode + '\')"/>' +
+      '</div>'
+    : "";
+  const childrenClass = state.newFile ? "" : " hidden";
   el.innerHTML =
     '<div class="z-tree-root-row">' +
       '<button class="z-tree-root" id="' + mode + '-tree-root" onclick="toggleFileTree(\'' + mode + '\')">' +
@@ -1220,10 +1227,16 @@ function renderFileTree(mode) {
         '<span class="z-badge z-badge-muted">' + state.manifest.length + '</span>' +
       '</button>' +
     '</div>' +
-    '<div class="z-tree-children hidden" id="' + mode + '-tree-children">' + files + '</div>' +
+    newFileRow +
+    '<div class="z-tree-children' + childrenClass + '" id="' + mode + '-tree-children">' + files + '</div>' +
     '<div class="z-tree-foot">' +
       '<button class="z-btn z-btn-sm z-btn-ghost" style="width:100%" onclick="createEditorFile(\'' + mode + '\')">' + zIcon("plus") + ' New file</button>' +
     '</div>';
+  if (state.newFile) {
+    const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
+    if (caret) caret.style.transform = "rotate(90deg)";
+    setTimeout(() => document.getElementById(mode + "-newfile-input")?.focus(), 20);
+  }
 }
 
 function toggleFileTree(mode) {
@@ -1243,6 +1256,23 @@ function updateEditorPath(mode) {
 }
 
 function renameFunctionDir(mode) {
+  if (mode === "create") {
+    syncEditorBuffer(mode);
+    const state = window.__createFiles;
+    if (state && state.raw) {
+      const name = functionDirName(mode);
+      Object.keys(state.raw).forEach(filePath => {
+        if (state.contents[filePath] !== state.rendered[filePath]) return;
+        state.contents[filePath] = renderCreateSample(state.raw[filePath], name);
+        state.rendered[filePath] = state.contents[filePath];
+      });
+      const active = window.__createActiveFile;
+      if (state.raw[active] !== undefined) {
+        const ed = activeEditor("create");
+        if (ed) ed.setValue(state.contents[active], -1);
+      }
+    }
+  }
   renderFileTree(mode);
   updateEditorPath(mode);
 }
@@ -1277,22 +1307,49 @@ function mainFileContent(mode) {
 function createEditorFile(mode) {
   const state = window["__" + mode + "Files"];
   if (!state) return;
-  const input = window.prompt("New file path (relative to function directory):");
-  if (input === null) return;
-  const rel = normalizeEditorPath(input);
+  state.newFile = true;
+  renderFileTree(mode);
+}
+
+function cancelNewFile(mode) {
+  const state = window["__" + mode + "Files"];
+  if (!state || !state.newFile) return;
+  state.newFile = false;
+  renderFileTree(mode);
+}
+
+function submitNewFile(mode) {
+  const state = window["__" + mode + "Files"];
+  const input = document.getElementById(mode + "-newfile-input");
+  if (!state) return;
+  const rel = normalizeEditorPath(input ? input.value : "");
   if (!rel) {
     toast("Enter a valid relative path", "error");
+    input?.focus();
     return;
   }
+  syncEditorBuffer(mode);
+  state.newFile = false;
   if (state.contents[rel] !== undefined) {
     selectEditorFile(mode, rel);
     return;
   }
-  syncEditorBuffer(mode);
   state.manifest.push({ path: rel, main: false });
   state.manifest.sort((a, b) => a.path.localeCompare(b.path));
   state.contents[rel] = "";
   selectEditorFile(mode, rel);
+}
+
+function handleNewFileKey(ev, mode) {
+  if (ev.key === "Enter") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    submitNewFile(mode);
+  } else if (ev.key === "Escape") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    cancelNewFile(mode);
+  }
 }
 
 function selectEditorFile(mode, path) {
@@ -1313,6 +1370,22 @@ function selectEditorFile(mode, path) {
   updateEditorPath(mode);
 }
 
+function createNameValue(name) {
+  return String(name || "").trim() || "function";
+}
+
+function renderCreateSample(content, name) {
+  return String(content || "").replace(/\{\{name\}\}/g, createNameValue(name));
+}
+
+function setCreateSampleRaw(raw) {
+  const state = window.__createFiles;
+  const main = mainFile("create");
+  if (!state || !main) return;
+  state.raw = { [main.path]: String(raw || "") };
+  state.rendered = { [main.path]: renderCreateSample(raw, functionDirName("create")) };
+}
+
 function openCreate(){
   window.__isCreateEditor = true;
   window.__isEditEditor = false;
@@ -1324,8 +1397,10 @@ function openCreate(){
     applyEditorVim("create");
   }
 
-  const mainContent = getTemplate(selectedLang, selectedCreateMode) || "";
+  const template = getTemplate(selectedLang, selectedCreateMode) || "";
+  const mainContent = renderCreateSample(template, functionDirName("create"));
   initEditorFiles("create", selectedLang, mainContent);
+  setCreateSampleRaw(template);
   if (createEditor) {
     createEditor.session.setMode("ace/mode/" + modeMap[selectedLang]);
     createEditor.setValue(mainContent, -1);
@@ -1340,8 +1415,10 @@ function selectLang(lang){
   const el = document.getElementById('lang-' + lang);
   if(el) el.classList.add('selected');
   if(createEditor){
-    const mainContent = getTemplate(lang, selectedCreateMode) || "";
+    const template = getTemplate(lang, selectedCreateMode) || "";
+    const mainContent = renderCreateSample(template, functionDirName("create"));
     initEditorFiles("create", lang, mainContent);
+    setCreateSampleRaw(template);
     createEditor.session.setMode('ace/mode/' + modeMap[lang]);
     createEditor.setValue(mainContent, -1);
     setTimeout(()=>createEditor.focus(),120);
