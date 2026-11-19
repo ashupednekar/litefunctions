@@ -1162,27 +1162,34 @@ function initEditorFiles(mode, lang, mainContent, files, entrypoint) {
   }
 
   manifest.sort((a, b) => a.path.localeCompare(b.path));
-  window["__" + mode + "Files"] = { lang: lang, manifest: manifest, contents: contents };
+  window["__" + mode + "Files"] = { lang: lang, manifest: manifest, contents: contents, dirs: new Set(), deleted: [] };
   window["__" + mode + "ActiveFile"] = (manifest.find(f => f.main) || manifest[0]).path;
   renderFileTree(mode);
   updateEditorPath(mode);
 }
 
-function buildEditorTree(manifest) {
+function ensureEditorDir(root, dirPath) {
+  const parts = String(dirPath || "").split("/").filter(Boolean);
+  let node = root;
+  let prefix = "";
+  parts.forEach(part => {
+    prefix = prefix ? prefix + "/" + part : part;
+    if (!node.dirs.has(part)) {
+      node.dirs.set(part, { name: part, path: prefix, dirs: new Map(), files: [] });
+    }
+    node = node.dirs.get(part);
+  });
+  return node;
+}
+
+function buildEditorTree(manifest, extraDirs) {
   const root = { dirs: new Map(), files: [] };
   manifest.forEach(file => {
     const parts = file.path.split("/");
-    let node = root;
-    let prefix = "";
-    for (let i = 0; i < parts.length - 1; i++) {
-      prefix = prefix ? prefix + "/" + parts[i] : parts[i];
-      if (!node.dirs.has(parts[i])) {
-        node.dirs.set(parts[i], { name: parts[i], path: prefix, dirs: new Map(), files: [] });
-      }
-      node = node.dirs.get(parts[i]);
-    }
-    node.files.push(file);
+    const parent = ensureEditorDir(root, parts.slice(0, -1).join("/"));
+    parent.files.push(file);
   });
+  (extraDirs || []).forEach(dir => ensureEditorDir(root, dir));
   return root;
 }
 
@@ -1197,10 +1204,11 @@ function renderTreeBranch(node, mode, depth, active) {
     ).join("");
   const files = node.files.map(file => {
     const isActive = file.path === active;
-    return '<button class="z-tree-file' + (isActive ? " active" : "") + '" style="padding-left:' + pad + 'px" data-path="' + escapeFnHtml(file.path) + '" onclick="selectEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')" title="' + escapeFnHtml(file.path) + '">' +
+    return '<div class="z-tree-file' + (isActive ? " active" : "") + '" style="padding-left:' + pad + 'px" data-path="' + escapeFnHtml(file.path) + '" onclick="selectEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')" title="' + escapeFnHtml(file.path) + '">' +
       zIcon("file") + '<span class="z-tree-name">' + escapeFnHtml(file.path.split("/").pop()) + '</span>' +
       (file.main ? '<span class="z-badge z-badge-green">main</span>' : "") +
-      '</button>';
+      (file.main ? "" : '<button class="z-tree-delete" title="Delete file" onclick="event.stopPropagation();deleteEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')">' + zIcon("trash") + '</button>') +
+      '</div>';
   }).join("");
   return dirs + files;
 }
@@ -1211,11 +1219,12 @@ function renderFileTree(mode) {
   if (!state || !el) return;
   const dirName = functionDirName(mode);
   const active = window["__" + mode + "ActiveFile"];
-  const tree = buildEditorTree(state.manifest);
+  const tree = buildEditorTree(state.manifest, state.dirs ? Array.from(state.dirs) : []);
   const files = renderTreeBranch(tree, mode, 0, active);
   const newFileRow = state.newFile
     ? '<div class="z-tree-newfile">' +
-        '<input id="' + mode + '-newfile-input" class="z-input" placeholder="path/to/file.ext" onkeydown="handleNewFileKey(event,\'' + mode + '\')" onblur="cancelNewFile(\'' + mode + '\')"/>' +
+        '<input id="' + mode + '-newfile-input" class="z-input" placeholder="path/to/file.ext or folder" oninput="setNewFileError(\'' + mode + '\',\'\')" onkeydown="handleNewFileKey(event,\'' + mode + '\')" onblur="cancelNewFile(\'' + mode + '\')"/>' +
+        '<div id="' + mode + '-newfile-error" class="z-tree-newfile-error hidden"></div>' +
       '</div>'
     : "";
   const childrenClass = state.newFile ? "" : " hidden";
@@ -1292,6 +1301,11 @@ function editorFiles(mode) {
   return state.manifest.map(file => ({ path: file.path, content: state.contents[file.path] || "" }));
 }
 
+function editorDeletedFiles(mode) {
+  const state = window["__" + mode + "Files"];
+  return state && Array.isArray(state.deleted) ? state.deleted.slice() : [];
+}
+
 function mainFile(mode) {
   const state = window["__" + mode + "Files"];
   return state ? (state.manifest.find(f => f.main) || state.manifest[0]) : null;
@@ -1302,6 +1316,43 @@ function mainFileContent(mode) {
   const main = mainFile(mode);
   const state = window["__" + mode + "Files"];
   return main && state ? (state.contents[main.path] || "") : "";
+}
+
+const KNOWN_LANG_EXT = { go: "go", rs: "rust", py: "python", ts: "typescript", lua: "lua" };
+
+function fileExtension(rel) {
+  const base = String(rel).split("/").pop() || "";
+  const idx = base.lastIndexOf(".");
+  if (idx === -1) return "";
+  if (idx === 0 && base.indexOf(".", 1) === -1) return base.slice(1).toLowerCase();
+  return idx > 0 ? base.slice(idx + 1).toLowerCase() : "";
+}
+
+function setNewFileError(mode, message) {
+  const el = document.getElementById(mode + "-newfile-error");
+  if (!el) return;
+  el.textContent = message || "";
+  el.classList.toggle("hidden", !message);
+}
+
+function editorPathConflict(state, rel) {
+  if (state.contents[rel] !== undefined) return "A file already exists at that path";
+  const parts = rel.split("/");
+  for (let i = 1; i < parts.length; i++) {
+    const parent = parts.slice(0, i).join("/");
+    if (state.contents[parent] !== undefined) return "A parent path is already a file";
+  }
+  return "";
+}
+
+function editorDirExists(state, rel) {
+  return (state.dirs && state.dirs.has(rel)) || state.manifest.some(f => f.path.startsWith(rel + "/"));
+}
+
+function expandEditorTree(mode) {
+  document.getElementById(mode + "-tree-children")?.classList.remove("hidden");
+  const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
+  if (caret) caret.style.transform = "rotate(90deg)";
 }
 
 function createEditorFile(mode) {
@@ -1324,20 +1375,79 @@ function submitNewFile(mode) {
   if (!state) return;
   const rel = normalizeEditorPath(input ? input.value : "");
   if (!rel) {
-    toast("Enter a valid relative path", "error");
+    setNewFileError(mode, "Enter a valid relative path");
     input?.focus();
     return;
   }
-  syncEditorBuffer(mode);
-  state.newFile = false;
-  if (state.contents[rel] !== undefined) {
-    selectEditorFile(mode, rel);
+  const conflict = editorPathConflict(state, rel);
+  if (conflict) {
+    setNewFileError(mode, conflict);
+    input?.focus();
     return;
   }
+
+  const ext = fileExtension(rel);
+  if (!ext) {
+    syncEditorBuffer(mode);
+    state.dirs = state.dirs || new Set();
+    state.dirs.add(rel);
+    state.newFile = false;
+    renderFileTree(mode);
+    expandEditorTree(mode);
+    return;
+  }
+
+  const fileLang = KNOWN_LANG_EXT[ext];
+  const expectedExt = LANG_EXT[state.lang];
+  if (fileLang && ext !== expectedExt) {
+    setNewFileError(mode, "." + ext + " is a " + fileLang + " file; this function uses ." + expectedExt);
+    input?.focus();
+    return;
+  }
+  if (editorDirExists(state, rel)) {
+    setNewFileError(mode, "A directory already exists at that path");
+    input?.focus();
+    return;
+  }
+
+  syncEditorBuffer(mode);
+  state.newFile = false;
+  if (state.deleted) state.deleted = state.deleted.filter(p => p !== rel);
   state.manifest.push({ path: rel, main: false });
   state.manifest.sort((a, b) => a.path.localeCompare(b.path));
   state.contents[rel] = "";
   selectEditorFile(mode, rel);
+}
+
+function deleteEditorFile(mode, path) {
+  const state = window["__" + mode + "Files"];
+  if (!state) return;
+  const file = state.manifest.find(f => f.path === path);
+  if (!file || file.main) return;
+  syncEditorBuffer(mode);
+  state.manifest = state.manifest.filter(f => f.path !== path);
+  delete state.contents[path];
+  if (state.rendered) delete state.rendered[path];
+  if (state.raw) delete state.raw[path];
+  if (mode === "edit") {
+    state.deleted = state.deleted || [];
+    if (!state.deleted.includes(path)) state.deleted.push(path);
+  }
+  if (window["__" + mode + "ActiveFile"] === path) {
+    const next = state.manifest.find(f => f.main) || state.manifest[0];
+    window["__" + mode + "ActiveFile"] = next ? next.path : "";
+    const ed = activeEditor(mode);
+    if (ed) {
+      if (next) {
+        ed.session.setMode("ace/mode/" + editorAceMode(state.lang, next.path));
+        ed.setValue(state.contents[next.path] || "", -1);
+      } else {
+        ed.setValue("", -1);
+      }
+    }
+  }
+  renderFileTree(mode);
+  updateEditorPath(mode);
 }
 
 function handleNewFileKey(ev, mode) {
@@ -1520,10 +1630,13 @@ function saveEdit(exit){
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       files: editorFiles("edit"),
+      deleted: editorDeletedFiles("edit"),
       is_async: selectedEditMode === "async"
     })
   }).then(async (res)=>{
     if (!res.ok) throw new Error((await res.json().catch(()=>({})))?.error || "save failed");
+    const state = window.__editFiles;
+    if (state) state.deleted = [];
     if(exit) closeEdit();
     refreshList();
   }).catch(err=>toast(err.message || "save failed", "error"));

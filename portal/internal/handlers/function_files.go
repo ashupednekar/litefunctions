@@ -139,6 +139,19 @@ func cleanFunctionPath(dir, rel string) (string, bool) {
 	return clean, true
 }
 
+// removeFunctionFile removes one package file. Missing files are ignored so
+// deleting an already-removed file stays idempotent.
+func removeFunctionFile(fs billy.Filesystem, dir, rel string) error {
+	clean, ok := cleanFunctionPath(dir, rel)
+	if !ok {
+		return fmt.Errorf("invalid file path %q", rel)
+	}
+	if _, err := fs.Stat(clean); err != nil {
+		return nil
+	}
+	return fs.Remove(clean)
+}
+
 // writeFunctionFile writes one package file, creating parent directories.
 func writeFunctionFile(fs billy.Filesystem, dir, rel, content string) error {
 	clean, ok := cleanFunctionPath(dir, rel)

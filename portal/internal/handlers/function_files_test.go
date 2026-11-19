@@ -107,6 +107,25 @@ func TestCleanFunctionPath(t *testing.T) {
 	}
 }
 
+func TestRemoveFunctionFile(t *testing.T) {
+	fs := memfs.New()
+	dir := "functions/go/demo"
+	writeTestFile(t, fs, dir+"/internal/old.go", "package old\n")
+
+	if err := removeFunctionFile(fs, dir, "internal/old.go"); err != nil {
+		t.Fatalf("removeFunctionFile: %v", err)
+	}
+	if _, err := fs.Stat(dir + "/internal/old.go"); err == nil {
+		t.Fatal("file should have been removed")
+	}
+	if err := removeFunctionFile(fs, dir, "internal/old.go"); err != nil {
+		t.Fatalf("removing a missing file should be idempotent: %v", err)
+	}
+	if err := removeFunctionFile(fs, dir, "../escape.go"); err == nil {
+		t.Fatal("expected traversal path to be rejected")
+	}
+}
+
 func TestWriteFunctionFileCreatesNestedDirs(t *testing.T) {
 	fs := memfs.New()
 	dir := "functions/ts/demo"

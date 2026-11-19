@@ -387,6 +387,7 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		Code    string         `json:"code"`
 		IsAsync *bool          `json:"is_async"`
 		Files   []functionFile `json:"files"`
+		Deleted []string       `json:"deleted"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -411,18 +412,34 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 
 	fs := r.Filesystem()
 	dir := path.Dir(f.Path)
+	entrypoint := strings.TrimPrefix(f.Path, dir+"/")
 
-	if len(req.Files) > 0 {
+	if len(req.Files) > 0 || len(req.Deleted) > 0 {
 		for _, file := range req.Files {
 			if _, ok := cleanFunctionPath(dir, file.Path); !ok {
 				c.JSON(400, gin.H{"error": "invalid file path"})
 				return
 			}
 		}
+		for _, file := range req.Deleted {
+			clean, ok := cleanFunctionPath(dir, file)
+			if !ok || clean == path.Join(dir, entrypoint) {
+				c.JSON(400, gin.H{"error": "invalid file path"})
+				return
+			}
+		}
+
 		for _, file := range req.Files {
 			if err := writeFunctionFile(fs, dir, file.Path, file.Content); err != nil {
 				slog.Error("failed to write function file", "path", file.Path, "error", err)
 				c.JSON(400, gin.H{"error": "invalid file path"})
+				return
+			}
+		}
+		for _, file := range req.Deleted {
+			if err := removeFunctionFile(fs, dir, file); err != nil {
+				slog.Error("failed to remove function file", "path", file, "error", err)
+				c.JSON(500, gin.H{"error": "file delete error"})
 				return
 			}
 		}
