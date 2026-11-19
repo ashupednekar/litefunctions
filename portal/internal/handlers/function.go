@@ -39,11 +39,12 @@ func NewFunctionHandlers(s *state.AppState) *FunctionHandlers {
 }
 
 type createFunctionRequest struct {
-	Name     string `json:"name"`
-	Language string `json:"language"`
-	Code     string `json:"code"`
-	Path     string `json:"path"`
-	IsAsync  bool   `json:"is_async"`
+	Name     string         `json:"name"`
+	Language string         `json:"language"`
+	Code     string         `json:"code"`
+	Path     string         `json:"path"`
+	IsAsync  bool           `json:"is_async"`
+	Files    []functionFile `json:"files"`
 }
 
 func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
@@ -104,6 +105,13 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 		entrypointContent = "// TODO: implement function\n"
 	}
 
+	for _, file := range req.Files {
+		if _, ok := cleanFunctionPath(functionDir, file.Path); !ok {
+			c.JSON(400, gin.H{"error": "invalid file path"})
+			return
+		}
+	}
+
 	if err := r.Filesystem().MkdirAll(functionDir, 0755); err != nil {
 		slog.Error("r.Filesystem().MkdirAll failed", "path", functionDir, "error", err)
 		c.JSON(500, gin.H{"error": "directory create error"})
@@ -111,33 +119,23 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 	}
 
 	for _, file := range pkg.Files {
-		content := file.Content
+		content := string(file.Content)
 		if file.Path == pkg.Entrypoint {
-			content = []byte(entrypointContent)
+			content = entrypointContent
 		}
-
-		filePath := functionDir + "/" + file.Path
-		if dir := path.Dir(filePath); dir != functionDir {
-			if err := r.Filesystem().MkdirAll(dir, 0755); err != nil {
-				slog.Error("r.Filesystem().MkdirAll failed", "path", dir, "error", err)
-				c.JSON(500, gin.H{"error": "directory create error"})
-				return
-			}
-		}
-
-		f, err := r.Filesystem().Create(filePath)
-		if err != nil {
-			slog.Error("r.Filesystem().Create failed", "path", filePath, "error", err)
-			c.JSON(500, gin.H{"error": "file create error"})
-			return
-		}
-		if _, err := f.Write(content); err != nil {
-			f.Close()
-			slog.Error("file write failed", "path", filePath, "error", err)
+		if err := writeFunctionFile(r.Filesystem(), functionDir, file.Path, content); err != nil {
+			slog.Error("failed to write sample file", "path", file.Path, "error", err)
 			c.JSON(500, gin.H{"error": "file write error"})
 			return
 		}
-		f.Close()
+	}
+
+	for _, file := range req.Files {
+		if err := writeFunctionFile(r.Filesystem(), functionDir, file.Path, file.Content); err != nil {
+			slog.Error("failed to write uploaded file", "path", file.Path, "error", err)
+			c.JSON(400, gin.H{"error": "invalid file path"})
+			return
+		}
 	}
 
 	repoPath := functionDir + "/" + pkg.Entrypoint
@@ -271,45 +269,11 @@ func (h *FunctionHandlers) ListFunctionFiles(c *gin.Context) {
 	}
 
 	r := c.MustGet("repo").(vcs.Repo)
-	fs := r.Filesystem()
 	dir := path.Dir(f.Path)
+	entrypoint := strings.TrimPrefix(f.Path, dir+"/")
 
-	type file struct {
-		Path    string `json:"path"`
-		Content string `json:"content"`
-	}
-	files := []file{}
-
-	var walk func(string) error
-	walk = func(current string) error {
-		entries, err := fs.ReadDir(current)
-		if err != nil {
-			return err
-		}
-		for _, entry := range entries {
-			full := path.Join(current, entry.Name())
-			if entry.IsDir() {
-				if err := walk(full); err != nil {
-					return err
-				}
-				continue
-			}
-			fh, err := fs.Open(full)
-			if err != nil {
-				return err
-			}
-			data, err := io.ReadAll(fh)
-			fh.Close()
-			if err != nil {
-				return err
-			}
-			rel := strings.TrimPrefix(strings.TrimPrefix(full, dir), "/")
-			files = append(files, file{Path: rel, Content: string(data)})
-		}
-		return nil
-	}
-
-	if err := walk(dir); err != nil {
+	files, err := readFunctionFiles(r.Filesystem(), dir)
+	if err != nil {
 		slog.Error("failed to read function package", "path", dir, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read function files"})
 		return
@@ -317,8 +281,9 @@ func (h *FunctionHandlers) ListFunctionFiles(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"dir":        dir,
-		"entrypoint": strings.TrimPrefix(f.Path, dir+"/"),
+		"entrypoint": entrypoint,
 		"files":      files,
+		"tree":       buildFunctionTree(files, entrypoint),
 	})
 }
 
@@ -330,32 +295,48 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 	}
 
 	r := c.MustGet("repo").(vcs.Repo)
+	dir := path.Dir(f.Path)
+	entrypoint := strings.TrimPrefix(f.Path, dir+"/")
 
-	slog.Debug("reading file content", "path", f.Path)
-	file, err := r.Filesystem().Open(f.Path)
+	slog.Debug("reading function package", "path", dir)
+	files, err := readFunctionFiles(r.Filesystem(), dir)
 	if err != nil {
+		slog.Error("failed to read function package", "path", dir, "error", err)
 		c.JSON(404, gin.H{
 			"msg": "function not found in repo",
 		})
 		return
 	}
-	data, err := io.ReadAll(file)
-	if err != nil {
+
+	content := ""
+	found := false
+	for _, file := range files {
+		if file.Path == entrypoint {
+			content = file.Content
+			found = true
+			break
+		}
+	}
+	if !found {
 		c.JSON(404, gin.H{
-			"msg": "error reading file data",
+			"msg": "function entrypoint not found in repo",
 		})
 		return
 	}
 
-	//TODO: read file contents
+	fnID := hex.EncodeToString(f.ID.Bytes[:])
 	c.JSON(200, gin.H{
-		"id":         hex.EncodeToString(f.ID.Bytes[:]),
-		"name":       f.Name,
-		"language":   f.Language,
-		"path":       f.Path,
-		"entrypoint": path.Base(f.Path),
-		"is_async":   f.IsAsync,
-		"content":    string(data),
+		"id":          fnID,
+		"name":        f.Name,
+		"language":    f.Language,
+		"path":        f.Path,
+		"dir":         dir,
+		"entrypoint":  entrypoint,
+		"is_async":    f.IsAsync,
+		"content":     content,
+		"files":       files,
+		"tree":        buildFunctionTree(files, entrypoint),
+		"logs_stream": fmt.Sprintf("/api/functions/%s/logs/", fnID),
 	})
 }
 
@@ -401,15 +382,12 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 		return
 	}
 
-	type reqFile struct {
-		Path    string `json:"path"`
-		Content string `json:"content"`
-	}
 	var req struct {
-		Path    string    `json:"path"`
-		Code    string    `json:"code"`
-		IsAsync *bool     `json:"is_async"`
-		Files   []reqFile `json:"files"`
+		Path    string         `json:"path"`
+		Code    string         `json:"code"`
+		IsAsync *bool          `json:"is_async"`
+		Files   []functionFile `json:"files"`
+		Deleted []string       `json:"deleted"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -434,31 +412,36 @@ func (h *FunctionHandlers) UpdateFunction(c *gin.Context) {
 
 	fs := r.Filesystem()
 	dir := path.Dir(f.Path)
+	entrypoint := strings.TrimPrefix(f.Path, dir+"/")
 
-	if len(req.Files) > 0 {
+	if len(req.Files) > 0 || len(req.Deleted) > 0 {
 		for _, file := range req.Files {
-			clean := path.Clean(path.Join(dir, file.Path))
-			if clean != dir && !strings.HasPrefix(clean, dir+"/") {
+			if _, ok := cleanFunctionPath(dir, file.Path); !ok {
 				c.JSON(400, gin.H{"error": "invalid file path"})
 				return
 			}
-			if d := path.Dir(clean); d != dir {
-				if err := fs.MkdirAll(d, 0755); err != nil {
-					c.JSON(500, gin.H{"error": "directory create error"})
-					return
-				}
-			}
-			fh, err := fs.Create(clean)
-			if err != nil {
-				c.JSON(500, gin.H{"error": "write error"})
+		}
+		for _, file := range req.Deleted {
+			clean, ok := cleanFunctionPath(dir, file)
+			if !ok || clean == path.Join(dir, entrypoint) {
+				c.JSON(400, gin.H{"error": "invalid file path"})
 				return
 			}
-			if _, err := fh.Write([]byte(file.Content)); err != nil {
-				fh.Close()
-				c.JSON(500, gin.H{"error": "write error"})
+		}
+
+		for _, file := range req.Files {
+			if err := writeFunctionFile(fs, dir, file.Path, file.Content); err != nil {
+				slog.Error("failed to write function file", "path", file.Path, "error", err)
+				c.JSON(400, gin.H{"error": "invalid file path"})
 				return
 			}
-			fh.Close()
+		}
+		for _, file := range req.Deleted {
+			if err := removeFunctionFile(fs, dir, file); err != nil {
+				slog.Error("failed to remove function file", "path", file, "error", err)
+				c.JSON(500, gin.H{"error": "file delete error"})
+				return
+			}
 		}
 
 		slog.Info("commiting function package", "path", dir)

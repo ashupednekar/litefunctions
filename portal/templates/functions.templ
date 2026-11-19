@@ -125,6 +125,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<div class="z-editor-breadcrumb">
 						<span id="create-editor-path" class="z-mono">function/</span>
 						<span style="margin-left:auto;display:flex;gap:2px">
+							<button class="z-icon-btn" style="width:22px;height:22px" title="New file" onclick="createEditorFile('create')">@Icon("plus", "")</button>
 							<button class="z-icon-btn" style="width:22px;height:22px" title="Search files (space space in vim)" onclick="openTelescope('create','files')">@Icon("search", "")</button>
 							<button class="z-icon-btn" style="width:22px;height:22px" title="Search content (space / in vim)" onclick="openTelescope('create','content')">@Icon("file", "")</button>
 						</span>
@@ -132,7 +133,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<div class="z-editor-shell" style="display:flex;flex-direction:column">
 						<div id="create-ace" style="flex:1"></div>
 					</div>
-					<div class="z-editor-hint">Vim: <span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content · only the main file is persisted in this preview.</div>
+					<div class="z-editor-hint">Vim: <span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content</div>
 				</section>
 			</div>
 		</div>
@@ -163,6 +164,7 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<div class="z-editor-breadcrumb">
 						<span id="edit-editor-path" class="z-mono">function/</span>
 						<span style="margin-left:auto;display:flex;gap:2px">
+							<button class="z-icon-btn" style="width:22px;height:22px" title="New file" onclick="createEditorFile('edit')">@Icon("plus", "")</button>
 							<button class="z-icon-btn" style="width:22px;height:22px" title="Search files (space space in vim)" onclick="openTelescope('edit','files')">@Icon("search", "")</button>
 							<button class="z-icon-btn" style="width:22px;height:22px" title="Search content (space / in vim)" onclick="openTelescope('edit','content')">@Icon("file", "")</button>
 						</span>
@@ -170,12 +172,12 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<div class="z-editor-shell" style="display:flex;flex-direction:column">
 						<div id="edit-ace" style="flex:1"></div>
 					</div>
-					<div class="z-editor-hint">Vim: <span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content · only the main file is persisted in this preview.</div>
+					<div class="z-editor-hint">Vim: <span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content</div>
 				</section>
 			</div>
 		</div>
 		<div class="z-modal-foot">
-			<span class="z-help" style="margin-right:auto">The file tree is a UI preview; multi-file persistence is tracked in #84.</span>
+			<span class="z-help" style="margin-right:auto">All package files are committed on save.</span>
 			<button class="z-btn" onclick="closeEdit()">Cancel</button>
 			<button class="z-btn z-btn-primary" onclick="saveEdit(true)">@Icon("check", "") Save changes</button>
 		</div>
@@ -984,7 +986,8 @@ function setCreateMode(mode) {
   }
   const template = getTemplate(selectedLang, mode) || "";
   selectedCreateMode = mode;
-  replaceMainBuffer("create", template);
+  replaceMainBuffer("create", renderCreateSample(template, functionDirName("create")));
+  setCreateSampleRaw(template);
   updateCreateModeButtons();
 }
 
@@ -1078,34 +1081,6 @@ function toggleFnTraffic(id) {
   }
 }
 
-const FILE_MANIFESTS = {
-  go: [
-    { path: "main.go", main: true },
-    { path: "types.go" },
-    { path: "go.mod" },
-    { path: "README.md" }
-  ],
-  rust: [
-    { path: "main.rs", main: true },
-    { path: "Cargo.toml" },
-    { path: "README.md" }
-  ],
-  python: [
-    { path: "handler.py", main: true },
-    { path: "requirements.txt" },
-    { path: "README.md" }
-  ],
-  ts: [
-    { path: "index.ts", main: true },
-    { path: "package.json" },
-    { path: "tsconfig.json" }
-  ],
-  lua: [
-    { path: "main.lua", main: true },
-    { path: "README.md" }
-  ]
-};
-
 let lastVimSpace = 0;
 let teleState = { mode: "create", type: "files", results: [], index: -1 };
 
@@ -1134,44 +1109,108 @@ function functionDirName(mode) {
   return window.__editFnName || (window.__editFnID ? window.__editFnID.slice(0, 10) : "function");
 }
 
-function stubContent(lang, path, dirName) {
-  if (path.endsWith(".md")) {
-    return "# " + (dirName || "function") + "\n\nPlaceholder package file. Multi-file editing is tracked in #84.\n";
+const ACE_MODE_BY_EXT = { go: "golang", rs: "rust", py: "python", ts: "typescript", js: "javascript", lua: "lua" };
+const TEXT_FILE_EXTS = new Set(["json", "md", "yaml", "yml", "toml", "txt", "mod", "sum", "lock"]);
+
+const LANG_EXT = { python: "py", go: "go", rust: "rs", ts: "ts", lua: "lua" };
+
+function entrypointForLang(lang) {
+  return "handle." + (LANG_EXT[lang] || "txt");
+}
+
+function editorAceMode(lang, filePath) {
+  const ext = (String(filePath).split(".").pop() || "").toLowerCase();
+  if (TEXT_FILE_EXTS.has(ext)) return "text";
+  return ACE_MODE_BY_EXT[ext] || modeMap[lang] || "text";
+}
+
+function normalizeEditorPath(value) {
+  let rel = String(value || "").trim().replace(/\\/g, "/").replace(/^\.\/+/, "");
+  if (!rel || rel.startsWith("/")) return "";
+  const parts = [];
+  for (const part of rel.split("/")) {
+    if (!part || part === ".") continue;
+    if (part === "..") return "";
+    parts.push(part);
   }
-  if (path.endsWith("go.mod")) return "module example.com/" + (dirName || "function") + "\n\ngo 1.26\n";
-  if (path.endsWith("Cargo.toml")) return '[package]\nname = "' + (dirName || "function") + '"\nversion = "0.1.0"\nedition = "2021"\n';
-  if (path.endsWith("package.json")) return '{\n  "name": "' + (dirName || "function") + '",\n  "private": true\n}\n';
-  if (path.endsWith("tsconfig.json")) return '{\n  "compilerOptions": { "strict": true }\n}\n';
-  if (path.endsWith("requirements.txt")) return "# add dependencies here\n";
-  return "// Placeholder file. Multi-file editing is tracked in #84.\n";
+  return parts.join("/");
 }
 
 function initEditorFiles(mode, lang, mainContent, files, entrypoint) {
   const contents = {};
   const manifest = [];
-  if (Array.isArray(files) && files.length) {
-    files.forEach(file => {
-      manifest.push({ path: file.path, main: file.path === entrypoint });
-      contents[file.path] = file.content || "";
-    });
-    if (!manifest.some(f => f.main)) manifest[0].main = true;
-    const main = manifest.find(f => f.main) || manifest[0];
-    if (mainContent) contents[main.path] = mainContent;
-  } else if (entrypoint) {
-    manifest.push({ path: entrypoint, main: true });
-    contents[entrypoint] = mainContent || "";
+  const ep = entrypoint || entrypointForLang(lang);
+  const source = Array.isArray(files) ? files : [];
+
+  source.forEach(file => {
+    const rel = normalizeEditorPath(file.path);
+    if (!rel) return;
+    manifest.push({ path: rel, main: rel === ep });
+    contents[rel] = file.content || "";
+  });
+
+  if (!manifest.length) {
+    manifest.push({ path: ep, main: true });
+    contents[ep] = mainContent || "";
   } else {
-    const fallback = FILE_MANIFESTS[lang] || FILE_MANIFESTS.python;
-    const dirName = functionDirName(mode);
-    fallback.forEach(file => {
-      manifest.push({ path: file.path, main: !!file.main, stub: !file.main });
-      contents[file.path] = file.main ? (mainContent || "") : stubContent(lang, file.path, dirName);
-    });
+    if (!manifest.some(f => f.main)) {
+      const match = manifest.find(f => f.path === ep || f.path.endsWith("/" + ep));
+      (match || manifest[0]).main = true;
+    }
+    const main = manifest.find(f => f.main) || manifest[0];
+    if (mainContent !== undefined && mainContent !== null) contents[main.path] = mainContent;
   }
-  window["__" + mode + "Files"] = { lang: lang, manifest: manifest, contents: contents };
+
+  manifest.sort((a, b) => a.path.localeCompare(b.path));
+  window["__" + mode + "Files"] = { lang: lang, manifest: manifest, contents: contents, dirs: new Set(), deleted: [] };
   window["__" + mode + "ActiveFile"] = (manifest.find(f => f.main) || manifest[0]).path;
   renderFileTree(mode);
   updateEditorPath(mode);
+}
+
+function ensureEditorDir(root, dirPath) {
+  const parts = String(dirPath || "").split("/").filter(Boolean);
+  let node = root;
+  let prefix = "";
+  parts.forEach(part => {
+    prefix = prefix ? prefix + "/" + part : part;
+    if (!node.dirs.has(part)) {
+      node.dirs.set(part, { name: part, path: prefix, dirs: new Map(), files: [] });
+    }
+    node = node.dirs.get(part);
+  });
+  return node;
+}
+
+function buildEditorTree(manifest, extraDirs) {
+  const root = { dirs: new Map(), files: [] };
+  manifest.forEach(file => {
+    const parts = file.path.split("/");
+    const parent = ensureEditorDir(root, parts.slice(0, -1).join("/"));
+    parent.files.push(file);
+  });
+  (extraDirs || []).forEach(dir => ensureEditorDir(root, dir));
+  return root;
+}
+
+function renderTreeBranch(node, mode, depth, active) {
+  const pad = 4 + depth * 10;
+  const dirs = Array.from(node.dirs.values())
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(dir =>
+      '<div class="z-tree-dir" style="padding-left:' + pad + 'px" title="' + escapeFnHtml(dir.path) + '">' +
+        zIcon("folder") + '<span class="z-tree-name">' + escapeFnHtml(dir.name) + '/</span>' +
+      '</div>' + renderTreeBranch(dir, mode, depth + 1, active)
+    ).join("");
+  const files = node.files.map(file => {
+    const isActive = file.path === active;
+    return '<div class="z-tree-file' + (isActive ? " active" : "") + '" style="padding-left:' + pad + 'px" data-path="' + escapeFnHtml(file.path) + '" onclick="selectEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')" title="' + escapeFnHtml(file.path) + '">' +
+      zIcon("file") + '<span class="z-tree-name">' + escapeFnHtml(file.path.split("/").pop()) + '</span>' +
+      (file.main ? '<span class="z-badge z-badge-green">main</span>' : "") +
+      (file.main ? "" : '<button class="z-tree-delete" title="Delete file" onclick="event.stopPropagation();deleteEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')">' + zIcon("trash") + '</button>') +
+      '</div>';
+  }).join("");
+  return dirs + files;
 }
 
 function renderFileTree(mode) {
@@ -1180,13 +1219,15 @@ function renderFileTree(mode) {
   if (!state || !el) return;
   const dirName = functionDirName(mode);
   const active = window["__" + mode + "ActiveFile"];
-  const files = state.manifest.map(file => {
-    const isActive = file.path === active;
-    return '<button class="z-tree-file' + (isActive ? " active" : "") + '" data-path="' + escapeFnHtml(file.path) + '" onclick="selectEditorFile(\'' + mode + '\',\'' + escapeFnHtml(file.path) + '\')" title="' + escapeFnHtml(file.path) + '">' +
-      zIcon("file") + '<span class="z-tree-name">' + escapeFnHtml(file.path) + '</span>' +
-      (file.stub ? '<span class="z-badge z-badge-amber">stub</span>' : "") +
-      '</button>';
-  }).join("");
+  const tree = buildEditorTree(state.manifest, state.dirs ? Array.from(state.dirs) : []);
+  const files = renderTreeBranch(tree, mode, 0, active);
+  const newFileRow = state.newFile
+    ? '<div class="z-tree-newfile">' +
+        '<input id="' + mode + '-newfile-input" class="z-input" placeholder="path/to/file.ext or folder" oninput="setNewFileError(\'' + mode + '\',\'\')" onkeydown="handleNewFileKey(event,\'' + mode + '\')" onblur="cancelNewFile(\'' + mode + '\')"/>' +
+        '<div id="' + mode + '-newfile-error" class="z-tree-newfile-error hidden"></div>' +
+      '</div>'
+    : "";
+  const childrenClass = state.newFile ? "" : " hidden";
   el.innerHTML =
     '<div class="z-tree-root-row">' +
       '<button class="z-tree-root" id="' + mode + '-tree-root" onclick="toggleFileTree(\'' + mode + '\')">' +
@@ -1195,8 +1236,16 @@ function renderFileTree(mode) {
         '<span class="z-badge z-badge-muted">' + state.manifest.length + '</span>' +
       '</button>' +
     '</div>' +
-    '<div class="z-tree-children hidden" id="' + mode + '-tree-children">' + files + '</div>' +
-    '<div class="z-tree-foot"><span class="z-kbd">space</span><span class="z-kbd">space</span> files · <span class="z-kbd">space</span><span class="z-kbd">/</span> content</div>';
+    newFileRow +
+    '<div class="z-tree-children' + childrenClass + '" id="' + mode + '-tree-children">' + files + '</div>' +
+    '<div class="z-tree-foot">' +
+      '<button class="z-btn z-btn-sm z-btn-ghost" style="width:100%" onclick="createEditorFile(\'' + mode + '\')">' + zIcon("plus") + ' New file</button>' +
+    '</div>';
+  if (state.newFile) {
+    const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
+    if (caret) caret.style.transform = "rotate(90deg)";
+    setTimeout(() => document.getElementById(mode + "-newfile-input")?.focus(), 20);
+  }
 }
 
 function toggleFileTree(mode) {
@@ -1212,18 +1261,27 @@ function updateEditorPath(mode) {
   const el = document.getElementById(mode + "-editor-path");
   if (!state || !el) return;
   const active = window["__" + mode + "ActiveFile"];
-  const activeFile = state.manifest.find(f => f.path === active);
-  el.innerHTML = escapeFnHtml(functionDirName(mode)) + '/ <span style="color:var(--text)">' + escapeFnHtml(active) + '</span>' +
-    (activeFile?.stub ? ' <span class="z-badge z-badge-amber">stub</span>' : '');
+  el.innerHTML = escapeFnHtml(functionDirName(mode)) + '/ <span style="color:var(--text)">' + escapeFnHtml(active) + '</span>';
 }
 
 function renameFunctionDir(mode) {
-  const state = window["__" + mode + "Files"];
-  if (!state) return;
-  const dirName = functionDirName(mode);
-  state.manifest.forEach(file => {
-    if (file.stub) state.contents[file.path] = stubContent(state.lang, file.path, dirName);
-  });
+  if (mode === "create") {
+    syncEditorBuffer(mode);
+    const state = window.__createFiles;
+    if (state && state.raw) {
+      const name = functionDirName(mode);
+      Object.keys(state.raw).forEach(filePath => {
+        if (state.contents[filePath] !== state.rendered[filePath]) return;
+        state.contents[filePath] = renderCreateSample(state.raw[filePath], name);
+        state.rendered[filePath] = state.contents[filePath];
+      });
+      const active = window.__createActiveFile;
+      if (state.raw[active] !== undefined) {
+        const ed = activeEditor("create");
+        if (ed) ed.setValue(state.contents[active], -1);
+      }
+    }
+  }
   renderFileTree(mode);
   updateEditorPath(mode);
 }
@@ -1234,6 +1292,18 @@ function syncEditorBuffer(mode) {
   if (!ed || !state) return;
   const active = window["__" + mode + "ActiveFile"];
   if (active) state.contents[active] = ed.getValue();
+}
+
+function editorFiles(mode) {
+  syncEditorBuffer(mode);
+  const state = window["__" + mode + "Files"];
+  if (!state) return [];
+  return state.manifest.map(file => ({ path: file.path, content: state.contents[file.path] || "" }));
+}
+
+function editorDeletedFiles(mode) {
+  const state = window["__" + mode + "Files"];
+  return state && Array.isArray(state.deleted) ? state.deleted.slice() : [];
 }
 
 function mainFile(mode) {
@@ -1248,6 +1318,150 @@ function mainFileContent(mode) {
   return main && state ? (state.contents[main.path] || "") : "";
 }
 
+const KNOWN_LANG_EXT = { go: "go", rs: "rust", py: "python", ts: "typescript", lua: "lua" };
+
+function fileExtension(rel) {
+  const base = String(rel).split("/").pop() || "";
+  const idx = base.lastIndexOf(".");
+  if (idx === -1) return "";
+  if (idx === 0 && base.indexOf(".", 1) === -1) return base.slice(1).toLowerCase();
+  return idx > 0 ? base.slice(idx + 1).toLowerCase() : "";
+}
+
+function setNewFileError(mode, message) {
+  const el = document.getElementById(mode + "-newfile-error");
+  if (!el) return;
+  el.textContent = message || "";
+  el.classList.toggle("hidden", !message);
+}
+
+function editorPathConflict(state, rel) {
+  if (state.contents[rel] !== undefined) return "A file already exists at that path";
+  const parts = rel.split("/");
+  for (let i = 1; i < parts.length; i++) {
+    const parent = parts.slice(0, i).join("/");
+    if (state.contents[parent] !== undefined) return "A parent path is already a file";
+  }
+  return "";
+}
+
+function editorDirExists(state, rel) {
+  return (state.dirs && state.dirs.has(rel)) || state.manifest.some(f => f.path.startsWith(rel + "/"));
+}
+
+function expandEditorTree(mode) {
+  document.getElementById(mode + "-tree-children")?.classList.remove("hidden");
+  const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
+  if (caret) caret.style.transform = "rotate(90deg)";
+}
+
+function createEditorFile(mode) {
+  const state = window["__" + mode + "Files"];
+  if (!state) return;
+  state.newFile = true;
+  renderFileTree(mode);
+}
+
+function cancelNewFile(mode) {
+  const state = window["__" + mode + "Files"];
+  if (!state || !state.newFile) return;
+  state.newFile = false;
+  renderFileTree(mode);
+}
+
+function submitNewFile(mode) {
+  const state = window["__" + mode + "Files"];
+  const input = document.getElementById(mode + "-newfile-input");
+  if (!state) return;
+  const rel = normalizeEditorPath(input ? input.value : "");
+  if (!rel) {
+    setNewFileError(mode, "Enter a valid relative path");
+    input?.focus();
+    return;
+  }
+  const conflict = editorPathConflict(state, rel);
+  if (conflict) {
+    setNewFileError(mode, conflict);
+    input?.focus();
+    return;
+  }
+
+  const ext = fileExtension(rel);
+  if (!ext) {
+    syncEditorBuffer(mode);
+    state.dirs = state.dirs || new Set();
+    state.dirs.add(rel);
+    state.newFile = false;
+    renderFileTree(mode);
+    expandEditorTree(mode);
+    return;
+  }
+
+  const fileLang = KNOWN_LANG_EXT[ext];
+  const expectedExt = LANG_EXT[state.lang];
+  if (fileLang && ext !== expectedExt) {
+    setNewFileError(mode, "." + ext + " is a " + fileLang + " file; this function uses ." + expectedExt);
+    input?.focus();
+    return;
+  }
+  if (editorDirExists(state, rel)) {
+    setNewFileError(mode, "A directory already exists at that path");
+    input?.focus();
+    return;
+  }
+
+  syncEditorBuffer(mode);
+  state.newFile = false;
+  if (state.deleted) state.deleted = state.deleted.filter(p => p !== rel);
+  state.manifest.push({ path: rel, main: false });
+  state.manifest.sort((a, b) => a.path.localeCompare(b.path));
+  state.contents[rel] = "";
+  selectEditorFile(mode, rel);
+}
+
+function deleteEditorFile(mode, path) {
+  const state = window["__" + mode + "Files"];
+  if (!state) return;
+  const file = state.manifest.find(f => f.path === path);
+  if (!file || file.main) return;
+  syncEditorBuffer(mode);
+  state.manifest = state.manifest.filter(f => f.path !== path);
+  delete state.contents[path];
+  if (state.rendered) delete state.rendered[path];
+  if (state.raw) delete state.raw[path];
+  if (mode === "edit") {
+    state.deleted = state.deleted || [];
+    if (!state.deleted.includes(path)) state.deleted.push(path);
+  }
+  if (window["__" + mode + "ActiveFile"] === path) {
+    const next = state.manifest.find(f => f.main) || state.manifest[0];
+    window["__" + mode + "ActiveFile"] = next ? next.path : "";
+    const ed = activeEditor(mode);
+    if (ed) {
+      if (next) {
+        ed.session.setMode("ace/mode/" + editorAceMode(state.lang, next.path));
+        ed.setValue(state.contents[next.path] || "", -1);
+      } else {
+        ed.setValue("", -1);
+      }
+    }
+  }
+  renderFileTree(mode);
+  updateEditorPath(mode);
+}
+
+function handleNewFileKey(ev, mode) {
+  if (ev.key === "Enter") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    submitNewFile(mode);
+  } else if (ev.key === "Escape") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    cancelNewFile(mode);
+  }
+}
+
 function selectEditorFile(mode, path) {
   const state = window["__" + mode + "Files"];
   if (!state || state.contents[path] === undefined) return;
@@ -1255,17 +1469,31 @@ function selectEditorFile(mode, path) {
   window["__" + mode + "ActiveFile"] = path;
   const ed = activeEditor(mode);
   if (ed) {
-    ed.session.setMode("ace/mode/" + modeMap[state.lang]);
+    ed.session.setMode("ace/mode/" + editorAceMode(state.lang, path));
     ed.setValue(state.contents[path] || "", -1);
     ed.focus();
   }
-  document.querySelectorAll("#" + mode + "-file-tree .z-tree-file").forEach(btn => {
-    btn.classList.toggle("active", btn.getAttribute("data-path") === path);
-  });
+  renderFileTree(mode);
   document.getElementById(mode + "-tree-children")?.classList.remove("hidden");
   const caret = document.querySelector("#" + mode + "-tree-root .z-tree-caret svg");
   if (caret) caret.style.transform = "rotate(90deg)";
   updateEditorPath(mode);
+}
+
+function createNameValue(name) {
+  return String(name || "").trim() || "function";
+}
+
+function renderCreateSample(content, name) {
+  return String(content || "").replace(/\{\{name\}\}/g, createNameValue(name));
+}
+
+function setCreateSampleRaw(raw) {
+  const state = window.__createFiles;
+  const main = mainFile("create");
+  if (!state || !main) return;
+  state.raw = { [main.path]: String(raw || "") };
+  state.rendered = { [main.path]: renderCreateSample(raw, functionDirName("create")) };
 }
 
 function openCreate(){
@@ -1279,8 +1507,10 @@ function openCreate(){
     applyEditorVim("create");
   }
 
-  const mainContent = getTemplate(selectedLang, selectedCreateMode) || "";
+  const template = getTemplate(selectedLang, selectedCreateMode) || "";
+  const mainContent = renderCreateSample(template, functionDirName("create"));
   initEditorFiles("create", selectedLang, mainContent);
+  setCreateSampleRaw(template);
   if (createEditor) {
     createEditor.session.setMode("ace/mode/" + modeMap[selectedLang]);
     createEditor.setValue(mainContent, -1);
@@ -1295,8 +1525,10 @@ function selectLang(lang){
   const el = document.getElementById('lang-' + lang);
   if(el) el.classList.add('selected');
   if(createEditor){
-    const mainContent = getTemplate(lang, selectedCreateMode) || "";
+    const template = getTemplate(lang, selectedCreateMode) || "";
+    const mainContent = renderCreateSample(template, functionDirName("create"));
     initEditorFiles("create", lang, mainContent);
+    setCreateSampleRaw(template);
     createEditor.session.setMode('ace/mode/' + modeMap[lang]);
     createEditor.setValue(mainContent, -1);
     setTimeout(()=>createEditor.focus(),120);
@@ -1322,26 +1554,24 @@ function saveCreate(exit){
     toast("Draft saving is not supported; use Create & deploy", "info");
     return;
   }
-  const main = mainFile("create");
-  if (window.__createActiveFile && main && window.__createActiveFile !== main.path) {
-    toast("Stub files are read-only in this preview; saving the main file only", "info");
-  }
   const description = document.getElementById('fn-desc-input')?.value?.trim();
   const payload = {
     name: name,
     language: selectedLang,
     description: description,
     code: mainFileContent("create"),
-    is_async: selectedCreateMode === "async"
+    is_async: selectedCreateMode === "async",
+    files: editorFiles("create")
   };
   fetch(`/api/functions/`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(payload)
-  }).then(()=>{
+  }).then(async (res)=>{
+    if (!res.ok) throw new Error((await res.json().catch(()=>({})))?.error || "create failed");
     if(exit) closeCreate();
-    refreshList()
-  });
+    refreshList();
+  }).catch(err=>toast(err.message || "create failed", "error"));
 }
 
 function openEdit(id, lang){
@@ -1360,12 +1590,17 @@ function openEdit(id, lang){
   if(editEditor){
     editEditor.session.setMode('ace/mode/' + modeMap[lang]);
     editEditor.setValue('Loading...', -1);
-    fetch(`/api/functions/${id}/`).then(r=>r.json()).then(data=>{
+    fetch(`/api/functions/${id}/`).then(r=>{
+      if (!r.ok) throw new Error("failed to load function");
+      return r.json();
+    }).then(data=>{
       selectedEditMode = data?.is_async ? "async" : "sync";
       updateEditModeButtons();
       window.__editFnName = data?.name || data?.Name || id.slice(0, 10);
-      const mainContent = data.content || getTemplate(lang, selectedEditMode) || '';
-      initEditorFiles("edit", lang, mainContent);
+      const mainContent = data.content ?? getTemplate(lang, selectedEditMode) ?? '';
+      initEditorFiles("edit", lang, mainContent, data.files, data.entrypoint);
+      const main = mainFile("edit");
+      editEditor.session.setMode('ace/mode/' + editorAceMode(lang, main ? main.path : ""));
       editEditor.setValue(mainContent, -1);
       applyEditorVim("edit");
       editEditor.focus();
@@ -1373,7 +1608,7 @@ function openEdit(id, lang){
     }).catch(()=>{
       window.__editFnName = id.slice(0, 10);
       const mainContent = getTemplate(lang, selectedEditMode) || '';
-      initEditorFiles("edit", lang, mainContent);
+      initEditorFiles("edit", lang, mainContent, null, entrypointForLang(lang));
       editEditor.setValue(mainContent, -1);
       editEditor.focus();
     });
@@ -1390,22 +1625,21 @@ function closeEdit(){
 
 function saveEdit(exit){
   if(!window.__editFnID) return;
-  const main = mainFile("edit");
-  if (window.__editActiveFile && main && window.__editActiveFile !== main.path) {
-    toast("Stub files are read-only in this preview; saving the main file only", "info");
-  }
-  const body = mainFileContent("edit");
   fetch(`/api/functions/${window.__editFnID}/`,{
     method:'PUT',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      code: body,
+      files: editorFiles("edit"),
+      deleted: editorDeletedFiles("edit"),
       is_async: selectedEditMode === "async"
     })
-  }).then(()=>{
+  }).then(async (res)=>{
+    if (!res.ok) throw new Error((await res.json().catch(()=>({})))?.error || "save failed");
+    const state = window.__editFiles;
+    if (state) state.deleted = [];
     if(exit) closeEdit();
-    refreshList()
-  });
+    refreshList();
+  }).catch(err=>toast(err.message || "save failed", "error"));
 }
 
 /* --- telescope-like file/content search --- */
@@ -1461,7 +1695,7 @@ function renderTelescopeResults() {
   container.innerHTML = teleState.results.map((item, i) => {
     const active = i === teleState.index ? " active" : "";
     const right = teleState.type === "files"
-      ? (item.main ? '<span class="z-badge z-badge-green">main</span>' : '<span class="z-badge z-badge-amber">stub</span>')
+      ? (item.main ? '<span class="z-badge z-badge-green">main</span>' : "")
       : '<span class="z-mono" style="font-size:9px;color:var(--text-4)">L' + item.line + '</span>';
     return '<button class="z-telescope-result' + active + '" onclick="chooseTelescope(' + i + ')">' +
       zIcon(teleState.type === "files" ? "file" : "search") +
