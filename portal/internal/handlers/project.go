@@ -146,7 +146,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		return
 	}
 
-	if err := SyncRepoFunctionsToDb(c, h.state.DBPool, project.ID, req.Name, userID.([]byte)); err != nil {
+	if err := SyncRepoFunctionsToDb(c.Request.Context(), h.state.DBPool, project.ID, req.Name, userID.([]byte)); err != nil {
 		slog.Warn("Failed to sync repo functions", "error", err)
 	}
 
@@ -158,7 +158,7 @@ func (h *ProjectHandlers) SyncProject(c *gin.Context) {
 	projectName := c.MustGet("projectName").(string)
 	userID := c.MustGet("userID").([]byte)
 
-	if err := SyncRepoFunctionsToDb(c, h.state.DBPool, projectUUID, projectName, userID); err != nil {
+	if err := SyncRepoFunctionsToDb(c.Request.Context(), h.state.DBPool, projectUUID, projectName, userID); err != nil {
 		slog.Error("Sync failed", "project", projectName, "error", err)
 		c.JSON(500, gin.H{"error": "sync failed"})
 		return

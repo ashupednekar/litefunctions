@@ -1,0 +1,183 @@
+{{- if .Values.agent.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: litefunctions-opencode
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-opencode
+    {{- include "litefunctions.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  password: {{ .Values.agent.password | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litefunctions-opencode-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-opencode
+    {{- include "litefunctions.labels" . | nindent 4 }}
+data:
+  opencode.json: |
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "permissions": [
+        {
+          "action": "litefunctions_*",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+      {{- if .Values.agent.mcp.enabled }},
+      "mcp": {
+        "servers": {
+          "litefunctions": {
+            "type": "remote",
+            "url": "http://litefunctions-mcp:{{ .Values.agent.mcp.port }}/mcp",
+            "oauth": false,
+            "codemode": false,
+            "timeout": {
+              "execution": 600000
+            }
+          }
+        }
+      }
+      {{- end }}
+    }
+  AGENTS.md: |
+{{ .Files.Get "files/AGENTS.md" | indent 4 }}
+{{- if .Values.agent.persistence.workspace.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: litefunctions-opencode-workspace
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-opencode
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  {{- if .Values.agent.persistence.workspace.storageClass }}
+  storageClassName: {{ .Values.agent.persistence.workspace.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.agent.persistence.workspace.size | quote }}
+{{- end }}
+{{- if .Values.agent.persistence.data.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: litefunctions-opencode-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-opencode
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  {{- if .Values.agent.persistence.data.storageClass }}
+  storageClassName: {{ .Values.agent.persistence.data.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.agent.persistence.data.size | quote }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litefunctions-opencode
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-opencode
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.agent.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: litefunctions-opencode
+      {{- include "litefunctions.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: litefunctions-opencode
+        {{- include "litefunctions.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: opencode
+        image: {{ .Values.images.opencode }}
+        imagePullPolicy: IfNotPresent
+        workingDir: /workspace
+        args:
+        - serve
+        - --hostname
+        - 0.0.0.0
+        - --port
+        - {{ .Values.agent.service.port | quote }}
+        env:
+        - name: OPENCODE_SERVER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: litefunctions-opencode
+              key: password
+        ports:
+        - name: http
+          containerPort: {{ .Values.agent.service.port }}
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.agent.resources | nindent 10 }}
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: data
+          mountPath: /root/.local/share/opencode
+        - name: config
+          mountPath: /root/.config/opencode
+        - name: config
+          mountPath: /workspace/AGENTS.md
+          subPath: AGENTS.md
+      volumes:
+      - name: workspace
+        {{- if .Values.agent.persistence.workspace.enabled }}
+        persistentVolumeClaim:
+          claimName: litefunctions-opencode-workspace
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: data
+        {{- if .Values.agent.persistence.data.enabled }}
+        persistentVolumeClaim:
+          claimName: litefunctions-opencode-data
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: config
+        configMap:
+          name: litefunctions-opencode-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litefunctions-opencode
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-opencode
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.agent.service.type }}
+  ports:
+  - name: http
+    port: {{ .Values.agent.service.port }}
+    targetPort: {{ .Values.agent.service.port }}
+    protocol: TCP
+  selector:
+    app: litefunctions-opencode
+{{- end }}

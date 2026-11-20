@@ -29,9 +29,9 @@ func AgentContent() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = PageHead("Plan", "Describe a use case. Review the functions, schema, routes and policies the agent would generate before anything ships.", "Build", templ.Raw(`
-		<button class="z-btn" onclick="toast('Draft history is a placeholder','info')">`+svgClock()+` History</button>
-		<button class="z-btn z-btn-primary" onclick="newPlan()">`+svgPlus()+` New plan</button>
+		templ_7745c5c3_Err = PageHead("Agent", "Describe a use case. The agent writes functions, routes, streaming handlers, and async workers into this project through the LiteFunctions MCP server.", "Build", templ.Raw(`
+		<button class="z-btn" onclick="newPlan()">`+svgClock()+` New session</button>
+		<button class="z-btn z-btn-primary" onclick="generatePlan()">`+svgPlus()+` Build something</button>
 	`)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -44,7 +44,7 @@ func AgentContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div><strong style=\"color:var(--text);font-weight:550\">Preview experience.</strong> Plan generation is a UI-only mock. The eventual service will inspect repo context, propose artifacts, and apply them through the normal Git-driven deploy path.</div></div><div class=\"z-agent-layout\"><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Use case</span> <span class=\"z-badge z-badge-purple\">agent</span></div><div class=\"z-panel-body\"><div class=\"z-composer\"><textarea id=\"agent-prompt\" placeholder=\"e.g. Build an order management API with a Postgres data model, a POST endpoint to create orders, a pub/sub event when an order is paid, and per-key rate limits…\"></textarea><div class=\"z-composer-bar\"><span class=\"z-badge z-badge-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div><strong style=\"color:var(--text);font-weight:550\">Live agent.</strong> Changes are committed to the project repo and synced back after every turn. Databases, persistent streams, object storage, and traffic policies are not supported yet.</div></div><div class=\"z-agent-layout\"><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Use case</span> <span class=\"z-badge z-badge-purple\">agent</span></div><div class=\"z-panel-body\"><div class=\"z-composer\"><textarea id=\"agent-prompt\" placeholder=\"e.g. Build an order API with a POST endpoint, a GET status route, a WebSocket echo function, and an async worker that records new orders…\"></textarea><div class=\"z-composer-bar\"><span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -52,47 +52,23 @@ func AgentContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "repo context</span> <span class=\"z-badge z-badge-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "project repo</span> <span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("database", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Icon("network", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "schema</span> <span class=\"z-badge z-badge-muted\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "MCP tools</span> <span class=\"z-badge z-badge-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("book", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Icon("bolt", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "docs</span> <span style=\"margin-left:auto\" class=\"z-mono z-faint\">⌘↵</span></div></div><div style=\"display:flex;flex-wrap:wrap;gap:5px;margin-top:10px\"><button class=\"z-chip-btn\" onclick=\"usePrompt('Order management API with Postgres, create/list endpoints, and an order.paid event')\">Order management API</button> <button class=\"z-chip-btn\" onclick=\"usePrompt('Image resizer: upload to object storage, async worker, signed URL endpoint')\">Image pipeline</button> <button class=\"z-chip-btn\" onclick=\"usePrompt('Webhook fan-out with retries, dead-letter stream, and per-tenant rate limits')\">Webhook fan-out</button> <button class=\"z-chip-btn\" onclick=\"usePrompt('Realtime presence API using WebSocket, Redis KV, and presence events')\">Realtime presence</button></div><div class=\"z-divider\"></div><div style=\"display:flex;flex-direction:column;gap:9px\"><div style=\"display:flex;align-items:center;justify-content:space-between\"><span style=\"font-size:11px;color:var(--text-2)\">Model</span> <select class=\"z-select\" style=\"width:190px;height:26px;font-size:10.5px\"><option>planner-large</option><option>planner-fast</option><option>local (ollama)</option></select></div><div style=\"display:flex;align-items:center;justify-content:space-between\"><span style=\"font-size:11px;color:var(--text-2)\">Apply mode</span> <select class=\"z-select\" style=\"width:190px;height:26px;font-size:10.5px\"><option>Review each artifact</option><option>Open a draft PR</option><option>Apply directly</option></select></div></div><div class=\"z-divider\"></div><div class=\"z-label\" style=\"margin-bottom:8px\">Generate artifacts</div><div style=\"display:flex;flex-direction:column;gap:7px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = scopeToggle("Functions", "Go handlers with typed inputs", true).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = scopeToggle("Endpoints", "HTTP routes + gateway wiring", true).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = scopeToggle("Data model", "Tables, migrations, sqlc queries", true).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = scopeToggle("Pub/Sub", "Streams, subjects, consumers", false).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = scopeToggle("Traffic policies", "Rate limits and auth", false).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><button id=\"agent-generate\" class=\"z-btn z-btn-primary\" style=\"width:100%;height:34px;margin-top:14px\" onclick=\"generatePlan()\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "git commit</span> <span style=\"margin-left:auto\" class=\"z-mono z-faint\">⌘↵</span></div></div><div style=\"display:flex;flex-wrap:wrap;gap:5px;margin-top:10px\"><button class=\"z-chip-btn\" onclick=\"usePrompt('Build a Go health endpoint')\">Health endpoint</button> <button class=\"z-chip-btn\" onclick=\"usePrompt('Create an async worker that reacts to new orders and logs the payload')\">Async worker</button> <button class=\"z-chip-btn\" onclick=\"usePrompt('Add a WebSocket echo function that returns the current server time')\">WebSocket echo</button> <button class=\"z-chip-btn\" onclick=\"usePrompt('Add a Python API with a POST /items route and a GET /items/{id} route')\">Python API</button></div><div class=\"z-divider\"></div><div style=\"display:flex;flex-direction:column;gap:9px\"><div style=\"display:flex;align-items:center;justify-content:space-between\"><span style=\"font-size:11px;color:var(--text-2)\">Language</span> <select id=\"agent-language\" class=\"z-select\" style=\"width:190px;height:26px;font-size:10.5px\"><option value=\"\">let the agent choose</option> <option value=\"go\">go</option> <option value=\"python\">python</option> <option value=\"ts\">typescript</option> <option value=\"rust\">rust</option> <option value=\"lua\">lua</option></select></div><div style=\"display:flex;align-items:center;justify-content:space-between\"><span style=\"font-size:11px;color:var(--text-2)\">Surface</span> <select id=\"agent-surface\" class=\"z-select\" style=\"width:190px;height:26px;font-size:10.5px\"><option value=\"\">let the agent choose</option> <option value=\"http\">sync HTTP</option> <option value=\"async\">async worker</option> <option value=\"ws\">WebSocket</option> <option value=\"sse\">SSE</option></select></div></div><button id=\"agent-generate\" class=\"z-btn z-btn-primary\" style=\"width:100%;height:34px;margin-top:14px\" onclick=\"generatePlan()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -100,99 +76,15 @@ func AgentContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Generate plan <span style=\"margin-left:auto\" class=\"z-kbd\">⌘↵</span></button><div class=\"z-help\" style=\"text-align:center;margin-top:8px\">Nothing is applied until you approve the plan.</div></div></div></div><div><div class=\"z-panel\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Generated plan</span> <span class=\"z-badge z-badge-amber\" id=\"plan-status\">draft</span> <span class=\"z-panel-sub\" id=\"plan-meta\">4 steps · 7 artifacts · est. 3 min</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Send to agent <span style=\"margin-left:auto\" class=\"z-kbd\">⌘↵</span></button><div class=\"z-help\" style=\"text-align:center;margin-top:8px\">Nothing is written until the agent calls the project tools.</div></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Capabilities</span></div><div class=\"z-panel-body\" style=\"display:flex;flex-direction:column;gap:9px\"><div style=\"display:flex;gap:9px;align-items:flex-start\"><span class=\"z-dot z-dot-green\" style=\"margin-top:4px\"></span><div><div style=\"font-size:11px;color:var(--text-2)\">HTTP functions</div><div class=\"z-help\">Go, Python, TypeScript, Rust, Lua</div></div></div><div style=\"display:flex;gap:9px;align-items:flex-start\"><span class=\"z-dot z-dot-green\" style=\"margin-top:4px\"></span><div><div style=\"font-size:11px;color:var(--text-2)\">Streaming</div><div class=\"z-help\">WebSocket and server-sent events</div></div></div><div style=\"display:flex;gap:9px;align-items:flex-start\"><span class=\"z-dot z-dot-green\" style=\"margin-top:4px\"></span><div><div style=\"font-size:11px;color:var(--text-2)\">Async workers</div><div class=\"z-help\">NATS-backed functions invoked through their async endpoint</div></div></div><div class=\"z-divider\"></div><div style=\"display:flex;gap:9px;align-items:flex-start\"><span class=\"z-dot z-dot-amber\" style=\"margin-top:4px\"></span><div><div style=\"font-size:11px;color:var(--text-2)\">Not yet</div><div class=\"z-help\">Databases, persistent streams, object storage, traffic policies, scheduled jobs</div></div></div></div></div></div><div><div class=\"z-panel\" style=\"min-height:520px;display:flex;flex-direction:column\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Conversation</span> <span id=\"agent-conversation-status\" class=\"z-badge z-badge-muted\">ready</span> <span class=\"z-panel-sub\">project repo · live</span><div class=\"z-panel-actions\"><button class=\"z-btn z-btn-sm\" onclick=\"newPlan()\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("copy", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Icon("refresh", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Copy</button> <button class=\"z-btn z-btn-sm z-btn-accent\" onclick=\"toast('Plan queued for review','success')\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("check", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Approve plan</button></div></div><div class=\"z-panel-body\"><div class=\"z-tabs\" data-tab-group style=\"margin-bottom:12px\"><button class=\"z-tab active\" data-tab=\"plan\">Plan</button> <button class=\"z-tab\" data-tab=\"artifacts\">Artifacts <span class=\"z-badge z-badge-muted\">7</span></button> <button class=\"z-tab\" data-tab=\"diff\">Diff</button> <button class=\"z-tab\" data-tab=\"context\">Context</button></div><div data-tab-panel=\"plan\"><div style=\"display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;padding:12px;border:1px solid var(--border);border-radius:6px;background:#0d0d0f\"><span class=\"z-list-icon\" style=\"width:30px;height:30px;color:#c7b3ff;border-color:rgba(182,156,255,.25);background:rgba(182,156,255,.08)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span><div style=\"flex:1\"><div style=\"font-size:12px;color:var(--text);font-weight:550\">Order management API</div><div class=\"z-help\" style=\"margin-top:3px\">Postgres-backed CRUD for customers and orders, a <span class=\"z-code-inline\">order.created</span> event, and per-tenant rate limiting. Uses existing Go runtime and project git repository.</div></div><span class=\"z-badge z-badge-blue\">go</span></div><div class=\"z-timeline\"><div class=\"z-timeline-step done\"><div class=\"z-timeline-dot\"></div><div style=\"display:flex;align-items:center;gap:7px\"><span class=\"z-list-title\">Inspect project context</span><span class=\"z-badge z-badge-green\">done</span></div><div class=\"z-list-sub\" style=\"margin-top:3px\">Read go.mod, existing endpoints and schema conventions.</div><div style=\"display:flex;gap:5px;margin-top:6px\"><span class=\"z-badge\">repo</span><span class=\"z-badge\">5 functions</span><span class=\"z-badge\">schema</span></div></div><div class=\"z-timeline-step running\"><div class=\"z-timeline-dot\"></div><div style=\"display:flex;align-items:center;gap:7px\"><span class=\"z-list-title\">Create data model & migrations</span><span class=\"z-badge z-badge-blue\">draft</span></div><div class=\"z-list-sub\" style=\"margin-top:3px\">customers, orders, order_items + indexes and sqlc queries.</div><div style=\"display:flex;gap:5px;margin-top:6px\"><span class=\"z-badge\">3 tables</span><span class=\"z-badge\">1 migration</span><span class=\"z-badge\">sqlc</span></div></div><div class=\"z-timeline-step\"><div class=\"z-timeline-dot\"></div><div style=\"display:flex;align-items:center;gap:7px\"><span class=\"z-list-title\">Generate functions & endpoints</span><span class=\"z-badge z-badge-muted\">queued</span></div><div class=\"z-list-sub\" style=\"margin-top:3px\">CreateOrder, ListOrders, GetOrder with typed JSON handlers.</div><div style=\"display:flex;gap:5px;margin-top:6px\"><span class=\"z-badge\">3 functions</span><span class=\"z-badge\">3 routes</span></div></div><div class=\"z-timeline-step\"><div class=\"z-timeline-dot\"></div><div style=\"display:flex;align-items:center;gap:7px\"><span class=\"z-list-title\">Wire events & traffic policy</span><span class=\"z-badge z-badge-muted\">queued</span></div><div class=\"z-list-sub\" style=\"margin-top:3px\">order.created stream and 120 req/min per API key.</div><div style=\"display:flex;gap:5px;margin-top:6px\"><span class=\"z-badge\">1 stream</span><span class=\"z-badge\">1 policy</span></div></div></div></div><div data-tab-panel=\"artifacts\" style=\"display:none\"><div class=\"z-list\" style=\"border:1px solid var(--border);border-radius:6px;overflow:hidden\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("functions/orders/create.go", "Go function", "new", "blue").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("functions/orders/list.go", "Go function", "new", "blue").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("migrations/00004_orders.sql", "Migration", "new", "purple").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("db/queries/orders.sql", "sqlc query", "new", "purple").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("endpoints/orders.yaml", "Gateway route", "modified", "amber").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("pubsub/order-created.yaml", "Stream", "new", "cyan").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = artifactRow("traffic/orders-policy.yaml", "Rate policy", "new", "green").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div><div data-tab-panel=\"diff\" style=\"display:none\"><div class=\"z-code-editor\"><div class=\"z-code-lines\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		for i := range lines(agentExampleCode()) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(itoa(i + 1))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 144, Col: 28}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><pre class=\"z-code-body\" style=\"max-height:360px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(agentExampleCode())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 147, Col: 77}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</pre></div></div><div data-tab-panel=\"context\" style=\"display:none\"><div class=\"z-grid z-grid-2\"><div class=\"z-panel\"><div class=\"z-panel-body\"><div class=\"z-label\">Repository</div><div class=\"z-mono\" style=\"font-size:11px;margin-top:6px\">acme/orders</div><div class=\"z-help\" style=\"margin-top:4px\">branch main · clean working tree</div></div></div><div class=\"z-panel\"><div class=\"z-panel-body\"><div class=\"z-label\">Runtime</div><div class=\"z-mono\" style=\"font-size:11px;margin-top:6px\">go 1.26 · linux/amd64</div><div class=\"z-help\" style=\"margin-top:4px\">image sha-77b0e1</div></div></div><div class=\"z-panel\"><div class=\"z-panel-body\"><div class=\"z-label\">Existing schema</div><div class=\"z-mono\" style=\"font-size:11px;margin-top:6px\">3 tables</div><div class=\"z-help\" style=\"margin-top:4px\">users, sessions, orders</div></div></div><div class=\"z-panel\"><div class=\"z-panel-body\"><div class=\"z-label\">Conventions</div><div class=\"z-mono\" style=\"font-size:11px;margin-top:6px\">sqlc + gin</div><div class=\"z-help\" style=\"margin-top:4px\">from .agent/context.md</div></div></div></div></div></div></div><div class=\"z-panel\" style=\"margin-top:14px\"><div class=\"z-panel-header\"><span class=\"z-panel-title\">Conversation</span><span class=\"z-badge z-badge-muted\">draft</span></div><div class=\"z-panel-body\" style=\"display:flex;flex-direction:column;gap:10px\"><div style=\"display:flex;gap:9px\"><span class=\"z-user-avatar\" style=\"width:24px;height:24px\">A</span><div style=\"flex:1;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:6px;padding:9px 11px;font-size:11.5px;color:var(--text-2);line-height:1.6\">Build an order management API. Keep the existing Go/Gin conventions and use Postgres. Publish an event when an order is paid and rate limit per API key.</div></div><div style=\"display:flex;gap:9px\"><span class=\"z-user-avatar\" style=\"width:24px;height:24px;background:rgba(182,156,255,.16);border-color:rgba(182,156,255,.35);color:#d8c9ff\">AI</span><div style=\"flex:1;background:rgba(182,156,255,.045);border:1px solid rgba(182,156,255,.16);border-radius:6px;padding:9px 11px;font-size:11.5px;color:var(--text-2);line-height:1.6\">I found an existing <span class=\"z-code-inline\">orders</span> table convention and a Go runtime. My plan adds customers and order_items, three handlers, one stream, and a per-key rate policy. I left the existing user schema untouched.</div></div><div class=\"z-input-group\"><input class=\"z-input\" placeholder=\"Refine the plan…\" onkeydown=\"if(event.key==='Enter'){toast('Follow-up prompts are a placeholder','info')}\"> <button class=\"z-btn z-btn-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Reset</button></div></div><div id=\"agent-conversation\" class=\"z-panel-body\" style=\"flex:1;display:flex;flex-direction:column;gap:12px;min-height:380px;max-height:560px;overflow-y:auto\"><div style=\"display:flex;gap:9px\"><span class=\"z-user-avatar\" style=\"width:24px;height:24px;background:rgba(182,156,255,.16);border-color:rgba(182,156,255,.35);color:#d8c9ff\">AI</span><div style=\"flex:1;background:rgba(182,156,255,.045);border:1px solid rgba(182,156,255,.16);border-radius:6px;padding:9px 11px;font-size:11.5px;color:var(--text-2);line-height:1.6\">Describe what you want to build. I will inspect the project, create the function packages, add routes, and commit everything to your repo.</div></div><div class=\"z-help\" id=\"agent-conversation-empty\">No messages yet. Try one of the suggestions or write your own prompt.</div></div><div class=\"z-panel-body\" style=\"border-top:1px solid var(--border);padding-top:10px\"><div class=\"z-input-group\"><input id=\"agent-followup\" class=\"z-input\" placeholder=\"Refine the result…\" onkeydown=\"if(event.key==='Enter'){agentPagePrompt(this.value); this.value=''}\"> <button class=\"z-btn z-btn-primary\" onclick=\"agentPagePrompt(document.getElementById('agent-followup').value); document.getElementById('agent-followup').value=''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -200,190 +92,7 @@ func AgentContent() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</button></div></div></div></div></div><script>\n\t\tfunction usePrompt(text) {\n\t\t\tdocument.getElementById(\"agent-prompt\").value = text;\n\t\t\tdocument.getElementById(\"agent-prompt\").focus();\n\t\t}\n\t\tfunction newPlan() {\n\t\t\tdocument.getElementById(\"agent-prompt\").value = \"\";\n\t\t\tdocument.getElementById(\"plan-status\").textContent = \"draft\";\n\t\t\tdocument.getElementById(\"plan-status\").className = \"z-badge z-badge-amber\";\n\t\t\ttoast(\"New plan draft\", \"info\");\n\t\t}\n\t\tasync function generatePlan() {\n\t\t\tconst prompt = document.getElementById(\"agent-prompt\").value.trim();\n\t\t\tif (!prompt) { toast(\"Describe a use case first\", \"info\"); document.getElementById(\"agent-prompt\").focus(); return; }\n\t\t\tconst btn = document.getElementById(\"agent-generate\");\n\t\t\tconst status = document.getElementById(\"plan-status\");\n\t\t\tbtn.disabled = true;\n\t\t\tstatus.textContent = \"generating\";\n\t\t\tstatus.className = \"z-badge z-badge-blue\";\n\t\t\ttoast(\"Planning artifacts…\", \"info\");\n\t\t\tawait zDummyFetch(\"/api/agent/plan/\", {ok: true});\n\t\t\tsetTimeout(() => {\n\t\t\t\tbtn.disabled = false;\n\t\t\t\tstatus.textContent = \"ready\";\n\t\t\t\tstatus.className = \"z-badge z-badge-green\";\n\t\t\t\tdocument.getElementById(\"plan-meta\").textContent = \"4 steps · 7 artifacts · est. 3 min\";\n\t\t\t\ttoast(\"Plan ready for review\", \"success\");\n\t\t\t}, 1100);\n\t\t}\n\t\tdocument.addEventListener(\"keydown\", e => {\n\t\t\tif ((e.metaKey || e.ctrlKey) && e.key === \"Enter\") { e.preventDefault(); generatePlan(); }\n\t\t});\n\t</script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func scopeToggle(label string, detail string, on bool) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div style=\"display:flex;align-items:center;gap:9px;padding:6px 0\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 = []any{"z-toggle", templ.KV("on", on)}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"></span><div><div style=\"font-size:11px;color:var(--text-2)\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(label)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 221, Col: 58}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div><div class=\"z-help\" style=\"font-size:9.5px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 222, Col: 55}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-func artifactRow(path string, kind string, change string, tone string) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"z-list-item\"><span class=\"z-list-icon\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("file", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span><div class=\"z-list-main\"><div class=\"z-list-title z-mono\" style=\"font-size:10.5px\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(path)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 231, Col: 67}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><div class=\"z-list-sub\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(kind)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 232, Col: 33}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var12 = []any{"z-badge", templ.KV("z-badge-green", tone == "green"), templ.KV("z-badge-blue", tone == "blue"), templ.KV("z-badge-purple", tone == "purple"), templ.KV("z-badge-amber", tone == "amber"), templ.KV("z-badge-cyan", tone == "cyan")}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var12...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<span class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var12).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var14 string
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(change)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/agent.templ`, Line: 234, Col: 254}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> <button class=\"z-icon-btn\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("chevron-right", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</button></div><div class=\"z-help\" style=\"margin-top:8px\">The agent can say “not supported yet” for databases and persistent streams.</div></div></div></div></div><script>\n\t\tfunction agentSessionKey() {\n\t\t\tconst dock = document.getElementById(\"agent-dock\");\n\t\t\treturn \"lws_agent_session:\" + ((dock && dock.dataset.agentProject) || \"project\");\n\t\t}\n\n\t\tfunction usePrompt(text) {\n\t\t\tdocument.getElementById(\"agent-prompt\").value = text;\n\t\t\tdocument.getElementById(\"agent-prompt\").focus();\n\t\t}\n\n\t\tfunction newPlan() {\n\t\t\tdocument.getElementById(\"agent-prompt\").value = \"\";\n\t\t\ttry { localStorage.removeItem(agentSessionKey()); } catch (err) { /* ignore */ }\n\t\t\tconst conversation = document.getElementById(\"agent-conversation\");\n\t\t\tconversation.innerHTML = \"\";\n\t\t\tconst intro = document.createElement(\"div\");\n\t\t\tintro.style.cssText = \"display:flex;gap:9px\";\n\t\t\tintro.innerHTML = '<span class=\"z-user-avatar\" style=\"width:24px;height:24px;background:rgba(182,156,255,.16);border-color:rgba(182,156,255,.35);color:#d8c9ff\">AI</span><div style=\"flex:1;background:rgba(182,156,255,.045);border:1px solid rgba(182,156,255,.16);border-radius:6px;padding:9px 11px;font-size:11.5px;color:var(--text-2);line-height:1.6\">Describe what you want to build. I will inspect the project, create the function packages, add routes, and commit everything to your repo.</div>';\n\t\t\tconversation.appendChild(intro);\n\t\t\tconst empty = document.createElement(\"div\");\n\t\t\tempty.className = \"z-help\";\n\t\t\tempty.id = \"agent-conversation-empty\";\n\t\t\tempty.textContent = \"No messages yet. Try one of the suggestions or write your own prompt.\";\n\t\t\tconversation.appendChild(empty);\n\t\t\tdocument.getElementById(\"agent-conversation-status\").textContent = \"ready\";\n\t\t\tdocument.getElementById(\"agent-conversation-status\").className = \"z-badge z-badge-muted\";\n\t\t\ttoast(\"New agent session\", \"info\");\n\t\t}\n\n\t\tfunction appendAgentMessage(role, text) {\n\t\t\tconst conversation = document.getElementById(\"agent-conversation\");\n\t\t\tdocument.getElementById(\"agent-conversation-empty\")?.remove();\n\t\t\tconst row = document.createElement(\"div\");\n\t\t\trow.style.display = \"flex\";\n\t\t\trow.style.gap = \"9px\";\n\t\t\tconst avatar = document.createElement(\"span\");\n\t\t\tavatar.className = \"z-user-avatar\";\n\t\t\tavatar.style.width = \"24px\";\n\t\t\tavatar.style.height = \"24px\";\n\t\t\tavatar.textContent = role === \"assistant\" ? \"AI\" : \"You\";\n\t\t\tif (role === \"assistant\") {\n\t\t\t\tavatar.style.background = \"rgba(182,156,255,.16)\";\n\t\t\t\tavatar.style.borderColor = \"rgba(182,156,255,.35)\";\n\t\t\t\tavatar.style.color = \"#d8c9ff\";\n\t\t\t}\n\t\t\tconst body = document.createElement(\"div\");\n\t\t\tbody.style.cssText = \"flex:1;border:1px solid var(--border);border-radius:6px;padding:9px 11px;font-size:11.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;background:rgba(255,255,255,.025);color:var(--text-2)\";\n\t\t\tbody.textContent = text;\n\t\t\trow.appendChild(avatar);\n\t\t\trow.appendChild(body);\n\t\t\tconversation.appendChild(row);\n\t\t\tconversation.scrollTop = conversation.scrollHeight;\n\t\t\treturn body;\n\t\t}\n\n\t\tasync function agentPagePrompt(text) {\n\t\t\tconst prompt = (text || \"\").trim();\n\t\t\tif (!prompt) { toast(\"Describe a use case first\", \"info\"); return; }\n\t\t\tconst language = document.getElementById(\"agent-language\").value;\n\t\t\tconst surface = document.getElementById(\"agent-surface\").value;\n\t\t\tlet finalPrompt = prompt;\n\t\t\tif (language || surface) {\n\t\t\t\tfinalPrompt += \"\\n\\nPreferred language: \" + (language || \"any\") + \". Preferred surface: \" + (surface || \"any\") + \".\";\n\t\t\t}\n\t\t\tconst btn = document.getElementById(\"agent-generate\");\n\t\t\tconst convStatus = document.getElementById(\"agent-conversation-status\");\n\t\t\tbtn.disabled = true;\n\t\t\tconvStatus.textContent = \"working\";\n\t\t\tconvStatus.className = \"z-badge z-badge-blue\";\n\t\t\tappendAgentMessage(\"user\", finalPrompt);\n\t\t\tconst pending = appendAgentMessage(\"assistant\", \"Thinking…\");\n\t\t\tpending.style.color = \"var(--text-4)\";\n\t\t\tpending.style.fontStyle = \"italic\";\n\t\t\ttry {\n\t\t\t\tlet session = \"\";\n\t\t\t\ttry { session = localStorage.getItem(agentSessionKey()) || \"\"; } catch (err) { /* ignore */ }\n\t\t\t\tconst res = await fetch(\"/api/agent/prompt/\", {\n\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\theaders: { \"Content-Type\": \"application/json\", Accept: \"application/json\" },\n\t\t\t\t\tbody: JSON.stringify({ prompt: finalPrompt, session_id: session })\n\t\t\t\t});\n\t\t\t\tconst data = await res.json().catch(() => ({}));\n\t\t\t\tif (!res.ok) throw new Error(data.error || (\"HTTP \" + res.status));\n\t\t\t\tif (data.session_id) {\n\t\t\t\t\ttry { localStorage.setItem(agentSessionKey(), data.session_id); } catch (err) { /* ignore */ }\n\t\t\t\t}\n\t\t\t\tpending.style.color = \"\";\n\t\t\t\tpending.style.fontStyle = \"\";\n\t\t\t\tpending.textContent = data.text || \"(the agent returned an empty response)\";\n\t\t\t\tif (data.sync_error) appendAgentMessage(\"assistant\", \"Sync warning: \" + data.sync_error);\n\t\t\t\tconvStatus.textContent = \"ready\";\n\t\t\t\tconvStatus.className = \"z-badge z-badge-green\";\n\t\t\t\ttoast(\"Agent finished\", \"success\");\n\t\t\t} catch (err) {\n\t\t\t\tpending.style.color = \"var(--red)\";\n\t\t\t\tpending.style.fontStyle = \"\";\n\t\t\t\tpending.textContent = err.message || \"The agent request failed.\";\n\t\t\t\tconvStatus.textContent = \"error\";\n\t\t\t\tconvStatus.className = \"z-badge z-badge-amber\";\n\t\t\t} finally {\n\t\t\t\tbtn.disabled = false;\n\t\t\t}\n\t\t}\n\n\t\tasync function generatePlan() {\n\t\t\tawait agentPagePrompt(document.getElementById(\"agent-prompt\").value);\n\t\t}\n\n\t\tdocument.addEventListener(\"keydown\", e => {\n\t\t\tif ((e.metaKey || e.ctrlKey) && e.key === \"Enter\") { e.preventDefault(); generatePlan(); }\n\t\t});\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
