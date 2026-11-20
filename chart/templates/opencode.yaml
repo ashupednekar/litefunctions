@@ -21,31 +21,7 @@ metadata:
     {{- include "litefunctions.labels" . | nindent 4 }}
 data:
   opencode.json: |
-    {
-      "$schema": "https://opencode.ai/config.json",
-      "permissions": [
-        {
-          "action": "litefunctions_*",
-          "resource": "*",
-          "effect": "allow"
-        }
-      ]
-      {{- if .Values.agent.mcp.enabled }},
-      "mcp": {
-        "servers": {
-          "litefunctions": {
-            "type": "remote",
-            "url": "http://litefunctions-mcp:{{ .Values.agent.mcp.port }}/mcp",
-            "oauth": false,
-            "codemode": false,
-            "timeout": {
-              "execution": 600000
-            }
-          }
-        }
-      }
-      {{- end }}
-    }
+{{ tpl (.Files.Get "files/opencode.json") . | indent 4 }}
   AGENTS.md: |
 {{ .Files.Get "files/AGENTS.md" | indent 4 }}
 {{- if .Values.agent.persistence.workspace.enabled }}
@@ -141,9 +117,6 @@ spec:
           mountPath: /root/.local/share/opencode
         - name: config
           mountPath: /root/.config/opencode
-        - name: config
-          mountPath: /workspace/AGENTS.md
-          subPath: AGENTS.md
       volumes:
       - name: workspace
         {{- if .Values.agent.persistence.workspace.enabled }}

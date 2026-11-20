@@ -159,10 +159,13 @@ agent:
 
 Both services stay cluster-internal by default. The portal reaches OpenCode at
 `http://litefunctions-opencode:4096`. The agent's runtime instructions live in
-`chart/files/AGENTS.md` and are mounted into the OpenCode pod, so language
-selection and async guidance can be edited without changing Go code. Databases,
-persistent streams, object storage, and traffic policies are intentionally not
-wired into the agent yet; the agent is instructed to say they are unsupported.
+`chart/files/AGENTS.md` and are mounted as the global
+`~/.config/opencode/AGENTS.md`, so language selection and async guidance can be
+edited without changing Go code. The OpenCode config is kept in
+`chart/files/opencode.json` and rendered into the same config directory.
+Databases, persistent streams, object storage, and traffic policies are
+intentionally not wired into the agent yet; the agent is instructed to say they
+are unsupported.
 
 #### Operator Settings
 
