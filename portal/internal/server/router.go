@@ -82,6 +82,7 @@ func (s *Server) BuildRoutes() {
 		functionHandlers := handlers.NewFunctionHandlers(s.state)
 		endpointHandlers := handlers.NewEndpointHandlers(s.state)
 		actionHandlers := handlers.NewActionHandlers()
+		agentHandlers := handlers.NewAgentHandlers(s.state)
 
 		manager := middleware.RequireProjectRole("owner", "manager")
 
@@ -109,5 +110,10 @@ func (s *Server) BuildRoutes() {
 
 		api.GET("/actions/status/", actionHandlers.Status)
 
+		api.POST("/agent/prompt/", agentHandlers.Prompt)
+		api.GET("/agent/sessions/", agentHandlers.Sessions)
+		api.POST("/agent/sessions/", agentHandlers.CreateSession)
+		api.GET("/agent/sessions/:id/messages/", agentHandlers.Messages)
+		api.DELETE("/agent/sessions/:id/", agentHandlers.DeleteSession)
 	}
 }

@@ -160,6 +160,44 @@ templ BaseLayout(data ShellData, content templ.Component) {
 
 			<div id="toast-container"></div>
 
+			<div id="agent-dock" class="z-agent-dock" data-agent-project={ data.ProjectName }>
+				<button id="agent-dock-launcher" class="z-agent-launcher" type="button" onclick="openAgentDock()" aria-label="Ask the LiteFunctions agent">
+					<span class="z-agent-launcher-orb">@Icon("sparkles", "")</span>
+					<span class="z-agent-launcher-label">Ask the agent</span>
+					<span class="z-agent-launcher-hint">@Icon("sparkles", "") Build functions, routes, async consumers</span>
+					<span class="z-kbd">⌘</span><span class="z-kbd">J</span>
+				</button>
+				<div id="agent-dock-panel" class="z-agent-panel" hidden>
+					<div class="z-agent-head">
+						<span class="z-agent-head-orb">@Icon("sparkles", "")</span>
+						<div class="z-agent-head-meta">
+							<span class="z-agent-title">LiteFunctions agent</span>
+							<span class="z-agent-sub">Project · { projectLabel(data.ProjectName) }</span>
+						</div>
+						<button class="z-icon-btn" type="button" onclick="closeAgentDock()" aria-label="Close agent">@Icon("close", "")</button>
+					</div>
+					<div id="agent-dock-messages" class="z-agent-messages">
+						<div class="z-agent-empty">
+							<div class="z-agent-empty-title">Describe what you want to build.</div>
+							<div class="z-agent-empty-sub">The agent can add HTTP functions, WebSocket/SSE functions, and async NATS consumers to this project. Databases and persistent streams are not supported yet.</div>
+							<div class="z-agent-suggestions">
+								<button class="z-chip-btn" type="button" onclick="agentSuggest('Build a health endpoint as a Go function')">Health endpoint</button>
+								<button class="z-chip-btn" type="button" onclick="agentSuggest('Create an async consumer that reacts to order.paid events and logs the payload')">Async consumer</button>
+								<button class="z-chip-btn" type="button" onclick="agentSuggest('Add a WebSocket function that echoes messages with the current server time')">WebSocket echo</button>
+							</div>
+						</div>
+					</div>
+					<div class="z-agent-compose">
+						<textarea id="agent-dock-input" class="z-agent-input" rows="1" placeholder="e.g. Build an order API with a POST endpoint and an order.paid consumer…"></textarea>
+						<button id="agent-dock-send" class="z-agent-send" type="button" onclick="sendAgentPrompt()" aria-label="Send prompt">@Icon("arrow-right", "")</button>
+					</div>
+					<div class="z-agent-foot">
+						<span id="agent-dock-status">Enter to send · Shift+Enter for a new line</span>
+						<span class="z-agent-foot-note">not yet: db · persistent streams</span>
+					</div>
+				</div>
+			</div>
+
 			<div id="spotlight-modal" class="z-spotlight" onclick="closeSpotlight()">
 				<div class="z-spotlight-box" onclick="event.stopPropagation()">
 					<div class="z-spotlight-input-row">

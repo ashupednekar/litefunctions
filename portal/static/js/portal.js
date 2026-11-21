@@ -225,6 +225,151 @@
     navigator.clipboard.writeText(text).then(() => toast("Copied to clipboard", "success")).catch(() => toast("Copy failed", "error"));
   });
 
+  // ---------- agent dock ----------
+  function agentDock() { return document.getElementById("agent-dock"); }
+  function agentPanel() { return document.getElementById("agent-dock-panel"); }
+  function agentMessages() { return document.getElementById("agent-dock-messages"); }
+  function agentInput() { return document.getElementById("agent-dock-input"); }
+  function agentStatus() { return document.getElementById("agent-dock-status"); }
+  function agentProject() {
+    const dock = agentDock();
+    return (dock && dock.dataset.agentProject) || "project";
+  }
+  function agentSessionKey() { return "lws_agent_session:" + agentProject(); }
+
+  function agentSessionID() {
+    try { return localStorage.getItem(agentSessionKey()) || ""; } catch (err) { return ""; }
+  }
+  function setAgentSessionID(id) {
+    try {
+      if (id) localStorage.setItem(agentSessionKey(), id);
+      else localStorage.removeItem(agentSessionKey());
+    } catch (err) { /* storage unavailable */ }
+  }
+
+  window.openAgentDock = function () {
+    const panel = agentPanel();
+    if (!panel) return;
+    panel.hidden = false;
+    const dock = agentDock();
+    if (dock) dock.classList.add("open");
+    setTimeout(() => agentInput()?.focus(), 30);
+  };
+
+  window.closeAgentDock = function () {
+    const panel = agentPanel();
+    if (panel) panel.hidden = true;
+    const dock = agentDock();
+    if (dock) dock.classList.remove("open");
+  };
+
+  window.agentSuggest = function (text) {
+    const input = agentInput();
+    if (!input) return;
+    input.value = text;
+    input.focus();
+    input.dispatchEvent(new Event("input"));
+  };
+
+  function appendAgentMessage(role, text) {
+    const container = agentMessages();
+    if (!container) return;
+    container.querySelector(".z-agent-empty")?.remove();
+    const row = document.createElement("div");
+    row.className = "z-agent-msg " + role;
+    const avatar = document.createElement("span");
+    avatar.className = "z-agent-msg-avatar";
+    avatar.textContent = role === "assistant" ? "AI" : (role === "user" ? "You" : "!");
+    const body = document.createElement("div");
+    body.className = "z-agent-msg-body";
+    body.textContent = text;
+    row.appendChild(avatar);
+    row.appendChild(body);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+    return body;
+  }
+
+  function setAgentBusy(busy) {
+    const send = document.getElementById("agent-dock-send");
+    if (send) send.disabled = busy;
+    const status = agentStatus();
+    if (status) status.textContent = busy ? "Working on it…" : "Enter to send · Shift+Enter for a new line";
+  }
+
+  window.sendAgentPrompt = async function () {
+    const input = agentInput();
+    if (!input) return;
+    const prompt = input.value.trim();
+    if (!prompt) { input.focus(); return; }
+
+    input.value = "";
+    input.style.height = "auto";
+    appendAgentMessage("user", prompt);
+    setAgentBusy(true);
+    const pending = appendAgentMessage("assistant", "Thinking…");
+    if (pending) pending.classList.add("pending");
+
+    try {
+      const res = await fetch("/api/agent/prompt/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ prompt: prompt, session_id: agentSessionID() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+      if (data.session_id) setAgentSessionID(data.session_id);
+      if (pending) {
+        pending.classList.remove("pending");
+        pending.textContent = data.text || "(the agent returned an empty response)";
+      }
+      if (data.sync_error) {
+        appendAgentMessage("note", "The agent finished, but syncing the project failed: " + data.sync_error);
+      }
+      const messages = agentMessages();
+      if (messages) messages.scrollTop = messages.scrollHeight;
+    } catch (err) {
+      if (pending) {
+        pending.classList.remove("pending");
+        pending.classList.add("error");
+        pending.textContent = err.message || "The agent request failed.";
+      }
+    } finally {
+      setAgentBusy(false);
+      input.focus();
+    }
+  };
+
+  document.addEventListener("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+      e.preventDefault();
+      const panel = agentPanel();
+      if (panel && !panel.hidden) window.closeAgentDock();
+      else window.openAgentDock();
+      return;
+    }
+    if (e.key === "Escape") {
+      const panel = agentPanel();
+      if (panel && !panel.hidden && !e.target.closest("#agent-dock-panel")) {
+        window.closeAgentDock();
+      }
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target !== agentInput()) return;
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      window.sendAgentPrompt();
+    }
+  });
+
+  document.addEventListener("input", function (e) {
+    if (e.target !== agentInput()) return;
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 180) + "px";
+  });
+
   // ---------- command palette ----------
   let spotIndex = -1;
   let spotResults = [];

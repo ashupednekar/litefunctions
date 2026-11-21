@@ -7,6 +7,8 @@ build:
 	$(MAKE) -C ingestor docker-push
 	$(MAKE) -C portal docker-build
 	$(MAKE) -C portal docker-push
+	$(MAKE) -C mcp docker-build
+	$(MAKE) -C mcp docker-push
 	$(MAKE) runtime-python
 	$(MAKE) runtime-ts
 	$(MAKE) runtime-lua
@@ -14,7 +16,7 @@ build:
 	$(MAKE) gitea-setup
 
 .PHONY: local-images
-local-images: local-image-operator local-image-ingestor local-image-portal
+local-images: local-image-operator local-image-ingestor local-image-portal local-image-mcp
 
 .PHONY: local-image-operator
 local-image-operator:
@@ -28,20 +30,27 @@ local-image-ingestor:
 local-image-portal:
 	$(MAKE) -C portal local-build-push
 
+.PHONY: local-image-mcp
+local-image-mcp:
+	$(MAKE) -C mcp local-build-push
+
 .PHONY: local-push
 local-push:
-	$(MAKE) -j3 local-images
+	$(MAKE) -j4 local-images
 	$(MAKE) -C operator helm-sync
 	helm upgrade --install litefunctions ./chart --namespace litefunctions --create-namespace \
 		--set-string images.operator=$(LOCAL_REGISTRY)/litefunctions-operator:latest \
 		--set-string images.ingestor=$(LOCAL_REGISTRY)/litefunctions-ingestor:latest \
-		--set-string images.portal=$(LOCAL_REGISTRY)/litefunctions-portal:latest
+		--set-string images.portal=$(LOCAL_REGISTRY)/litefunctions-portal:latest \
+		--set-string images.mcp=$(LOCAL_REGISTRY)/litefunctions-mcp:latest
 	kubectl -n litefunctions rollout restart deployment/litefunctions-operator
 	kubectl -n litefunctions rollout restart deployment/litefunctions-ingestor
 	kubectl -n litefunctions rollout restart deployment/litefunctions-portal
+	kubectl -n litefunctions rollout restart deployment/litefunctions-mcp
 	kubectl -n litefunctions rollout status deployment/litefunctions-operator
 	kubectl -n litefunctions rollout status deployment/litefunctions-ingestor
 	kubectl -n litefunctions rollout status deployment/litefunctions-portal
+	kubectl -n litefunctions rollout status deployment/litefunctions-mcp
 
 .PHONY: runtime-python
 runtime-python:
@@ -73,6 +82,7 @@ build-multiarch:
 	$(MAKE) -C operator helm-sync
 	$(MAKE) -C ingestor docker-buildx
 	$(MAKE) -C portal docker-buildx
+	$(MAKE) -C mcp docker-buildx
 	$(MAKE) runtime-python-buildx runtime-ts-buildx runtime-lua-buildx runtime-assets-buildx gitea-setup-buildx
 
 .PHONY: gitea-setup-buildx

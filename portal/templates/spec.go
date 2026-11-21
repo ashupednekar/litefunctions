@@ -71,7 +71,7 @@ type ShellData struct {
 // PageUsesDummyData lists the UI-only surfaces that currently render fixtures.
 func PageUsesDummyData(active string) bool {
 	switch active {
-	case "overview", "dependencies", "data-model", "queries", "agent", "data",
+	case "overview", "dependencies", "data-model", "queries", "data",
 		"pubsub", "compute", "configuration",
 		"access", "audit":
 		return true

@@ -56,6 +56,7 @@ Current platform features:
 - Auto endpoint provisioning and endpoint management from Portal.
 - Build/action visibility in Portal with live status updates.
 - Runtime activation + keep-warm/deprovision lifecycle management.
+- Floating build agent backed by OpenCode and a LiteFunctions MCP server.
 
 ## Building container images
 
@@ -77,6 +78,7 @@ Publish both architectures under one tag (log in to the registry first):
 make -C portal docker-buildx IMG=your-user/litefunctions-portal:dev
 make -C ingestor docker-buildx IMG=your-user/litefunctions-ingestor:dev
 make -C operator docker-buildx IMG=your-user/litefunctions-operator:dev
+make -C mcp docker-buildx IMG=your-user/litefunctions-mcp:dev
 make runtime-python-buildx runtime-ts-buildx runtime-lua-buildx
 ```
 

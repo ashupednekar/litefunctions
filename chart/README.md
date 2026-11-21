@@ -134,7 +134,38 @@ images:
   giteaSetup: ashupednekar535/litefunctions-gitea-setup:latest
   operator: ashupednekar535/litefunctions-operator:latest
   portal: ashupednekar535/litefunctions-portal:latest
+  mcp: ashupednekar535/litefunctions-mcp:latest
+  opencode: ghcr.io/anomalyco/opencode:latest
 ```
+
+#### Build Agent
+
+The portal ships a floating build agent. It proxies prompts to the bundled
+OpenCode server, which uses the LiteFunctions MCP server to write functions,
+WebSocket/SSE handlers, and async consumers into the project repository.
+
+```yaml
+agent:
+  enabled: true
+  password: change-me # OpenCode basic-auth password; change the default
+  service:
+    type: ClusterIP
+    port: 4096
+  mcp:
+    enabled: true
+    port: 8090
+    token: "" # optional cluster-internal shared secret
+```
+
+Both services stay cluster-internal by default. The portal reaches OpenCode at
+`http://litefunctions-opencode:4096`. The agent's runtime instructions live in
+`chart/files/AGENTS.md` and are mounted as the global
+`~/.config/opencode/AGENTS.md`, so language selection and async guidance can be
+edited without changing Go code. The OpenCode config is kept in
+`chart/files/opencode.json` and rendered into the same config directory.
+Databases, persistent streams, object storage, and traffic policies are
+intentionally not wired into the agent yet; the agent is instructed to say they
+are unsupported.
 
 #### Operator Settings
 

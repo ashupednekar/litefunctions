@@ -41,7 +41,42 @@ images:
   giteaSetup: ashupednekar535/litefunctions-gitea-setup:latest
   operator: ashupednekar535/litefunctions-operator:latest
   portal: ashupednekar535/litefunctions-portal:latest
+  mcp: ashupednekar535/litefunctions-mcp:latest
+  opencode: ghcr.io/anomalyco/opencode:latest
   ollyBuckets: amazon/aws-cli:2.40.1
+
+# The agent runs OpenCode plus the LiteFunctions MCP server. The portal proxies
+# chat prompts to OpenCode, and OpenCode uses the MCP tools to write functions
+# into the project repository. Change the default password before exposing the
+# OpenCode service outside the cluster.
+agent:
+  enabled: true
+  replicas: 1
+  # OpenCode HTTP basic-auth credentials. The portal uses the same password.
+  username: opencode
+  password: "litefunctions"
+  model: ""
+  name: build
+  timeoutSeconds: 300
+  service:
+    type: ClusterIP
+    port: 4096
+  resources: {}
+  persistence:
+    workspace:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+    data:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  mcp:
+    enabled: true
+    port: 8090
+    # Optional shared secret. Leave empty for cluster-internal access only.
+    token: ""
+    resources: {}
 
 # Olly is the bundled observability stack (Loki, Mimir, Grafana, Tempo and
 # Grafana Alloy). Logs and metrics are enabled by default; traces are opt-in.
