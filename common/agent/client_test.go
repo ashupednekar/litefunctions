@@ -139,6 +139,28 @@ func TestServicePromptIncludesProjectRules(t *testing.T) {
 	}
 }
 
+func TestHTTPErrorMessage(t *testing.T) {
+	cases := []struct {
+		name    string
+		status  int
+		payload string
+		want    string
+	}{
+		{"empty", http.StatusUnauthorized, "", "Unauthorized"},
+		{"plain", http.StatusBadGateway, "gateway down", "gateway down"},
+		{"message", http.StatusBadRequest, `{"message":"bad prompt"}`, "bad prompt"},
+		{"nested", http.StatusInternalServerError, `{"name":"UnknownError","data":{"message":"boom","ref":"err_1"}}`, "boom (err_1)"},
+		{"name", http.StatusInternalServerError, `{"name":"UnknownError"}`, "UnknownError"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := httpErrorMessage(tc.status, []byte(tc.payload)); got != tc.want {
+				t.Fatalf("httpErrorMessage = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func writeJSON(t *testing.T, w http.ResponseWriter, value any) {
 	t.Helper()
 	w.Header().Set("Content-Type", "application/json")

@@ -22,25 +22,21 @@ const (
 	modeV2
 )
 
-// Client is a small typed client for the OpenCode HTTP API. It supports both
-// the legacy /session routes and the newer /api/session routes so the portal
-// keeps working across OpenCode releases.
+// Client talks to an OpenCode server, preferring the legacy /session routes
+// and falling back to /api/session when the server does not expose them.
 type Client struct {
 	cfg  Config
 	http *http.Client
 	mode atomic.Int32
 }
 
-// NewClient builds a client. A zero timeout falls back to five minutes.
+// NewClient builds a client. A non-positive timeout falls back to five minutes.
 func NewClient(cfg Config) *Client {
 	timeout := time.Duration(cfg.TimeoutSeconds) * time.Second
 	if timeout <= 0 {
 		timeout = 5 * time.Minute
 	}
-	return &Client{
-		cfg:  cfg,
-		http: &http.Client{Timeout: timeout},
-	}
+	return &Client{cfg: cfg, http: &http.Client{Timeout: timeout}}
 }
 
 func (c *Client) Config() Config { return c.cfg }
@@ -56,46 +52,62 @@ func (c *Client) username() string {
 	return c.cfg.Username
 }
 
+// withFallback tries the legacy route first, then the V2 route if the legacy
+// one is unsupported. The first mode that succeeds is reused by later calls.
+func withFallback[T any](c *Client, ctx context.Context, legacy, v2 func(context.Context) (T, error)) (T, error) {
+	var zero T
+	switch apiMode(c.mode.Load()) {
+	case modeLegacy:
+		return legacy(ctx)
+	case modeV2:
+		return v2(ctx)
+	}
+	result, err := legacy(ctx)
+	if err == nil {
+		c.mode.Store(int32(modeLegacy))
+		return result, nil
+	}
+	if !isUnsupported(err) {
+		return zero, err
+	}
+	result, err = v2(ctx)
+	if err == nil {
+		c.mode.Store(int32(modeV2))
+	}
+	return result, err
+}
+
 type createSessionBody struct {
 	Title     string `json:"title"`
 	Directory string `json:"directory,omitempty"`
 }
 
-// CreateSession creates a new conversation.
 func (c *Client) CreateSession(ctx context.Context, title string) (*Session, error) {
 	return c.CreateSessionAt(ctx, title, "")
 }
 
-// CreateSessionAt creates a session, optionally pinned to a directory.
 func (c *Client) CreateSessionAt(ctx context.Context, title, directory string) (*Session, error) {
-	mode := apiMode(c.mode.Load())
-	if mode == modeLegacy {
-		return c.createSessionLegacy(ctx, title, directory)
-	}
-	if mode == modeV2 {
-		return c.createSessionV2(ctx, title, directory)
-	}
-
-	session, err := c.createSessionLegacy(ctx, title, directory)
-	if err == nil {
-		c.mode.Store(int32(modeLegacy))
-		return session, nil
-	}
-	if !isUnsupported(err) {
-		return nil, err
-	}
-	session, err = c.createSessionV2(ctx, title, directory)
-	if err == nil {
-		c.mode.Store(int32(modeV2))
-	}
-	return session, err
+	body := createSessionBody{Title: title, Directory: directory}
+	return withFallback(c, ctx,
+		func(ctx context.Context) (*Session, error) { return c.createSession(ctx, "/session", body) },
+		func(ctx context.Context) (*Session, error) { return c.createSessionV2(ctx, body) },
+	)
 }
 
-func (c *Client) createSessionLegacy(ctx context.Context, title, directory string) (*Session, error) {
+func (c *Client) createSession(ctx context.Context, path string, body createSessionBody) (*Session, error) {
 	var session Session
-	if err := c.doJSON(ctx, http.MethodPost, "/session", createSessionBody{Title: title, Directory: directory}, &session); err != nil {
+	if err := c.doJSON(ctx, http.MethodPost, path, body, &session); err != nil {
 		return nil, err
 	}
+	return &session, nil
+}
+
+func (c *Client) createSessionV2(ctx context.Context, body createSessionBody) (*Session, error) {
+	var raw v2Session
+	if err := c.doJSON(ctx, http.MethodPost, "/api/session", body, &raw); err != nil {
+		return nil, err
+	}
+	session := raw.toSession()
 	return &session, nil
 }
 
@@ -112,38 +124,28 @@ type v2Session struct {
 	Version   string `json:"version"`
 }
 
-func (c *Client) createSessionV2(ctx context.Context, title, directory string) (*Session, error) {
-	var raw v2Session
-	if err := c.doJSON(ctx, http.MethodPost, "/api/session", createSessionBody{Title: title, Directory: directory}, &raw); err != nil {
-		return nil, err
+func (s v2Session) toSession() Session {
+	return Session{
+		ID:        s.ID,
+		Slug:      s.Slug,
+		Title:     s.Title,
+		Directory: s.Directory,
+		ProjectID: s.ProjectID,
+		Version:   s.Version,
+		CreatedAt: s.Time.Created,
+		UpdatedAt: s.Time.Updated,
 	}
-	return &Session{
-		ID:        raw.ID,
-		Slug:      raw.Slug,
-		Title:     raw.Title,
-		Directory: raw.Directory,
-		ProjectID: raw.ProjectID,
-		Version:   raw.Version,
-		CreatedAt: raw.Time.Created,
-		UpdatedAt: raw.Time.Updated,
-	}, nil
 }
 
-// ListSessions returns sessions known to the server.
 func (c *Client) ListSessions(ctx context.Context) ([]Session, error) {
-	mode := apiMode(c.mode.Load())
-	if mode == modeV2 {
-		return c.listSessionsV2(ctx)
-	}
-	var sessions []Session
-	err := c.doJSON(ctx, http.MethodGet, "/session", nil, &sessions)
-	if err == nil {
-		return sessions, nil
-	}
-	if !isUnsupported(err) {
-		return nil, err
-	}
-	return c.listSessionsV2(ctx)
+	return withFallback(c, ctx,
+		func(ctx context.Context) ([]Session, error) {
+			var sessions []Session
+			err := c.doJSON(ctx, http.MethodGet, "/session", nil, &sessions)
+			return sessions, err
+		},
+		c.listSessionsV2,
+	)
 }
 
 func (c *Client) listSessionsV2(ctx context.Context) ([]Session, error) {
@@ -153,23 +155,13 @@ func (c *Client) listSessionsV2(ctx context.Context) ([]Session, error) {
 	if err := c.doJSON(ctx, http.MethodGet, "/api/session", nil, &response); err != nil {
 		return nil, err
 	}
-	out := make([]Session, 0, len(response.Data))
-	for _, item := range response.Data {
-		out = append(out, Session{
-			ID:        item.ID,
-			Slug:      item.Slug,
-			Title:     item.Title,
-			Directory: item.Directory,
-			ProjectID: item.ProjectID,
-			Version:   item.Version,
-			CreatedAt: item.Time.Created,
-			UpdatedAt: item.Time.Updated,
-		})
+	out := make([]Session, len(response.Data))
+	for i, item := range response.Data {
+		out[i] = item.toSession()
 	}
 	return out, nil
 }
 
-// DeleteSession removes a conversation.
 func (c *Client) DeleteSession(ctx context.Context, sessionID string) error {
 	err := c.doJSON(ctx, http.MethodDelete, legacyPath(sessionID, ""), nil, nil)
 	if err == nil || !isUnsupported(err) {
@@ -179,27 +171,13 @@ func (c *Client) DeleteSession(ctx context.Context, sessionID string) error {
 }
 
 // SendMessage sends a text prompt and returns the assistant reply. Legacy
-// OpenCode servers answer synchronously. Newer servers admit the prompt and
-// require a wait + message read, which this method performs transparently.
+// servers answer synchronously; V2 servers admit the prompt and require a wait
+// followed by a message read, which this method handles.
 func (c *Client) SendMessage(ctx context.Context, sessionID, text string) (*Message, error) {
-	mode := apiMode(c.mode.Load())
-	if mode == modeV2 {
-		return c.sendMessageV2(ctx, sessionID, text)
-	}
-
-	msg, err := c.sendMessageLegacy(ctx, sessionID, text)
-	if err == nil {
-		c.mode.Store(int32(modeLegacy))
-		return msg, nil
-	}
-	if !isUnsupported(err) {
-		return nil, err
-	}
-	msg, err = c.sendMessageV2(ctx, sessionID, text)
-	if err == nil {
-		c.mode.Store(int32(modeV2))
-	}
-	return msg, err
+	return withFallback(c, ctx,
+		func(ctx context.Context) (*Message, error) { return c.sendMessageLegacy(ctx, sessionID, text) },
+		func(ctx context.Context) (*Message, error) { return c.sendMessageV2(ctx, sessionID, text) },
+	)
 }
 
 type promptBody struct {
@@ -220,18 +198,20 @@ func (c *Client) sendMessageLegacy(ctx context.Context, sessionID, text string) 
 }
 
 func (c *Client) sendMessageV2(ctx context.Context, sessionID, text string) (*Message, error) {
-	body := promptBody{Parts: []Part{{Type: "text", Text: text}}}
-	err := c.doJSON(ctx, http.MethodPost, v2Path(sessionID, "/prompt"), body, nil)
-	if err != nil && isBadRequest(err) {
-		// Some V2 builds accept a plain text prompt.
-		err = c.doJSON(ctx, http.MethodPost, v2Path(sessionID, "/prompt"), map[string]string{"text": text}, nil)
+	path := v2Path(sessionID, "/prompt")
+	err := c.doJSON(ctx, http.MethodPost, path, promptBody{
+		Parts: []Part{{Type: "text", Text: text}},
+	}, nil)
+	if isBadRequest(err) {
+		// Some V2 builds only accept a plain text prompt.
+		err = c.doJSON(ctx, http.MethodPost, path, map[string]string{"text": text}, nil)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	// Wait for the agent loop to become idle. Older builds may not expose the
-	// wait route; in that case the subsequent message read is still useful.
+	// The wait route is experimental and may be missing; the message read below
+	// still returns whatever the agent has produced by then.
 	_ = c.doJSON(ctx, http.MethodPost, "/api/experimental/session/"+url.PathEscape(sessionID)+"/wait", nil, nil)
 
 	msg, err := c.lastAssistantMessageV2(ctx, sessionID)
@@ -244,21 +224,15 @@ func (c *Client) sendMessageV2(ctx context.Context, sessionID, text string) (*Me
 	return msg, nil
 }
 
-// ListMessages returns the messages in a session.
 func (c *Client) ListMessages(ctx context.Context, sessionID string) ([]Message, error) {
-	mode := apiMode(c.mode.Load())
-	if mode == modeV2 {
-		return c.listMessagesV2(ctx, sessionID)
-	}
-	var messages []Message
-	err := c.doJSON(ctx, http.MethodGet, legacyPath(sessionID, "/message"), nil, &messages)
-	if err == nil {
-		return messages, nil
-	}
-	if !isUnsupported(err) {
-		return nil, err
-	}
-	return c.listMessagesV2(ctx, sessionID)
+	return withFallback(c, ctx,
+		func(ctx context.Context) ([]Message, error) {
+			var messages []Message
+			err := c.doJSON(ctx, http.MethodGet, legacyPath(sessionID, "/message"), nil, &messages)
+			return messages, err
+		},
+		func(ctx context.Context) ([]Message, error) { return c.listMessagesV2(ctx, sessionID) },
+	)
 }
 
 type v2Content struct {
@@ -284,9 +258,9 @@ func (c *Client) listMessagesV2(ctx context.Context, sessionID string) ([]Messag
 	if err := c.doJSON(ctx, http.MethodGet, v2Path(sessionID, "/message"), nil, &response); err != nil {
 		return nil, err
 	}
-	out := make([]Message, 0, len(response.Data))
-	for _, item := range response.Data {
-		out = append(out, v2ToMessage(item))
+	out := make([]Message, len(response.Data))
+	for i, item := range response.Data {
+		out[i] = v2ToMessage(item)
 	}
 	return out, nil
 }
@@ -310,25 +284,15 @@ func v2ToMessage(item v2Message) Message {
 	role := item.Role
 	if role == "" {
 		switch item.Type {
-		case "assistant":
-			role = "assistant"
-		case "user":
-			role = "user"
+		case "assistant", "user":
+			role = item.Type
 		}
 	}
-	msg := Message{
-		Info: MessageInfo{
-			ID:        item.ID,
-			SessionID: "",
-			Role:      role,
-			Error:     item.Error,
-		},
+	msg := Message{Info: MessageInfo{ID: item.ID, Role: role, Error: item.Error}}
+	for _, content := range item.Content {
+		msg.Parts = append(msg.Parts, Part{ID: item.ID, Type: content.Type, Text: content.Text})
 	}
-	if len(item.Content) > 0 {
-		for _, content := range item.Content {
-			msg.Parts = append(msg.Parts, Part{ID: item.ID, Type: content.Type, Text: content.Text})
-		}
-	} else if item.Text != "" {
+	if len(msg.Parts) == 0 && item.Text != "" {
 		msg.Parts = append(msg.Parts, Part{ID: item.ID, Type: "text", Text: item.Text})
 	}
 	return msg
@@ -394,26 +358,50 @@ func (c *Client) doJSON(ctx context.Context, method, path string, body any, out 
 
 type httpError struct {
 	StatusCode int
-	Body       string
+	Message    string
 }
 
-func (e *httpError) Error() string {
-	if strings.TrimSpace(e.Body) == "" {
-		return fmt.Sprintf("opencode returned HTTP %d", e.StatusCode)
-	}
-	return fmt.Sprintf("opencode returned HTTP %d: %s", e.StatusCode, strings.TrimSpace(e.Body))
-}
+func (e *httpError) Error() string { return e.Message }
 
 func newHTTPError(status int, payload []byte) error {
-	var apiErr APIError
-	if err := json.Unmarshal(payload, &apiErr); err == nil && (apiErr.Message != "" || apiErr.Name != "") {
-		return &httpError{StatusCode: status, Body: apiErr.Error()}
+	return &httpError{
+		StatusCode: status,
+		Message:    fmt.Sprintf("opencode returned HTTP %d: %s", status, httpErrorMessage(status, payload)),
 	}
-	body := string(payload)
-	if len(body) > 512 {
-		body = body[:512]
+}
+
+// httpErrorMessage pulls the useful parts out of OpenCode error payloads. They
+// come in a few shapes: {"message": ...}, {"name": ..., "data": {"message",
+// "ref"}}, or an empty body (usually an auth failure or a missing route).
+func httpErrorMessage(status int, payload []byte) string {
+	var body struct {
+		Name    string `json:"name"`
+		Message string `json:"message"`
+		Data    struct {
+			Message string `json:"message"`
+			Ref     string `json:"ref"`
+		} `json:"data"`
 	}
-	return &httpError{StatusCode: status, Body: body}
+	if json.Unmarshal(payload, &body) == nil {
+		switch {
+		case body.Data.Message != "" && body.Data.Ref != "":
+			return body.Data.Message + " (" + body.Data.Ref + ")"
+		case body.Data.Message != "":
+			return body.Data.Message
+		case body.Message != "":
+			return body.Message
+		case body.Name != "":
+			return body.Name
+		}
+	}
+	text := strings.TrimSpace(string(payload))
+	if text == "" {
+		return http.StatusText(status)
+	}
+	if len(text) > 512 {
+		text = text[:512]
+	}
+	return text
 }
 
 func isUnsupported(err error) bool {
