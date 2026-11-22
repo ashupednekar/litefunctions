@@ -85,7 +85,21 @@ function M.handle_http_request(req)
     return 500, err, "text/plain"
   end
 
-  return 200, out, "application/json"
+  local path = ((req.path or ""):gsub("%?.*$", "")):lower()
+  local trimmed = (out or ""):gsub("^%s+", "")
+  trimmed = trimmed:lower()
+  local content_type = "application/json"
+  if path:match("%.css$") then
+    content_type = "text/css"
+  elseif path:match("%.js$") then
+    content_type = "application/javascript"
+  elseif path:match("%.html$") then
+    content_type = "text/html"
+  elseif trimmed:sub(1, 9) == "<!doctype" or trimmed:sub(1, 5) == "<html" then
+    content_type = "text/html"
+  end
+
+  return 200, out, content_type
 end
 
 M.parse_http_request = parse_http_request
