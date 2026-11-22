@@ -48,7 +48,7 @@ bootstrap-local-registry: helm-sync
 	fi; \
 	echo "starting local registry via chart defaults"; \
 	helm upgrade --install $(RELEASE) ./chart --namespace $(NAMESPACE) --create-namespace \
-		--server-side --force-conflicts \
+		--server-side=true --force-conflicts \
 		--set gatewayApi.tls.certManager.enabled=false; \
 	kubectl -n $(NAMESPACE) rollout status deployment/$(RELEASE)-zot --timeout=180s || true; \
 	for i in $$(seq 1 60); do \
@@ -65,7 +65,7 @@ bootstrap-local-registry: helm-sync
 local-push: bootstrap-local-registry
 	$(MAKE) -j4 local-images
 	helm upgrade --install $(RELEASE) ./chart --namespace $(NAMESPACE) --create-namespace \
-		--server-side --force-conflicts \
+		--server-side=true --force-conflicts \
 		--set gatewayApi.tls.certManager.enabled=false \
 		--set-string images.operator=$(LOCAL_REGISTRY)/litefunctions-operator:latest \
 		--set-string images.ingestor=$(LOCAL_REGISTRY)/litefunctions-ingestor:latest \
