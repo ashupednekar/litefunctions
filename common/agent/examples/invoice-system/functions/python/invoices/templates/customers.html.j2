@@ -1,0 +1,83 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import pagination, empty %}
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">Customers</p>
+    <h1>{{ result.total }} customer{{ '' if result.total == 1 else 's' }}</h1>
+    <p class="lede">Each customer owns a currency, payment terms and an address.</p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-primary" href="{{ base }}/ui/customers/new">New customer</a>
+  </div>
+</section>
+
+<form class="filters" method="get" action="{{ base }}/ui/customers">
+  <label>
+    <span>Status</span>
+    <select name="status">
+      {% for option in ['active', 'archived', 'all'] %}
+      <option value="{{ option }}" {% if filters.status == option %}selected{% endif %}>{{ option | title }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="grow">
+    <span>Search</span>
+    <input type="search" name="q" value="{{ filters.q }}" placeholder="Name or email">
+  </label>
+  <button class="btn btn-primary" type="submit">Filter</button>
+  {% if filters.status != 'active' or filters.q %}
+  <a class="btn btn-ghost" href="{{ base }}/ui/customers">Reset</a>
+  {% endif %}
+</form>
+
+<section class="card">
+  {% if result['items'] %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Contact</th>
+          <th>Currency</th>
+          <th>Terms</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in result['items'] %}
+        <tr class="row-link" data-href="{{ base }}/ui/customers/{{ customer.id }}">
+          <td>
+            <div class="person-row">
+              <span class="avatar">{{ customer.name | initials }}</span>
+              <span>
+                <a class="strong-link" href="{{ base }}/ui/customers/{{ customer.id }}">{{ customer.name }}</a>
+                <span class="sub mono">{{ customer.id }}</span>
+              </span>
+            </div>
+          </td>
+          <td>
+            {% if customer.email %}<div>{{ customer.email }}</div>{% endif %}
+            {% if customer.phone %}<div class="sub">{{ customer.phone }}</div>{% endif %}
+            {% if not customer.email and not customer.phone %}<span class="muted">—</span>{% endif %}
+          </td>
+          <td><span class="currency-chip">{{ customer.currency }}</span></td>
+          <td class="muted">{{ customer.payment_terms_days }} days</td>
+          <td><span class="badge badge-{{ customer.status }}">{{ customer.status | title }}</span></td>
+          <td class="num">
+            <a class="btn btn-ghost btn-sm" href="{{ base }}/ui/invoices/new?customer_id={{ customer.id }}">Invoice</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pagination(page_no, page_count, prev_url, next_url) }}
+  {% else %}
+    {{ empty("No customers match", "Adjust the filter or add a new customer.", base ~ "/ui/customers/new", "New customer") }}
+  {% endif %}
+</section>
+{% endblock %}

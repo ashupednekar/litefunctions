@@ -1,0 +1,104 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import error_banner %}
+{% block title %}{{ 'Edit draft' if mode == 'edit' else 'New invoice' }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow"><a class="plain-link" href="{{ base }}/ui/invoices">Invoices</a> / {{ 'Edit draft' if mode == 'edit' else 'New' }}</p>
+    <h1>{{ 'Edit draft invoice' if mode == 'edit' else 'Create an invoice' }}</h1>
+    <p class="lede">Line items are calculated with exact decimal math and stored in minor units.</p>
+  </div>
+</section>
+
+{{ error_banner(error) }}
+
+<form class="form invoice-form" method="post" action="{{ base }}/ui/invoices{% if mode == 'edit' and invoice %}/{{ invoice.id }}{% endif %}">
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Details</h2>
+        <p class="muted">Choose the customer and the billing window.</p>
+      </div>
+    </div>
+    <div class="field-grid">
+      <label class="span-2">
+        <span>Customer</span>
+        <select name="customer_id" {% if mode == 'edit' %}disabled{% else %}required{% endif %}>
+          <option value="">Select a customer…</option>
+          {% for customer in customers %}
+          <option value="{{ customer.id }}" data-terms="{{ customer.payment_terms_days }}" {% if form.get('customer_id') == customer.id %}selected{% endif %}>
+            {{ customer.name }} · {{ customer.currency }} · {{ customer.payment_terms_days }} day terms
+          </option>
+          {% endfor %}
+        </select>
+        {% if mode == 'edit' %}<small>The customer is fixed once a draft exists.</small>{% endif %}
+      </label>
+      <label>
+        <span>Issue date</span>
+        <input type="date" name="issue_date" value="{{ form.get('issue_date', '') }}">
+      </label>
+      <label>
+        <span>Due date</span>
+        <input type="date" name="due_date" value="{{ form.get('due_date', '') }}">
+      </label>
+      <label class="span-2">
+        <span>Notes</span>
+        <textarea name="notes" rows="3" placeholder="Visible on the invoice">{{ form.get('notes', '') }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>Terms</span>
+        <textarea name="terms" rows="2" placeholder="Payment terms">{{ form.get('terms', '') }}</textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Line items</h2>
+        <p class="muted">Quantity and unit price accept decimals. Tax and discount are percentages.</p>
+      </div>
+      <button class="btn btn-ghost" type="button" data-add-line>Add line</button>
+    </div>
+
+    <div class="line-table" data-line-items>
+      <div class="line-head">
+        <span>Description</span>
+        <span class="num">Qty</span>
+        <span class="num">Unit price</span>
+        <span class="num">Tax %</span>
+        <span class="num">Discount %</span>
+        <span></span>
+      </div>
+      {% for item in line_items %}
+      <div class="line-row">
+        <input name="line_description" value="{{ item.description }}" placeholder="Consulting, license, design…" aria-label="Description">
+        <input name="line_quantity" value="{{ item.quantity }}" inputmode="decimal" class="num" aria-label="Quantity">
+        <input name="line_unit_price" value="{{ item.unit_price }}" inputmode="decimal" class="num" aria-label="Unit price">
+        <input name="line_tax" value="{{ item.tax }}" inputmode="decimal" class="num" aria-label="Tax percent">
+        <input name="line_discount" value="{{ item.discount }}" inputmode="decimal" class="num" aria-label="Discount percent">
+        <button class="icon-btn" type="button" data-remove-line title="Remove line">✕</button>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="hint">Totals are recalculated when you save. Empty rows are ignored.</p>
+  </section>
+
+  <div class="form-actions">
+    <a class="btn btn-ghost" href="{{ base }}/ui/invoices{% if mode == 'edit' and invoice %}/{{ invoice.id }}{% endif %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create draft' }}</button>
+  </div>
+</form>
+
+<template id="line-row-template">
+  <div class="line-row">
+    <input name="line_description" placeholder="Consulting, license, design…" aria-label="Description">
+    <input name="line_quantity" value="1" inputmode="decimal" class="num" aria-label="Quantity">
+    <input name="line_unit_price" inputmode="decimal" class="num" aria-label="Unit price">
+    <input name="line_tax" inputmode="decimal" class="num" aria-label="Tax percent">
+    <input name="line_discount" inputmode="decimal" class="num" aria-label="Discount percent">
+    <button class="icon-btn" type="button" data-remove-line title="Remove line">✕</button>
+  </div>
+</template>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import error_banner %}
+{% block title %}{{ 'Edit customer' if mode == 'edit' else 'New customer' }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow"><a class="plain-link" href="{{ base }}/ui/customers">Customers</a> / {{ 'Edit' if mode == 'edit' else 'New' }}</p>
+    <h1>{{ 'Edit ' ~ customer.name if mode == 'edit' and customer else 'Add a customer' }}</h1>
+    <p class="lede">Currency and payment terms become the defaults for new invoices.</p>
+  </div>
+</section>
+
+{{ error_banner(error) }}
+
+<form class="form" method="post" action="{{ base }}/ui/customers{% if mode == 'edit' and customer %}/{{ customer.id }}{% endif %}">
+  <section class="card">
+    <div class="card-head"><div><h2>Basics</h2></div></div>
+    <div class="field-grid">
+      <label class="span-2">
+        <span>Name</span>
+        <input name="name" value="{{ form.get('name', '') }}" required placeholder="Acme Corp">
+      </label>
+      <label>
+        <span>Email</span>
+        <input name="email" type="email" value="{{ form.get('email', '') }}" placeholder="billing@acme.test">
+      </label>
+      <label>
+        <span>Phone</span>
+        <input name="phone" value="{{ form.get('phone', '') }}">
+      </label>
+      <label>
+        <span>Tax id</span>
+        <input name="tax_id" value="{{ form.get('tax_id', '') }}">
+      </label>
+      <label>
+        <span>Currency</span>
+        <input name="currency" value="{{ form.get('currency', 'USD') }}" maxlength="3" pattern="[A-Za-z]{3}" title="Three-letter ISO currency">
+      </label>
+      <label>
+        <span>Payment terms (days)</span>
+        <input name="payment_terms_days" type="number" min="0" max="365" value="{{ form.get('payment_terms_days', '14') }}">
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Address</h2><p class="muted">Optional, but printed on every invoice.</p></div></div>
+    <div class="field-grid">
+      <label class="span-2">
+        <span>Address line 1</span>
+        <input name="line1" value="{{ form.get('line1', '') }}">
+      </label>
+      <label class="span-2">
+        <span>Address line 2</span>
+        <input name="line2" value="{{ form.get('line2', '') }}">
+      </label>
+      <label>
+        <span>City</span>
+        <input name="city" value="{{ form.get('city', '') }}">
+      </label>
+      <label>
+        <span>State / region</span>
+        <input name="state" value="{{ form.get('state', '') }}">
+      </label>
+      <label>
+        <span>Postal code</span>
+        <input name="postal_code" value="{{ form.get('postal_code', '') }}">
+      </label>
+      <label>
+        <span>Country</span>
+        <input name="country" value="{{ form.get('country', '') }}">
+      </label>
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <a class="btn btn-ghost" href="{{ base }}/ui/customers{% if mode == 'edit' and customer %}/{{ customer.id }}{% endif %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">{{ 'Save changes' if mode == 'edit' else 'Create customer' }}</button>
+  </div>
+</form>
+{% endblock %}

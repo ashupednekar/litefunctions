@@ -5,6 +5,12 @@ WARNING: the system admin password login is enabled. Change ui.admin.password
 from its default before exposing the portal outside a trusted network.
 {{- end }}
 
+{{- if .Values.agent.enabled }}
+WARNING: the OpenCode agent uses a default password. Change agent.password
+before exposing the OpenCode service outside the cluster. The portal reaches
+the agent through the cluster-internal litefunctions-opencode service.
+{{- end }}
+
 Usage:
 Install:
 helm install litefunctions oci://registry-1.docker.io/ashupednekar535/litefunctions
