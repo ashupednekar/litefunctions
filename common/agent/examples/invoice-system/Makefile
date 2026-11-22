@@ -1,6 +1,9 @@
 PY ?= python3
 
-.PHONY: test dev fmt clean local-push
+.PHONY: deps test dev fmt clean local-push
+
+deps:
+	$(PY) -m pip install -r requirements-dev.txt
 
 test:
 	$(PY) -m unittest discover -s tests -v

@@ -1,0 +1,5 @@
+# Local development helpers. The LiteFunctions Python runtime already ships
+# jinja2 (and starlette via FastAPI); these are only for running the UI and its
+# tests outside the runtime image.
+jinja2>=3.1
+starlette>=0.37

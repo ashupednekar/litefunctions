@@ -33,6 +33,8 @@ number sequences and idempotency records all live in JetStream KV buckets.
 common/agent/examples/invoice-system/
 ├── functions/python/invoices/     # deployable function package
 │   ├── handle.py                  # sync + async entrypoint
+│   ├── templates/                 # Jinja pages (base, dashboard, invoices, …)
+│   ├── static/                    # app.css, app.js, favicon
 │   └── core/
 │       ├── errors.py              # ApiError with HTTP status
 │       ├── money.py               # exact decimal <-> minor units
@@ -40,8 +42,11 @@ common/agent/examples/invoice-system/
 │       ├── store.py               # KV abstraction, NATS JetStream KV, MemoryStore
 │       ├── service.py             # all business operations
 │       ├── http.py                # HTTP routes + async op mapping
+│       ├── page.py                # HTML/asset response shared by dev + runtime
+│       ├── ui.py                  # server-rendered routes and form parsing
 │       └── runtime.py             # NATS connection / service singleton
-├── tests/                         # stdlib unittest, no extra deps
+├── .litefunctions/functions.json  # mark the function `ui: true` on portal sync
+├── tests/                         # stdlib unittest; UI tests use jinja2 if present
 ├── tools/dev_server.py            # local server on MemoryStore
 ├── deploy/function.yaml           # Function CR
 └── Makefile                       # test / dev / fmt
@@ -63,16 +68,63 @@ common/agent/examples/invoice-system/
   overdue.
 - Summary report per currency: invoiced, paid, outstanding, overdue, drafts.
 - HTML invoice rendering (escaped) — ready to feed a PDF renderer later.
+- Server-rendered UI: dashboard, invoice and customer screens, drafting,
+  issuing, sending, voiding and payment capture — all forms and links, no build
+  step.
 - Domain events on NATS: `customer.created`, `invoice.issued`,
   `payment.recorded`, `invoice.paid`, ...
 - Compare-and-swap writes so concurrent updates cannot silently overwrite
   each other.
 
+## UI
+
+The same function serves a Jinja-rendered UI next to the JSON API:
+
+- `/ui` — dashboard with per-currency totals, overdue count and recent activity.
+- `/ui/invoices` — filter by status, customer and text; page through results.
+- `/ui/invoices/new` — draft an invoice with repeatable line items.
+- `/ui/invoices/{id}` — invoice paper view, lifecycle actions, payments and a
+  print/PDF view.
+- `/ui/customers` and `/ui/customers/{id}` — customer CRUD, archive/restore and
+  per-customer invoice history.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/ui` | dashboard |
+| GET | `/ui/invoices?status=&customer_id=&q=&page=` | invoice list |
+| GET/POST | `/ui/invoices/new`, `/ui/invoices` | draft form / create |
+| GET/POST | `/ui/invoices/{id}` | detail / edit draft |
+| POST | `/ui/invoices/{id}/issue`, `/send`, `/void`, `/delete` | lifecycle actions |
+| POST | `/ui/invoices/{id}/payments` | record payment |
+| POST | `/ui/invoices/{id}/payments/{payment_id}/void` | reverse payment |
+| GET | `/ui/invoices/{id}/print` | printable invoice |
+| GET/POST | `/ui/customers`, `/ui/customers/new`, `/ui/customers/{id}` | customers |
+
+Templates live in `functions/python/invoices/templates/` and CSS/JS in
+`functions/python/invoices/static/`. The runtime copies the whole package, so
+the deployed UI references `/static/...` under the function's public prefix
+(`/lambda/<project>/invoices/static/...`). The prefix comes from `PROJECT`; set
+`INVOICES_UI_BASE` to override it, or to `""` when serving the package directly.
+
+A browser requesting `/` with `Accept: text/html` gets the dashboard; a JSON
+client requesting the same path still gets the health envelope. That makes the
+portal's iframe preview and live link work without giving up the API root.
+
+`jinja2` is available in the LiteFunctions Python runtime. For local
+development without the runtime image:
+
+```bash
+python3 -m pip install jinja2
+```
+
+The UI shows a helpful 503 page if it is missing; the JSON API keeps working.
+
 ## Run locally
 
 ```bash
 cd common/agent/examples/invoice-system
-make test          # 26 tests, stdlib only
+make deps          # optional: jinja2 + starlette for the UI and its tests
+make test          # core tests; UI tests run when jinja2 is installed
 make dev           # http://localhost:8099, in-memory store
 make clean         # drop __pycache__ / ruff cache
 PROJECT=one make local-push   # push package + apply CR + wait for runtime
@@ -81,6 +133,9 @@ PROJECT=one make local-push   # push package + apply CR + wait for runtime
 `local-push` expects a reachable local cluster with the LiteFunctions Gitea and
 the `litefunctions-admin-token` secret. Override `NAMESPACE`, `GITEA_URL`,
 `GIT_OWNER`, `GIT_TOKEN` or `INGESTOR_URL` if your install differs.
+
+Open the UI at <http://localhost:8099/ui>. The dev server serves the same bytes
+as the deployed runtime, including redirects and static assets.
 
 Smoke test the dev server:
 
@@ -112,18 +167,21 @@ always returns HTTP 200 for sync calls, so read `status` from the envelope
 1. Copy `functions/python/invoices/` into the git repo of a LiteFunctions
    project (the layout is `functions/python/<function>/handle.py`), commit and
    push. The python runtime clones that repo and hot-reloads on hook events.
-2. Apply the Function CR, replacing `REPLACE_ME` with the project name:
+2. If you want the Portal to show the iframe preview, also copy
+   `.litefunctions/functions.json` into the project repository root. It marks
+   `invoices` as `"ui": true`.
+3. Apply the Function CR, replacing `REPLACE_ME` with the project name:
 
    ```bash
    sed 's/REPLACE_ME/<project>/' deploy/function.yaml | kubectl apply -f -
    ```
 
-3. Create/activate the endpoint in the Portal (or via the existing endpoint
+4. Create/activate the endpoint in the Portal (or via the existing endpoint
    API). The ingestor proxies sync calls to the runtime with
    `X-Litefunction-Name: invoices`.
-4. The ingestor exposes exactly `/lambda/<project>/<name>` and forwards the
-   runtime path as `/`, so use the op interface on the deployed endpoint
-   (REST subpaths below work for direct runtime calls and the dev server):
+5. The UI lives under `/lambda/<project>/invoices/ui`, and the JSON op
+   interface is at the function root. The ingestor forwards subpaths, so both
+   the REST routes and the op interface work on the deployed endpoint:
 
    ```bash
    export BASE=http://localhost:32130/lambda/<project>/invoices
@@ -159,9 +217,10 @@ Every response uses the same envelope:
 {"ok": false, "status": 422, "error": {"code": "validation_error", "message": "..."}}
 ```
 
-The paths below are the direct runtime/dev-server routes. The deployed
-ingestor only forwards `/lambda/<project>/<name>` (runtime path `/`), so use
-`?op=<name>` or an `"op"` body field there — same operations, same envelope.
+The paths below are the direct runtime/dev-server routes. The ingestor also
+forwards subpaths, so `/lambda/<project>/invoices/invoices/{id}` reaches them.
+The compact alternative is `?op=<name>` or an `"op"` body field at the function
+root — same operations, same envelope.
 
 | Method | Path | Purpose |
 | --- | --- | --- |

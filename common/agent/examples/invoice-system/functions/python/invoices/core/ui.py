@@ -203,10 +203,16 @@ class UIApp:
     async def invoice_new(self, req: Any, _match: Any) -> Page:
         customers = await self.service.list_customers(status="active", limit=200)
         today = self.service.clock().date()
+        customer_id = _query(req, "customer_id") or ""
+        terms_days = 14
+        for customer in customers["items"]:
+            if customer["id"] == customer_id:
+                terms_days = customer["payment_terms_days"]
+                break
         form = {
-            "customer_id": _query(req, "customer_id") or "",
+            "customer_id": customer_id,
             "issue_date": today.isoformat(),
-            "due_date": (today + timedelta(days=14)).isoformat(),
+            "due_date": (today + timedelta(days=terms_days)).isoformat(),
             "notes": "",
             "terms": "Payment is due within the agreed terms.",
         }
@@ -273,6 +279,9 @@ class UIApp:
         try:
             payload = _invoice_payload(form)
             payload.pop("customer_id", None)
+            # Include empty strings so a draft's notes/terms can be cleared.
+            payload["notes"] = form.get("notes")
+            payload["terms"] = form.get("terms")
             await self.service.update_invoice(invoice_id, payload)
         except ApiError as err:
             invoice = None
@@ -399,12 +408,13 @@ class UIApp:
         return self._render(
             "invoice_form.html.j2",
             req,
+            status=err.status,
             active="invoices",
             mode=mode,
             invoice=invoice,
             customers=customers["items"],
             form=values,
-            line_items=_form_line_items(form),
+            line_items=_form_rows(form),
             error=err,
         )
 
@@ -476,6 +486,7 @@ class UIApp:
             return self._render(
                 "customer_form.html.j2",
                 req,
+                status=err.status,
                 active="customers",
                 mode="create",
                 customer=None,
@@ -525,6 +536,7 @@ class UIApp:
             return self._render(
                 "customer_form.html.j2",
                 req,
+                status=err.status,
                 active="customers",
                 mode="edit",
                 customer=customer,
@@ -556,6 +568,7 @@ class UIApp:
             return self._render(
                 "customer.html.j2",
                 req,
+                status=err.status,
                 active="customers",
                 customer=customer,
                 result=invoices,
@@ -645,6 +658,26 @@ def _invoice_payload(form: Form) -> dict[str, Any]:
         "line_items": _form_line_items(form),
     }
     return {key: value for key, value in payload.items() if value not in (None, "")}
+
+
+def _form_rows(form: Form) -> list[dict[str, str]]:
+    """Line item inputs as typed, for re-rendering a form with errors."""
+    descriptions = form.getlist("line_description")
+    quantities = form.getlist("line_quantity")
+    prices = form.getlist("line_unit_price")
+    taxes = form.getlist("line_tax")
+    discounts = form.getlist("line_discount")
+    rows = [
+        {
+            "description": description,
+            "quantity": _at(quantities, index) or "1",
+            "unit_price": _at(prices, index),
+            "tax": _at(taxes, index),
+            "discount": _at(discounts, index),
+        }
+        for index, description in enumerate(descriptions)
+    ]
+    return rows or [{"description": "", "quantity": "1", "unit_price": "", "tax": "", "discount": ""}]
 
 
 def _form_line_items(form: Form) -> list[dict[str, Any]]:

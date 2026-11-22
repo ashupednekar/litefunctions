@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "functions": [
+    {
+      "name": "invoices",
+      "language": "python",
+      "path": "functions/python/invoices/handle.py",
+      "is_async": false,
+      "ui": true,
+      "endpoints": [
+        {
+          "name": "/invoices",
+          "method": "GET",
+          "scope": "public"
+        }
+      ]
+    }
+  ]
+}

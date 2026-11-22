@@ -14,10 +14,34 @@ try:
 except ImportError:  # local dev without the runtime requirements
     HAVE_JINJA = False
 
+try:
+    import starlette  # noqa: F401
+
+    HAVE_STARLETTE = True
+except ImportError:
+    HAVE_STARLETTE = False
+
 from invoices.core.http import HttpApp, Request
 from invoices.core.page import Page
 from invoices.core.service import InvoiceService
 from invoices.core.store import MemoryStore
+
+
+class FakeURL:
+    def __init__(self, path: str) -> None:
+        self.path = path
+
+
+class FakeStarletteRequest:
+    def __init__(self, method: str, path: str, *, headers: dict | None = None) -> None:
+        self.method = method
+        self.url = FakeURL(path)
+        self.query_params: dict[str, str] = {}
+        self.headers = {"x-litefunction-name": "invoices", **(headers or {})}
+        self._payload = b""
+
+    async def body(self) -> bytes:
+        return self._payload
 
 
 def form(payload: dict[str, str | list[str]]) -> bytes:
@@ -188,13 +212,32 @@ class UITest(unittest.IsolatedAsyncioTestCase):
             page = await self.call("GET", "/ui")
         self.assert_html(page, "/lambda/one/invoices/static/app.css")
 
+    @unittest.skipUnless(HAVE_STARLETTE, "starlette is provided by the runtime")
+    async def test_starlette_adapter_returns_real_responses(self) -> None:
+        request = FakeStarletteRequest("GET", "/ui", headers={"accept": "text/html"})
+        response = await self.app.from_starlette(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers["content-type"])
+        self.assertIn(b"Billing at a glance", response.body)
+
+        customer_id = await self.create_customer()
+        request = FakeStarletteRequest(
+            "GET", f"/ui/customers/{customer_id}", headers={"accept": "text/html"}
+        )
+        response = await self.app.from_starlette(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Acme Corp", response.body)
+
     async def test_list_filters_and_pagination_urls(self) -> None:
         customer_id = await self.create_customer()
         for _ in range(3):
             await self.create_invoice(customer_id)
 
-        page = await self.call("GET", "/ui/invoices", query={"status": "draft", "q": "Acme"})
+        page = await self.call("GET", "/ui/invoices", query={"status": "draft"})
         self.assert_html(page, "3 invoices", "Draft")
+
+        page = await self.call("GET", "/ui/invoices", query={"customer_id": customer_id})
+        self.assert_html(page, "3 invoices")
 
         page = await self.call("GET", "/ui/invoices", query={"status": "paid"})
         self.assert_html(page, "No invoices match")
