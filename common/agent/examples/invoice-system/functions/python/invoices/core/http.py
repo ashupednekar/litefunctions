@@ -18,11 +18,13 @@ from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
 
 from .errors import ApiError, ValidationError
+from .page import Page
 from .service import InvoiceService
+from .ui import UIApp
 
 logger = logging.getLogger(__name__)
 
-Handler = Callable[["Request", Any], Awaitable[dict[str, Any]]]
+Handler = Callable[["Request", Any], Awaitable[Any]]
 
 
 @dataclass
@@ -59,6 +61,7 @@ class _Route:
 class HttpApp:
     def __init__(self, service: InvoiceService) -> None:
         self.service = service
+        self.ui = UIApp(service)
         self._routes: list[_Route] = []
         self._register()
 
@@ -112,7 +115,10 @@ class HttpApp:
             return await self.from_op(envelope)
 
         if path == "/" and payload.method == "GET":
-            return await self.handle(payload)
+            result = await self.handle(payload)
+            if isinstance(result, Page):
+                return self._page_response(result)
+            return result
 
         if path == "/":
             return self._error(
@@ -124,7 +130,23 @@ class HttpApp:
                 )
             )
 
-        return await self.handle(payload)
+        result = await self.handle(payload)
+        if isinstance(result, Page):
+            return self._page_response(result)
+        return result
+
+    def _page_response(self, page: Page) -> Any:
+        """Turn a transport-neutral Page into a Starlette response.
+
+        The Python runtime passes Starlette Response objects through, which is
+        what gives the UI real status codes, content types and redirects.
+        """
+        try:
+            from starlette.responses import Response
+        except ImportError:  # pragma: no cover - only local callers without Starlette
+            return page
+        headers = {"content-type": page.content_type, **page.headers}
+        return Response(content=page.as_bytes(), status_code=page.status, headers=headers)
 
     async def from_op(self, payload: dict[str, Any]) -> dict[str, Any]:
         try:
@@ -133,14 +155,14 @@ class HttpApp:
             return self._error(err)
         return await self.handle(request)
 
-    async def handle(self, request: Request) -> dict[str, Any]:
+    async def handle(self, request: Request) -> dict[str, Any] | Page:
         path = request.path or "/"
         if len(path) > 1:
             path = path.rstrip("/")
 
         allowed: set[str] = set()
         for route in self._routes:
-            match = route.pattern.search(path)
+            match = route.pattern.fullmatch(path)
             if not match:
                 continue
             if route.method != request.method.upper():
@@ -157,6 +179,8 @@ class HttpApp:
                 return self._error(
                     ApiError("internal server error", code="internal_error", status=500)
                 )
+            if isinstance(data, Page):
+                return data
             return {
                 "ok": True,
                 "status": 201 if request.method.upper() == "POST" and data.get("__created__") else 200,
@@ -270,8 +294,13 @@ class HttpApp:
         async def summary(_req: Request, _match: Any) -> dict[str, Any]:
             return await s.summary()
 
+        async def root(req: Request, match: Any) -> Any:
+            if _wants_html(req):
+                return await self.ui.dashboard_safe(req, match)
+            return await health(req, match)
+
         self._add("GET", r"/health$", health)
-        self._add("GET", r"^/?$", health)
+        self._add("GET", r"^/?$", root)
         self._add("POST", r"/customers$", create_customer)
         self._add("GET", r"/customers$", list_customers)
         self._add("GET", r"/customers/(?P<id>[^/]+)$", get_customer)
@@ -294,6 +323,10 @@ class HttpApp:
             "POST", r"/invoices/(?P<id>[^/]+)/payments/(?P<payment_id>[^/]+)/void$", void_payment
         )
         self._add("GET", r"/summary$", summary)
+
+        # Server-rendered UI: /ui pages, /static assets, and HTML at the root
+        # when a browser (rather than a JSON client) asks for it.
+        self.ui.register(self._add)
 
     def _add(self, method: str, pattern: str, handler: Handler) -> None:
         self._routes.append(_Route(method=method, pattern=re.compile(pattern), handler=handler))
@@ -409,6 +442,14 @@ OPS: dict[str, tuple[str, str]] = {
     # reporting
     "summary": ("GET", "/summary"),
 }
+
+
+def _wants_html(req: Request) -> bool:
+    """Browsers get the dashboard at `/`; API clients keep the health JSON."""
+    accept = (req.header("accept") or "").lower()
+    if "application/json" in accept:
+        return False
+    return "text/html" in accept
 
 
 def _snake(value: str) -> str:

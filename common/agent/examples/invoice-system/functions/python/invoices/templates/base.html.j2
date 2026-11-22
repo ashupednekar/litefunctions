@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Invoices{% endblock %} · LiteFunctions</title>
+  <link rel="stylesheet" href="{{ base }}/static/app.css">
+  <link rel="icon" href="{{ base }}/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ base }}/ui">
+        <span class="brand-mark">₣</span>
+        <span class="brand-text">Ledger<small>invoicing on LiteFunctions</small></span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a class="nav-link {% if active == 'dashboard' %}is-active{% endif %}" href="{{ base }}/ui">Dashboard</a>
+        <a class="nav-link {% if active == 'invoices' %}is-active{% endif %}" href="{{ base }}/ui/invoices">Invoices</a>
+        <a class="nav-link {% if active == 'customers' %}is-active{% endif %}" href="{{ base }}/ui/customers">Customers</a>
+      </nav>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost" href="{{ base }}/ui/customers/new">New customer</a>
+        <a class="btn btn-primary" href="{{ base }}/ui/invoices/new">New invoice</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>Invoices stored in NATS JetStream KV</span>
+    <span class="dot">·</span>
+    <a href="{{ base }}/health">API health</a>
+    <span class="dot">·</span>
+    <a href="{{ base }}/ui/invoices">All invoices</a>
+  </footer>
+
+  <script src="{{ base }}/static/app.js" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

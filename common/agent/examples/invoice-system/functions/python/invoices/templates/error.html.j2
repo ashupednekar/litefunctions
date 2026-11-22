@@ -1,0 +1,17 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ status }} · {{ error.code | replace('_', ' ') | title }}{% endblock %}
+
+{% block content %}
+<section class="error-page">
+  <p class="eyebrow">Error {{ status }}</p>
+  <h1>{{ error.code | replace('_', ' ') | title }}</h1>
+  <p class="lede">{{ error.message }}</p>
+  {% if error.details %}
+  <pre class="mono">{{ error.details | tojson(indent=2) }}</pre>
+  {% endif %}
+  <div class="head-actions">
+    <a class="btn btn-primary" href="{{ base }}/ui">Back to dashboard</a>
+    <a class="btn btn-ghost" href="{{ base }}/ui/invoices">All invoices</a>
+  </div>
+</section>
+{% endblock %}

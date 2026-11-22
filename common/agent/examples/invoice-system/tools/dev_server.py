@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import pathlib
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,8 +21,14 @@ from urllib.parse import parse_qs, urlparse
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "functions" / "python"))
 
 from invoices.core.http import HttpApp, Request  # noqa: E402
+from invoices.core.page import Page  # noqa: E402
 from invoices.core.service import InvoiceService  # noqa: E402
 from invoices.core.store import MemoryStore  # noqa: E402
+
+# Links in the UI are prefix-free when the dev server serves the package
+# directly. The deployed runtime sets PROJECT and prefixes them with
+# /lambda/<project>/invoices instead.
+os.environ["INVOICES_UI_BASE"] = ""
 
 PORT = 8099
 app = HttpApp(InvoiceService(MemoryStore()))
@@ -41,15 +48,23 @@ class Handler(BaseHTTPRequestHandler):
             headers={key.lower(): value for key, value in self.headers.items()},
             body=body,
         )
-        envelope = asyncio.run(app.handle(request))
-        payload = json.dumps(envelope).encode("utf-8")
-        if envelope.get("ok"):
-            status = envelope.get("status", 200)
+        result = asyncio.run(app.handle(request))
+        if isinstance(result, Page):
+            payload = result.as_bytes()
+            status = result.status
+            content_type = result.content_type
+            headers = result.headers
         else:
-            status = envelope.get("status", 500)
+            envelope = result
+            payload = json.dumps(envelope).encode("utf-8")
+            status = envelope.get("status", 200) if envelope.get("ok") else envelope.get("status", 500)
+            content_type = "application/json"
+            headers = {}
         self.send_response(status)
-        self.send_header("content-type", "application/json")
+        self.send_header("content-type", content_type)
         self.send_header("content-length", str(len(payload)))
+        for key, value in headers.items():
+            self.send_header(key, value)
         self.end_headers()
         self.wfile.write(payload)
 

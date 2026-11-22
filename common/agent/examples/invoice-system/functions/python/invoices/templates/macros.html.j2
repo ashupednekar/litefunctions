@@ -1,0 +1,32 @@
+{% macro status_badge(status, overdue=False) -%}
+  {% if overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+  <span class="badge badge-{{ status | replace('_', '-') }}">{{ status | status_label }}</span>
+{%- endmacro %}
+
+{% macro pagination(page_no, page_count, prev_url, next_url) -%}
+  {% if page_count > 1 %}
+  <div class="pager">
+    {% if prev_url %}<a class="btn btn-ghost" href="{{ prev_url }}">← Previous</a>{% else %}<span class="btn btn-ghost is-disabled">← Previous</span>{% endif %}
+    <span class="pager-label">Page {{ page_no }} of {{ page_count }}</span>
+    {% if next_url %}<a class="btn btn-ghost" href="{{ next_url }}">Next →</a>{% else %}<span class="btn btn-ghost is-disabled">Next →</span>{% endif %}
+  </div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro empty(title, body, action_url=None, action_label=None) -%}
+  <div class="empty">
+    <div class="empty-mark">∅</div>
+    <h3>{{ title }}</h3>
+    <p>{{ body }}</p>
+    {% if action_url %}<a class="btn btn-primary" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+  </div>
+{%- endmacro %}
+
+{% macro error_banner(error) -%}
+  {% if error %}
+  <div class="alert alert-error" role="alert">
+    <strong>{{ error.code | replace('_', ' ') | title }}</strong>
+    <span>{{ error.message }}</span>
+  </div>
+  {% endif %}
+{%- endmacro %}

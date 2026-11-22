@@ -1,0 +1,229 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import status_badge, error_banner %}
+{% block title %}{{ invoice.number or 'Draft invoice' }}{% endblock %}
+
+{% block content %}
+<section class="page-head invoice-head">
+  <div>
+    <p class="eyebrow"><a class="plain-link" href="{{ base }}/ui/invoices">Invoices</a> / {{ invoice.number or 'Draft' }}</p>
+    <h1>
+      {{ invoice.number or 'Draft invoice' }}
+      {{ status_badge(invoice.status, invoice.is_overdue) }}
+    </h1>
+    <p class="lede">
+      {% if invoice.is_overdue %}{{ invoice.days_overdue }} day{{ '' if invoice.days_overdue == 1 else 's' }} overdue · {% endif %}
+      Issued {{ invoice.issue_date | short_date }} · Due {{ invoice.due_date | short_date }}
+    </p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-ghost" href="{{ base }}/ui/invoices/{{ invoice.id }}/print" target="_blank" rel="noopener">Print / PDF</a>
+    {% if invoice.status == 'draft' %}
+    <a class="btn btn-ghost" href="{{ base }}/ui/invoices/{{ invoice.id }}/edit">Edit draft</a>
+    <form method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/issue" onsubmit="return confirm('Issue this invoice and allocate the next number?')">
+      <button class="btn btn-primary" type="submit">Issue invoice</button>
+    </form>
+    {% elif invoice.status in ['open', 'partially_paid', 'paid'] %}
+    <form method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/send">
+      <button class="btn btn-primary" type="submit">{{ 'Resend' if invoice.sent_at else 'Mark as sent' }}</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+{{ error_banner(error) }}
+
+<div class="detail-grid">
+  <section class="card invoice-paper">
+    <div class="paper-top">
+      <div>
+        <p class="eyebrow">Bill to</p>
+        {% if customer %}
+        <h2><a class="plain-link" href="{{ base }}/ui/customers/{{ customer.id }}">{{ customer.name }}</a></h2>
+        <p class="muted">
+          {% if customer.address %}
+            {{ customer.address.get('line1', '') }}{% if customer.address.get('line2') %}, {{ customer.address.get('line2') }}{% endif %}<br>
+            {{ customer.address.get('city', '') }}{% if customer.address.get('state') %}, {{ customer.address.get('state') }}{% endif %} {{ customer.address.get('postal_code', '') }}<br>
+            {{ customer.address.get('country', '') }}
+          {% endif %}
+          {% if customer.email %}<br>{{ customer.email }}{% endif %}
+        </p>
+        {% else %}
+        <h2>Unknown customer</h2>
+        {% endif %}
+      </div>
+      <div class="paper-meta">
+        <div><span>Invoice</span><strong>{{ invoice.number or 'Draft' }}</strong></div>
+        <div><span>Currency</span><strong>{{ invoice.currency }}</strong></div>
+        <div><span>Issued</span><strong>{{ invoice.issue_date | short_date }}</strong></div>
+        <div><span>Due</span><strong>{{ invoice.due_date | short_date }}</strong></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="items">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th class="num">Qty</th>
+            <th class="num">Unit price</th>
+            <th class="num">Tax</th>
+            <th class="num">Discount</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in invoice.line_items %}
+          <tr>
+            <td>
+              <strong>{{ item.description }}</strong>
+              {% if item.tax_rate_bp %}<div class="sub">{{ (item.tax_rate_bp / 100) | round(2) }}% tax</div>{% endif %}
+            </td>
+            <td class="num">{{ item.quantity }}</td>
+            <td class="num">{{ item.unit_price }}</td>
+            <td class="num">{{ item.tax }}</td>
+            <td class="num">{{ item.discount }}</td>
+            <td class="num"><strong>{{ item.total }}</strong></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="muted">No line items yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals">
+      <div><span>Subtotal</span><span>{{ invoice.totals.subtotal }}</span></div>
+      <div><span>Discount</span><span>−{{ invoice.totals.discount }}</span></div>
+      <div><span>Tax</span><span>{{ invoice.totals.tax }}</span></div>
+      <div class="grand"><span>Total</span><span>{{ invoice.totals.total }} {{ invoice.currency }}</span></div>
+      <div><span>Paid</span><span>{{ invoice.totals.amount_paid }}</span></div>
+      <div class="balance"><span>Balance due</span><span>{{ invoice.totals.balance_due }} {{ invoice.currency }}</span></div>
+    </div>
+
+    {% if invoice.notes %}
+    <div class="paper-notes">
+      <p class="eyebrow">Notes</p>
+      <p>{{ invoice.notes }}</p>
+    </div>
+    {% endif %}
+    {% if invoice.terms %}
+    <div class="paper-notes">
+      <p class="eyebrow">Terms</p>
+      <p>{{ invoice.terms }}</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <aside class="stack">
+    {% if can_pay %}
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Record a payment</h2>
+          <p class="muted">Balance {{ invoice.totals.balance_due }} {{ invoice.currency }}</p>
+        </div>
+      </div>
+      <form class="form" method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/payments">
+        <label>
+          <span>Amount</span>
+          <input name="amount" inputmode="decimal" value="{{ form.get('amount', invoice.totals.balance_due) }}" required>
+        </label>
+        <label>
+          <span>Method</span>
+          <select name="method">
+            {% for method in ['bank_transfer', 'card', 'cash', 'cheque', 'other'] %}
+            <option value="{{ method }}" {% if form.get('method') == method %}selected{% endif %}>{{ method | replace('_', ' ') | title }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Reference</span>
+          <input name="reference" value="{{ form.get('reference', '') }}" placeholder="Transaction id">
+        </label>
+        <label>
+          <span>Paid on</span>
+          <input type="date" name="paid_at" value="{{ form.get('paid_at', '') }}">
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Record payment</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Payments</h2>
+          <p class="muted">{{ payments | length }} on record</p>
+        </div>
+      </div>
+      {% if payments %}
+      <ul class="payments">
+        {% for payment in payments %}
+        <li class="{% if payment.voided_at %}is-void{% endif %}">
+          <div class="payment-top">
+            <strong>{{ payment.amount }} {{ payment.currency }}</strong>
+            <span class="badge badge-neutral">{{ payment.method | replace('_', ' ') | title }}</span>
+          </div>
+          <div class="sub">
+            {{ payment.paid_at | short_date }}
+            {% if payment.reference %} · {{ payment.reference }}{% endif %}
+            {% if payment.voided_at %} · voided{% endif %}
+          </div>
+          {% if not payment.voided_at %}
+          <form method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/payments/{{ payment.id }}/void" onsubmit="return confirm('Void this payment and reopen the balance?')">
+            <button class="link link-danger" type="submit">Void payment</button>
+          </form>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="muted pad">No payments recorded.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Actions</h2>
+          <p class="muted">{{ invoice.status | status_label }}</p>
+        </div>
+      </div>
+      <div class="action-list">
+        {% if invoice.status == 'draft' %}
+        <form method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/issue" onsubmit="return confirm('Issue this invoice?')">
+          <button class="btn btn-block" type="submit">Issue invoice</button>
+        </form>
+        <a class="btn btn-ghost btn-block" href="{{ base }}/ui/invoices/{{ invoice.id }}/edit">Edit draft</a>
+        <form method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/delete" onsubmit="return confirm('Delete this draft permanently?')">
+          <button class="btn btn-danger btn-block" type="submit">Delete draft</button>
+        </form>
+        {% endif %}
+
+        {% if invoice.status in ['open', 'partially_paid', 'paid'] %}
+        <form method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/send">
+          <button class="btn btn-ghost btn-block" type="submit">{{ 'Resend invoice' if invoice.sent_at else 'Mark as sent' }}</button>
+        </form>
+        {% endif %}
+
+        {% if can_void %}
+        <form class="inline-form" method="post" action="{{ base }}/ui/invoices/{{ invoice.id }}/void" onsubmit="return confirm('Void this invoice? This cannot be undone.')">
+          <input name="reason" placeholder="Void reason (optional)">
+          <button class="btn btn-danger btn-block" type="submit">Void invoice</button>
+        </form>
+        {% endif %}
+
+        <dl class="meta">
+          <div><dt>Created</dt><dd>{{ invoice.created_at | short_date }}</dd></div>
+          <div><dt>Updated</dt><dd>{{ invoice.updated_at | short_date }}</dd></div>
+          {% if invoice.issued_at %}<div><dt>Issued</dt><dd>{{ invoice.issued_at | short_date }}</dd></div>{% endif %}
+          {% if invoice.sent_at %}<div><dt>Sent</dt><dd>{{ invoice.sent_at | short_date }}</dd></div>{% endif %}
+          {% if invoice.voided_at %}<div><dt>Voided</dt><dd>{{ invoice.voided_at | short_date }}</dd></div>{% endif %}
+          {% if invoice.void_reason %}<div><dt>Reason</dt><dd>{{ invoice.void_reason }}</dd></div>{% endif %}
+        </dl>
+        <div class="mono sub">id {{ invoice.id }}</div>
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}
