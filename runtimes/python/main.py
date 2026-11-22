@@ -220,6 +220,40 @@ def encode_payload(value: Any) -> bytes:
     return str(value).encode("utf-8")
 
 
+def http_response(value: Any, path: str) -> Response:
+    """Turn a handler's return value into an HTTP response.
+
+    UI handlers commonly return HTML strings or Response objects. Infer the
+    media type from the path/extension and the value shape instead of always
+    JSON-encoding the result.
+    """
+    if isinstance(value, Response):
+        return value
+    if isinstance(value, str):
+        trimmed = value.lstrip()
+        lower_path = (path or "").lower()
+        if lower_path.endswith(".css"):
+            media_type = "text/css"
+        elif lower_path.endswith(".js"):
+            media_type = "application/javascript"
+        elif lower_path.endswith(".html"):
+            media_type = "text/html"
+        elif trimmed.startswith("<!doctype") or trimmed.startswith("<html"):
+            media_type = "text/html"
+        else:
+            media_type = "application/json"
+        if media_type == "application/json":
+            return Response(
+                content=encode_payload(value),
+                media_type=media_type,
+                status_code=200,
+            )
+        return Response(content=value.encode("utf-8"), media_type=media_type, status_code=200)
+    return Response(
+        content=encode_payload(value), media_type="application/json", status_code=200
+    )
+
+
 async def invoke_module(
     state: AppState,
     name: str,
@@ -338,11 +372,7 @@ async def handle_request(path: str, request: Request):
         async for out in invoke_module(state, name, "", body, request=request):
             first = out
             break
-        if isinstance(first, Response):
-            return first
-        return Response(
-            content=encode_payload(first), media_type="application/json", status_code=200
-        )
+        return http_response(first, request.url.path)
     except FileNotFoundError:
         return Response(content=f"function '{name}' not found", status_code=404)
     except Exception as exc:

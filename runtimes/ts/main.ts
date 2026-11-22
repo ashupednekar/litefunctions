@@ -1,28 +1,16 @@
 import { watchTSHook, reconcileConsumers } from "./internal/consumer";
 import { settings } from "./internal/conf";
-import { ensureRuntimeDir, invokeModule, syncRepoAndReload } from "./internal/functions";
+import { ensureRuntimeDir, handleHttpRequest, syncRepoAndReload } from "./internal/functions";
 import { AppState } from "./internal/state";
 
-async function handleSyncRequest(state: AppState, req: Request): Promise<Response> {
+async function handleSyncRequest(_state: AppState, req: Request): Promise<Response> {
   const name = req.headers.get("X-Litefunction-Name") || settings.name;
   if (!name) {
     return new Response("function name not provided", { status: 400 });
   }
 
-  const body = new Uint8Array(await req.arrayBuffer());
-
   try {
-    let first: Uint8Array | undefined;
-    for await (const out of invokeModule(state, name, "", body, req)) {
-      first = out;
-      break;
-    }
-    return new Response(first ?? new Uint8Array(), {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-      },
-    });
+    return await handleHttpRequest(name, req);
   } catch (err) {
     if (String(err).includes("not found")) {
       return new Response(`function '${name}' not found`, { status: 404 });
