@@ -15,7 +15,7 @@ templ HomeContent(adminLoginEnabled bool) {
 		function postLoginRedirect() {
 			const redirect = new URLSearchParams(window.location.search).get("redirect");
 			if (redirect && redirect.startsWith("/") && !redirect.startsWith("//")) { return redirect; }
-			return "/dashboard/";
+			return "/";
 		}
 
 		window.syncLoginMode = function () {
@@ -103,7 +103,7 @@ templ HomeContent(adminLoginEnabled bool) {
 					body: JSON.stringify(attResp),
 				});
 				if (finishResp.ok) {
-					window.location.href = "/dashboard/";
+					window.location.href = "/";
 				} else {
 					toast("Registration failed: " + await finishResp.text(), "error");
 				}

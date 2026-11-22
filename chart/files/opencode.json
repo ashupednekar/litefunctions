@@ -2,6 +2,9 @@
   "$schema": "https://opencode.ai/config.json",
   "permission": {
     "litefunctions_*": "allow"
+  },
+  "tools": {
+    "question": false
   }{{- if .Values.agent.mcp.enabled }},
   "mcp": {
     "litefunctions": {

@@ -86,6 +86,10 @@ spec:
       labels:
         app: litefunctions-opencode
         {{- include "litefunctions.selectorLabels" . | nindent 8 }}
+      annotations:
+        # subPath mounts are not updated in place, so roll the pod whenever the
+        # rendered config changes.
+        checksum/opencode-config: {{ printf "%s%s" (tpl (.Files.Get "files/opencode.json") .) (.Files.Get "files/AGENTS.md") | sha256sum }}
     spec:
       containers:
       - name: opencode
@@ -94,6 +98,7 @@ spec:
         workingDir: /workspace
         args:
         - serve
+        - --print-logs
         - --hostname
         - 0.0.0.0
         - --port
@@ -115,8 +120,15 @@ spec:
           mountPath: /workspace
         - name: data
           mountPath: /root/.local/share/opencode
+        # Mount the config files individually: opencode writes its own files
+        # (for example .gitignore) into the config directory, so the directory
+        # itself must stay writable.
         - name: config
-          mountPath: /root/.config/opencode
+          mountPath: /root/.config/opencode/opencode.json
+          subPath: opencode.json
+        - name: config
+          mountPath: /root/.config/opencode/AGENTS.md
+          subPath: AGENTS.md
       volumes:
       - name: workspace
         {{- if .Values.agent.persistence.workspace.enabled }}

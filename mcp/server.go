@@ -218,6 +218,8 @@ NATS consumers. Databases, persistent streams, object storage, traffic
 policies, and scheduled jobs are not supported yet; tell the user that instead
 of inventing APIs.
 
-Always pass the project name supplied by the portal. Keep function packages at
+Use list_projects, create_project, and select_project when the user has not
+chosen a project or asks for a new one. Then pass the selected project name to
+every other tool. Keep function packages at
 functions/<language>/<name>/handle.<ext>. Prefer create_function and
 update_function so the portal can sync metadata after the turn.`

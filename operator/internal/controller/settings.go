@@ -11,6 +11,7 @@ import (
 
 type Settings struct {
 	Registry            string        `env:"REGISTRY" default:"ghcr.io"`
+	RuntimeRegistry     string        `env:"RUNTIME_REGISTRY" default:"ashupednekar535"`
 	VcsUser             string        `env:"VCS_USER" default:"lwsrepos"`
 	VcsBaseUrl          string        `env:"VCS_BASE_URL" default:"https://github.com"`
 	VcsAuthMode         string        `env:"VCS_AUTH_MODE" default:"token"`

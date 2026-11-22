@@ -20,10 +20,13 @@ type FunctionsManifest struct {
 
 // ManifestFunction describes one function package in the project repository.
 type ManifestFunction struct {
-	Name      string             `json:"name"`
-	Language  string             `json:"language"`
-	Path      string             `json:"path"`
-	IsAsync   bool               `json:"is_async"`
+	Name     string `json:"name"`
+	Language string `json:"language"`
+	Path     string `json:"path"`
+	IsAsync  bool   `json:"is_async"`
+	// UI marks a server-side rendered web handler. The portal previews these in
+	// an iframe and exposes a live link instead of the API tester.
+	UI        bool               `json:"ui,omitempty"`
 	Endpoints []ManifestEndpoint `json:"endpoints,omitempty"`
 }
 

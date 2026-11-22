@@ -14,7 +14,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 		<body>
 			<div class="z-app">
 				<aside class="z-sidebar" id="app-sidebar">
-					<a href="/dashboard/" class="z-brand">
+					<a href="/" class="z-brand">
 						<span class="z-brand-mark">
 							<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
@@ -25,7 +25,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 					</a>
 
 					<div class="z-workspace-switch">
-						<a href="/dashboard/" class="z-project-btn" title="Switch project">
+						<a href="/" class="z-project-btn" title="Switch project">
 							<span class="z-project-avatar">{ projectInitial(data.ProjectName) }</span>
 							<span class="z-project-meta">
 								<span class="z-project-name">{ projectLabel(data.ProjectName) }</span>
@@ -37,6 +37,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 
 					<nav class="z-sidebar-scroll">
 						<div class="z-nav-section">
+							@NavItem("/", "Agent", "sparkles", data.Active == "home", "")
 							@NavItem("/dashboard/", "Overview", "grid", data.Active == "overview", "")
 						</div>
 						<div class="z-nav-section">
@@ -108,7 +109,7 @@ templ BaseLayout(data ShellData, content templ.Component) {
 										<div style="font-size:10px;color:var(--text-3)">{ data.Role }</div>
 									</div>
 								</div>
-								<a href="/dashboard/" class="z-user-menu-item">@Icon("grid", "") Workspace overview</a>
+								<a href="/" class="z-user-menu-item">@Icon("sparkles", "") Agent home</a>
 								<a href="/configuration/" class="z-user-menu-item">@Icon("key", "") Project settings</a>
 								<div class="z-user-menu-sep"></div>
 								<a href="/logout/" class="z-user-menu-item danger">@Icon("arrow-right", "") Sign out</a>
@@ -160,23 +161,22 @@ templ BaseLayout(data ShellData, content templ.Component) {
 
 			<div id="toast-container"></div>
 
-			<div id="agent-dock" class="z-agent-dock" data-agent-project={ data.ProjectName }>
-				<button id="agent-dock-launcher" class="z-agent-launcher" type="button" onclick="openAgentDock()" aria-label="Ask the LiteFunctions agent">
-					<span class="z-agent-launcher-orb">@Icon("sparkles", "")</span>
-					<span class="z-agent-launcher-label">Ask the agent</span>
-					<span class="z-agent-launcher-hint">@Icon("sparkles", "") Build functions, routes, async consumers</span>
-					<span class="z-kbd">⌘</span><span class="z-kbd">J</span>
-				</button>
-				<div id="agent-dock-panel" class="z-agent-panel" hidden>
-					<div class="z-agent-head">
-						<span class="z-agent-head-orb">@Icon("sparkles", "")</span>
-						<div class="z-agent-head-meta">
-							<span class="z-agent-title">LiteFunctions agent</span>
-							<span class="z-agent-sub">Project · { projectLabel(data.ProjectName) }</span>
-						</div>
-						<button class="z-icon-btn" type="button" onclick="closeAgentDock()" aria-label="Close agent">@Icon("close", "")</button>
+			<button id="agent-dock-launcher" class="z-agent-launcher" type="button" onclick="openAgentDock()" aria-label="Ask the LiteFunctions agent">
+				<span class="z-agent-launcher-orb">@Icon("sparkles", "")</span>
+				<span class="z-agent-launcher-label">Ask the agent</span>
+				<span class="z-agent-launcher-hint">@Icon("sparkles", "") Build functions, routes, async consumers</span>
+				<span class="z-kbd">⌘</span><span class="z-kbd">J</span>
+			</button>
+
+			<div id="agent-dock" class="z-agent-palette" data-agent-project={ data.ProjectName } onclick="closeAgentDock()">
+				<div id="agent-dock-panel" class="z-agent-palette-box" onclick="event.stopPropagation()" hidden>
+					<div class="z-spotlight-input-row">
+						@Icon("sparkles", "")
+						<span class="z-agent-title">LiteFunctions agent</span>
+						<span class="z-badge z-badge-muted">Project · { projectLabel(data.ProjectName) }</span>
+						<button class="z-icon-btn" style="margin-left:auto" type="button" onclick="closeAgentDock()" aria-label="Close agent">@Icon("close", "")</button>
 					</div>
-					<div id="agent-dock-messages" class="z-agent-messages">
+					<div id="agent-dock-messages" class="z-agent-palette-messages">
 						<div class="z-agent-empty">
 							<div class="z-agent-empty-title">Describe what you want to build.</div>
 							<div class="z-agent-empty-sub">The agent can add HTTP functions, WebSocket/SSE functions, and async NATS consumers to this project. Databases and persistent streams are not supported yet.</div>
@@ -187,13 +187,13 @@ templ BaseLayout(data ShellData, content templ.Component) {
 							</div>
 						</div>
 					</div>
-					<div class="z-agent-compose">
-						<textarea id="agent-dock-input" class="z-agent-input" rows="1" placeholder="e.g. Build an order API with a POST endpoint and an order.paid consumer…"></textarea>
-						<button id="agent-dock-send" class="z-agent-send" type="button" onclick="sendAgentPrompt()" aria-label="Send prompt">@Icon("arrow-right", "")</button>
+					<div class="z-agent-palette-compose">
+						<textarea id="agent-dock-input" class="z-agent-palette-input" rows="2" placeholder="e.g. Build an order API with a POST endpoint and an order.paid consumer…"></textarea>
+						<button id="agent-dock-send" class="z-btn z-btn-primary" type="button" onclick="sendAgentPrompt()" aria-label="Send prompt">@Icon("arrow-right", "")</button>
 					</div>
-					<div class="z-agent-foot">
+					<div class="z-spotlight-foot">
 						<span id="agent-dock-status">Enter to send · Shift+Enter for a new line</span>
-						<span class="z-agent-foot-note">not yet: db · persistent streams</span>
+						<span style="margin-left:auto">not yet: db · persistent streams</span>
 					</div>
 				</div>
 			</div>

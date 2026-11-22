@@ -119,6 +119,18 @@ templ AgentContent() {
 					<div class="z-help" style="margin-top:8px">The agent can say “not supported yet” for databases and persistent streams.</div>
 				</div>
 			</div>
+
+			<div id="agent-build-panel" class="z-panel" style="margin-top:14px" hidden>
+				<div class="z-panel-header">
+					<span class="z-panel-title">Build logs</span>
+					<span id="agent-build-status" class="z-badge z-badge-muted">idle</span>
+					<span id="agent-build-target" class="z-panel-sub"></span>
+					<div class="z-panel-actions">
+						<a id="agent-build-open" class="z-btn z-btn-sm" href="#" target="_blank" rel="noopener">Open full view</a>
+					</div>
+				</div>
+				<div id="agent-build-logs" class="z-panel-body" style="font-family:var(--mono);font-size:10.5px;line-height:1.5;max-height:280px;overflow:auto;white-space:pre-wrap"></div>
+			</div>
 		</div>
 	</div>
 
@@ -178,6 +190,91 @@ templ AgentContent() {
 			return body;
 		}
 
+		let agentBuildSource = null;
+
+		function displayStoredText(role, text) {
+			if (role === "user") {
+				const marker = "User request:";
+				const idx = text.indexOf(marker);
+				if (idx >= 0) return text.slice(idx + marker.length).trim();
+			}
+			return text;
+		}
+
+		async function hydrateAgentHistory() {
+			let session = "";
+			try { session = localStorage.getItem(agentSessionKey()) || ""; } catch (err) { /* ignore */ }
+			if (!session) return;
+			try {
+				const res = await fetch("/api/agent/sessions/" + encodeURIComponent(session) + "/history/");
+				if (!res.ok) return;
+				const data = await res.json();
+				const messages = (data.messages || []).filter(m => m.text && (m.role === "user" || m.role === "assistant"));
+				if (!messages.length) return;
+				const conversation = document.getElementById("agent-conversation");
+				conversation.innerHTML = "";
+				messages.forEach(m => appendAgentMessage(m.role, displayStoredText(m.role, m.text)));
+				const calls = data.tool_calls || [];
+				if (calls.length) {
+					const names = [...new Set(calls.map(c => c.tool).filter(Boolean))];
+					appendAgentMessage("assistant", calls.length + " tool calls · " + names.slice(0, 5).join(", "));
+				}
+				const chat = data.chat;
+				if (chat) {
+					const hasReply = messages.some(m => m.role === "assistant" && (m.text || "").trim());
+					if (chat.status === "failed") {
+						appendAgentMessage("assistant", "Run failed: " + (chat.error || "unknown error"));
+					} else if (chat.status === "running") {
+						appendAgentMessage("assistant", "Run still in progress…");
+					} else if (chat.status === "completed" && chat.reply && !hasReply) {
+						appendAgentMessage("assistant", chat.reply);
+					}
+				}
+			} catch (err) { /* ignore */ }
+		}
+
+		function openAgentBuildLogs(fn) {
+			const panel = document.getElementById("agent-build-panel");
+			const logs = document.getElementById("agent-build-logs");
+			const status = document.getElementById("agent-build-status");
+			const target = document.getElementById("agent-build-target");
+			const open = document.getElementById("agent-build-open");
+			if (!panel || !logs || !fn || !fn.id) return;
+			panel.hidden = false;
+			target.textContent = fn.name || "";
+			open.href = "/functions/?fn=" + encodeURIComponent(fn.id) + "&fullscreen=1";
+			if (agentBuildSource) { agentBuildSource.close(); agentBuildSource = null; }
+			logs.innerHTML = "";
+			status.textContent = "connecting";
+			status.className = "z-badge z-badge-amber";
+			const url = "/api/functions/" + encodeURIComponent(fn.id) + "/logs/?source=build&name=" + encodeURIComponent(fn.name || "");
+			agentBuildSource = new EventSource(url);
+			agentBuildSource.addEventListener("logs", event => {
+				let payload;
+				try { payload = JSON.parse(event.data || "{}"); } catch (e) { return; }
+				const streams = payload.streams || payload.result || (payload.data && payload.data.result) || [];
+				if (!Array.isArray(streams)) return;
+				streams.forEach(stream => {
+					(stream.values || []).forEach(value => {
+						if (!Array.isArray(value) || value.length < 2) return;
+						const ms = Number(value[0]) / 1e6;
+						const stamp = isNaN(ms) ? "" : new Date(ms).toLocaleTimeString();
+						const line = document.createElement("div");
+						line.textContent = (stamp ? stamp + "  " : "") + String(value[1]);
+						logs.appendChild(line);
+					});
+				});
+				while (logs.childElementCount > 800) logs.removeChild(logs.firstChild);
+				logs.scrollTop = logs.scrollHeight;
+				status.textContent = "live";
+				status.className = "z-badge z-badge-green";
+			});
+			agentBuildSource.onerror = () => {
+				status.textContent = "reconnecting";
+				status.className = "z-badge z-badge-amber";
+			};
+		}
+
 		async function agentPagePrompt(text) {
 			const prompt = (text || "").trim();
 			if (!prompt) { toast("Describe a use case first", "info"); return; }
@@ -199,23 +296,27 @@ templ AgentContent() {
 			try {
 				let session = "";
 				try { session = localStorage.getItem(agentSessionKey()) || ""; } catch (err) { /* ignore */ }
-				const res = await fetch("/api/agent/prompt/", {
-					method: "POST",
-					headers: { "Content-Type": "application/json", Accept: "application/json" },
-					body: JSON.stringify({ prompt: finalPrompt, session_id: session })
-				});
-				const data = await res.json().catch(() => ({}));
-				if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
-				if (data.session_id) {
-					try { localStorage.setItem(agentSessionKey(), data.session_id); } catch (err) { /* ignore */ }
+				const started = await window.startAgentChat(finalPrompt, session);
+				if (started.session_id) {
+					try { localStorage.setItem(agentSessionKey(), started.session_id); } catch (err) { /* ignore */ }
 				}
+				const chat = await window.pollAgentChat(started.chat_id, data => {
+					pending.textContent = window.agentActivityText(data);
+				});
 				pending.style.color = "";
 				pending.style.fontStyle = "";
-				pending.textContent = data.text || "(the agent returned an empty response)";
-				if (data.sync_error) appendAgentMessage("assistant", "Sync warning: " + data.sync_error);
-				convStatus.textContent = "ready";
-				convStatus.className = "z-badge z-badge-green";
-				toast("Agent finished", "success");
+				if (chat.status === "completed") {
+					pending.textContent = chat.reply || "(the agent returned an empty response)";
+					convStatus.textContent = "ready";
+					convStatus.className = "z-badge z-badge-green";
+					toast("Agent finished", "success");
+				} else {
+					pending.style.color = "var(--red)";
+					pending.textContent = chat.error || "The agent chat did not complete.";
+					convStatus.textContent = "error";
+					convStatus.className = "z-badge z-badge-amber";
+				}
+				if (chat.latest_function) openAgentBuildLogs(chat.latest_function);
 			} catch (err) {
 				pending.style.color = "var(--red)";
 				pending.style.fontStyle = "";
@@ -234,5 +335,7 @@ templ AgentContent() {
 		document.addEventListener("keydown", e => {
 			if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); generatePlan(); }
 		});
+
+		hydrateAgentHistory();
 	</script>
 }

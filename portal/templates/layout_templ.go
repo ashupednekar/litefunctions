@@ -42,7 +42,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " · Litefunctions</title><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/js/portal.js\" defer></script></head><body><div class=\"z-app\"><aside class=\"z-sidebar\" id=\"app-sidebar\"><a href=\"/dashboard/\" class=\"z-brand\"><span class=\"z-brand-mark\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"></path></svg></span> <span class=\"z-brand-name\">litefunctions</span> <span class=\"z-brand-version\">0.1</span></a><div class=\"z-workspace-switch\"><a href=\"/dashboard/\" class=\"z-project-btn\" title=\"Switch project\"><span class=\"z-project-avatar\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " · Litefunctions</title><script src=\"https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4\"></script><link rel=\"stylesheet\" href=\"/static/style.css\"><script src=\"/static/js/portal.js\" defer></script></head><body><div class=\"z-app\"><aside class=\"z-sidebar\" id=\"app-sidebar\"><a href=\"/\" class=\"z-brand\"><span class=\"z-brand-mark\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"></path></svg></span> <span class=\"z-brand-name\">litefunctions</span> <span class=\"z-brand-version\">0.1</span></a><div class=\"z-workspace-switch\"><a href=\"/\" class=\"z-project-btn\" title=\"Switch project\"><span class=\"z-project-avatar\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -90,6 +90,10 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</a></div><nav class=\"z-sidebar-scroll\"><div class=\"z-nav-section\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = NavItem("/", "Agent", "sparkles", data.Active == "home", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -188,7 +192,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(data.Section)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 84, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 85, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -201,7 +205,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(data.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 86, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 87, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -232,7 +236,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(userInitial(data.Username))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 99, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 100, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -245,7 +249,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 100, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 101, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -266,7 +270,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(userInitial(data.Username))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 105, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 106, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -279,7 +283,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(data.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 107, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 108, Col: 73}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -292,21 +296,21 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(data.Role)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 108, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 109, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div></div></div><a href=\"/dashboard/\" class=\"z-user-menu-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div></div></div><a href=\"/\" class=\"z-user-menu-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Icon("grid", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Workspace overview</a> <a href=\"/configuration/\" class=\"z-user-menu-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Agent home</a> <a href=\"/configuration/\" class=\"z-user-menu-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -388,20 +392,36 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div><div class=\"z-audit-foot\"><span class=\"z-help\">Immutable · retained 400 days · export includes actor and request metadata</span> <a href=\"/audit/\" class=\"z-btn z-btn-sm z-btn-ghost\" style=\"margin-left:auto\">Open full log</a></div></div></div></div><div id=\"toast-container\"></div><div id=\"agent-dock\" class=\"z-agent-dock\" data-agent-project=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div><div class=\"z-audit-foot\"><span class=\"z-help\">Immutable · retained 400 days · export includes actor and request metadata</span> <a href=\"/audit/\" class=\"z-btn z-btn-sm z-btn-ghost\" style=\"margin-left:auto\">Open full log</a></div></div></div></div><div id=\"toast-container\"></div><button id=\"agent-dock-launcher\" class=\"z-agent-launcher\" type=\"button\" onclick=\"openAgentDock()\" aria-label=\"Ask the LiteFunctions agent\"><span class=\"z-agent-launcher-orb\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</span> <span class=\"z-agent-launcher-label\">Ask the agent</span> <span class=\"z-agent-launcher-hint\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "Build functions, routes, async consumers</span> <span class=\"z-kbd\">⌘</span><span class=\"z-kbd\">J</span></button><div id=\"agent-dock\" class=\"z-agent-palette\" data-agent-project=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(data.ProjectName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 163, Col: 82}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 171, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\"><button id=\"agent-dock-launcher\" class=\"z-agent-launcher\" type=\"button\" onclick=\"openAgentDock()\" aria-label=\"Ask the LiteFunctions agent\"><span class=\"z-agent-launcher-orb\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" onclick=\"closeAgentDock()\"><div id=\"agent-dock-panel\" class=\"z-agent-palette-box\" onclick=\"event.stopPropagation()\" hidden><div class=\"z-spotlight-input-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -409,36 +429,20 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span> <span class=\"z-agent-launcher-label\">Ask the agent</span> <span class=\"z-agent-launcher-hint\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "Build functions, routes, async consumers</span> <span class=\"z-kbd\">⌘</span><span class=\"z-kbd\">J</span></button><div id=\"agent-dock-panel\" class=\"z-agent-panel\" hidden><div class=\"z-agent-head\"><span class=\"z-agent-head-orb\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = Icon("sparkles", "").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</span><div class=\"z-agent-head-meta\"><span class=\"z-agent-title\">LiteFunctions agent</span> <span class=\"z-agent-sub\">Project · ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span class=\"z-agent-title\">LiteFunctions agent</span> <span class=\"z-badge z-badge-muted\">Project · ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(projectLabel(data.ProjectName))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 175, Col: 76}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layout.templ`, Line: 176, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</span></div><button class=\"z-icon-btn\" type=\"button\" onclick=\"closeAgentDock()\" aria-label=\"Close agent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</span> <button class=\"z-icon-btn\" style=\"margin-left:auto\" type=\"button\" onclick=\"closeAgentDock()\" aria-label=\"Close agent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -446,7 +450,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</button></div><div id=\"agent-dock-messages\" class=\"z-agent-messages\"><div class=\"z-agent-empty\"><div class=\"z-agent-empty-title\">Describe what you want to build.</div><div class=\"z-agent-empty-sub\">The agent can add HTTP functions, WebSocket/SSE functions, and async NATS consumers to this project. Databases and persistent streams are not supported yet.</div><div class=\"z-agent-suggestions\"><button class=\"z-chip-btn\" type=\"button\" onclick=\"agentSuggest('Build a health endpoint as a Go function')\">Health endpoint</button> <button class=\"z-chip-btn\" type=\"button\" onclick=\"agentSuggest('Create an async consumer that reacts to order.paid events and logs the payload')\">Async consumer</button> <button class=\"z-chip-btn\" type=\"button\" onclick=\"agentSuggest('Add a WebSocket function that echoes messages with the current server time')\">WebSocket echo</button></div></div></div><div class=\"z-agent-compose\"><textarea id=\"agent-dock-input\" class=\"z-agent-input\" rows=\"1\" placeholder=\"e.g. Build an order API with a POST endpoint and an order.paid consumer…\"></textarea> <button id=\"agent-dock-send\" class=\"z-agent-send\" type=\"button\" onclick=\"sendAgentPrompt()\" aria-label=\"Send prompt\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</button></div><div id=\"agent-dock-messages\" class=\"z-agent-palette-messages\"><div class=\"z-agent-empty\"><div class=\"z-agent-empty-title\">Describe what you want to build.</div><div class=\"z-agent-empty-sub\">The agent can add HTTP functions, WebSocket/SSE functions, and async NATS consumers to this project. Databases and persistent streams are not supported yet.</div><div class=\"z-agent-suggestions\"><button class=\"z-chip-btn\" type=\"button\" onclick=\"agentSuggest('Build a health endpoint as a Go function')\">Health endpoint</button> <button class=\"z-chip-btn\" type=\"button\" onclick=\"agentSuggest('Create an async consumer that reacts to order.paid events and logs the payload')\">Async consumer</button> <button class=\"z-chip-btn\" type=\"button\" onclick=\"agentSuggest('Add a WebSocket function that echoes messages with the current server time')\">WebSocket echo</button></div></div></div><div class=\"z-agent-palette-compose\"><textarea id=\"agent-dock-input\" class=\"z-agent-palette-input\" rows=\"2\" placeholder=\"e.g. Build an order API with a POST endpoint and an order.paid consumer…\"></textarea> <button id=\"agent-dock-send\" class=\"z-btn z-btn-primary\" type=\"button\" onclick=\"sendAgentPrompt()\" aria-label=\"Send prompt\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -454,7 +458,7 @@ func BaseLayout(data ShellData, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</button></div><div class=\"z-agent-foot\"><span id=\"agent-dock-status\">Enter to send · Shift+Enter for a new line</span> <span class=\"z-agent-foot-note\">not yet: db · persistent streams</span></div></div></div><div id=\"spotlight-modal\" class=\"z-spotlight\" onclick=\"closeSpotlight()\"><div class=\"z-spotlight-box\" onclick=\"event.stopPropagation()\"><div class=\"z-spotlight-input-row\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</button></div><div class=\"z-spotlight-foot\"><span id=\"agent-dock-status\">Enter to send · Shift+Enter for a new line</span> <span style=\"margin-left:auto\">not yet: db · persistent streams</span></div></div></div><div id=\"spotlight-modal\" class=\"z-spotlight\" onclick=\"closeSpotlight()\"><div class=\"z-spotlight-box\" onclick=\"event.stopPropagation()\"><div class=\"z-spotlight-input-row\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

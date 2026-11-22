@@ -248,11 +248,14 @@
   }
 
   window.openAgentDock = function () {
+    if (window.closeSpotlight) window.closeSpotlight();
     const panel = agentPanel();
     if (!panel) return;
     panel.hidden = false;
     const dock = agentDock();
     if (dock) dock.classList.add("open");
+    const messages = agentMessages();
+    if (messages) messages.scrollTop = messages.scrollHeight;
     setTimeout(() => agentInput()?.focus(), 30);
   };
 
@@ -297,6 +300,87 @@
     if (status) status.textContent = busy ? "Working on it…" : "Enter to send · Shift+Enter for a new line";
   }
 
+  function appendAgentBuildLink(fn) {
+    const container = agentMessages();
+    if (!container || !fn || !fn.id) return;
+    const row = document.createElement("div");
+    row.className = "z-agent-msg note";
+    const body = document.createElement("div");
+    body.className = "z-agent-msg-body";
+    const link = document.createElement("a");
+    link.href = "/functions/?fn=" + encodeURIComponent(fn.id) + "&fullscreen=1";
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Open latest build logs · " + (fn.name || "function");
+    body.appendChild(link);
+    row.appendChild(body);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  window.startAgentChat = async function (prompt, sessionID) {
+    const res = await fetch("/api/agent/prompt/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ prompt: prompt, session_id: sessionID || "" })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+    return data;
+  };
+
+  window.pollAgentChat = function (chatID, onUpdate, intervalMs) {
+    const delay = intervalMs || 2000;
+    return new Promise(function (resolve, reject) {
+      const tick = async function () {
+        try {
+          const res = await fetch("/api/agent/chats/" + encodeURIComponent(chatID) + "/", {
+            headers: { Accept: "application/json" }
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+          if (onUpdate) onUpdate(data);
+          if (data.status === "completed" || data.status === "failed" || data.status === "canceled") {
+            resolve(data);
+            return;
+          }
+        } catch (err) {
+          reject(err);
+          return;
+        }
+        setTimeout(tick, delay);
+      };
+      tick();
+    });
+  };
+
+  window.agentActivityText = function (run) {
+    if (!run) return "Thinking…";
+    if (run.status === "failed") return run.error || "The agent run failed.";
+    if (run.status === "canceled") return "The agent run was canceled.";
+    const lines = [];
+    const calls = Array.isArray(run.tool_calls) ? run.tool_calls : [];
+    const seen = new Set();
+    calls.forEach(function (call) {
+      if (!call || !call.tool || seen.has(call.id)) return;
+      seen.add(call.id);
+      const mark = call.status === "running" ? "→" : (call.status === "error" ? "✗" : "✓");
+      let line = mark + " " + call.tool;
+      if (call.title) line += " · " + call.title;
+      lines.push(line);
+    });
+    const functions = Array.isArray(run.functions) ? run.functions : [];
+    if (functions.length) {
+      const names = functions.slice(0, 4).map(function (fn) { return fn.name; }).join(", ");
+      lines.push("Functions: " + names + (functions.length > 4 ? " +" + (functions.length - 4) : ""));
+    }
+    if (run.latest_function && run.latest_function.name) {
+      lines.push("Latest function: " + run.latest_function.name);
+    }
+    if (!lines.length) lines.push(run.status === "completed" ? "Done." : "Thinking…");
+    return lines.join("\n");
+  };
+
   window.sendAgentPrompt = async function () {
     const input = agentInput();
     if (!input) return;
@@ -311,21 +395,21 @@
     if (pending) pending.classList.add("pending");
 
     try {
-      const res = await fetch("/api/agent/prompt/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ prompt: prompt, session_id: agentSessionID() })
+      const started = await window.startAgentChat(prompt, agentSessionID());
+      if (started.session_id) setAgentSessionID(started.session_id);
+      const run = await window.pollAgentChat(started.chat_id, function (data) {
+        if (pending) pending.textContent = window.agentActivityText(data);
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
-      if (data.session_id) setAgentSessionID(data.session_id);
       if (pending) {
         pending.classList.remove("pending");
-        pending.textContent = data.text || "(the agent returned an empty response)";
+        if (run.status === "completed") {
+          pending.textContent = run.reply || "(the agent returned an empty response)";
+        } else {
+          pending.classList.add("error");
+          pending.textContent = run.error || "The agent run did not complete.";
+        }
       }
-      if (data.sync_error) {
-        appendAgentMessage("note", "The agent finished, but syncing the project failed: " + data.sync_error);
-      }
+      if (run.latest_function) appendAgentBuildLink(run.latest_function);
       const messages = agentMessages();
       if (messages) messages.scrollTop = messages.scrollHeight;
     } catch (err) {
@@ -350,7 +434,7 @@
     }
     if (e.key === "Escape") {
       const panel = agentPanel();
-      if (panel && !panel.hidden && !e.target.closest("#agent-dock-panel")) {
+      if (panel && !panel.hidden) {
         window.closeAgentDock();
       }
     }
@@ -377,6 +461,7 @@
   function spotModal() { return document.getElementById("spotlight-modal"); }
 
   window.openSpotlight = function () {
+    if (window.closeAgentDock) window.closeAgentDock();
     const modal = spotModal();
     if (!modal) return;
     modal.classList.add("open");

@@ -17,6 +17,8 @@ type Settings struct {
 	OperatorAddr string `env:"OPERATOR_URL" default:"litefunctions-operator:50051"`
 	Namespace    string `env:"POD_NAMESPACE" default:"litefunctions"`
 	Token        string `env:"MCP_TOKEN"`
+	PortalURL    string `env:"PORTAL_URL" default:"http://litefunctions-portal:3000"`
+	PortalToken  string `env:"PORTAL_TOKEN"`
 }
 
 func main() {

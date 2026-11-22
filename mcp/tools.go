@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"path"
 	"regexp"
 	"strings"
@@ -21,6 +22,9 @@ type tool struct {
 }
 
 var toolOrder = []string{
+	"list_projects",
+	"create_project",
+	"select_project",
 	"list_project_files",
 	"read_project_file",
 	"write_project_file",
@@ -35,6 +39,28 @@ var functionNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$`)
 
 func (s *Server) buildTools() map[string]tool {
 	tools := map[string]tool{
+		"list_projects": {
+			Name:        "list_projects",
+			Description: "List LiteFunctions projects visible to the agent. Use this before creating a project or when the user has not chosen one.",
+			InputSchema: objectSchema(map[string]any{}),
+			Handler:     s.listProjects,
+		},
+		"create_project": {
+			Name:        "create_project",
+			Description: "Create a new LiteFunctions project. This provisions the Git repository, webhook, and build workflow. Use a short lowercase name.",
+			InputSchema: objectSchema(map[string]any{
+				"name": stringSchema("Project name (lowercase letters, numbers, dash, underscore)"),
+			}, "name"),
+			Handler: s.createProject,
+		},
+		"select_project": {
+			Name:        "select_project",
+			Description: "Select an existing project and return its id. Pass the returned project name to the other tools.",
+			InputSchema: objectSchema(map[string]any{
+				"name": stringSchema("Project name"),
+			}, "name"),
+			Handler: s.getProject,
+		},
 		"list_project_files": {
 			Name:        "list_project_files",
 			Description: "List files in a LiteFunctions project repository. Use this before creating functions.",
@@ -81,6 +107,7 @@ func (s *Server) buildTools() map[string]tool {
 				"language":  enumSchema("Runtime language", "go", "python", "ts", "rust", "lua"),
 				"surface":   enumSchema("Execution surface. http is sync HTTP; async is a NATS consumer; ws and sse are streaming functions.", "http", "async", "ws", "sse"),
 				"is_async":  boolSchema("Explicit async flag. Overrides surface when set."),
+				"ui":        boolSchema("True when this function serves server-rendered HTML. The portal previews it in an iframe."),
 				"code":      stringSchema("Full entrypoint source. Defaults to the language sample."),
 				"files":     filesSchema(),
 				"endpoints": endpointsSchema(),
@@ -96,6 +123,7 @@ func (s *Server) buildTools() map[string]tool {
 				"language":  enumSchema("Runtime language", "go", "python", "ts", "rust", "lua"),
 				"surface":   enumSchema("Execution surface", "http", "async", "ws", "sse"),
 				"is_async":  boolSchema("Explicit async flag"),
+				"ui":        boolSchema("True when this function serves server-rendered HTML"),
 				"code":      stringSchema("Replacement entrypoint source"),
 				"files":     filesSchema(),
 				"endpoints": endpointsSchema(),
@@ -192,6 +220,7 @@ type functionArgs struct {
 	Language  string        `json:"language"`
 	Surface   string        `json:"surface"`
 	IsAsync   *bool         `json:"is_async"`
+	UI        *bool         `json:"ui"`
 	Code      string        `json:"code"`
 	Files     []fileArg     `json:"files"`
 	Endpoints []endpointArg `json:"endpoints"`
@@ -381,6 +410,13 @@ func (s *Server) upsertFunction(ctx context.Context, args functionArgs, create b
 		isAsync = existing.IsAsync
 	}
 
+	isUI := false
+	if args.UI != nil {
+		isUI = *args.UI
+	} else if !create && inManifest {
+		isUI = existing.UI
+	}
+
 	functionDir := fmt.Sprintf("functions/%s/%s", language, args.Name)
 	entrypoint := "handle" + ext
 	if inManifest && existing.Path != "" {
@@ -439,10 +475,14 @@ func (s *Server) upsertFunction(ctx context.Context, args functionArgs, create b
 	}
 
 	endpoints := args.Endpoints
-	if len(endpoints) == 0 {
+	defaulted := len(endpoints) == 0
+	if defaulted {
 		endpoints = defaultEndpoints(args.Project, args.Name, args.Surface, isAsync)
 	}
 	for i := range endpoints {
+		if isUI && (defaulted || strings.TrimSpace(endpoints[i].Method) == "") {
+			endpoints[i].Method = http.MethodGet
+		}
 		normalizeEndpoint(&endpoints[i], args.Project, args.Name, isAsync)
 	}
 
@@ -451,6 +491,7 @@ func (s *Server) upsertFunction(ctx context.Context, args functionArgs, create b
 		Language:  language,
 		Path:      entrypointPath,
 		IsAsync:   isAsync,
+		UI:        isUI,
 		Endpoints: toManifestEndpoints(endpoints),
 	})
 	if err := saveManifest(r, manifest); err != nil {
@@ -472,6 +513,7 @@ func (s *Server) upsertFunction(ctx context.Context, args functionArgs, create b
 		"language":  language,
 		"path":      entrypointPath,
 		"is_async":  isAsync,
+		"ui":        isUI,
 		"endpoints": endpoints,
 		"status":    "saved" + warning,
 	})
@@ -606,6 +648,12 @@ func normalizeEndpoint(endpoint *endpointArg, project, name string, isAsync bool
 	}
 	if !strings.HasPrefix(endpoint.Name, "/") {
 		endpoint.Name = "/" + endpoint.Name
+	}
+	// Endpoint paths are project-scoped. Keep the ingestor's
+	// /lambda/<project>/<name> route and the public gateway path aligned.
+	prefix := "/" + project
+	if project != "" && endpoint.Name != prefix && !strings.HasPrefix(endpoint.Name, prefix+"/") {
+		endpoint.Name = prefix + "/" + strings.TrimPrefix(endpoint.Name, "/")
 	}
 	if strings.TrimSpace(endpoint.Method) == "" {
 		endpoint.Method = "POST"

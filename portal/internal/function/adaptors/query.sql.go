@@ -12,9 +12,9 @@ import (
 )
 
 const createFunction = `-- name: CreateFunction :one
-INSERT INTO functions (project_id, name, language, path, is_async, created_by)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, project_id, name, language, path, is_async, created_by, created_at
+INSERT INTO functions (project_id, name, language, path, is_async, is_ui, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, project_id, name, language, path, is_async, created_by, created_at, is_ui
 `
 
 type CreateFunctionParams struct {
@@ -23,6 +23,7 @@ type CreateFunctionParams struct {
 	Language  string
 	Path      string
 	IsAsync   bool
+	IsUi      bool
 	CreatedBy []byte
 }
 
@@ -33,6 +34,7 @@ func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) 
 		arg.Language,
 		arg.Path,
 		arg.IsAsync,
+		arg.IsUi,
 		arg.CreatedBy,
 	)
 	var i Function
@@ -45,6 +47,7 @@ func (q *Queries) CreateFunction(ctx context.Context, arg CreateFunctionParams) 
 		&i.IsAsync,
 		&i.CreatedBy,
 		&i.CreatedAt,
+		&i.IsUi,
 	)
 	return i, err
 }
@@ -60,7 +63,7 @@ func (q *Queries) DeleteFunction(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getFunctionByID = `-- name: GetFunctionByID :one
-SELECT id, project_id, name, language, path, is_async, created_by, created_at
+SELECT id, project_id, name, language, path, is_async, created_by, created_at, is_ui
 FROM functions
 WHERE id = $1
 `
@@ -77,12 +80,38 @@ func (q *Queries) GetFunctionByID(ctx context.Context, id pgtype.UUID) (Function
 		&i.IsAsync,
 		&i.CreatedBy,
 		&i.CreatedAt,
+		&i.IsUi,
+	)
+	return i, err
+}
+
+const latestFunctionForProject = `-- name: LatestFunctionForProject :one
+SELECT id, project_id, name, language, path, is_async, created_by, created_at, is_ui
+FROM functions
+WHERE project_id = $1
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) LatestFunctionForProject(ctx context.Context, projectID pgtype.UUID) (Function, error) {
+	row := q.db.QueryRow(ctx, latestFunctionForProject, projectID)
+	var i Function
+	err := row.Scan(
+		&i.ID,
+		&i.ProjectID,
+		&i.Name,
+		&i.Language,
+		&i.Path,
+		&i.IsAsync,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.IsUi,
 	)
 	return i, err
 }
 
 const listFunctionsForProject = `-- name: ListFunctionsForProject :many
-SELECT id, project_id, name, language, path, is_async, created_by, created_at
+SELECT id, project_id, name, language, path, is_async, created_by, created_at, is_ui
 FROM functions
 WHERE project_id = $1
 ORDER BY language ASC, created_at DESC
@@ -106,6 +135,7 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 			&i.IsAsync,
 			&i.CreatedBy,
 			&i.CreatedAt,
+			&i.IsUi,
 		); err != nil {
 			return nil, err
 		}
@@ -118,7 +148,7 @@ func (q *Queries) ListFunctionsForProject(ctx context.Context, projectID pgtype.
 }
 
 const listFunctionsSearchPaged = `-- name: ListFunctionsSearchPaged :many
-SELECT id, project_id, name, language, path, is_async, created_by, created_at
+SELECT id, project_id, name, language, path, is_async, created_by, created_at, is_ui
 FROM functions
 WHERE project_id = $1
   AND (
@@ -159,6 +189,7 @@ func (q *Queries) ListFunctionsSearchPaged(ctx context.Context, arg ListFunction
 			&i.IsAsync,
 			&i.CreatedBy,
 			&i.CreatedAt,
+			&i.IsUi,
 		); err != nil {
 			return nil, err
 		}
@@ -174,7 +205,7 @@ const updateFunctionIsAsync = `-- name: UpdateFunctionIsAsync :one
 UPDATE functions
 SET is_async = $2
 WHERE id = $1
-RETURNING id, project_id, name, language, path, is_async, created_by, created_at
+RETURNING id, project_id, name, language, path, is_async, created_by, created_at, is_ui
 `
 
 type UpdateFunctionIsAsyncParams struct {
@@ -194,6 +225,36 @@ func (q *Queries) UpdateFunctionIsAsync(ctx context.Context, arg UpdateFunctionI
 		&i.IsAsync,
 		&i.CreatedBy,
 		&i.CreatedAt,
+		&i.IsUi,
+	)
+	return i, err
+}
+
+const updateFunctionIsUI = `-- name: UpdateFunctionIsUI :one
+UPDATE functions
+SET is_ui = $2
+WHERE id = $1
+RETURNING id, project_id, name, language, path, is_async, created_by, created_at, is_ui
+`
+
+type UpdateFunctionIsUIParams struct {
+	ID   pgtype.UUID
+	IsUi bool
+}
+
+func (q *Queries) UpdateFunctionIsUI(ctx context.Context, arg UpdateFunctionIsUIParams) (Function, error) {
+	row := q.db.QueryRow(ctx, updateFunctionIsUI, arg.ID, arg.IsUi)
+	var i Function
+	err := row.Scan(
+		&i.ID,
+		&i.ProjectID,
+		&i.Name,
+		&i.Language,
+		&i.Path,
+		&i.IsAsync,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.IsUi,
 	)
 	return i, err
 }
@@ -202,7 +263,7 @@ const updateFunctionPath = `-- name: UpdateFunctionPath :one
 UPDATE functions
 SET path = $2
 WHERE id = $1
-RETURNING id, project_id, name, language, path, is_async, created_by, created_at
+RETURNING id, project_id, name, language, path, is_async, created_by, created_at, is_ui
 `
 
 type UpdateFunctionPathParams struct {
@@ -222,6 +283,7 @@ func (q *Queries) UpdateFunctionPath(ctx context.Context, arg UpdateFunctionPath
 		&i.IsAsync,
 		&i.CreatedBy,
 		&i.CreatedAt,
+		&i.IsUi,
 	)
 	return i, err
 }

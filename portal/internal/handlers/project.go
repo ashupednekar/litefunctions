@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -150,7 +151,7 @@ func (h *ProjectHandlers) CreateProject(c *gin.Context) {
 		slog.Warn("Failed to sync repo functions", "error", err)
 	}
 
-	c.JSON(201, gin.H{"id": project.ID, "name": project.Name})
+	c.JSON(201, gin.H{"id": hex.EncodeToString(project.ID.Bytes[:]), "name": project.Name})
 }
 
 func (h *ProjectHandlers) SyncProject(c *gin.Context) {

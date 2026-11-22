@@ -5,17 +5,34 @@ templ FunctionTrafficPanel(fn Function, ep Endpoint) {
 		data-endpoint-name={ trafficEndpointName(fn, ep) }
 		data-endpoint-method={ trafficMethod(fn, ep) }
 		data-endpoint-async={ boolString(trafficIsAsync(fn, ep)) }
+		data-endpoint-ui={ boolString(fn.IsUI) }
 		data-endpoint-id={ ep.ID }>
 		<div class="z-fn-config-head">
-			<span class="z-panel-title">@Icon("play", "") Test &amp; logs</span>
+			if fn.IsUI {
+				<span class="z-panel-title">@Icon("external", "") Live preview</span>
+			} else {
+				<span class="z-panel-title">@Icon("play", "") Test &amp; logs</span>
+			}
 			<span class="z-badge z-badge-muted">{ fn.Name }</span>
 			<span class="z-badge z-badge-green z-mono">{ trafficMethod(fn, ep) } { trafficEndpointName(fn, ep) }</span>
 			if trafficIsAsync(fn, ep) {
 				<span class="z-badge z-badge-purple">websocket</span>
 			}
+			if fn.IsUI {
+				<a class="z-btn z-btn-sm" style="margin-left:auto" href={ templ.SafeURL(trafficPreviewPath(fn, ep)) } target="_blank" rel="noopener">@Icon("external", "") Open in new tab</a>
+			}
 		</div>
 
-		<div id={ "fn-test-host-" + fn.ID } class="fn-test-host"></div>
+		if fn.IsUI {
+			<iframe
+				src={ templ.SafeURL(trafficPreviewPath(fn, ep)) }
+				title={ fn.Name }
+				style="width:100%;height:520px;border:1px solid var(--border);border-radius:6px;background:#0b0b0c"
+			></iframe>
+			<div class="z-help" style="margin:8px 0 0">Server-rendered UI preview. It calls other functions through their public endpoints or async workers.</div>
+		} else {
+			<div id={ "fn-test-host-" + fn.ID } class="fn-test-host"></div>
+		}
 
 		<div class="z-fn-traffic-logs">
 			<div class="z-log-toolbar">

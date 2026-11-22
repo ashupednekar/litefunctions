@@ -85,6 +85,12 @@ spec:
           value: {{ .Values.agent.model | quote }}
         - name: OPENCODE_TIMEOUT_SECONDS
           value: {{ .Values.agent.timeoutSeconds | quote }}
+        - name: AGENT_SYNC_SECONDS
+          value: {{ .Values.agent.syncSeconds | default 60 | quote }}
+        - name: AGENT_POLL_SECONDS
+          value: {{ .Values.agent.pollSeconds | default 3 | quote }}
+        - name: MCP_TOKEN
+          value: {{ .Values.agent.mcp.token | quote }}
         {{- end }}
         - name: VCS_AUTH_MODE
           value: token

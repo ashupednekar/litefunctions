@@ -263,6 +263,24 @@ type Project struct {
 	Role   string
 }
 
+// AgentSessionSummary is one stored conversation shown on the agent home.
+type AgentSessionSummary struct {
+	ID      string
+	Title   string
+	Preview string
+	Updated string
+}
+
+// HomeAgentData backs the agent-first home screen.
+type HomeAgentData struct {
+	Username        string
+	Projects        []Project
+	ActiveProjectID string
+	ActiveProject   string
+	Role            string
+	Sessions        []AgentSessionSummary
+}
+
 type Invite struct {
 	Code      string    `json:"code"`
 	ExpiresAt time.Time `json:"expires_at"`
@@ -277,11 +295,13 @@ type AccessUser struct {
 type Function struct {
 	ID           string
 	Name         string
+	ProjectName  string
 	Language     string
 	Icon         string
 	EndpointID   string
 	EndpointName string
 	IsAsync      bool
+	IsUI         bool
 	Method       string
 }
 
@@ -290,6 +310,18 @@ func trafficEndpointName(fn Function, ep Endpoint) string {
 		return ep.Name
 	}
 	return fn.EndpointName
+}
+
+// trafficPreviewPath is the ingestor URL used for a UI function iframe.
+func trafficPreviewPath(fn Function, ep Endpoint) string {
+	if fn.ProjectName != "" && fn.Name != "" {
+		return "/lambda/" + fn.ProjectName + "/" + fn.Name
+	}
+	name := trafficEndpointName(fn, ep)
+	if !strings.HasPrefix(name, "/") {
+		name = "/" + name
+	}
+	return "/lambda" + name
 }
 
 func trafficIsAsync(fn Function, ep Endpoint) bool {
@@ -333,9 +365,16 @@ func boolString(b bool) string {
 
 func endpointForFunction(endpoints []Endpoint, fnID string) Endpoint {
 	for _, ep := range endpoints {
-		if ep.ID == fnID {
+		if ep.FunctionID == fnID {
 			return ep
 		}
 	}
 	return Endpoint{}
+}
+
+func functionTestTitle(fn Function) string {
+	if fn.IsUI {
+		return "Preview & logs"
+	}
+	return "Test & logs"
 }

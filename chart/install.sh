@@ -19,6 +19,9 @@ CHART_SOURCE="oci://registry-1.docker.io/ashupednekar535/litefunctions"
 ARGOCD_CHART_VERSION="${ARGOCD_CHART_VERSION:-0.2.0}"
 ARGOCD_HELM_VERSION="${ARGOCD_HELM_VERSION:-10.10.5}"
 USE_HEAD_CHART=true
+LOCAL=false
+LOCAL_REGISTRY="${LOCAL_REGISTRY:-localhost:30050}"
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 ACTION=default
 ACTION_SET=false
 INSTALL_ARGO=false
@@ -27,6 +30,10 @@ FRESH_CLUSTER=false
 for arg in "$@"; do
   case "$arg" in
     --head)
+      USE_HEAD_CHART=true
+      ;;
+    --local)
+      LOCAL=true
       USE_HEAD_CHART=true
       ;;
     --argo)
@@ -41,13 +48,13 @@ for arg in "$@"; do
       ;;
     -* )
       echo "unknown option: $arg" >&2
-      echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
+      echo "usage: sh install.sh [--head] [--local] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
       exit 1
       ;;
     *)
       if [ "$ACTION_SET" = true ]; then
         echo "unexpected argument: $arg" >&2
-        echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
+        echo "usage: sh install.sh [--head] [--local] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
         exit 1
       fi
       ACTION=$arg
@@ -55,6 +62,11 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+if [ "$LOCAL" = true ] && [ "$INSTALL_ARGO" = true ]; then
+  echo "--local and --argo cannot be combined" >&2
+  exit 1
+fi
 
 PORTAL_HOST="${PORTAL_HOST:-litefunctions.portal}"
 GITEA_HOST="${GITEA_HOST:-litefunctions.gitea}"
@@ -81,6 +93,44 @@ require_command() {
   }
 }
 
+ensure_sudo() {
+  require_command sudo
+  if sudo -n true 2>/dev/null; then
+    return 0
+  fi
+  if [ ! -t 0 ]; then
+    echo "sudo access is required but no terminal is available to prompt for a password" >&2
+    echo "run this script from an interactive terminal, or pre-authorize sudo" >&2
+    exit 1
+  fi
+  echo "Requesting sudo access..."
+  sudo -v
+}
+
+wait_for_nodes() {
+  wait_attempt=0
+  while ! kubectl get nodes >/dev/null 2>&1; do
+    wait_attempt=$((wait_attempt + 1))
+    if [ "$wait_attempt" -ge "$1" ]; then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+refresh_kubeconfig() {
+  if [ ! -e /etc/rancher/k3s/k3s.yaml ]; then
+    return 1
+  fi
+  case "$KUBECONFIG" in
+    *:*) return 1 ;;
+  esac
+  mkdir -p "$(dirname "$KUBECONFIG")"
+  ensure_sudo
+  sudo -n install -o "$(id -u)" -g "$(id -g)" -m 600 \
+    /etc/rancher/k3s/k3s.yaml "$KUBECONFIG"
+}
+
 ensure_cluster() {
   if [ "$FRESH_CLUSTER" = true ]; then
     case "$(uname -s)" in
@@ -89,9 +139,10 @@ ensure_cluster() {
         colima delete --force
         ;;
       Linux)
-        require_command sudo
         if [ -x /usr/local/bin/k3s-uninstall.sh ]; then
-          sudo /usr/local/bin/k3s-uninstall.sh
+          ensure_sudo
+          echo "Uninstalling existing k3s cluster..."
+          sudo -n /usr/local/bin/k3s-uninstall.sh
         fi
         ;;
       *)
@@ -115,22 +166,26 @@ ensure_cluster() {
       return 0
       ;;
     Linux)
-      if [ -x /usr/local/bin/k3s-uninstall.sh ]; then
-        require_command sudo
+      if [ -x /usr/local/bin/k3s-uninstall.sh ] || [ -e /etc/rancher/k3s/k3s.yaml ]; then
+        ensure_sudo
         if command -v systemctl >/dev/null 2>&1; then
-          sudo systemctl start k3s || true
+          sudo -n systemctl start k3s || true
         elif command -v service >/dev/null 2>&1; then
-          sudo service k3s start || true
+          sudo -n service k3s start || true
         fi
-        attempt=0
-        until kubectl get nodes >/dev/null 2>&1; do
-          attempt=$((attempt + 1))
-          if [ "$attempt" -ge 30 ]; then
-            echo "Existing k3s cluster is unavailable; tried to start it and will not reinstall it automatically" >&2
+        if ! wait_for_nodes 30; then
+          echo "k3s is installed but kubectl cannot reach the cluster with $KUBECONFIG" >&2
+          echo "refreshing kubeconfig from /etc/rancher/k3s/k3s.yaml" >&2
+          if refresh_kubeconfig && wait_for_nodes 30; then
+            :
+          else
+            echo "Existing k3s cluster is unavailable" >&2
+            kubectl get nodes >&2 || true
+            echo "If $KUBECONFIG is stale, refresh it manually with:" >&2
+            echo "  sudo install -o \"$(id -u)\" -g \"$(id -g)\" -m 600 /etc/rancher/k3s/k3s.yaml \"$KUBECONFIG\"" >&2
             exit 1
           fi
-          sleep 2
-        done
+        fi
         kubectl get nodes
         return 0
       fi
@@ -141,25 +196,27 @@ ensure_cluster() {
       ;;
   esac
 
-  require_command sudo
   require_command curl
   installer=$(mktemp)
-  curl -sfL https://get.k3s.io -o "$installer"
-  sudo env INSTALL_K3S_EXEC="--disable=traefik --disable=servicelb" sh "$installer"
+  echo "Installing k3s..."
+  if ! curl -sfL https://get.k3s.io -o "$installer"; then
+    rm -f "$installer"
+    echo "failed to download the k3s installer" >&2
+    exit 1
+  fi
+  ensure_sudo
+  sudo -n env INSTALL_K3S_EXEC="--disable=traefik --disable=servicelb" sh "$installer"
   rm -f "$installer"
 
-  mkdir -p "$HOME/.kube"
-  sudo install -o "$(id -u)" -g "$(id -g)" -m 600 \
-    /etc/rancher/k3s/k3s.yaml "$KUBECONFIG"
-  attempt=0
-  until kubectl get nodes >/dev/null 2>&1; do
-    attempt=$((attempt + 1))
-    if [ "$attempt" -ge 30 ]; then
-      echo "k3s did not become available" >&2
-      exit 1
-    fi
-    sleep 2
-  done
+  if ! refresh_kubeconfig; then
+    echo "k3s installed but /etc/rancher/k3s/k3s.yaml is missing" >&2
+    exit 1
+  fi
+  if ! wait_for_nodes 30; then
+    echo "k3s did not become available" >&2
+    kubectl get nodes >&2 || true
+    exit 1
+  fi
   kubectl get nodes
 }
 
@@ -338,11 +395,16 @@ EOF
     else
       chart_source=$CHART_SOURCE
     fi
-    helm upgrade --install "$RELEASE" "$chart_source" --namespace "$NAMESPACE" \
-      --create-namespace --debug \
-      --server-side=true \
-      --force-conflicts \
-      --set gatewayApi.tls.certManager.enabled=false
+    if [ "$LOCAL" = true ]; then
+      require_command make
+      make -C "$REPO_ROOT" LOCAL_REGISTRY="$LOCAL_REGISTRY" NAMESPACE="$NAMESPACE" RELEASE="$RELEASE" local-push
+    else
+      helm upgrade --install "$RELEASE" "$chart_source" --namespace "$NAMESPACE" \
+        --create-namespace --debug \
+        --server-side=true \
+        --force-conflicts \
+        --set gatewayApi.tls.certManager.enabled=false
+    fi
   fi
   if [ "$INSTALL_ARGO" != true ]; then
     helm ls -A
@@ -399,11 +461,11 @@ start() {
   rm -f "$PID_FILE"
 
   if [ "$HTTPS_PORT" -lt 1024 ]; then
-    require_command sudo
-    sudo -v
+    ensure_sudo
   fi
   if [ -e "$LOG_FILE" ] && [ ! -w "$LOG_FILE" ]; then
-    sudo chown "$(id -u):$(id -g)" "$LOG_FILE"
+    ensure_sudo
+    sudo -n chown "$(id -u):$(id -g)" "$LOG_FILE"
   fi
   if [ "$HTTPS_PORT" -lt 1024 ]; then
     nohup sudo -n "$kubectl_bin" --kubeconfig "$KUBECONFIG" -n "$NAMESPACE" \
@@ -422,7 +484,7 @@ start() {
       echo "failed to reach port-forward at https://127.0.0.1:$HTTPS_PORT" >&2
       echo "log:" >&2
       sed -n '1,120p' "$LOG_FILE" >&2 || true
-      kill "$pid" 2>/dev/null || sudo kill "$pid" 2>/dev/null || true
+      kill "$pid" 2>/dev/null || sudo -n kill "$pid" 2>/dev/null || true
       rm -f "$PID_FILE"
       exit 1
     fi
@@ -469,7 +531,10 @@ stop() {
   fi
 
   pid=$(cat "$PID_FILE")
-  kill "$pid" 2>/dev/null || sudo kill "$pid"
+  if ! kill "$pid" 2>/dev/null; then
+    ensure_sudo
+    sudo -n kill "$pid"
+  fi
   rm -f "$PID_FILE"
   echo "stopped port-forward pid $pid"
 }
@@ -519,8 +584,9 @@ open_argo() {
 
 case "$ACTION" in
   help)
-    echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status|argo]"
-    echo "  --head  install the chart from this checkout; default installs the published Artifact Hub chart"
+    echo "usage: sh install.sh [--head] [--local] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status|argo]"
+    echo "  --head  install the chart from this checkout (this is already the default)"
+    echo "  --local build and push the LiteFunctions images to $LOCAL_REGISTRY, then install with them"
     echo "  --argo  install Argo CD in the cluster"
     echo "  --fresh-cluster  recreate the local Colima or k3s cluster before installing"
     ;;
@@ -548,7 +614,7 @@ case "$ACTION" in
     ;;
   *)
     echo "unknown command: $ACTION" >&2
-    echo "usage: sh install.sh [--head] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
+    echo "usage: sh install.sh [--head] [--local] [--argo] [--fresh-cluster] [mkcert|start|stop|restart|status]" >&2
     exit 1
     ;;
 esac

@@ -75,7 +75,10 @@ templ FunctionContent(functions []Function, langs []Lang, activeProjectID string
 					<a id={ "fn-row-build-" + fn.ID } class="z-badge z-badge-muted hidden" target="_blank" rel="noopener" title="Latest Actions run">No Actions</a>
 					<button class="z-icon-btn" id={ "fn-config-btn-" + fn.ID } title="Function config" onclick={ templ.JSFuncCall("toggleFnConfig", fn.ID) }>@Icon("sliders", "")</button>
 					<button class="z-icon-btn" title="Edit" onclick={ templ.JSFuncCall("openEdit", fn.ID, fn.Language) }>@Icon("edit", "")</button>
-					<button class="z-icon-btn" id={ "fn-test-btn-" + fn.ID } title="Test &amp; logs" onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "")</button>
+					if fn.IsUI {
+						<a class="z-icon-btn" href={ templ.SafeURL(trafficPreviewPath(fn, endpointForFunction(endpoints, fn.ID))) } target="_blank" rel="noopener" title="Open live app">@Icon("external", "")</a>
+					}
+					<button class="z-icon-btn" id={ "fn-test-btn-" + fn.ID } title={ functionTestTitle(fn) } onclick={ templ.JSFuncCall("toggleFnTraffic", fn.ID) }>@Icon("play", "")</button>
 					<button class="z-icon-btn" id={ "fn-build-btn-" + fn.ID } title="Build logs" onclick={ templ.JSFuncCall("toggleFnBuild", fn.ID) }>@Icon("package", "")</button>
 					<button class="z-icon-btn" title="Delete" onclick={ templ.JSFuncCall("deleteFn", fn.ID) }>@Icon("trash", "")</button>
 				</div>
@@ -1068,6 +1071,10 @@ function toggleFnTraffic(id) {
   if (willOpen) {
     panel.classList.remove("hidden");
     document.getElementById("fn-test-btn-" + id)?.classList.add("active");
+    if (panel.getAttribute("data-endpoint-ui") === "true") {
+      startFnLog(id);
+      return;
+    }
     const host = document.getElementById("fn-test-host-" + id);
     const endpointID = panel.getAttribute("data-endpoint-id") || id;
     if (panel.getAttribute("data-endpoint-async") === "true") {

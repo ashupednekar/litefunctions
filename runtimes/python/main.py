@@ -226,7 +226,7 @@ async def invoke_module(
     req_id: str,
     payload: bytes,
     request: Request | None = None,
-) -> AsyncGenerator[bytes, None]:
+) -> AsyncGenerator[Any, None]:
     module = await load_module(name)
     handler = getattr(module, "handle", None)
     if handler is None:
@@ -246,15 +246,15 @@ async def invoke_module(
 
     if hasattr(result, "__aiter__"):
         async for item in result:
-            yield encode_payload(item)
+            yield item
         return
 
     if inspect.isgenerator(result):
         for item in result:
-            yield encode_payload(item)
+            yield item
         return
 
-    yield encode_payload(result)
+    yield result
 
 
 async def consume_function(state: AppState, name: str) -> None:
@@ -270,7 +270,8 @@ async def consume_function(state: AppState, name: str) -> None:
         try:
             async for out in invoke_module(state, name, req_id, msg.data):
                 await state.nc.publish(
-                    f"{settings.project}.{name}.res.python.{req_id}", out
+                    f"{settings.project}.{name}.res.python.{req_id}",
+                    encode_payload(out),
                 )
         except Exception as exc:
             logger.exception("failed to handle async event for %s: %s", name, exc)
@@ -337,8 +338,10 @@ async def handle_request(path: str, request: Request):
         async for out in invoke_module(state, name, "", body, request=request):
             first = out
             break
+        if isinstance(first, Response):
+            return first
         return Response(
-            content=first or b"", media_type="application/json", status_code=200
+            content=encode_payload(first), media_type="application/json", status_code=200
         )
     except FileNotFoundError:
         return Response(content=f"function '{name}' not found", status_code=404)

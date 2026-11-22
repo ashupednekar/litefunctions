@@ -7,6 +7,7 @@ WORKDIR /app/portal
 RUN go install github.com/a-h/templ/cmd/templ@v0.3.977
 COPY portal/go.mod portal/go.sum ./
 COPY ingestor /app/ingestor
+COPY agent /app/agent
 COPY common /app/common
 COPY runtimes /app/runtime-assets/runtimes
 RUN go mod download

@@ -31,14 +31,80 @@ type Session struct {
 	UpdatedAt int64  `json:"updated"`
 }
 
-// Part is one element of a message. OpenCode uses several part types; only text
-// parts are surfaced to users.
+// Part is one element of a message. OpenCode uses several part types; text
+// parts hold the reply and tool parts describe the calls the agent made.
 type Part struct {
-	ID        string `json:"id,omitempty"`
-	SessionID string `json:"sessionID,omitempty"`
-	MessageID string `json:"messageID,omitempty"`
-	Type      string `json:"type"`
-	Text      string `json:"text,omitempty"`
+	ID        string     `json:"id,omitempty"`
+	SessionID string     `json:"sessionID,omitempty"`
+	MessageID string     `json:"messageID,omitempty"`
+	Type      string     `json:"type"`
+	Text      string     `json:"text,omitempty"`
+	CallID    string     `json:"callID,omitempty"`
+	Tool      string     `json:"tool,omitempty"`
+	State     *ToolState `json:"state,omitempty"`
+}
+
+// ToolState is the execution state OpenCode attaches to a tool part.
+type ToolState struct {
+	Status string          `json:"status"`
+	Input  json.RawMessage `json:"input,omitempty"`
+	Output string          `json:"output,omitempty"`
+	Title  string          `json:"title,omitempty"`
+	Error  string          `json:"error,omitempty"`
+	Time   ToolTime        `json:"time,omitempty"`
+}
+
+// ToolTime holds the millisecond timestamps of a tool call.
+type ToolTime struct {
+	Start int64 `json:"start,omitempty"`
+	End   int64 `json:"end,omitempty"`
+}
+
+// ToolCall is a flattened, storage-friendly view of a tool part.
+type ToolCall struct {
+	ID          string
+	MessageID   string
+	Tool        string
+	Status      string
+	Title       string
+	Input       json.RawMessage
+	Output      string
+	Error       string
+	StartedAt   time.Time
+	CompletedAt time.Time
+}
+
+// ToolCalls returns the tool parts of a message in order.
+func (m Message) ToolCalls() []ToolCall {
+	out := make([]ToolCall, 0, len(m.Parts))
+	for _, part := range m.Parts {
+		if part.Type != "tool" || part.Tool == "" {
+			continue
+		}
+		call := ToolCall{
+			ID:        part.ID,
+			MessageID: part.MessageID,
+			Tool:      part.Tool,
+		}
+		if call.MessageID == "" {
+			call.MessageID = m.Info.ID
+		}
+		if part.State != nil {
+			call.Status = part.State.Status
+			call.Title = part.State.Title
+			call.Input = part.State.Input
+			call.Output = part.State.Output
+			call.Error = part.State.Error
+			if part.State.Time.Start > 0 {
+				call.StartedAt = time.UnixMilli(part.State.Time.Start)
+			}
+			if part.State.Time.End > 0 {
+				call.CompletedAt = time.UnixMilli(part.State.Time.End)
+			}
+		}
+		out = append(out, call)
+	}
+	return out
 }
 
 // Message is an OpenCode message with its ordered parts.

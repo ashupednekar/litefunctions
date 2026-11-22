@@ -90,10 +90,11 @@ func SyncRepoFunctionsToDb(ctx context.Context, pool *pgxpool.Pool, projectUUID 
 		}
 
 		manifestFn, inManifest := manifestByKey[lang+"/"+fnName]
-		isAsync := false
+		isAsync, isUI := false, false
 		var endpoints []common.ManifestEndpoint
 		if inManifest {
 			isAsync = manifestFn.IsAsync
+			isUI = manifestFn.UI
 			endpoints = manifestFn.Endpoints
 		}
 
@@ -109,6 +110,7 @@ func SyncRepoFunctionsToDb(ctx context.Context, pool *pgxpool.Pool, projectUUID 
 				Language:  lang,
 				Path:      path,
 				IsAsync:   isAsync,
+				IsUi:      isUI,
 				CreatedBy: userID,
 			})
 			if err != nil {
@@ -122,17 +124,31 @@ func SyncRepoFunctionsToDb(ctx context.Context, pool *pgxpool.Pool, projectUUID 
 
 		if existing, exists := fnByKey[lang+"/"+fnName]; exists {
 			if !inManifest {
-				// Preserve async functions created through the portal; only the
-				// manifest is allowed to override the database flag.
+				// Preserve flags set through the portal; only the manifest is
+				// allowed to override the database values.
 				isAsync = existing.IsAsync
-			} else if existing.IsAsync != isAsync {
-				if updated, err := q.UpdateFunctionIsAsync(ctx, functionadaptors.UpdateFunctionIsAsyncParams{
-					ID:      fnID,
-					IsAsync: isAsync,
-				}); err != nil {
-					slog.Warn("Failed to update function async flag", "name", fnName, "error", err)
-				} else {
-					fnByKey[lang+"/"+fnName] = updated
+				isUI = existing.IsUi
+			} else {
+				if existing.IsAsync != isAsync {
+					if updated, err := q.UpdateFunctionIsAsync(ctx, functionadaptors.UpdateFunctionIsAsyncParams{
+						ID:      fnID,
+						IsAsync: isAsync,
+					}); err != nil {
+						slog.Warn("Failed to update function async flag", "name", fnName, "error", err)
+					} else {
+						existing = updated
+						fnByKey[lang+"/"+fnName] = updated
+					}
+				}
+				if existing.IsUi != isUI {
+					if updated, err := q.UpdateFunctionIsUI(ctx, functionadaptors.UpdateFunctionIsUIParams{
+						ID:   fnID,
+						IsUi: isUI,
+					}); err != nil {
+						slog.Warn("Failed to update function ui flag", "name", fnName, "error", err)
+					} else {
+						fnByKey[lang+"/"+fnName] = updated
+					}
 				}
 			}
 		}

@@ -40,3 +40,4 @@ sql:
         package: "adaptors"
         out: "./internal/endpoint/adaptors"
         sql_package: "pgx/v5"
+  - engine: "postgresql"

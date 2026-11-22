@@ -389,6 +389,10 @@ button, input, select, textarea { font: inherit; }
 .z-split { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 14px; align-items: start; }
 .z-split-wide { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 14px; align-items: start; }
 .z-agent-layout { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 14px; align-items: start; }
+.z-home-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+.z-session-item { display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left; padding: 8px 9px; border: 1px solid var(--border); border-radius: 6px; background: #0c0c0f; color: var(--text-2); cursor: pointer; }
+.z-session-item:hover { border-color: var(--border-2); background: #101013; }
+.z-session-item.active { border-color: rgba(182,156,255,.32); background: rgba(182,156,255,.06); }
 .z-ide-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr) 330px; gap: 14px; align-items: start; }
 .z-timeline { position: relative; padding-left: 24px; }
 .z-timeline::before { content: ""; position: absolute; left: 8px; top: 9px; bottom: 9px; width: 1px; background: var(--border); }
@@ -420,6 +424,7 @@ button, input, select, textarea { font: inherit; }
 .z-composer-bar { display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px; }
 
 @media (max-width: 1180px) { .z-agent-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 980px) { .z-home-layout { grid-template-columns: minmax(0, 1fr); } }
 
 .z-stat {
   padding: 13px 14px;
@@ -1237,6 +1242,72 @@ button, input, select, textarea { font: inherit; }
   width: min(560px, calc(100vw - 24px));
   pointer-events: none;
 }
+
+#agent-dock-launcher {
+  position: fixed;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%);
+  z-index: 920;
+}
+
+.z-agent-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10vh;
+  background: rgba(3, 3, 4, .56);
+  backdrop-filter: blur(3px);
+}
+.z-agent-palette.open { display: flex; }
+.z-agent-palette-box {
+  width: min(720px, calc(100vw - 32px));
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(17, 17, 20, .97);
+  border: 1px solid var(--border-3);
+  border-radius: 9px;
+  box-shadow: 0 28px 90px -20px rgba(0, 0, 0, .95), inset 0 1px 0 rgba(255, 255, 255, .04);
+  overflow: hidden;
+  animation: z-pop .13s ease-out;
+}
+.z-agent-palette-box[hidden] { display: none; }
+.z-agent-palette-messages {
+  flex: 1;
+  min-height: 180px;
+  max-height: 48vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+.z-agent-palette-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+}
+.z-agent-palette-input {
+  flex: 1;
+  min-height: 54px;
+  max-height: 180px;
+  resize: vertical;
+  background: #0b0b0c;
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 12px;
+  outline: 0;
+}
+.z-agent-palette-input:focus { border-color: rgba(138, 180, 255, .4); }
 .z-agent-launcher {
   pointer-events: auto;
   display: flex;
@@ -1409,6 +1480,8 @@ button, input, select, textarea { font: inherit; }
 .z-agent-foot-note { color: var(--text-4); opacity: .8; }
 @media (max-width: 720px) {
   .z-agent-dock { bottom: 34px; }
+  #agent-dock-launcher { bottom: 34px; }
   .z-agent-launcher-hint { display: none; }
   .z-agent-panel { max-height: 78vh; }
+  .z-agent-palette-box { max-height: 86vh; }
 }

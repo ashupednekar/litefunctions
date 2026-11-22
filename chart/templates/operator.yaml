@@ -44,6 +44,10 @@ spec:
         - name: REGISTRY
           value: {{ .Values.operator.registry | quote }}
         {{- end }}
+        {{- if .Values.operator.runtimeRegistry }}
+        - name: RUNTIME_REGISTRY
+          value: {{ .Values.operator.runtimeRegistry | quote }}
+        {{- end }}
         {{- if .Values.operator.registry_user }}
         - name: VCS_USER
           value: {{ .Values.operator.registry_user | quote }}

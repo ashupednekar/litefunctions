@@ -37,6 +37,10 @@ spec:
           value: {{ .Values.agent.mcp.token | quote }}
         - name: OPERATOR_URL
           value: {{ printf "litefunctions-operator:%v" (.Values.operator.port | default 50051) | quote }}
+        - name: PORTAL_URL
+          value: {{ printf "http://litefunctions-portal:%v" 3000 | quote }}
+        - name: PORTAL_TOKEN
+          value: {{ .Values.agent.mcp.token | quote }}
         - name: VCS_AUTH_MODE
           value: token
         - name: VCS_USER

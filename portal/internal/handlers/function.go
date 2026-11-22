@@ -166,6 +166,7 @@ func (h *FunctionHandlers) CreateFunction(c *gin.Context) {
 			Language:  req.Language,
 			Path:      repoPath,
 			IsAsync:   req.IsAsync,
+			IsUi:      false,
 			CreatedBy: userID,
 		},
 	)
@@ -254,6 +255,7 @@ func (h *FunctionHandlers) ListFunctions(c *gin.Context) {
 			"language":    f.Language,
 			"path":        f.Path,
 			"is_async":    f.IsAsync,
+			"is_ui":       f.IsUi,
 			"endpoint_id": endpointByFn[fnID],
 		})
 	}
@@ -333,6 +335,7 @@ func (h *FunctionHandlers) GetFunction(c *gin.Context) {
 		"dir":         dir,
 		"entrypoint":  entrypoint,
 		"is_async":    f.IsAsync,
+		"is_ui":       f.IsUi,
 		"content":     content,
 		"files":       files,
 		"tree":        buildFunctionTree(files, entrypoint),
@@ -524,6 +527,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			Language:  f.Language,
 			Path:      f.Path,
 			IsAsync:   f.IsAsync,
+			IsUi:      f.IsUi,
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
@@ -541,6 +545,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			Language:  f.Language,
 			Path:      f.Path,
 			IsAsync:   f.IsAsync,
+			IsUi:      f.IsUi,
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
@@ -558,6 +563,7 @@ func (h *FunctionHandlers) DeleteFunction(c *gin.Context) {
 			Language:  f.Language,
 			Path:      f.Path,
 			IsAsync:   f.IsAsync,
+			IsUi:      f.IsUi,
 			CreatedBy: f.CreatedBy,
 		})
 		if rollbackErr != nil {
@@ -601,7 +607,11 @@ func (h *FunctionHandlers) StreamLogs(c *gin.Context) {
 	// Loki's tail endpoint parses the query as a single LogQL selector; a
 	// binary "or" expression is rejected before the websocket upgrade.
 	if c.Query("source") == "build" {
-		params.Set("query", `{app="actions-act-runner"}`)
+		query := `{app="actions-act-runner"}`
+		if name := strings.TrimSpace(c.Query("name")); name != "" {
+			query += fmt.Sprintf(` |= %q`, name)
+		}
+		params.Set("query", query)
 	} else {
 		params.Set("query", fmt.Sprintf(
 			`{app=~"runtime|litefunctions-ingestor", function=~"%s|"}`,
