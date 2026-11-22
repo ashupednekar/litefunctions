@@ -1,0 +1,21 @@
+# One sync function. `functions/python/invoices` is the package that the
+# project repo must contain; this CR activates it.
+#
+# Apply with: sed 's/REPLACE_ME/<project>/' deploy/function.yaml | kubectl apply -f -
+apiVersion: apps.ashupednekar.github.io/v1
+kind: Function
+metadata:
+  name: invoices
+  namespace: litefunctions
+spec:
+  isActive: true
+  isAsync: false
+  deProvisionTime: ""
+  language: python
+  name: invoices
+  project: REPLACE_ME
+  methods:
+    - GET
+    - POST
+    - PATCH
+    - DELETE
