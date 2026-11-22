@@ -83,8 +83,17 @@ def sync_runtime_functions_dir(source_root: str) -> None:
 
 def clear_module_cache() -> None:
     importlib.invalidate_caches()
-    for name in list(MODULE_NAMES):
-        sys.modules.pop(name, None)
+    # Remove the generated package and every submodule it imported. Purging
+    # only MODULE_NAMES left helper modules (and their globals) cached.
+    for module_name in list(sys.modules):
+        if module_name.startswith("litefunction_"):
+            sys.modules.pop(module_name, None)
+    # Drop bytecode too; copied files can keep the same second-level mtime.
+    for root, dirs, _ in os.walk(runtime_functions_path()):
+        for name in list(dirs):
+            if name == "__pycache__":
+                shutil.rmtree(os.path.join(root, name), ignore_errors=True)
+                dirs.remove(name)
     MODULE_NAMES.clear()
     MODULES.clear()
 
@@ -128,7 +137,9 @@ async def sync_repo_and_reload() -> None:
     await asyncio.to_thread(_sync_repo)
     source_root = repo_functions_path()
     await asyncio.to_thread(sync_runtime_functions_dir, source_root)
-    clear_module_cache()
+    # Do not let a request load a module while the cache is being purged.
+    async with MODULE_LOCK:
+        clear_module_cache()
     logger.info(
         "repo sync complete project=%s repo_functions_path=%s runtime_functions_path=%s",
         settings.project,
