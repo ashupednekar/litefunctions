@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "./adaptor/query.sql"
+    schema:
+      - "./migrations/*.sql"
+      - "../portal/migrations/*.sql"
+    gen:
+      go:
+        package: "adaptor"
+        out: "./adaptor"
+        sql_package: "pgx/v5"

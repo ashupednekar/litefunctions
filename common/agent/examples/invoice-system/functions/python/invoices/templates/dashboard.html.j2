@@ -1,0 +1,143 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import status_badge, empty %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">Overview</p>
+    <h1>Billing at a glance</h1>
+    <p class="lede">Every invoice, payment and customer lives in JetStream KV. As of {{ summary.as_of | short_date }}.</p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-ghost" href="{{ base }}/ui/customers/new">Add customer</a>
+    <a class="btn btn-primary" href="{{ base }}/ui/invoices/new">Create invoice</a>
+  </div>
+</section>
+
+<section class="stat-grid">
+  <article class="stat">
+    <span class="stat-label">Invoices</span>
+    <strong class="stat-value">{{ summary.total_invoices }}</strong>
+    <span class="stat-note">{{ summary.counts.get('draft', 0) }} drafts · {{ summary.counts.get('paid', 0) }} paid</span>
+  </article>
+  <article class="stat">
+    <span class="stat-label">Open</span>
+    <strong class="stat-value">{{ summary.counts.get('open', 0) }}</strong>
+    <span class="stat-note">{{ summary.counts.get('partially_paid', 0) }} partially paid</span>
+  </article>
+  <article class="stat">
+    <span class="stat-label">Overdue invoices</span>
+    <strong class="stat-value">{{ overdue_count }}</strong>
+    <span class="stat-note">issued and past due</span>
+  </article>
+  <article class="stat">
+    <span class="stat-label">Voided</span>
+    <strong class="stat-value">{{ summary.counts.get('void', 0) }}</strong>
+    <span class="stat-note">excluded from totals</span>
+  </article>
+</section>
+
+{% if summary.by_currency %}
+<section class="card">
+  <div class="card-head">
+    <div>
+      <h2>Money by currency</h2>
+      <p class="muted">Issued totals, collected cash and what is still owed.</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Currency</th>
+          <th class="num">Invoiced</th>
+          <th class="num">Paid</th>
+          <th class="num">Outstanding</th>
+          <th class="num">Overdue</th>
+          <th class="num">Drafts</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary.by_currency %}
+        <tr>
+          <td><span class="currency-chip">{{ row.currency }}</span></td>
+          <td class="num">{{ row.invoiced }}</td>
+          <td class="num pos">{{ row.paid }}</td>
+          <td class="num">{{ row.outstanding }}</td>
+          <td class="num {% if row.overdue != '0.00' and row.overdue != '0' %}neg{% endif %}">{{ row.overdue }}</td>
+          <td class="num muted">{{ row.draft }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<section class="card">
+  {{ empty("No money on the books yet", "Create a customer and a draft invoice to see totals here.", base ~ "/ui/invoices/new", "Create invoice") }}
+</section>
+{% endif %}
+
+<div class="split">
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Recent invoices</h2>
+        <p class="muted">Newest first.</p>
+      </div>
+      <a class="link" href="{{ base }}/ui/invoices">View all</a>
+    </div>
+    {% if recent['items'] %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Invoice</th><th>Customer</th><th>Status</th><th class="num">Balance</th></tr></thead>
+        <tbody>
+          {% for invoice in recent['items'] %}
+          <tr class="row-link" data-href="{{ base }}/ui/invoices/{{ invoice.id }}">
+            <td>
+              <a class="strong-link" href="{{ base }}/ui/invoices/{{ invoice.id }}">{{ invoice.number or 'Draft' }}</a>
+              <div class="sub mono">{{ invoice.id }}</div>
+            </td>
+            <td>{{ invoice.customer.name if invoice.customer else '—' }}</td>
+            <td>{{ status_badge(invoice.status, invoice.is_overdue) }}</td>
+            <td class="num">{{ invoice.totals.balance_due }} {{ invoice.currency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      {{ empty("No invoices yet", "Draft your first invoice in under a minute.", base ~ "/ui/invoices/new", "Create invoice") }}
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Newest customers</h2>
+        <p class="muted">Active accounts only.</p>
+      </div>
+      <a class="link" href="{{ base }}/ui/customers">View all</a>
+    </div>
+    {% if customers['items'] %}
+    <ul class="people">
+      {% for customer in customers['items'] %}
+      <li>
+        <a class="person" href="{{ base }}/ui/customers/{{ customer.id }}">
+          <span class="avatar">{{ customer.name | initials }}</span>
+          <span class="person-body">
+            <span class="person-name">{{ customer.name }}</span>
+            <span class="person-sub">{{ customer.email or customer.currency ~ ' · ' ~ customer.payment_terms_days ~ ' day terms' }}</span>
+          </span>
+          <span class="chev">›</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      {{ empty("No customers yet", "Customers hold currency and payment terms.", base ~ "/ui/customers/new", "Add customer") }}
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

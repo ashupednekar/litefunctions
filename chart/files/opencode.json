@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "litefunctions_*": "allow"
+  },
+  "tools": {
+    "question": false
+  }{{- if .Values.agent.mcp.enabled }},
+  "mcp": {
+    "litefunctions": {
+      "type": "remote",
+      "url": "http://litefunctions-mcp:{{ .Values.agent.mcp.port }}/mcp",
+      "oauth": false,
+      "enabled": true,
+      "timeout": 600000
+    }
+  }{{- end }}
+}

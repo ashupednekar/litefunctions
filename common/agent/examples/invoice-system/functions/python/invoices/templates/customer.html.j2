@@ -1,0 +1,100 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import status_badge, error_banner, empty %}
+{% block title %}{{ customer.name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow"><a class="plain-link" href="{{ base }}/ui/customers">Customers</a> / {{ customer.name }}</p>
+    <h1>
+      <span class="avatar avatar-lg">{{ customer.name | initials }}</span>
+      {{ customer.name }}
+      <span class="badge badge-{{ customer.status }}">{{ customer.status | title }}</span>
+    </h1>
+    <p class="lede">{{ customer.email or 'No email on file' }}{% if customer.phone %} · {{ customer.phone }}{% endif %}</p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-ghost" href="{{ base }}/ui/customers/{{ customer.id }}/edit">Edit</a>
+    <a class="btn btn-primary" href="{{ base }}/ui/invoices/new?customer_id={{ customer.id }}">New invoice</a>
+    {% if customer.status == 'active' %}
+    <form method="post" action="{{ base }}/ui/customers/{{ customer.id }}/archive" onsubmit="return confirm('Archive this customer? Open invoices must be settled first.')">
+      <button class="btn btn-danger" type="submit">Archive</button>
+    </form>
+    {% else %}
+    <form method="post" action="{{ base }}/ui/customers/{{ customer.id }}/restore">
+      <button class="btn" type="submit">Restore</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+{{ error_banner(error) }}
+
+<div class="detail-grid">
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Invoices</h2>
+        <p class="muted">{{ result.total }} total</p>
+      </div>
+    </div>
+    {% if result['items'] %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Invoice</th><th>Status</th><th>Due</th><th class="num">Total</th><th class="num">Balance</th></tr></thead>
+        <tbody>
+          {% for invoice in result['items'] %}
+          <tr class="row-link" data-href="{{ base }}/ui/invoices/{{ invoice.id }}">
+            <td>
+              <a class="strong-link" href="{{ base }}/ui/invoices/{{ invoice.id }}">{{ invoice.number or 'Draft' }}</a>
+              <div class="sub mono">{{ invoice.id }}</div>
+            </td>
+            <td>{{ status_badge(invoice.status, invoice.is_overdue) }}</td>
+            <td class="muted">{{ invoice.due_date | short_date }}</td>
+            <td class="num">{{ invoice.totals.total }}</td>
+            <td class="num">{{ invoice.totals.balance_due }} <span class="muted">{{ invoice.currency }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      {{ empty("No invoices for this customer", "Create a draft and issue it when ready.", base ~ "/ui/invoices/new?customer_id=" ~ customer.id, "New invoice") }}
+    {% endif %}
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card-head"><div><h2>Account</h2></div></div>
+      <dl class="meta">
+        <div><dt>Currency</dt><dd><span class="currency-chip">{{ customer.currency }}</span></dd></div>
+        <div><dt>Payment terms</dt><dd>{{ customer.payment_terms_days }} days</dd></div>
+        <div><dt>Email</dt><dd>{{ customer.email or '—' }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ customer.phone or '—' }}</dd></div>
+        <div><dt>Tax id</dt><dd>{{ customer.tax_id or '—' }}</dd></div>
+        <div><dt>Created</dt><dd>{{ customer.created_at | short_date }}</dd></div>
+        <div><dt>Updated</dt><dd>{{ customer.updated_at | short_date }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><div><h2>Address</h2></div></div>
+      {% if customer.address %}
+      <address class="address">
+        {{ customer.address.get('line1', '') }}<br>
+        {% if customer.address.get('line2') %}{{ customer.address.get('line2') }}<br>{% endif %}
+        {{ customer.address.get('city', '') }}{% if customer.address.get('state') %}, {{ customer.address.get('state') }}{% endif %} {{ customer.address.get('postal_code', '') }}<br>
+        {{ customer.address.get('country', '') }}
+      </address>
+      {% else %}
+      <p class="muted pad">No address on file.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <div class="card-head"><div><h2>Identifier</h2></div></div>
+      <div class="mono sub pad">{{ customer.id }}</div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

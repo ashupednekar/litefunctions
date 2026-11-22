@@ -1,0 +1,87 @@
+{% extends "base.html.j2" %}
+{% from "macros.html.j2" import status_badge, pagination, empty %}
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="eyebrow">Invoices</p>
+    <h1>{{ result.total }} invoice{{ '' if result.total == 1 else 's' }}</h1>
+    <p class="lede">Filter by lifecycle state, customer or free text.</p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-primary" href="{{ base }}/ui/invoices/new">New invoice</a>
+  </div>
+</section>
+
+<form class="filters" method="get" action="{{ base }}/ui/invoices">
+  <label>
+    <span>Status</span>
+    <select name="status">
+      {% for option in ['all', 'draft', 'open', 'partially_paid', 'paid', 'void'] %}
+      <option value="{{ option }}" {% if filters.status == option %}selected{% endif %}>{{ option | status_label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    <span>Customer</span>
+    <select name="customer_id">
+      <option value="">All customers</option>
+      {% for customer in customers %}
+      <option value="{{ customer.id }}" {% if filters.customer_id == customer.id %}selected{% endif %}>{{ customer.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="grow">
+    <span>Search</span>
+    <input type="search" name="q" value="{{ filters.q }}" placeholder="Invoice number, id or customer">
+  </label>
+  <button class="btn btn-primary" type="submit">Filter</button>
+  {% if filters.status != 'all' or filters.customer_id or filters.q %}
+  <a class="btn btn-ghost" href="{{ base }}/ui/invoices">Reset</a>
+  {% endif %}
+</form>
+
+<section class="card">
+  {% if result['items'] %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th>Issued</th>
+          <th>Due</th>
+          <th class="num">Total</th>
+          <th class="num">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in result['items'] %}
+        <tr class="row-link" data-href="{{ base }}/ui/invoices/{{ invoice.id }}">
+          <td>
+            <a class="strong-link" href="{{ base }}/ui/invoices/{{ invoice.id }}">{{ invoice.number or 'Draft' }}</a>
+            <div class="sub mono">{{ invoice.id }}</div>
+          </td>
+          <td>
+            {% if invoice.customer %}
+            <a class="plain-link" href="{{ base }}/ui/customers/{{ invoice.customer_id }}">{{ invoice.customer.name }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ status_badge(invoice.status, invoice.is_overdue) }}</td>
+          <td class="muted">{{ invoice.issue_date | short_date }}</td>
+          <td class="{% if invoice.is_overdue %}neg{% else %}muted{% endif %}">{{ invoice.due_date | short_date }}</td>
+          <td class="num">{{ invoice.totals.total }}</td>
+          <td class="num"><strong>{{ invoice.totals.balance_due }}</strong> <span class="muted">{{ invoice.currency }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pagination(page_no, page_count, prev_url, next_url) }}
+  {% else %}
+    {{ empty("No invoices match", "Try a different filter, or create a new invoice.", base ~ "/ui/invoices/new", "New invoice") }}
+  {% endif %}
+</section>
+{% endblock %}

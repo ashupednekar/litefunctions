@@ -1,0 +1,83 @@
+{{- if and .Values.agent.enabled .Values.agent.mcp.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litefunctions-mcp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-mcp
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litefunctions-mcp
+      {{- include "litefunctions.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: litefunctions-mcp
+        {{- include "litefunctions.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: mcp
+        image: {{ .Values.images.mcp }}
+        imagePullPolicy: Always
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MCP_LISTEN_ADDR
+          value: {{ printf ":%v" .Values.agent.mcp.port | quote }}
+        - name: MCP_PATH
+          value: /mcp
+        - name: MCP_TOKEN
+          value: {{ .Values.agent.mcp.token | quote }}
+        - name: OPERATOR_URL
+          value: {{ printf "litefunctions-operator:%v" (.Values.operator.port | default 50051) | quote }}
+        - name: PORTAL_URL
+          value: {{ printf "http://litefunctions-portal:%v" 3000 | quote }}
+        - name: PORTAL_TOKEN
+          value: {{ .Values.agent.mcp.token | quote }}
+        - name: VCS_AUTH_MODE
+          value: token
+        - name: VCS_USER
+          value: {{ .Values.gitea.gitea.admin.username | quote }}
+        - name: VCS_VENDOR
+          value: gitea
+        - name: VCS_BASE_URL
+          value: {{ .Values.ui.vcs.baseUrl | quote }}
+        - name: VCS_PUBLIC_BASE_URL
+          value: {{ .Values.ui.vcs.publicBaseUrl | quote }}
+        - name: VCS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.ui.vcs.secret }}
+              key: {{ .Values.ui.vcs.key }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.agent.mcp.port }}
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.agent.mcp.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litefunctions-mcp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: litefunctions-mcp
+    {{- include "litefunctions.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ .Values.agent.mcp.port }}
+    targetPort: {{ .Values.agent.mcp.port }}
+    protocol: TCP
+  selector:
+    app: litefunctions-mcp
+{{- end }}
