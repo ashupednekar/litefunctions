@@ -2,7 +2,9 @@ version: "2"
 sql:
   - engine: "postgresql"
     queries: "./adaptor/query.sql"
-    schema: "../portal/migrations/*.sql"
+    schema:
+      - "./migrations/*.sql"
+      - "../portal/migrations/*.sql"
     gen:
       go:
         package: "adaptor"

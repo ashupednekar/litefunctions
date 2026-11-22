@@ -144,6 +144,7 @@ type Function struct {
 	IsAsync   bool
 	CreatedBy []byte
 	CreatedAt pgtype.Timestamptz
+	IsUi      bool
 }
 
 type Project struct {

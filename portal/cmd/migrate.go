@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 
+	agentmigrations "github.com/ashupednekar/litefunctions/agent/migrations"
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/ashupednekar/litefunctions/portal/internal/state/connections"
 	"github.com/ashupednekar/litefunctions/portal/migrations"
@@ -57,7 +58,7 @@ func runMigrations(direction string) error {
 	}
 	defer db.Close()
 
-	goose.SetBaseFS(migrations.Files)
+	goose.SetBaseFS(migrations.Merge(migrations.Files, agentmigrations.Files))
 	// When using embed.FS, the path is relative to the embedded root
 	// Since we embedded "*.sql" in the migrations package, use "."
 	migrationsDir := "."
