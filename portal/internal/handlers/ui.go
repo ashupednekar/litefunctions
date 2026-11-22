@@ -5,9 +5,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"strings"
+	"time"
 
+	agentadaptor "github.com/ashupednekar/litefunctions/agent/adaptor"
 	"github.com/ashupednekar/litefunctions/common/sample"
 	accessAdaptors "github.com/ashupednekar/litefunctions/portal/internal/access/adaptors"
 	"github.com/ashupednekar/litefunctions/portal/internal/auth"
@@ -27,6 +28,32 @@ type UIHandlers struct {
 
 func NewUIHandlers(s *state.AppState) *UIHandlers {
 	return &UIHandlers{state: s}
+}
+
+func relativeTime(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	d := time.Since(t)
+	switch {
+	case d < time.Minute:
+		return "now"
+	case d < time.Hour:
+		return fmt.Sprintf("%dm", int(d.Minutes()))
+	case d < 24*time.Hour:
+		return fmt.Sprintf("%dh", int(d.Hours()))
+	default:
+		return fmt.Sprintf("%dd", int(d.Hours()/24))
+	}
+}
+
+func truncateText(value string, limit int) string {
+	value = strings.TrimSpace(value)
+	runes := []rune(value)
+	if len(runes) <= limit {
+		return value
+	}
+	return string(runes[:limit]) + "…"
 }
 
 // projectRepoURL builds the public web URL for a project's VCS repository.
@@ -72,15 +99,107 @@ func shellData(ctx *gin.Context, title string, section string, active string) te
 }
 
 func (h *UIHandlers) Home(ctx *gin.Context) {
-	userId, ok := ctx.Get("userID")
-	if ok && userId != nil {
-		ctx.Redirect(http.StatusFound, "/dashboard")
+	userID, ok := ctx.Get("userID")
+	if !ok || userID == nil {
+		page := templates.AuthLayout(
+			templates.HomeContent(config.Cfg.AdminLoginEnabled),
+		)
+		if err := page.Render(ctx, ctx.Writer); err != nil {
+			slog.Error("page render failed", "error", err)
+		}
 		return
 	}
-	page := templates.AuthLayout(
-		templates.HomeContent(config.Cfg.AdminLoginEnabled),
-	)
 
+	uid := userID.([]byte)
+	username := ctx.GetString("userName")
+	activeProjectID, _ := ctx.Cookie("lws_project")
+
+	var projects []templates.Project
+	projectsQ := accessAdaptors.New(h.state.DBPool)
+	if rows, err := projectsQ.ListProjectsForUserOrAdmin(
+		ctx.Request.Context(),
+		uid,
+		auth.IsSystemUserID(uid),
+	); err == nil {
+		for _, row := range rows {
+			projects = append(projects, templates.Project{
+				ID:   hex.EncodeToString(row.ID.Bytes[:]),
+				Name: row.Name,
+				Role: string(row.Role),
+			})
+		}
+	}
+
+	data := templates.HomeAgentData{
+		Username:        username,
+		Projects:        projects,
+		ActiveProjectID: activeProjectID,
+	}
+	for _, p := range projects {
+		if p.ID == activeProjectID {
+			data.ActiveProject = p.Name
+			data.Role = p.Role
+			break
+		}
+	}
+	if data.ActiveProject == "" && len(projects) > 0 {
+		// The agent screen is only useful with an active project.
+		data.ActiveProjectID = projects[0].ID
+		data.ActiveProject = projects[0].Name
+		data.Role = projects[0].Role
+		ctx.SetCookie("lws_project", projects[0].ID, 60*60*24*30, "/", "", false, true)
+	}
+
+	if data.ActiveProjectID != "" && h.state.DBPool != nil {
+		if raw, err := hex.DecodeString(data.ActiveProjectID); err == nil && len(raw) == 16 {
+			var projectUUID pgtype.UUID
+			copy(projectUUID.Bytes[:], raw)
+			projectUUID.Valid = true
+			q := agentadaptor.New(h.state.DBPool)
+			sessions, err := q.ListAgentSessionsForProject(ctx.Request.Context(), agentadaptor.ListAgentSessionsForProjectParams{
+				ProjectID: projectUUID,
+				UserID:    uid,
+				RowLimit:  20,
+			})
+			if err == nil {
+				for _, session := range sessions {
+					summary := templates.AgentSessionSummary{
+						ID:      session.ID,
+						Title:   session.Title,
+						Updated: relativeTime(session.UpdatedAt.Time),
+					}
+					chats, err := q.ListAgentChatsForSession(ctx.Request.Context(), agentadaptor.ListAgentChatsForSessionParams{
+						SessionID: session.ID,
+						Limit:     1,
+					})
+					if err == nil && len(chats) > 0 {
+						chat := chats[0]
+						if strings.TrimSpace(chat.Prompt) != "" {
+							summary.Preview = truncateText(chat.Prompt, 80)
+						}
+					}
+					if summary.Title == "" {
+						summary.Title = "Session"
+					}
+					if summary.Preview == "" {
+						summary.Preview = "No messages yet"
+					}
+					data.Sessions = append(data.Sessions, summary)
+				}
+			}
+		}
+	}
+
+	shell := templates.ShellData{
+		Title:       "Agent",
+		Section:     "Workspace",
+		Active:      "home",
+		Username:    username,
+		Role:        data.Role,
+		ProjectID:   data.ActiveProjectID,
+		ProjectName: data.ActiveProject,
+	}
+	page := templates.BaseLayout(shell, templates.HomeAgentContent(data))
 	if err := page.Render(ctx, ctx.Writer); err != nil {
 		slog.Error("page render failed", "error", err)
 	}
@@ -188,6 +307,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 	repoURL := projectRepoURL(projectNameStr)
 	endpointByFn := map[string]string{}
 	endpointMethodByFn := map[string]string{}
+	endpointNameByFn := map[string]string{}
 	if eps, err := epQ.ListEndpointsForProject(ctx.Request.Context(), projUUID); err == nil {
 		for _, ep := range eps {
 			fnID := hex.EncodeToString(ep.FunctionID.Bytes[:])
@@ -196,6 +316,7 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			}
 			endpointByFn[fnID] = hex.EncodeToString(ep.ID.Bytes[:])
 			endpointMethodByFn[fnID] = ep.Method
+			endpointNameByFn[fnID] = ep.Name
 		}
 	}
 
@@ -211,14 +332,20 @@ func (h *UIHandlers) Functions(ctx *gin.Context) {
 			} else if method == "" {
 				method = "POST"
 			}
+			endpointName := endpointNameByFn[fnID]
+			if endpointName == "" {
+				endpointName = fmt.Sprintf("/%s/%s", projectNameStr, f.Name)
+			}
 			functions = append(functions, templates.Function{
 				ID:           fnID,
 				Name:         f.Name,
+				ProjectName:  projectNameStr,
 				Language:     lang,
 				Icon:         icon,
 				EndpointID:   endpointByFn[fnID],
-				EndpointName: fmt.Sprintf("/%s/%s", projectNameStr, f.Name),
+				EndpointName: endpointName,
 				IsAsync:      f.IsAsync,
+				IsUI:         f.IsUi || strings.HasSuffix(f.Name, "-ui"),
 				Method:       method,
 			})
 		}
@@ -285,6 +412,7 @@ func (h *UIHandlers) loadEndpoints(ctx *gin.Context) []templates.Endpoint {
 		for _, e := range dbEps {
 			endpoints = append(endpoints, templates.Endpoint{
 				ID:           hex.EncodeToString(e.ID.Bytes[:]),
+				FunctionID:   hex.EncodeToString(e.FunctionID.Bytes[:]),
 				Name:         e.Name,
 				Method:       e.Method,
 				Scope:        e.Scope,

@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"net/http"
 
+	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/ashupednekar/litefunctions/portal/internal/handlers"
 	"github.com/ashupednekar/litefunctions/portal/internal/server/middleware"
 	"github.com/ashupednekar/litefunctions/portal/static"
@@ -38,7 +39,17 @@ func (s *Server) BuildRoutes() {
 
 	ui := handlers.NewUIHandlers(s.state)
 
-	s.router.GET("/", ui.Home)
+	s.router.GET("/", middleware.OptionalAuthMiddleware(auth.GetStore()), ui.Home)
+
+	// Cluster-internal API for the MCP server to list and create projects.
+	internal := s.router.Group("/internal")
+	internal.Use(middleware.InternalToken(config.Cfg.MCPToken))
+	{
+		internalHandlers := handlers.NewInternalHandlers(s.state)
+		internal.GET("/projects/", internalHandlers.ListProjects)
+		internal.POST("/projects/", internalHandlers.CreateProject)
+		internal.GET("/projects/:name/", internalHandlers.GetProject)
+	}
 
 	dashboard := s.router.Group("/")
 	dashboard.Use(middleware.AuthMiddleware(auth.GetStore()))
@@ -65,12 +76,18 @@ func (s *Server) BuildRoutes() {
 	}
 
 	projectHandlers := handlers.NewProjectHandlers(s.state)
+	agentHandlers := handlers.NewAgentHandlers(s.state)
 
 	apiJoined := s.router.Group("/api/")
 	apiJoined.Use(middleware.AuthMiddleware(auth.GetStore()))
 	{
 		apiJoined.POST("/projects/", projectHandlers.CreateProject)
 		apiJoined.POST("/projects/join/", projectHandlers.JoinProjectByInvite)
+		// Agent history/activity reads do not need a repo clone. Moving them
+		// here keeps a broken or missing project repo from breaking the chat UI.
+		apiJoined.GET("/agent/chats/:id/", agentHandlers.Chat)
+		apiJoined.GET("/agent/sessions/:id/messages/", agentHandlers.Messages)
+		apiJoined.GET("/agent/sessions/:id/history/", agentHandlers.History)
 	}
 
 	api := s.router.Group("/api/")
@@ -109,5 +126,9 @@ func (s *Server) BuildRoutes() {
 
 		api.GET("/actions/status/", actionHandlers.Status)
 
+		api.POST("/agent/prompt/", agentHandlers.Prompt)
+		api.GET("/agent/sessions/", agentHandlers.Sessions)
+		api.POST("/agent/sessions/", agentHandlers.CreateSession)
+		api.DELETE("/agent/sessions/:id/", agentHandlers.DeleteSession)
 	}
 }

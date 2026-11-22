@@ -225,6 +225,235 @@
     navigator.clipboard.writeText(text).then(() => toast("Copied to clipboard", "success")).catch(() => toast("Copy failed", "error"));
   });
 
+  // ---------- agent dock ----------
+  function agentDock() { return document.getElementById("agent-dock"); }
+  function agentPanel() { return document.getElementById("agent-dock-panel"); }
+  function agentMessages() { return document.getElementById("agent-dock-messages"); }
+  function agentInput() { return document.getElementById("agent-dock-input"); }
+  function agentStatus() { return document.getElementById("agent-dock-status"); }
+  function agentProject() {
+    const dock = agentDock();
+    return (dock && dock.dataset.agentProject) || "project";
+  }
+  function agentSessionKey() { return "lws_agent_session:" + agentProject(); }
+
+  function agentSessionID() {
+    try { return localStorage.getItem(agentSessionKey()) || ""; } catch (err) { return ""; }
+  }
+  function setAgentSessionID(id) {
+    try {
+      if (id) localStorage.setItem(agentSessionKey(), id);
+      else localStorage.removeItem(agentSessionKey());
+    } catch (err) { /* storage unavailable */ }
+  }
+
+  window.openAgentDock = function () {
+    if (window.closeSpotlight) window.closeSpotlight();
+    const panel = agentPanel();
+    if (!panel) return;
+    panel.hidden = false;
+    const dock = agentDock();
+    if (dock) dock.classList.add("open");
+    const messages = agentMessages();
+    if (messages) messages.scrollTop = messages.scrollHeight;
+    setTimeout(() => agentInput()?.focus(), 30);
+  };
+
+  window.closeAgentDock = function () {
+    const panel = agentPanel();
+    if (panel) panel.hidden = true;
+    const dock = agentDock();
+    if (dock) dock.classList.remove("open");
+  };
+
+  window.agentSuggest = function (text) {
+    const input = agentInput();
+    if (!input) return;
+    input.value = text;
+    input.focus();
+    input.dispatchEvent(new Event("input"));
+  };
+
+  function appendAgentMessage(role, text) {
+    const container = agentMessages();
+    if (!container) return;
+    container.querySelector(".z-agent-empty")?.remove();
+    const row = document.createElement("div");
+    row.className = "z-agent-msg " + role;
+    const avatar = document.createElement("span");
+    avatar.className = "z-agent-msg-avatar";
+    avatar.textContent = role === "assistant" ? "AI" : (role === "user" ? "You" : "!");
+    const body = document.createElement("div");
+    body.className = "z-agent-msg-body";
+    body.textContent = text;
+    row.appendChild(avatar);
+    row.appendChild(body);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+    return body;
+  }
+
+  function setAgentBusy(busy) {
+    const send = document.getElementById("agent-dock-send");
+    if (send) send.disabled = busy;
+    const status = agentStatus();
+    if (status) status.textContent = busy ? "Working on it…" : "Enter to send · Shift+Enter for a new line";
+  }
+
+  function appendAgentBuildLink(fn) {
+    const container = agentMessages();
+    if (!container || !fn || !fn.id) return;
+    const row = document.createElement("div");
+    row.className = "z-agent-msg note";
+    const body = document.createElement("div");
+    body.className = "z-agent-msg-body";
+    const link = document.createElement("a");
+    link.href = "/functions/?fn=" + encodeURIComponent(fn.id) + "&fullscreen=1";
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Open latest build logs · " + (fn.name || "function");
+    body.appendChild(link);
+    row.appendChild(body);
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  window.startAgentChat = async function (prompt, sessionID) {
+    const res = await fetch("/api/agent/prompt/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ prompt: prompt, session_id: sessionID || "" })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+    return data;
+  };
+
+  window.pollAgentChat = function (chatID, onUpdate, intervalMs) {
+    const delay = intervalMs || 2000;
+    return new Promise(function (resolve, reject) {
+      const tick = async function () {
+        try {
+          const res = await fetch("/api/agent/chats/" + encodeURIComponent(chatID) + "/", {
+            headers: { Accept: "application/json" }
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+          if (onUpdate) onUpdate(data);
+          if (data.status === "completed" || data.status === "failed" || data.status === "canceled") {
+            resolve(data);
+            return;
+          }
+        } catch (err) {
+          reject(err);
+          return;
+        }
+        setTimeout(tick, delay);
+      };
+      tick();
+    });
+  };
+
+  window.agentActivityText = function (run) {
+    if (!run) return "Thinking…";
+    if (run.status === "failed") return run.error || "The agent run failed.";
+    if (run.status === "canceled") return "The agent run was canceled.";
+    const lines = [];
+    const calls = Array.isArray(run.tool_calls) ? run.tool_calls : [];
+    const seen = new Set();
+    calls.forEach(function (call) {
+      if (!call || !call.tool || seen.has(call.id)) return;
+      seen.add(call.id);
+      const mark = call.status === "running" ? "→" : (call.status === "error" ? "✗" : "✓");
+      let line = mark + " " + call.tool;
+      if (call.title) line += " · " + call.title;
+      lines.push(line);
+    });
+    const functions = Array.isArray(run.functions) ? run.functions : [];
+    if (functions.length) {
+      const names = functions.slice(0, 4).map(function (fn) { return fn.name; }).join(", ");
+      lines.push("Functions: " + names + (functions.length > 4 ? " +" + (functions.length - 4) : ""));
+    }
+    if (run.latest_function && run.latest_function.name) {
+      lines.push("Latest function: " + run.latest_function.name);
+    }
+    if (!lines.length) lines.push(run.status === "completed" ? "Done." : "Thinking…");
+    return lines.join("\n");
+  };
+
+  window.sendAgentPrompt = async function () {
+    const input = agentInput();
+    if (!input) return;
+    const prompt = input.value.trim();
+    if (!prompt) { input.focus(); return; }
+
+    input.value = "";
+    input.style.height = "auto";
+    appendAgentMessage("user", prompt);
+    setAgentBusy(true);
+    const pending = appendAgentMessage("assistant", "Thinking…");
+    if (pending) pending.classList.add("pending");
+
+    try {
+      const started = await window.startAgentChat(prompt, agentSessionID());
+      if (started.session_id) setAgentSessionID(started.session_id);
+      const run = await window.pollAgentChat(started.chat_id, function (data) {
+        if (pending) pending.textContent = window.agentActivityText(data);
+      });
+      if (pending) {
+        pending.classList.remove("pending");
+        if (run.status === "completed") {
+          pending.textContent = run.reply || "(the agent returned an empty response)";
+        } else {
+          pending.classList.add("error");
+          pending.textContent = run.error || "The agent run did not complete.";
+        }
+      }
+      if (run.latest_function) appendAgentBuildLink(run.latest_function);
+      const messages = agentMessages();
+      if (messages) messages.scrollTop = messages.scrollHeight;
+    } catch (err) {
+      if (pending) {
+        pending.classList.remove("pending");
+        pending.classList.add("error");
+        pending.textContent = err.message || "The agent request failed.";
+      }
+    } finally {
+      setAgentBusy(false);
+      input.focus();
+    }
+  };
+
+  document.addEventListener("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+      e.preventDefault();
+      const panel = agentPanel();
+      if (panel && !panel.hidden) window.closeAgentDock();
+      else window.openAgentDock();
+      return;
+    }
+    if (e.key === "Escape") {
+      const panel = agentPanel();
+      if (panel && !panel.hidden) {
+        window.closeAgentDock();
+      }
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target !== agentInput()) return;
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      window.sendAgentPrompt();
+    }
+  });
+
+  document.addEventListener("input", function (e) {
+    if (e.target !== agentInput()) return;
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 180) + "px";
+  });
+
   // ---------- command palette ----------
   let spotIndex = -1;
   let spotResults = [];
@@ -232,6 +461,7 @@
   function spotModal() { return document.getElementById("spotlight-modal"); }
 
   window.openSpotlight = function () {
+    if (window.closeAgentDock) window.closeAgentDock();
     const modal = spotModal();
     if (!modal) return;
     modal.classList.add("open");

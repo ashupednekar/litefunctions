@@ -1,0 +1,384 @@
+package templates
+
+templ HomeAgentContent(data HomeAgentData) {
+	@PageHead("Agent", "Describe what you want to build. The agent writes functions and routes into the active project.", "Workspace", templ.Raw(`
+		<button class="z-btn z-btn-primary" onclick="homeOpenProjectModal()">`+svgPlus()+` New project</button>
+	`))
+
+	<div id="home-agent" data-project={ data.ActiveProject } hidden></div>
+
+	<div class="z-home-layout">
+		<aside style="display:flex;flex-direction:column;gap:14px">
+			<div class="z-panel">
+				<div class="z-panel-header">
+					<span class="z-panel-title">Projects</span>
+					<span class="z-badge z-badge-muted">{ itoa(len(data.Projects)) }</span>
+				</div>
+				<div class="z-panel-body" style="display:flex;flex-direction:column;gap:7px">
+					if len(data.Projects) == 0 {
+						<div class="z-help">No projects yet. Create one to let the agent write code.</div>
+						<button class="z-btn z-btn-primary z-btn-sm" onclick="homeOpenProjectModal()">Create project</button>
+					} else {
+						for _, p := range data.Projects {
+							<button
+								class={ "z-project-card", templ.KV("active", data.ActiveProjectID == p.ID) }
+								style="text-align:left;cursor:pointer;padding:9px 10px"
+								onclick={ templ.JSFuncCall("homeSelectProject", p.ID) }
+							>
+								<div style="display:flex;align-items:center;gap:8px;width:100%">
+									<span class="z-project-avatar" style="width:24px;height:24px;font-size:11px">{ projectInitial(p.Name) }</span>
+									<span style="flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--text)">{ p.Name }</span>
+									if data.ActiveProjectID == p.ID {
+										<span class="z-badge z-badge-green">active</span>
+									}
+								</div>
+								<div class="z-mono" style="font-size:9px;color:var(--text-3);margin-top:5px;text-transform:uppercase;letter-spacing:.06em">{ p.Role } · { shortID(p.ID) }</div>
+							</button>
+						}
+					}
+				</div>
+			</div>
+
+			<div class="z-panel">
+				<div class="z-panel-header">
+					<span class="z-panel-title">Sessions</span>
+					<button class="z-btn z-btn-sm z-btn-ghost" onclick="homeNewSession()">@Icon("plus", "") New</button>
+				</div>
+				<div id="home-session-list" class="z-panel-body" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto">
+					if data.ActiveProject == "" {
+						<div class="z-help">Select a project to see its sessions.</div>
+					} else if len(data.Sessions) == 0 {
+						<div class="z-help">No sessions yet. Start the conversation to create one.</div>
+					} else {
+						for _, session := range data.Sessions {
+							<button class="z-session-item" data-session-id={ session.ID } onclick={ templ.JSFuncCall("homeLoadSession", session.ID) }>
+								<span style="display:flex;align-items:center;gap:6px">
+									<span class="z-list-title" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{ session.Title }</span>
+									<span class="z-mono" style="font-size:9px;color:var(--text-4);white-space:nowrap">{ session.Updated }</span>
+								</span>
+								if session.Preview != "" {
+									<span class="z-list-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{ session.Preview }</span>
+								}
+							</button>
+						}
+					}
+				</div>
+			</div>
+		</aside>
+
+		<main style="display:flex;flex-direction:column;gap:14px;min-width:0">
+			<div class="z-panel" style="display:flex;flex-direction:column;min-height:560px">
+				<div class="z-panel-header">
+					<span class="z-panel-title">Conversation</span>
+					<span id="home-agent-status" class="z-badge z-badge-muted">ready</span>
+					<span class="z-panel-sub">{ projectLabel(data.ActiveProject) }</span>
+				</div>
+				<div id="home-agent-conversation" class="z-panel-body" style="flex:1;display:flex;flex-direction:column;gap:12px;min-height:360px;max-height:520px;overflow-y:auto">
+					<div class="z-agent-msg assistant">
+						<span class="z-agent-msg-avatar">AI</span>
+						<div class="z-agent-msg-body">Describe what you want to build. I will inspect the project, create the function packages, add routes, and commit everything to the repo.</div>
+					</div>
+				</div>
+				<div class="z-panel-body" style="border-top:1px solid var(--border);padding-top:10px">
+					<div class="z-composer">
+						<textarea id="home-agent-prompt" placeholder="e.g. Build an order API with a POST endpoint, a status route, and an async worker…"></textarea>
+						<div class="z-composer-bar">
+							<span class="z-badge z-badge-muted">@Icon("file", "") project repo</span>
+							<span class="z-badge z-badge-muted">@Icon("network", "") MCP tools</span>
+							<span style="margin-left:auto" class="z-mono z-faint">⌘↵</span>
+						</div>
+					</div>
+					<div style="display:flex;align-items:center;gap:8px;margin-top:9px">
+						<button id="home-agent-send" class="z-btn z-btn-primary" onclick="homeAgentPrompt(document.getElementById('home-agent-prompt').value)" disabled?={ data.ActiveProject == "" }>
+							@Icon("sparkles", "")
+							Send to agent
+						</button>
+						<span class="z-help" style="margin:0">Databases, persistent streams and object storage are not supported yet.</span>
+					</div>
+				</div>
+			</div>
+
+			<div id="home-agent-build-panel" class="z-panel" hidden>
+				<div class="z-panel-header">
+					<span class="z-panel-title">Build logs</span>
+					<span id="home-agent-build-status" class="z-badge z-badge-muted">idle</span>
+					<span id="home-agent-build-target" class="z-panel-sub"></span>
+					<div class="z-panel-actions">
+						<a id="home-agent-build-open" class="z-btn z-btn-sm" href="#" target="_blank" rel="noopener">Open full view</a>
+					</div>
+				</div>
+				<div id="home-agent-build-logs" class="z-panel-body" style="font-family:var(--mono);font-size:10.5px;line-height:1.5;max-height:280px;overflow:auto;white-space:pre-wrap"></div>
+			</div>
+		</main>
+	</div>
+
+	<div id="home-project-modal" class="z-modal-backdrop" onclick="homeCloseProjectModal()">
+		<div class="z-modal" onclick="event.stopPropagation()">
+			<div class="z-modal-header">
+				@Icon("plus", "")
+				<span class="z-modal-title">Create project</span>
+				<button class="z-icon-btn" style="margin-left:auto" onclick="homeCloseProjectModal()">@Icon("close", "")</button>
+			</div>
+			<div class="z-modal-body">
+				<div class="z-field">
+					<label class="z-label" for="home-new-project-name">Project name</label>
+					<input id="home-new-project-name" class="z-input" placeholder="invoice-system" onkeydown="if(event.key==='Enter'){homeCreateProject()}"/>
+					<span class="z-help">A Git repository and build workflow are provisioned for the project.</span>
+				</div>
+			</div>
+			<div class="z-modal-foot">
+				<button class="z-btn" onclick="homeCloseProjectModal()">Cancel</button>
+				<button class="z-btn z-btn-primary" onclick="homeCreateProject()">Create project</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		let homeBuildSource = null;
+
+		function homeSessionKey() {
+			const el = document.getElementById("home-agent");
+			return "lws_agent_session:" + ((el && el.dataset.project) || "project");
+		}
+
+		function homeNewSession() {
+			try { localStorage.removeItem(homeSessionKey()); } catch (err) { /* ignore */ }
+			const conversation = document.getElementById("home-agent-conversation");
+			if (conversation) {
+				conversation.innerHTML = '<div class="z-agent-msg assistant"><span class="z-agent-msg-avatar">AI</span><div class="z-agent-msg-body">New session. Describe what you want to build.</div></div>';
+			}
+			document.querySelectorAll(".z-session-item.active").forEach(el => el.classList.remove("active"));
+		}
+
+		function homeAppendMessage(role, text) {
+			const conversation = document.getElementById("home-agent-conversation");
+			if (!conversation) return null;
+			const row = document.createElement("div");
+			row.className = "z-agent-msg " + role;
+			const avatar = document.createElement("span");
+			avatar.className = "z-agent-msg-avatar";
+			avatar.textContent = role === "assistant" ? "AI" : (role === "user" ? "You" : "!");
+			const body = document.createElement("div");
+			body.className = "z-agent-msg-body";
+			body.textContent = text;
+			row.appendChild(avatar);
+			row.appendChild(body);
+			conversation.appendChild(row);
+			conversation.scrollTop = conversation.scrollHeight;
+			return body;
+		}
+
+		function homeStoredText(role, text) {
+			if (role === "user") {
+				const marker = "User request:";
+				const idx = text.indexOf(marker);
+				if (idx >= 0) return text.slice(idx + marker.length).trim();
+			}
+			return text;
+		}
+
+		async function homeHydrateSession(id) {
+			if (!id) return;
+			try {
+				const res = await fetch("/api/agent/sessions/" + encodeURIComponent(id) + "/history/");
+				if (!res.ok) return;
+				const data = await res.json();
+				const messages = (data.messages || []).filter(m => m.text && (m.role === "user" || m.role === "assistant"));
+				if (!messages.length) return;
+				const conversation = document.getElementById("home-agent-conversation");
+				conversation.innerHTML = "";
+				messages.forEach(m => homeAppendMessage(m.role, homeStoredText(m.role, m.text)));
+				const calls = data.tool_calls || [];
+				if (calls.length) {
+					const names = [...new Set(calls.map(c => c.tool).filter(Boolean))];
+					homeAppendMessage("assistant", calls.length + " tool calls · " + names.slice(0, 5).join(", "));
+				}
+				const chat = data.chat;
+				if (chat) {
+					const hasReply = messages.some(m => m.role === "assistant" && (m.text || "").trim());
+					if (chat.status === "failed") {
+						homeAppendMessage("assistant", "Run failed: " + (chat.error || "unknown error"));
+					} else if (chat.status === "running") {
+						homeAppendMessage("assistant", "Run still in progress…");
+					} else if (chat.status === "completed" && chat.reply && !hasReply) {
+						homeAppendMessage("assistant", chat.reply);
+					}
+				}
+			} catch (err) { /* ignore */ }
+		}
+
+		function homeEnsureSession(id, title, preview) {
+			const list = document.getElementById("home-session-list");
+			if (!list || !id) return;
+			let item = list.querySelector('[data-session-id="' + CSS.escape(id) + '"]');
+			if (!item) {
+				list.querySelector(".z-help")?.remove();
+				item = document.createElement("button");
+				item.className = "z-session-item";
+				item.dataset.sessionId = id;
+				item.onclick = () => homeLoadSession(id);
+				const head = document.createElement("span");
+				head.style.cssText = "display:flex;align-items:center;gap:6px";
+				const name = document.createElement("span");
+				name.className = "z-list-title";
+				name.style.cssText = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+				name.textContent = title || "Session";
+				const when = document.createElement("span");
+				when.className = "z-mono";
+				when.style.cssText = "font-size:9px;color:var(--text-4);white-space:nowrap";
+				when.textContent = "now";
+				head.appendChild(name);
+				head.appendChild(when);
+				const body = document.createElement("span");
+				body.className = "z-list-sub";
+				body.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+				body.textContent = preview || "No messages yet";
+				item.appendChild(head);
+				item.appendChild(body);
+				list.prepend(item);
+			}
+			list.querySelectorAll(".z-session-item").forEach(el => el.classList.toggle("active", el === item));
+		}
+
+		function homeLoadSession(id) {
+			try { localStorage.setItem(homeSessionKey(), id); } catch (err) { /* ignore */ }
+			document.querySelectorAll(".z-session-item").forEach(el => {
+				el.classList.toggle("active", el.dataset.sessionId === id);
+			});
+			homeHydrateSession(id);
+		}
+
+		function homeOpenBuildLogs(fn) {
+			const panel = document.getElementById("home-agent-build-panel");
+			const logs = document.getElementById("home-agent-build-logs");
+			const status = document.getElementById("home-agent-build-status");
+			const target = document.getElementById("home-agent-build-target");
+			const open = document.getElementById("home-agent-build-open");
+			if (!panel || !logs || !fn || !fn.id) return;
+			panel.hidden = false;
+			target.textContent = fn.name || "";
+			open.href = "/functions/?fn=" + encodeURIComponent(fn.id) + "&fullscreen=1";
+			if (homeBuildSource) { homeBuildSource.close(); homeBuildSource = null; }
+			logs.innerHTML = "";
+			status.textContent = "connecting";
+			status.className = "z-badge z-badge-amber";
+			homeBuildSource = new EventSource("/api/functions/" + encodeURIComponent(fn.id) + "/logs/?source=build&name=" + encodeURIComponent(fn.name || ""));
+			homeBuildSource.addEventListener("logs", event => {
+				let payload;
+				try { payload = JSON.parse(event.data || "{}"); } catch (e) { return; }
+				const streams = payload.streams || payload.result || (payload.data && payload.data.result) || [];
+				if (!Array.isArray(streams)) return;
+				streams.forEach(stream => {
+					(stream.values || []).forEach(value => {
+						if (!Array.isArray(value) || value.length < 2) return;
+						const ms = Number(value[0]) / 1e6;
+						const stamp = isNaN(ms) ? "" : new Date(ms).toLocaleTimeString();
+						const line = document.createElement("div");
+						line.textContent = (stamp ? stamp + "  " : "") + String(value[1]);
+						logs.appendChild(line);
+					});
+				});
+				while (logs.childElementCount > 800) logs.removeChild(logs.firstChild);
+				logs.scrollTop = logs.scrollHeight;
+				status.textContent = "live";
+				status.className = "z-badge z-badge-green";
+			});
+			homeBuildSource.onerror = () => {
+				status.textContent = "reconnecting";
+				status.className = "z-badge z-badge-amber";
+			};
+		}
+
+		async function homeAgentPrompt(text) {
+			const prompt = (text || "").trim();
+			if (!prompt) return;
+			const input = document.getElementById("home-agent-prompt");
+			const send = document.getElementById("home-agent-send");
+			const status = document.getElementById("home-agent-status");
+			if (input) input.value = "";
+			if (send) send.disabled = true;
+			if (status) { status.textContent = "working"; status.className = "z-badge z-badge-blue"; }
+			homeAppendMessage("user", prompt);
+			const pending = homeAppendMessage("assistant", "Thinking…");
+			pending.classList.add("pending");
+			let session = "";
+			try { session = localStorage.getItem(homeSessionKey()) || ""; } catch (err) { /* ignore */ }
+			try {
+				const started = await window.startAgentChat(prompt, session);
+				if (started.session_id) {
+					try { localStorage.setItem(homeSessionKey(), started.session_id); } catch (err) { /* ignore */ }
+					homeEnsureSession(started.session_id, "Current session", prompt);
+				}
+				const chat = await window.pollAgentChat(started.chat_id, data => {
+					pending.textContent = window.agentActivityText(data);
+				});
+				pending.classList.remove("pending");
+				if (chat.status === "completed") {
+					pending.textContent = chat.reply || "(the agent returned an empty response)";
+					if (status) { status.textContent = "ready"; status.className = "z-badge z-badge-green"; }
+				} else {
+					pending.classList.add("error");
+					pending.textContent = chat.error || "The agent chat did not complete.";
+					if (status) { status.textContent = "error"; status.className = "z-badge z-badge-amber"; }
+				}
+				if (chat.latest_function) homeOpenBuildLogs(chat.latest_function);
+			} catch (err) {
+				pending.classList.remove("pending");
+				pending.classList.add("error");
+				pending.textContent = err.message || "The agent request failed.";
+				if (status) { status.textContent = "error"; status.className = "z-badge z-badge-amber"; }
+			} finally {
+				if (input) input.disabled = false;
+				if (send) send.disabled = false;
+			}
+		}
+
+		function homeSelectProject(id) {
+			document.cookie = "lws_project=" + id + "; path=/; SameSite=Lax";
+			location.href = "/";
+		}
+
+		function homeOpenProjectModal() {
+			const modal = document.getElementById("home-project-modal");
+			if (modal) modal.classList.add("open");
+			setTimeout(() => document.getElementById("home-new-project-name")?.focus(), 30);
+		}
+
+		function homeCloseProjectModal() {
+			const modal = document.getElementById("home-project-modal");
+			if (modal) modal.classList.remove("open");
+		}
+
+		async function homeCreateProject() {
+			const input = document.getElementById("home-new-project-name");
+			const name = (input?.value || "").trim().toLowerCase();
+			if (!name) return;
+			const res = await fetch("/api/projects/", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: name })
+			});
+			const data = await res.json().catch(() => ({}));
+			if (!res.ok) { toast(data.error || "Could not create project", "error"); return; }
+			document.cookie = "lws_project=" + data.id + "; path=/; SameSite=Lax";
+			location.href = "/";
+		}
+
+		document.getElementById("home-agent-prompt")?.addEventListener("keydown", e => {
+			if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+				e.preventDefault();
+				homeAgentPrompt(e.target.value);
+			}
+		});
+
+		document.querySelectorAll(".z-session-item").forEach(el => {
+			let current = "";
+			try { current = localStorage.getItem(homeSessionKey()) || ""; } catch (err) { /* ignore */ }
+			if (current && el.dataset.sessionId === current) el.classList.add("active");
+		});
+		try {
+			const current = localStorage.getItem(homeSessionKey()) || "";
+			if (current) homeHydrateSession(current);
+		} catch (err) { /* ignore */ }
+	</script>
+}

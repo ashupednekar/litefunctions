@@ -28,6 +28,23 @@ type Settings struct {
 	PodNamespace            string `env:"POD_NAMESPACE" default:"default"`
 	IngestorUrl             string `env:"INGESTOR_URL" default:"http://litefunctions-ingestor:3000"`
 
+	AgentEnabled  bool   `env:"AGENT_ENABLED" default:"true"`
+	AgentUrl      string `env:"OPENCODE_URL" default:"http://litefunctions-opencode:4096"`
+	AgentUsername string `env:"OPENCODE_USERNAME" default:"opencode"`
+	AgentPassword string `env:"OPENCODE_PASSWORD"`
+	AgentModel    string `env:"OPENCODE_MODEL"`
+	AgentName     string `env:"OPENCODE_AGENT" default:"build"`
+	AgentTimeout  int    `env:"OPENCODE_TIMEOUT_SECONDS" default:"300"`
+	// AgentSyncSeconds controls how often a running agent re-syncs the project
+	// repository and refreshes the function list.
+	AgentSyncSeconds int `env:"AGENT_SYNC_SECONDS" default:"60"`
+	// AgentPollSeconds controls how often a running agent refreshes its tool
+	// call activity.
+	AgentPollSeconds int `env:"AGENT_POLL_SECONDS" default:"3"`
+	// MCPToken guards the internal project API used by the MCP server. Leave
+	// empty for cluster-internal-only installations.
+	MCPToken string `env:"MCP_TOKEN"`
+
 	LokiHost string `env:"LOKI_HOST" default:"litefunctions-loki-gateway"`
 	vcs      vcs.Config
 }

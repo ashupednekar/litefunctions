@@ -37,13 +37,13 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		projectIDHex, err := c.Cookie("lws_project")
 		if err != nil {
-			c.JSON(400, gin.H{"error": "project cookie missing"})
+			c.AbortWithStatusJSON(400, gin.H{"error": "project cookie missing"})
 			return
 		}
 
 		projectIDBytes, err := hex.DecodeString(projectIDHex)
 		if err != nil || len(projectIDBytes) != 16 {
-			c.JSON(400, gin.H{"error": "invalid project id in cookie"})
+			c.AbortWithStatusJSON(400, gin.H{"error": "invalid project id in cookie"})
 			return
 		}
 		var projectUUID pgtype.UUID
@@ -53,14 +53,14 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 		pq := projectadaptors.New(s.DBPool)
 		proj, err := pq.GetProjectByID(c.Request.Context(), projectUUID)
 		if err != nil {
-			c.JSON(404, gin.H{"error": "project not found"})
+			c.AbortWithStatusJSON(404, gin.H{"error": "project not found"})
 			return
 		}
 		projectName := proj.Name
 
 		userID, ok := c.Get("userID")
 		if !ok {
-			c.JSON(401, gin.H{"error": "unauthorized"})
+			c.AbortWithStatusJSON(401, gin.H{"error": "unauthorized"})
 			return
 		}
 		userIDBytes := userID.([]byte)
@@ -72,12 +72,12 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 				ProjectID: projectUUID,
 			})
 			if errors.Is(err, pgx.ErrNoRows) {
-				c.JSON(403, gin.H{"error": "forbidden"})
+				c.AbortWithStatusJSON(403, gin.H{"error": "forbidden"})
 				return
 			}
 			if err != nil {
 				slog.Error("failed to check project access", "project", projectName, "error", err)
-				c.JSON(500, gin.H{"error": "failed to check project access"})
+				c.AbortWithStatusJSON(500, gin.H{"error": "failed to check project access"})
 				return
 			}
 		}
@@ -85,7 +85,7 @@ func ProjectMiddleware(s *state.AppState) gin.HandlerFunc {
 		r, err := vcs.NewRepo(config.Cfg.VCSConfig(), projectName, nil)
 		if err != nil {
 			slog.Error("repo.NewGitRepo failed", "project", projectName, "error", err)
-			c.JSON(500, gin.H{"error": "error instantiating repo"})
+			c.AbortWithStatusJSON(500, gin.H{"error": "error instantiating repo"})
 			return
 		}
 		c.Set("repo", r)

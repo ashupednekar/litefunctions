@@ -23,6 +23,7 @@ require (
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.5.2 // indirect
+	github.com/ashupednekar/litefunctions/agent v0.0.0
 	github.com/bytedance/sonic v1.14.0 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
@@ -85,3 +86,5 @@ require (
 replace github.com/ashupednekar/litefunctions/ingestor => ../ingestor
 
 replace github.com/ashupednekar/litefunctions/common => ../common
+
+replace github.com/ashupednekar/litefunctions/agent => ../agent
