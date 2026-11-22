@@ -231,28 +231,39 @@ def encode_payload(value: Any) -> bytes:
     return str(value).encode("utf-8")
 
 
+def infer_media_type(text: str, path: str) -> str:
+    lower_path = (path or "").lower()
+    if lower_path.endswith(".css"):
+        return "text/css"
+    if lower_path.endswith(".js"):
+        return "application/javascript"
+    if lower_path.endswith(".html"):
+        return "text/html"
+    trimmed = text.lstrip("\ufeff \t\r\n")
+    lower = trimmed.lower()
+    if lower.startswith("<!doctype") or lower.startswith("<html"):
+        return "text/html"
+    if lower.startswith("<") and ">" in lower[:200]:
+        # HTML fragments returned by UI handlers.
+        return "text/html"
+    return "application/json"
+
+
 def http_response(value: Any, path: str) -> Response:
     """Turn a handler's return value into an HTTP response.
 
-    UI handlers commonly return HTML strings or Response objects. Infer the
-    media type from the path/extension and the value shape instead of always
-    JSON-encoding the result.
+    UI handlers commonly return HTML strings, bytes, or Response objects.
+    Infer the media type from the path/extension and the value shape instead of
+    always JSON-encoding the result.
     """
     if isinstance(value, Response):
         return value
+    if isinstance(value, (bytes, bytearray)):
+        raw = bytes(value)
+        media_type = infer_media_type(raw.decode("utf-8", "replace"), path)
+        return Response(content=raw, media_type=media_type, status_code=200)
     if isinstance(value, str):
-        trimmed = value.lstrip()
-        lower_path = (path or "").lower()
-        if lower_path.endswith(".css"):
-            media_type = "text/css"
-        elif lower_path.endswith(".js"):
-            media_type = "application/javascript"
-        elif lower_path.endswith(".html"):
-            media_type = "text/html"
-        elif trimmed.startswith("<!doctype") or trimmed.startswith("<html"):
-            media_type = "text/html"
-        else:
-            media_type = "application/json"
+        media_type = infer_media_type(value, path)
         if media_type == "application/json":
             return Response(
                 content=encode_payload(value),
@@ -263,7 +274,6 @@ def http_response(value: Any, path: str) -> Response:
     return Response(
         content=encode_payload(value), media_type="application/json", status_code=200
     )
-
 
 async def invoke_module(
     state: AppState,
