@@ -23,14 +23,18 @@ func NewDeployment(function *apiv1.Function) *appsv1.Deployment {
 		labels["function"] = function.Spec.Name
 	}
 
+	runtimeRegistry := Cfg.RuntimeRegistry
+	if runtimeRegistry == "" {
+		runtimeRegistry = "ashupednekar535"
+	}
 	var image string
 	switch function.Spec.Language {
 	case "python":
-		image = "ashupednekar535/litefunctions-runtime-py:latest"
+		image = fmt.Sprintf("%s/litefunctions-runtime-py:latest", runtimeRegistry)
 	case "ts":
-		image = "ashupednekar535/litefunctions-runtime-ts:latest"
+		image = fmt.Sprintf("%s/litefunctions-runtime-ts:latest", runtimeRegistry)
 	case "lua":
-		image = "ashupednekar535/litefunctions-runtime-lua:latest"
+		image = fmt.Sprintf("%s/litefunctions-runtime-lua:latest", runtimeRegistry)
 	default:
 		image = fmt.Sprintf("%s/%s/runtime-%s-%s-%s:latest", Cfg.Registry, Cfg.VcsUser, function.Spec.Language, function.Spec.Project, function.Name)
 	}

@@ -221,6 +221,43 @@ function asBytes(value: unknown): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(value));
 }
 
+function mediaTypeFor(text: string, pathname: string): string {
+  const lowerPath = (pathname || "").toLowerCase();
+  if (lowerPath.endsWith(".css")) return "text/css";
+  if (lowerPath.endsWith(".js")) return "application/javascript";
+  if (lowerPath.endsWith(".html")) return "text/html";
+  const trimmed = text.trimStart().toLowerCase();
+  if (trimmed.startsWith("<!doctype") || trimmed.startsWith("<html")) return "text/html";
+  return "application/json";
+}
+
+async function toHttpResponse(value: unknown, pathname: string): Promise<Response> {
+  if (value instanceof Response) {
+    return value;
+  }
+  let item = value;
+  if (item != null && typeof (item as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator] === "function") {
+    for await (const chunk of item as AsyncIterable<unknown>) { item = chunk; break; }
+  } else if (item != null && typeof item !== "string" && typeof (item as { [Symbol.iterator]?: unknown })[Symbol.iterator] === "function") {
+    for (const chunk of item as Iterable<unknown>) { item = chunk; break; }
+  }
+  const bytes = asBytes(item);
+  const text = new TextDecoder().decode(bytes);
+  return new Response(bytes, {
+    status: 200,
+    headers: { "content-type": mediaTypeFor(text, pathname) },
+  });
+}
+
+export async function handleHttpRequest(name: string, request: Request): Promise<Response> {
+  const module = await loadModule(name);
+  if (typeof module.handle !== "function") {
+    throw new Error(`module '${name}' does not export handle(req)`);
+  }
+  const result = await module.handle(request as unknown as RequestLike);
+  return toHttpResponse(result, new URL(request.url).pathname);
+}
+
 export async function* invokeModule(
   _state: AppState,
   name: string,

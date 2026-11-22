@@ -21,7 +21,19 @@ import (
 const (
 	runtimeReadyTimeout  = 10 * time.Second
 	runtimeRetryInterval = 250 * time.Millisecond
+	runtimeDialTimeout   = 2 * time.Second
 )
+
+// runtimeClient bounds connection attempts so an unavailable runtime fails the
+// readiness loop instead of hanging on the OS TCP timeout.
+var runtimeClient = func() *http.Client {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = (&net.Dialer{
+		Timeout:   runtimeDialTimeout,
+		KeepAlive: 30 * time.Second,
+	}).DialContext
+	return &http.Client{Transport: transport}
+}()
 
 type IngestHandler struct {
 	server *Server
@@ -122,7 +134,7 @@ func proxyToRuntime(w http.ResponseWriter, r *http.Request, project, name, names
 		req.Header.Set("X-Litefunction-Name", name)
 		req.Header.Set("X-Litefunction-Project", project)
 
-		resp, err = http.DefaultClient.Do(req)
+		resp, err = runtimeClient.Do(req)
 		if err == nil {
 			break
 		}

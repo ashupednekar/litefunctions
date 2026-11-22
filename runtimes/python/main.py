@@ -83,8 +83,17 @@ def sync_runtime_functions_dir(source_root: str) -> None:
 
 def clear_module_cache() -> None:
     importlib.invalidate_caches()
-    for name in list(MODULE_NAMES):
-        sys.modules.pop(name, None)
+    # Remove the generated package and every submodule it imported. Purging
+    # only MODULE_NAMES left helper modules (and their globals) cached.
+    for module_name in list(sys.modules):
+        if module_name.startswith("litefunction_"):
+            sys.modules.pop(module_name, None)
+    # Drop bytecode too; copied files can keep the same second-level mtime.
+    for root, dirs, _ in os.walk(runtime_functions_path()):
+        for name in list(dirs):
+            if name == "__pycache__":
+                shutil.rmtree(os.path.join(root, name), ignore_errors=True)
+                dirs.remove(name)
     MODULE_NAMES.clear()
     MODULES.clear()
 
@@ -128,7 +137,9 @@ async def sync_repo_and_reload() -> None:
     await asyncio.to_thread(_sync_repo)
     source_root = repo_functions_path()
     await asyncio.to_thread(sync_runtime_functions_dir, source_root)
-    clear_module_cache()
+    # Do not let a request load a module while the cache is being purged.
+    async with MODULE_LOCK:
+        clear_module_cache()
     logger.info(
         "repo sync complete project=%s repo_functions_path=%s runtime_functions_path=%s",
         settings.project,
@@ -220,13 +231,57 @@ def encode_payload(value: Any) -> bytes:
     return str(value).encode("utf-8")
 
 
+def infer_media_type(text: str, path: str) -> str:
+    lower_path = (path or "").lower()
+    if lower_path.endswith(".css"):
+        return "text/css"
+    if lower_path.endswith(".js"):
+        return "application/javascript"
+    if lower_path.endswith(".html"):
+        return "text/html"
+    trimmed = text.lstrip("\ufeff \t\r\n")
+    lower = trimmed.lower()
+    if lower.startswith("<!doctype") or lower.startswith("<html"):
+        return "text/html"
+    if lower.startswith("<") and ">" in lower[:200]:
+        # HTML fragments returned by UI handlers.
+        return "text/html"
+    return "application/json"
+
+
+def http_response(value: Any, path: str) -> Response:
+    """Turn a handler's return value into an HTTP response.
+
+    UI handlers commonly return HTML strings, bytes, or Response objects.
+    Infer the media type from the path/extension and the value shape instead of
+    always JSON-encoding the result.
+    """
+    if isinstance(value, Response):
+        return value
+    if isinstance(value, (bytes, bytearray)):
+        raw = bytes(value)
+        media_type = infer_media_type(raw.decode("utf-8", "replace"), path)
+        return Response(content=raw, media_type=media_type, status_code=200)
+    if isinstance(value, str):
+        media_type = infer_media_type(value, path)
+        if media_type == "application/json":
+            return Response(
+                content=encode_payload(value),
+                media_type=media_type,
+                status_code=200,
+            )
+        return Response(content=value.encode("utf-8"), media_type=media_type, status_code=200)
+    return Response(
+        content=encode_payload(value), media_type="application/json", status_code=200
+    )
+
 async def invoke_module(
     state: AppState,
     name: str,
     req_id: str,
     payload: bytes,
     request: Request | None = None,
-) -> AsyncGenerator[bytes, None]:
+) -> AsyncGenerator[Any, None]:
     module = await load_module(name)
     handler = getattr(module, "handle", None)
     if handler is None:
@@ -246,15 +301,15 @@ async def invoke_module(
 
     if hasattr(result, "__aiter__"):
         async for item in result:
-            yield encode_payload(item)
+            yield item
         return
 
     if inspect.isgenerator(result):
         for item in result:
-            yield encode_payload(item)
+            yield item
         return
 
-    yield encode_payload(result)
+    yield result
 
 
 async def consume_function(state: AppState, name: str) -> None:
@@ -270,7 +325,8 @@ async def consume_function(state: AppState, name: str) -> None:
         try:
             async for out in invoke_module(state, name, req_id, msg.data):
                 await state.nc.publish(
-                    f"{settings.project}.{name}.res.python.{req_id}", out
+                    f"{settings.project}.{name}.res.python.{req_id}",
+                    encode_payload(out),
                 )
         except Exception as exc:
             logger.exception("failed to handle async event for %s: %s", name, exc)
@@ -337,9 +393,7 @@ async def handle_request(path: str, request: Request):
         async for out in invoke_module(state, name, "", body, request=request):
             first = out
             break
-        return Response(
-            content=first or b"", media_type="application/json", status_code=200
-        )
+        return http_response(first, request.url.path)
     except FileNotFoundError:
         return Response(content=f"function '{name}' not found", status_code=404)
     except Exception as exc:
