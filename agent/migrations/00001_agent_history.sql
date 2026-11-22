@@ -4,7 +4,7 @@
 -------------------------------------------------------------------------------
 -- AGENT SESSIONS (one conversation with the agent)
 -------------------------------------------------------------------------------
-CREATE TABLE agent_sessions (
+CREATE TABLE IF NOT EXISTS agent_sessions (
     id TEXT PRIMARY KEY,                       -- OpenCode session ID
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     user_id BYTEA REFERENCES users(id) ON DELETE SET NULL,
@@ -16,12 +16,12 @@ CREATE TABLE agent_sessions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_agent_sessions_project ON agent_sessions(project_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_sessions_project ON agent_sessions(project_id, updated_at DESC);
 
 -------------------------------------------------------------------------------
 -- AGENT CHATS (one prompt + reply turn inside a session)
 -------------------------------------------------------------------------------
-CREATE TABLE agent_chats (
+CREATE TABLE IF NOT EXISTS agent_chats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id TEXT NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -39,13 +39,13 @@ CREATE TABLE agent_chats (
     finished_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_agent_chats_session ON agent_chats(session_id, started_at DESC);
-CREATE INDEX idx_agent_chats_project ON agent_chats(project_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_chats_session ON agent_chats(session_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_agent_chats_project ON agent_chats(project_id, started_at DESC);
 
 -------------------------------------------------------------------------------
 -- AGENT MESSAGES (raw transcript for a session)
 -------------------------------------------------------------------------------
-CREATE TABLE agent_messages (
+CREATE TABLE IF NOT EXISTS agent_messages (
     session_id TEXT NOT NULL REFERENCES agent_sessions(id) ON DELETE CASCADE,
     id TEXT NOT NULL,
     chat_id UUID REFERENCES agent_chats(id) ON DELETE SET NULL,
@@ -59,12 +59,12 @@ CREATE TABLE agent_messages (
     PRIMARY KEY (session_id, id)
 );
 
-CREATE INDEX idx_agent_messages_session ON agent_messages(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_messages_session ON agent_messages(session_id, created_at);
 
 -------------------------------------------------------------------------------
 -- AGENT TOOL CALLS (MCP/tool activity, grouped by chat)
 -------------------------------------------------------------------------------
-CREATE TABLE agent_tool_calls (
+CREATE TABLE IF NOT EXISTS agent_tool_calls (
     session_id TEXT NOT NULL,
     id TEXT NOT NULL,
     message_id TEXT NOT NULL,
@@ -83,8 +83,8 @@ CREATE TABLE agent_tool_calls (
         REFERENCES agent_messages(session_id, id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_agent_tool_calls_chat ON agent_tool_calls(chat_id, created_at);
-CREATE INDEX idx_agent_tool_calls_session ON agent_tool_calls(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_tool_calls_chat ON agent_tool_calls(chat_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_tool_calls_session ON agent_tool_calls(session_id, created_at);
 
 -- +goose StatementEnd
 
