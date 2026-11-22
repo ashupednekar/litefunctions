@@ -67,6 +67,31 @@ spec:
           value: {{ join "," .Values.ui.trustedProxies | quote }}
         - name: COOKIE_SECURE
           value: {{ .Values.gatewayApi.tls.enabled | quote }}
+        - name: AGENT_ENABLED
+          value: {{ .Values.agent.enabled | quote }}
+        {{- if .Values.agent.enabled }}
+        - name: OPENCODE_URL
+          value: {{ printf "http://litefunctions-opencode:%v" .Values.agent.service.port | quote }}
+        - name: OPENCODE_USERNAME
+          value: {{ .Values.agent.username | quote }}
+        - name: OPENCODE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: litefunctions-opencode
+              key: password
+        - name: OPENCODE_AGENT
+          value: {{ .Values.agent.name | quote }}
+        - name: OPENCODE_MODEL
+          value: {{ .Values.agent.model | quote }}
+        - name: OPENCODE_TIMEOUT_SECONDS
+          value: {{ .Values.agent.timeoutSeconds | quote }}
+        - name: AGENT_SYNC_SECONDS
+          value: {{ .Values.agent.syncSeconds | default 60 | quote }}
+        - name: AGENT_POLL_SECONDS
+          value: {{ .Values.agent.pollSeconds | default 3 | quote }}
+        - name: MCP_TOKEN
+          value: {{ .Values.agent.mcp.token | quote }}
+        {{- end }}
         - name: VCS_AUTH_MODE
           value: token
         - name: VCS_USER

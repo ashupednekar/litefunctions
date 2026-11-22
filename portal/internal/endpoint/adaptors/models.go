@@ -54,6 +54,64 @@ func (ns NullProjectRole) Value() (driver.Value, error) {
 	return string(ns.ProjectRole), nil
 }
 
+type AgentChat struct {
+	ID                 pgtype.UUID
+	SessionID          string
+	ProjectID          pgtype.UUID
+	Status             string
+	Prompt             string
+	Reply              string
+	Error              string
+	ToolCalls          int32
+	Functions          []byte
+	LatestFunctionID   pgtype.UUID
+	LatestFunctionName string
+	LastSyncedAt       pgtype.Timestamptz
+	StartedAt          pgtype.Timestamptz
+	FinishedAt         pgtype.Timestamptz
+}
+
+type AgentMessage struct {
+	SessionID string
+	ID        string
+	ChatID    pgtype.UUID
+	Role      string
+	Text      string
+	Parts     []byte
+	Model     pgtype.Text
+	Provider  pgtype.Text
+	Error     pgtype.Text
+	CreatedAt pgtype.Timestamptz
+}
+
+type AgentSession struct {
+	ID        string
+	ProjectID pgtype.UUID
+	UserID    []byte
+	Title     string
+	Directory string
+	Model     string
+	Provider  string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type AgentToolCall struct {
+	SessionID   string
+	ID          string
+	MessageID   string
+	ChatID      pgtype.UUID
+	Tool        string
+	Status      string
+	Title       string
+	Input       []byte
+	Output      string
+	Error       string
+	StartedAt   pgtype.Timestamptz
+	CompletedAt pgtype.Timestamptz
+	CreatedAt   pgtype.Timestamptz
+}
+
 type Credential struct {
 	ID              []byte
 	UserID          []byte
@@ -86,6 +144,7 @@ type Function struct {
 	IsAsync   bool
 	CreatedBy []byte
 	CreatedAt pgtype.Timestamptz
+	IsUi      bool
 }
 
 type Project struct {

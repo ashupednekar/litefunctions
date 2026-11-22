@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 
+	agentmigrations "github.com/ashupednekar/litefunctions/agent/migrations"
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	"github.com/ashupednekar/litefunctions/portal/internal/state/connections"
 	"github.com/ashupednekar/litefunctions/portal/migrations"
@@ -57,15 +60,6 @@ func runMigrations(direction string) error {
 	}
 	defer db.Close()
 
-	goose.SetBaseFS(migrations.Files)
-	// When using embed.FS, the path is relative to the embedded root
-	// Since we embedded "*.sql" in the migrations package, use "."
-	migrationsDir := "."
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		return fmt.Errorf("failed to set dialect: %w", err)
-	}
-
 	_, err = db.Exec("create schema if not exists " + pq.QuoteIdentifier(config.Cfg.DatabaseSchema))
 	if err != nil {
 		return fmt.Errorf("failed to create schema: %w", err)
@@ -77,14 +71,35 @@ func runMigrations(direction string) error {
 		return fmt.Errorf("failed to set search_path: %w", err)
 	}
 
+	portalProvider, err := goose.NewProvider(goose.DialectPostgres, db, migrations.Files)
+	if err != nil {
+		return fmt.Errorf("create portal migration provider: %w", err)
+	}
+	agentProvider, err := goose.NewProvider(
+		goose.DialectPostgres,
+		db,
+		agentmigrations.Files,
+		goose.WithTableName("agent_goose_db_version"),
+	)
+	if err != nil {
+		return fmt.Errorf("create agent migration provider: %w", err)
+	}
+
+	ctx := context.Background()
 	switch direction {
 	case "up":
-		if err := goose.Up(db, migrationsDir); err != nil {
-			return fmt.Errorf("failed to run migrations: %w", err)
+		if _, err := portalProvider.Up(ctx); err != nil {
+			return fmt.Errorf("failed to run portal migrations: %w", err)
+		}
+		if _, err := agentProvider.Up(ctx); err != nil {
+			return fmt.Errorf("failed to run agent migrations: %w", err)
 		}
 	case "down":
-		if err := goose.Down(db, migrationsDir); err != nil {
-			return fmt.Errorf("failed to rollback migration: %w", err)
+		if _, err := agentProvider.Down(ctx); err != nil && !errors.Is(err, goose.ErrNoNextVersion) {
+			return fmt.Errorf("failed to roll back agent migration: %w", err)
+		}
+		if _, err := portalProvider.Down(ctx); err != nil {
+			return fmt.Errorf("failed to roll back portal migration: %w", err)
 		}
 	default:
 		return fmt.Errorf("unknown migration direction: %s", direction)

@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"path/filepath"
 	"strings"
@@ -11,7 +13,6 @@ import (
 	"github.com/ashupednekar/litefunctions/portal/internal/config"
 	endpointadaptors "github.com/ashupednekar/litefunctions/portal/internal/endpoint/adaptors"
 	functionadaptors "github.com/ashupednekar/litefunctions/portal/internal/function/adaptors"
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,15 +25,27 @@ var extLang = map[string]string{
 	".lua": "lua",
 }
 
-func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtype.UUID, projectName string, userID []byte) error {
+// SyncRepoFunctionsToDb walks a project repository and merges functions into
+// the portal database. Agent-authored functions can describe async execution
+// and custom endpoints in .litefunctions/functions.json.
+func SyncRepoFunctionsToDb(ctx context.Context, pool *pgxpool.Pool, projectUUID pgtype.UUID, projectName string, userID []byte) error {
 	r, err := vcs.NewRepo(config.Cfg.VCSConfig(), projectName, nil)
 	if err != nil {
 		return fmt.Errorf("failed to clone repo: %w", err)
 	}
 
+	manifest, err := loadRepoManifest(r)
+	if err != nil {
+		return fmt.Errorf("failed to read function manifest: %w", err)
+	}
+	manifestByKey := make(map[string]common.ManifestFunction, len(manifest.Functions))
+	for _, fn := range manifest.Functions {
+		manifestByKey[fn.Language+"/"+fn.Name] = fn
+	}
+
 	q := functionadaptors.New(pool)
 
-	existingFns, err := q.ListFunctionsForProject(c.Request.Context(), projectUUID)
+	existingFns, err := q.ListFunctionsForProject(ctx, projectUUID)
 	if err != nil {
 		return fmt.Errorf("failed to list existing functions: %w", err)
 	}
@@ -41,21 +54,26 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 	for _, fn := range existingFns {
 		existingPaths[fn.Path] = fn.ID
 	}
+	fnByKey := make(map[string]functionadaptors.Function)
+	for _, fn := range existingFns {
+		fnByKey[fn.Language+"/"+fn.Name] = fn
+	}
 
 	eq := endpointadaptors.New(pool)
-	existingEps, err := eq.ListEndpointsForProject(c.Request.Context(), projectUUID)
+	existingEps, err := eq.ListEndpointsForProject(ctx, projectUUID)
 	if err != nil {
 		return fmt.Errorf("failed to list existing endpoints: %w", err)
 	}
 
-	// map of functionID -> set of methods already defined for it
+	// map of functionID -> set of endpoint name|method already defined
 	existingFnEps := make(map[pgtype.UUID]map[string]bool)
 	for _, ep := range existingEps {
 		if _, ok := existingFnEps[ep.FunctionID]; !ok {
 			existingFnEps[ep.FunctionID] = make(map[string]bool)
 		}
-		existingFnEps[ep.FunctionID][ep.Method] = true
+		existingFnEps[ep.FunctionID][ep.Name+"|"+ep.Method] = true
 	}
+
 	err = walkFunctions(r, "/functions", func(path string) error {
 		ext := filepath.Ext(path)
 		lang, ok := extLang[ext]
@@ -71,16 +89,28 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 			return nil
 		}
 
+		manifestFn, inManifest := manifestByKey[lang+"/"+fnName]
+		isAsync, isUI := false, false
+		var endpoints []common.ManifestEndpoint
+		if inManifest {
+			isAsync = manifestFn.IsAsync
+			isUI = manifestFn.UI
+			endpoints = manifestFn.Endpoints
+		}
+
 		createdFn := false
 		if id, exists := existingPaths[path]; exists {
 			fnID = id
+		} else if existing, exists := fnByKey[lang+"/"+fnName]; exists {
+			fnID = existing.ID
 		} else {
-			fn, err := q.CreateFunction(c.Request.Context(), functionadaptors.CreateFunctionParams{
+			fn, err := q.CreateFunction(ctx, functionadaptors.CreateFunctionParams{
 				ProjectID: projectUUID,
 				Name:      fnName,
 				Language:  lang,
 				Path:      path,
-				IsAsync:   false,
+				IsAsync:   isAsync,
+				IsUi:      isUI,
 				CreatedBy: userID,
 			})
 			if err != nil {
@@ -89,41 +119,102 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 			}
 			fnID = fn.ID
 			createdFn = true
+			fnByKey[lang+"/"+fnName] = fn
 		}
 
-		// Ensure automatic endpoint: /project/name (POST)
-		if methods, ok := existingFnEps[fnID]; !ok || !methods["POST"] {
-			epPath := fmt.Sprintf("/%s/%s", projectName, fnName)
-			_, err = eq.CreateEndpoint(c.Request.Context(), endpointadaptors.CreateEndpointParams{
+		if existing, exists := fnByKey[lang+"/"+fnName]; exists {
+			if !inManifest {
+				// Preserve flags set through the portal; only the manifest is
+				// allowed to override the database values.
+				isAsync = existing.IsAsync
+				isUI = existing.IsUi
+			} else {
+				if existing.IsAsync != isAsync {
+					if updated, err := q.UpdateFunctionIsAsync(ctx, functionadaptors.UpdateFunctionIsAsyncParams{
+						ID:      fnID,
+						IsAsync: isAsync,
+					}); err != nil {
+						slog.Warn("Failed to update function async flag", "name", fnName, "error", err)
+					} else {
+						existing = updated
+						fnByKey[lang+"/"+fnName] = updated
+					}
+				}
+				if existing.IsUi != isUI {
+					if updated, err := q.UpdateFunctionIsUI(ctx, functionadaptors.UpdateFunctionIsUIParams{
+						ID:   fnID,
+						IsUi: isUI,
+					}); err != nil {
+						slog.Warn("Failed to update function ui flag", "name", fnName, "error", err)
+					} else {
+						fnByKey[lang+"/"+fnName] = updated
+					}
+				}
+			}
+		}
+
+		if len(endpoints) == 0 {
+			method := "POST"
+			if isAsync {
+				method = "GET"
+			}
+			endpoints = []common.ManifestEndpoint{{
+				Name:   fmt.Sprintf("/%s/%s", projectName, fnName),
+				Method: method,
+				Scope:  "public",
+			}}
+		}
+
+		if existingFnEps[fnID] == nil {
+			existingFnEps[fnID] = make(map[string]bool)
+		}
+		for _, endpoint := range endpoints {
+			name := strings.TrimSpace(endpoint.Name)
+			if name == "" {
+				name = fmt.Sprintf("/%s/%s", projectName, fnName)
+			}
+			method := strings.ToUpper(strings.TrimSpace(endpoint.Method))
+			if method == "" {
+				method = "POST"
+			}
+			scope := strings.TrimSpace(endpoint.Scope)
+			if scope == "" {
+				scope = "public"
+			}
+			key := name + "|" + method
+			if existingFnEps[fnID][key] {
+				continue
+			}
+			_, err = eq.CreateEndpoint(ctx, endpointadaptors.CreateEndpointParams{
 				ProjectID:  projectUUID,
-				Name:       epPath,
-				Method:     "POST",
-				Scope:      "public",
+				Name:       name,
+				Method:     method,
+				Scope:      scope,
 				FunctionID: fnID,
 			})
 			if err != nil {
-				slog.Warn("Failed to create automatic endpoint", "name", fnName, "error", err)
-			} else {
-				slog.Debug("Created missing automatic endpoint", "name", fnName, "endpoint", epPath)
+				slog.Warn("Failed to create endpoint", "name", name, "method", method, "error", err)
+				continue
 			}
+			existingFnEps[fnID][key] = true
 		}
 
 		if createdFn {
 			_, err = common.CreateFunctionResource(
-				c.Request.Context(),
+				ctx,
 				config.Cfg.OperatorUrl,
 				config.Cfg.PodNamespace,
 				fnName,
 				projectName,
 				lang,
-				false,
+				isAsync,
 			)
 			if err != nil {
 				slog.Warn("Failed to create function CRD", "name", fnName, "error", err)
 			}
 		}
 
-		slog.Debug("Synced function", "name", fnName, "lang", lang)
+		slog.Debug("Synced function", "name", fnName, "lang", lang, "async", isAsync)
 		return nil
 	})
 
@@ -132,6 +223,19 @@ func SyncRepoFunctionsToDb(c *gin.Context, pool *pgxpool.Pool, projectUUID pgtyp
 	}
 
 	return nil
+}
+
+func loadRepoManifest(r vcs.Repo) (*common.FunctionsManifest, error) {
+	file, err := r.Filesystem().Open(common.FunctionsManifestPath)
+	if err != nil {
+		return common.ParseFunctionsManifest(nil)
+	}
+	defer file.Close()
+	body, err := io.ReadAll(io.LimitReader(file, 1<<20))
+	if err != nil {
+		return nil, err
+	}
+	return common.ParseFunctionsManifest(body)
 }
 
 func walkFunctions(r vcs.Repo, dir string, fn func(path string) error) error {
